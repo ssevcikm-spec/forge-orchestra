@@ -56,6 +56,19 @@ function secretOk(request: Request, env: Env): boolean {
   return timingSafeEqual(request.headers.get("x-forge-secret") || "", env.WEBHOOK_SECRET);
 }
 
+// Notifikační fetch s timeoutem: bez něj ntfy/Telegram umí viset a blokovat
+// odpověď endpointu (naměřeno: /game vracel odpověď až po ~20 s). Když kanál
+// nestihne odpovědět, abortne se a pokračuje se dál.
+async function fetchTimeout(url: string, init: RequestInit, ms = 6000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function notify(env: Env, title: string, message: string, tags = "robot"): Promise<void> {
   // Notifikace jde do VŠECH nastavených kanálů. Je to schválně: ntfy.sh vrací
   // z Cloudflare často 429 (Workery sdílejí IP adresy a ntfy podle IP limituje),
@@ -67,7 +80,7 @@ async function notify(env: Env, title: string, message: string, tags = "robot"):
   if (tgToken && tgChat) {
     jobs.push((async () => {
       try {
-        const res = await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
+        const res = await fetchTimeout(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -87,7 +100,7 @@ async function notify(env: Env, title: string, message: string, tags = "robot"):
   if (discord) {
     jobs.push((async () => {
       try {
-        const res = await fetch(discord, {
+        const res = await fetchTimeout(discord, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ content: `${title}\n${message}`.slice(0, 1900) }),
@@ -104,7 +117,7 @@ async function notify(env: Env, title: string, message: string, tags = "robot"):
     const server = (env.NTFY_SERVER || "https://ntfy.sh").replace(/\/$/, "");
     jobs.push((async () => {
       try {
-        const res = await fetch(`${server}/${topic}`, {
+        const res = await fetchTimeout(`${server}/${topic}`, {
           method: "POST",
           // ntfy vyžaduje ASCII hlavičky – titulky proto držíme bez diakritiky
           headers: { Title: title, Tags: tags, Priority: "default" },
