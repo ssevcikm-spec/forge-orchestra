@@ -127,7 +127,8 @@ async function notify(env: Env, title: string, message: string, tags = "robot"):
 // --------------------------------------------------------------- GitHub ----
 async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<void> {
   const workflow = env.WORKFLOW_FILE || "agent.yml";
-  const url = `https://api.github.com/repos/${env.GITHUB_REPO}/actions/workflows/${workflow}/dispatches`;
+  const repo = repoOf(task.payload, env);
+  const url = `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -160,8 +161,18 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<v
 //   2) conductor uvidí i běh, který spadne dřív, než by stihl poslat report,
 //   3) conductor tak pozná výsledek i z pull requestu, který agent otevřel.
 // Workflow proto má v `run-name` své run_key a conductor ho podle toho najde.
-async function github(env: Env, path: string): Promise<any> {
-  const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}${path}`, {
+function repoOf(payload: string | null, env: Env): string {
+  // Repo se u úkolu drží v payload JSON. Bez něj se bere defaultní GITHUB_REPO
+  // (zpětná kompatibilita s dobou, kdy orchestr obsluhoval jediné repo).
+  try {
+    const p = JSON.parse(payload || "{}");
+    if (typeof p.repo === "string" && p.repo) return p.repo;
+  } catch { /* */ }
+  return env.GITHUB_REPO;
+}
+
+async function github(env: Env, repo: string, path: string): Promise<any> {
+  const res = await fetch(`https://api.github.com/repos/${repo}${path}`, {
     headers: {
       Authorization: `Bearer ${env.GITHUB_TOKEN}`,
       Accept: "application/vnd.github+json",
@@ -177,25 +188,33 @@ async function github(env: Env, path: string): Promise<any> {
 
 async function pollRuns(env: Env): Promise<string> {
   const rows = await env.DB.prepare(
-    `SELECT r.id AS run_id, r.run_key, r.task_id, t.title
+    `SELECT r.id AS run_id, r.run_key, r.task_id, t.title, t.payload
        FROM runs r JOIN tasks t ON t.id = r.task_id
       WHERE r.status = 'running' AND r.worker IS NULL
-      ORDER BY r.id LIMIT 10`,
-  ).all<{ run_id: number; run_key: string; task_id: number; title: string }>();
+      ORDER BY r.id LIMIT 25`,
+  ).all<{ run_id: number; run_key: string; task_id: number; title: string; payload: string | null }>();
   if (!rows.results?.length) return "zadny cloudovy beh nebezi";
 
-  let runs: any[];
-  try {
-    const data = await github(env, "/actions/runs?event=workflow_dispatch&per_page=50");
-    runs = data.workflow_runs || [];
-  } catch (e) {
-    return `GitHub se neozval: ${String(e).slice(0, 120)}`;
+  // GitHub API se volá jednou na repo, ne na každý běh.
+  const cache = new Map<string, any[]>();
+  async function runsOf(repo: string): Promise<any[]> {
+    if (cache.has(repo)) return cache.get(repo)!;
+    try {
+      const data = await github(env, repo, "/actions/runs?event=workflow_dispatch&per_page=50");
+      cache.set(repo, data.workflow_runs || []);
+    } catch (e) {
+      console.log(`GitHub ${repo} se neozval: ${String(e).slice(0, 120)}`);
+      cache.set(repo, []);
+    }
+    return cache.get(repo)!;
   }
 
-  const owner = env.GITHUB_REPO.split("/")[0];
   let updated = 0;
-
   for (const row of rows.results) {
+    const repo = repoOf(row.payload, env);
+    const owner = repo.split("/")[0];
+    const runs = await runsOf(repo);
+
     // Běh hledáme podle run_key, který workflow dostane a vloží do svého jména
     // (`run-name`). Kontrolujeme obě pole: `name` i `display_title`. Dokud běh
     // stojí ve frontě, GitHub ještě jméno nemusí mít vyplněné – když sledujeme
@@ -209,8 +228,7 @@ async function pollRuns(env: Env): Promise<string> {
     let merged = false;
     if (ok) {
       try {
-        const prs = await github(env,
-          `/pulls?head=${owner}:forge/task-${row.task_id}&state=all`);
+        const prs = await github(env, repo, `/pulls?head=${owner}:forge/task-${row.task_id}&state=all`);
         prUrl = prs?.[0]?.html_url ?? null;
         // `run.status === completed` znamená, že doběhl CELÝ workflow – tedy
         // i krok automatického sloučení. Stav mergnutí je proto v tuhle chvíli
@@ -263,32 +281,37 @@ interface RoadmapItem {
   title: string;
   prompt: string;
   kind?: string;
-  depends_on?: string[];  // id granulí, které musejí být sloučené dřív
+  depends_on?: string[];  // id granulí, které musejí být sloučené dřív (v rámci hry)
   owns?: string[];        // soubory, které granule smí měnit (zámek souběhu)
 }
 
-async function roadmapTick(env: Env): Promise<string> {
-  const file = env.ROADMAP_FILE || ".forge/roadmap.json";
+interface Game {
+  game_id: string;
+  repo: string;
+  roadmap_file: string;
+  active: number;
+}
 
-  let items: RoadmapItem[] = [];
-  try {
-    const data = await github(env, `/contents/${file}`);
-    // Obsah chodí v base64; přes bajty se správně dekóduje i čeština.
-    const bytes = Uint8Array.from(
-      atob(String(data.content || "").replace(/\n/g, "")),
-      (c) => c.charCodeAt(0),
-    );
-    // DAG se čte z `grains`; zpětná kompatibilita: starý formát měl `tasks`.
-    const parsed = JSON.parse(new TextDecoder().decode(bytes));
-    items = (parsed.grains || parsed.tasks || []) as RoadmapItem[];
-  } catch (e) {
-    return `roadmapu nejde přečíst: ${String(e).slice(0, 120)}`;
-  }
-  if (!items.length) return "roadmapa je prázdná";
+async function listGames(env: Env): Promise<Game[]> {
+  const rows = await env.DB.prepare(
+    "SELECT game_id, repo, roadmap_file, active FROM games WHERE active = 1 ORDER BY game_id",
+  ).all<Game>();
+  if (rows.results?.length) return rows.results;
+  // Zpětná kompatibilita: žádná registrovaná hra = jeden defaultní repo, jako dřív.
+  return [{
+    game_id: "default",
+    repo: env.GITHUB_REPO,
+    roadmap_file: env.ROADMAP_FILE || ".forge/roadmap.json",
+    active: 1,
+  }];
+}
+
+async function roadmapTick(env: Env): Promise<string> {
+  const games = await listGames(env);
 
   // „Hotové" = granule, jejichž úloha je done (sloučená). „Dispatchnuté" = cokoli,
-  // co už je v tabulce roadmap (abychom granuli nezaložili dvakrát, i když se
-  // její úloha ještě vrací do fronty na pokus).
+  // co už je v tabulce roadmap. item_id má tvar {game_id}/{grain_id}, aby se
+  // granule dvou her nesrazily.
   const doneRows = await env.DB.prepare(
     "SELECT r.item_id FROM roadmap r JOIN tasks t ON t.id = r.task_id WHERE t.status = 'done'",
   ).all<{ item_id: string }>();
@@ -296,13 +319,17 @@ async function roadmapTick(env: Env): Promise<string> {
   const allRows = await env.DB.prepare("SELECT item_id FROM roadmap").all<{ item_id: string }>();
   const dispatched = new Set((allRows.results || []).map((r) => r.item_id));
 
-  // Nezahrnout uživatele hromadou pull requestů, které zatím nikdo nezkontroloval.
+  // Nezahrnout uživatele hromadou pull requestů (limit se hlídá přes všechny hry).
   const maxPrs = Number(env.ROADMAP_MAX_PRS || "3");
   try {
-    const prs = await github(env, "/pulls?state=open&per_page=30");
-    if (Array.isArray(prs) && prs.length >= maxPrs) {
-      return `čeká se na kontrolu ${prs.length} otevřených PR (limit ${maxPrs})`;
+    let open = 0;
+    for (const g of games) {
+      try {
+        const prs = await github(env, g.repo, "/pulls?state=open&per_page=30");
+        if (Array.isArray(prs)) open += prs.length;
+      } catch { /* */ }
     }
+    if (open >= maxPrs) return `čeká se na kontrolu ${open} otevřených PR (limit ${maxPrs})`;
   } catch {
     /* když se stav PR nepodaří zjistit, radši pokračujeme */
   }
@@ -316,27 +343,51 @@ async function roadmapTick(env: Env): Promise<string> {
     try { for (const f of (JSON.parse(r.payload || "{}").owns || [])) locked.add(f); } catch { /* */ }
   }
 
-  // Připravené granule: ne-dispatchnuté, všechny depends_on hotové, owns volné.
-  const ready = items.filter((i) =>
-    !dispatched.has(i.id)
-    && (i.depends_on || []).every((d) => done.has(d))
-    && !(i.owns || []).some((f) => locked.has(f)),
-  );
-  if (!ready.length) return "roadmapa je hotová (nebo čeká na závislosti)";
-
   let created = 0;
-  for (const g of ready) {
-    const res = await env.DB.prepare(
-      "INSERT INTO tasks (title, kind, target, prompt, payload) VALUES (?, ?, 'cloud', ?, ?)",
-    ).bind(g.title, g.kind || "code", g.prompt,
-           JSON.stringify({ owns: g.owns || [], grain: g.id })).run();
-    await env.DB.prepare("INSERT INTO roadmap (item_id, task_id) VALUES (?, ?)")
-      .bind(g.id, res.meta.last_row_id).run();
-    created++;
+  const createdKeys: string[] = [];
+
+  for (const g of games) {
+    let items: RoadmapItem[] = [];
+    try {
+      const data = await github(env, g.repo, `/contents/${g.roadmap_file}`);
+      // Obsah chodí v base64; přes bajty se správně dekóduje i čeština.
+      const bytes = Uint8Array.from(
+        atob(String(data.content || "").replace(/\n/g, "")),
+        (c) => c.charCodeAt(0),
+      );
+      // DAG se čte z `grains`; zpětná kompatibilita: starý formát měl `tasks`.
+      const parsed = JSON.parse(new TextDecoder().decode(bytes));
+      items = (parsed.grains || parsed.tasks || []) as RoadmapItem[];
+    } catch (e) {
+      console.log(`roadmapa ${g.game_id} nejde přečíst: ${String(e).slice(0, 120)}`);
+      continue; // hra bez čitelné roadmapy se přeskakuje, ostatní jedou dál
+    }
+    if (!items.length) continue;
+
+    // Připravené granule: ne-dispatchnuté, depends_on hotové, owns volné.
+    const ready = items.filter((i) =>
+      !dispatched.has(`${g.game_id}/${i.id}`)
+      && (i.depends_on || []).every((d) => done.has(`${g.game_id}/${d}`))
+      && !(i.owns || []).some((f) => locked.has(f)),
+    );
+    if (!ready.length) continue;
+
+    for (const grain of ready) {
+      const key = `${g.game_id}/${grain.id}`;
+      const res = await env.DB.prepare(
+        "INSERT INTO tasks (title, kind, target, prompt, payload) VALUES (?, ?, 'cloud', ?, ?)",
+      ).bind(grain.title, grain.kind || "code", grain.prompt,
+             JSON.stringify({ owns: grain.owns || [], grain: grain.id, repo: g.repo, game: g.game_id })).run();
+      await env.DB.prepare("INSERT INTO roadmap (item_id, task_id) VALUES (?, ?)")
+        .bind(key, res.meta.last_row_id).run();
+      created++;
+      createdKeys.push(key);
+    }
   }
 
+  if (!created) return "roadmapa je hotová (nebo čeká na závislosti)";
   await notify(env, "Forge: z roadmapy",
-    `založeno ${created} granulí: ${ready.map((g) => g.id).join(", ")}`, "clipboard");
+    `založeno ${created} granulí: ${createdKeys.join(", ")}`, "clipboard");
   return `z roadmapy založeno ${created} granulí`;
 }
 
@@ -490,13 +541,15 @@ export default {
         .first<{ n: number }>();
       const r = await env.DB.prepare("SELECT COUNT(*) AS n FROM runs WHERE status='running'")
         .first<{ n: number }>();
+      const g = await env.DB.prepare("SELECT COUNT(*) AS n FROM games WHERE active=1")
+        .first<{ n: number }>();
       const w = await env.DB.prepare(
         `SELECT name, kinds, last_seen,
                 CAST((julianday('now') - julianday(last_seen)) * 1440 AS INTEGER) AS minutes_ago
            FROM workers ORDER BY last_seen DESC LIMIT 10`,
       ).all();
       return json({ ok: true, time: new Date().toISOString(), ready: t?.n ?? 0,
-                    running: r?.n ?? 0, workers: w.results });
+                    running: r?.n ?? 0, games: g?.n ?? 0, workers: w.results });
     }
 
     // Ruční tik (testování i externí budík typu cron-job.org)
@@ -514,7 +567,7 @@ export default {
     // Fronta, běhy a uzly obsahují zadání úkolů – proto je chráníme tajemstvím.
     // Veřejné je jen /health (kvůli hlídání dostupnosti). /report má vlastní
     // kontrolu (HMAC podpis z Actions, nebo hlavička s tajemstvím od workera).
-    if ((path === "/queue" || path === "/status" || path === "/workers")
+    if ((path === "/queue" || path === "/status" || path === "/workers" || path === "/games")
         && !secretOk(request, env)) {
       return json({ error: "bad secret" }, 401);
     }
@@ -539,6 +592,27 @@ export default {
     if (path === "/workers") {
       const workers = await env.DB.prepare("SELECT * FROM workers ORDER BY last_seen DESC").all();
       return json({ workers: workers.results });
+    }
+
+    // Registr her: seznam + přihlášení. Herní dokument (DESIGN.md + roadmap.json)
+    // v novém repu se do orchestra přihlásí přes POST /game — pak si conductor
+    // roadmapu sám najde a začne na hře pracovat.
+    if (path === "/games") {
+      const games = await env.DB.prepare("SELECT * FROM games ORDER BY game_id").all();
+      return json({ games: games.results });
+    }
+
+    if (path === "/game" && request.method === "POST") {
+      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
+      const body = await request.json<{ game_id?: string; repo?: string; roadmap_file?: string }>();
+      if (!body.game_id || !body.repo) return json({ error: "chybi game_id nebo repo" }, 400);
+      await env.DB.prepare(
+        `INSERT INTO games (game_id, repo, roadmap_file) VALUES (?, ?, ?)
+         ON CONFLICT(game_id) DO UPDATE SET
+           repo = excluded.repo, roadmap_file = excluded.roadmap_file, active = 1`,
+      ).bind(body.game_id, body.repo, body.roadmap_file || ".forge/roadmap.json").run();
+      await notify(env, "Forge: hra zaregistrovaná", `${body.game_id} → ${body.repo}`, "game_die");
+      return json({ ok: true, game_id: body.game_id, repo: body.repo });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
@@ -640,7 +714,7 @@ export default {
     return json({
       service: "forge-conductor",
       endpoints: ["/health", "/tick", "/poll", "/queue", "/status", "/workers",
-                  "/heartbeat", "/claim", "/task", "/report"],
+                  "/games", "/game", "/heartbeat", "/claim", "/task", "/report"],
     });
   },
 };

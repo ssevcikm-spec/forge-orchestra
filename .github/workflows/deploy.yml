@@ -30,4 +30,8 @@ jobs:
           # Default wrangler-action je 3.90.0, který koliduje (ERESOLVE) —
           # proto tady výslovně 4.x.
           wranglerVersion: '4.143.1'
+          # Aplikuj D1 schéma (idempotentní CREATE TABLE IF NOT EXISTS) před
+          # deployem, ať se změny tabulek nasazují společně s kódem.
+          preCommands: |
+            wrangler d1 execute forge-conductor --remote --file=schema.sql
           workingDirectory: conductor

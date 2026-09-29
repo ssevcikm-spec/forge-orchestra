@@ -53,9 +53,22 @@ CREATE TABLE IF NOT EXISTS workers (
 -- Co už orchestr vzal z roadmapy (.forge/roadmap.json v repu).
 -- Díky tomu umí sám pokračovat v práci, i když mu nikdo nezadá úkol –
 -- a zároveň se každá položka udělá jen jednou.
+-- item_id je ve tvaru "{game_id}/{grain_id}", aby se granule dvou her nesrazily.
 CREATE TABLE IF NOT EXISTS roadmap (
   item_id     TEXT PRIMARY KEY,
   task_id     INTEGER,
   status      TEXT NOT NULL DEFAULT 'queued',  -- queued | done | failed
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Registr her, na kterých orchestr pracuje. Když je prázdný, orchestr jede na
+-- jednom repu (GITHUB_REPO), přesně jako dřív – zpětná kompatibilita.
+-- Herní dokument (DESIGN.md + roadmap.json) se do orchestra přihlásí přes
+-- POST /game; pak si conductor roadmapu najde sám a začne na hře pracovat.
+CREATE TABLE IF NOT EXISTS games (
+  game_id      TEXT PRIMARY KEY,               -- např. "uo-shadows"
+  repo         TEXT NOT NULL,                  -- "vlastnik/repo"
+  roadmap_file TEXT NOT NULL DEFAULT '.forge/roadmap.json',
+  active       INTEGER NOT NULL DEFAULT 1,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
 );
