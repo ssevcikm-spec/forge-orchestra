@@ -1,0 +1,18 @@
+# Tajemství — NIKDY do gitu (žijí v Cloudflare Secrets / GitHub Secrets)
+.env
+.dev.vars
+.secrets/
+
+# Wrangler stav a auth (po `wrangler login` obsahuje OAuth token)
+.wrangler/
+conductor/.wrangler/
+
+# Node
+node_modules/
+.npm-cache/
+
+# Lokální dočasné a logy
+.tmp/
+.test/
+.state/
+*.log

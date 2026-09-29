@@ -1,0 +1,57 @@
+# Conductor – konfigurace pro Cloudflare Workers (free plán).
+#
+# Nasazení:
+#   npx wrangler d1 create forge-conductor          (jednorazove, vrati database_id)
+#   npx wrangler d1 execute forge-conductor --remote --file=./schema.sql
+#   npx wrangler secret put GITHUB_TOKEN            (fine-grained PAT)
+#   npx wrangler secret put WEBHOOK_SECRET          (napr. openssl rand -hex 32)
+#   npx wrangler secret put NTFY_TOPIC
+#   npx wrangler deploy
+#
+# POZOR: Workers free mají 10 ms CPU na invokaci – conductor záměrně nic nepočítá,
+# jen čte/píše D1 a volá GitHub API.
+
+name = "forge-conductor"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+
+# Kdy conductor tikne. KAŽDOU MINUTU – tik je jen záchranná síť (dokud není
+# dispatch přímo po /report). Původně */15 znamenalo, že když úloha skončila za
+# 5 minut, dalších ~10 minut se nic nedělo; při dvaceti úkolech to byly hodiny
+# čistého čekání. Free plán to unese (1440 invokací/den proti limitu 100 000
+# požadavků denně) a dispatch je bezpečný i při častém tiku, protože se stav
+# mění atomicky (UPDATE ... WHERE status='ready').
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+GITHUB_REPO = "ssevcikm-spec/uo-shadows"
+GITHUB_REF = "main"
+WORKFLOW_FILE = "agent.yml"
+NTFY_SERVER = "https://ntfy.sh"
+MAX_CONCURRENT = "5"
+STALE_MINUTES = "90"
+
+# Vlastní práce orchestra: když je fronta prázdná, vezme si další položku
+# z tohoto souboru v repu. ROADMAP_MAX_PRS hlídá, aby nevzniklo víc
+# otevřených pull requestů, než uživatel stíhá kontrolovat.
+#
+# DAG: granule deklarují `depends_on` a `owns`. Souběh je bezpečný, protože
+# granule v jedné vlně mají DISJUNKTNÍ `owns` (nesahají do stejného souboru),
+# takže si PR nemůžou odporovat. Proto tu může být > 1.
+ROADMAP_FILE = ".forge/roadmap.json"
+ROADMAP_MAX_PRS = "5"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "forge-conductor"
+database_id = "e45ce420-f7db-4f25-98ca-bb2af43fcaa6"
+
+# Volitelné úložiště pro buildy a logy (free: 10 GB, egress zdarma).
+# Odkomentuj po `npx wrangler r2 bucket create forge-artifacts`.
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "forge-artifacts"
+
+[observability]
+enabled = true

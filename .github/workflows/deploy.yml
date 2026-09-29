@@ -1,0 +1,29 @@
+name: Deploy conductor (Cloudflare)
+
+# Automatický deploy conductora z gitu. Změny v conductor/ se po pushi do main
+# nasadí na Cloudflare Workers. Runtime tajemství (WEBHOOK_SECRET, GITHUB_TOKEN,
+# TELEGRAM_BOT_TOKEN, …) žijí v Cloudflare a deployem se nemažou — sem patří jen
+# přihlašovací token wrangleru.
+#
+# Potřebuje dvě GitHub Secrets (Repo → Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   API token s právy Workers Scripts → Edit + D1 → Edit
+#   CLOUDFLARE_ACCOUNT_ID  ID účtu (Cloudflare dashboard → pravý boční panel)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'conductor/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: conductor
