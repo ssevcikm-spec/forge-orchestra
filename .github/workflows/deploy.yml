@@ -26,4 +26,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Musí ladit s conductor/package.json (@cloudflare/workers-types@^5).
+          # Default wrangler-action je 3.90.0, který koliduje (ERESOLVE) —
+          # proto tady výslovně 4.x.
+          wranglerVersion: '4.143.1'
           workingDirectory: conductor
