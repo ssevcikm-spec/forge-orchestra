@@ -25,8 +25,16 @@
 //   FORGE_WORKER   název uzlu (např. "redmi-note8")
 //   FORGE_KINDS    co uzel umí, čárkou (např. "test,build,assets")
 //   FORGE_GODOT    cesta ke Godotu (nepovinné; jinak se hledá v PATH)
+//   FORGE_CMD      cesta k lokální pipeline forge.cmd (krok `forge:`; jen na PC)
 //   FORGE_WORKDIR  kam klonovat repo (výchozí ~/forge/work)
+//   FORGE_WINDOW   okno práce "HH:MM-HH:MM" (např. "19:00-23:00"; prázdné = pořád)
+//   FORGE_NO_SHELL=1  přeskočit kroky `shell:` bez ptaní (bezobslužný běh)
 //   FORGE_ONCE=1   jeden cyklus a konec (totéž jako --once)
+//
+// SOUHLAS (consent): kroky `shell:` (libovolný příkaz) se vždy zeptají y/N
+// v konzoli; deterministické kroky (godot-*, python, forge:*, make-dir) běží
+// bez ptaní. Druhy úkolů se filtrují přes FORGE_KINDS. Bezobslužný běh
+// (Task Scheduler) by měl běžet s --no-shell.
 //
 // SPUŠTĚNÍ:
 //   node worker.mjs             smyčka (v Termuxu pod Termux:Boot)
@@ -38,6 +46,7 @@ import { execSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { homedir, platform, arch, release } from 'node:os';
+import { createInterface } from 'node:readline';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const IS_WIN = process.platform === 'win32';
@@ -68,8 +77,24 @@ const KINDS = (process.env.FORGE_KINDS || 'test').split(',').map((s) => s.trim()
 const WORKDIR = process.env.FORGE_WORKDIR || join(homedir(), 'forge', 'work');
 const LOGDIR = join(WORKDIR, '..', 'logs');
 const GODOT = process.env.FORGE_GODOT || 'godot';
+// Lokální pipeline forge.cmd (GPU assety, plánování přes Ollama) – jen na PC.
+// Defaultní cesta sedí, když worker běží z orchestra template; v herním repu
+// nastav FORGE_CMD ručně.
+const FORGE_CMD = process.env.FORGE_CMD || join(HERE, '..', '..', '..', '..', 'forge.cmd');
+// Souhlas: kroky `shell:` (libovolný příkaz) se vždy ZEPTAJÍ interaktivně (y/N).
+// --no-shell je pro bezobslužný běh (Task Scheduler): shell kroky se přeskočí,
+// nikdy se nespustí potichu.
+const NO_SHELL = process.argv.includes('--no-shell') || process.env.FORGE_NO_SHELL === '1';
+// Okno, ve kterém worker smí claimovat ("HH:MM-HH:MM"). Prázdné = bez omezení.
+const WINDOW = process.env.FORGE_WINDOW || '';
 const ONCE = process.argv.includes('--once') || process.env.FORGE_ONCE === '1';
 const INTERVAL = Number(arg('--interval', '120'));
+
+// Pracovní adresáře se musí vytvořit HNED: toolVersions()/have() běží s cwd=WORKDIR
+// a dokud adresář neexistoval, spawn padal na ENOENT a nástroje hlásily null
+// (naměřeno: --info na čerstvém stroji ukazovalo všechny nástroje null).
+mkdirSync(WORKDIR, { recursive: true });
+mkdirSync(LOGDIR, { recursive: true });
 
 // --------------------------------------------------------------- nástroje ----
 function have(cmd) {
@@ -104,6 +129,26 @@ function quote(p) {
 
 function log(...args) {
   console.log(new Date().toISOString().slice(11, 19), ...args);
+}
+
+function ask(otazka) {
+  // Interaktivní potvrzení v konzoli (y/N). Uživatel u počítače odpoví jedním písmenem.
+  return new Promise((resolve) => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(otazka, (a) => { rl.close(); resolve(a.trim().toLowerCase()); });
+  });
+}
+
+function vOkne() {
+  // FORGE_WINDOW = "HH:MM-HH:MM" – worker claimuje jen v tomhle okně
+  // (i přes půlnoc, např. 22:00-02:00). Prázdné = bez omezení.
+  if (!WINDOW) return true;
+  const m = WINDOW.match(/^(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})$/);
+  if (!m) return true;
+  const min = new Date().getHours() * 60 + new Date().getMinutes();
+  const a = Number(m[1]) * 60 + Number(m[2]);
+  const b = Number(m[3]) * 60 + Number(m[4]);
+  return a <= b ? (min >= a && min <= b) : (min >= a || min <= b);
 }
 
 // ------------------------------------------------------------------- API ----
@@ -178,9 +223,12 @@ function stepCommand(step) {
     }
     case 'python':
       return `${IS_WIN ? 'python' : 'python3'} ${arg}`;
+    case 'forge':
+      // Lokální pipeline (GPU assety, plánování přes Ollama) – jen na PC.
+      return `${quote(FORGE_CMD)} ${arg}`;
     default:
       throw new Error(`Neznámý krok '${kind}'. Povolené: shell, godot-import, godot-test, `
-                      + 'godot-export, python, make-dir');
+                      + 'godot-export, python, forge, make-dir');
   }
 }
 
@@ -202,7 +250,7 @@ function collectArtifacts(repoDir, rel) {
 }
 
 // ------------------------------------------------------------- vykonání ----
-function execute(task, runKey) {
+async function execute(task, runKey) {
   const payload = task.payload ? JSON.parse(task.payload) : {};
   const steps = payload.steps || [];
   const repoDir = join(WORKDIR, payload.name || 'repo');
@@ -247,6 +295,19 @@ function execute(task, runKey) {
         continue;
       }
       const cmd = stepCommand(step);
+      // Souhlas: krok `shell:` (libovolný příkaz) se VŽDY zeptá interaktivně.
+      // --no-shell ho přeskočí (bezobslužný běh); nikdy se nespustí potichu.
+      if (step.startsWith('shell:')) {
+        if (NO_SHELL) {
+          results.push({ step, ok: false, seconds: '0.0', tail: 'shell přeskočen (--no-shell)' });
+          return fail(step, 'shell přeskočen (--no-shell)');
+        }
+        const odp = await ask(`Spustit shell: ${cmd}\n  [y/N] `);
+        if (odp !== 'y' && odp !== 'yes') {
+          results.push({ step, ok: false, seconds: '0.0', tail: 'odmítnuto uživatelem' });
+          return fail(step, 'odmítnuto uživatelem');
+        }
+      }
       const r = runCmd(cmd, repoDir, logPath);
       const ok = !r.error && r.code === 0;
       results.push({
@@ -267,6 +328,10 @@ function execute(task, runKey) {
 
 // ----------------------------------------------------------------- smyčka ----
 async function cycle() {
+  if (!vOkne()) {
+    log(`mimo okno (${WINDOW}) – čekám`);
+    return false;
+  }
   await api('/heartbeat', {
     method: 'POST',
     body: { kinds: KINDS, info: toolVersions(), platform: `${platform()} ${arch()} ${release()}` },
@@ -282,7 +347,7 @@ async function cycle() {
 
   let result;
   try {
-    result = execute(task, runKey);
+    result = await execute(task, runKey);
   } catch (e) {
     result = { status: 'failed', summary: `Chyba workera: ${String(e).slice(0, 300)}`,
                results: [], artifacts: [] };
@@ -314,6 +379,9 @@ if (process.argv.includes('--info')) {
     workdir: WORKDIR,
     platform: `${platform()} ${arch()} ${release()}`,
     shell: IS_WIN ? 'cmd.exe' : '/bin/sh',
+    forge_cmd: FORGE_CMD,
+    no_shell: NO_SHELL,
+    window: WINDOW || '(bez omezení)',
     tools: toolVersions(),
     nastroje: {
       godot: have(GODOT), python: have(IS_WIN ? 'python' : 'python3'),
