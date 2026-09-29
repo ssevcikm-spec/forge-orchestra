@@ -4,6 +4,7 @@
 // Použití:
 //   node bin/task.mjs add "Nazev ukolu" "Zadani pro agenta" [code|assets|build]
 //   node bin/task.mjs queue
+//   node bin/task.mjs failed
 //   node bin/task.mjs status
 //   node bin/task.mjs tick
 //
@@ -105,6 +106,23 @@ if (cmd === 'add') {
 } else if (cmd === 'queue') {
   const r = await call('/queue');
   console.table(r.data.tasks || r.data);
+} else if (cmd === 'failed') {
+  // Selhané úkoly + jejich běhy s log_tail (podklad pro forge replan)
+  const r = await call('/failed');
+  const tasks = (r.data.tasks || []).map((t) => ({
+    id: t.id,
+    title: (t.title || '').slice(0, 44),
+    grain: (t.payload && t.payload.grain) || '',
+    repo: (t.payload && t.payload.repo) || '',
+    pokusu: t.attempts,
+    behu: (t.runs || []).length,
+  }));
+  console.table(tasks);
+  for (const t of (r.data.tasks || [])) {
+    for (const run of t.runs || []) {
+      if (run.log_tail) console.log(`#${t.id} ${run.run_key.slice(0, 8)}: ${(run.summary || '').slice(0, 80)}`);
+    }
+  }
 } else if (cmd === 'status') {
   const r = await call('/status');
   console.table(r.data.runs || r.data);
@@ -115,6 +133,6 @@ if (cmd === 'add') {
   const r = await call('/health');
   console.log(r.status, JSON.stringify(r.data, null, 2));
 } else {
-  console.error(`Neznámý příkaz '${cmd}'. Na výběr: add, queue, status, workers, tick, poll, health`);
+  console.error(`Neznámý příkaz '${cmd}'. Na výběr: add, queue, failed, status, workers, tick, poll, health`);
   process.exit(2);
 }

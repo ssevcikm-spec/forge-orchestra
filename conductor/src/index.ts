@@ -590,8 +590,8 @@ export default {
     // Fronta, běhy a uzly obsahují zadání úkolů – proto je chráníme tajemstvím.
     // Veřejné je jen /health (kvůli hlídání dostupnosti). /report má vlastní
     // kontrolu (HMAC podpis z Actions, nebo hlavička s tajemstvím od workera).
-    if ((path === "/queue" || path === "/status" || path === "/workers" || path === "/games")
-        && !secretOk(request, env)) {
+    if ((path === "/queue" || path === "/status" || path === "/workers"
+         || path === "/games" || path === "/failed") && !secretOk(request, env)) {
       return json({ error: "bad secret" }, 401);
     }
 
@@ -600,6 +600,42 @@ export default {
         "SELECT id, title, kind, target, status, attempts, created_at FROM tasks ORDER BY id DESC LIMIT 50",
       ).all();
       return json({ tasks: tasks.results });
+    }
+
+    if (path === "/failed") {
+      // Podklad pro `forge replan` (plánovač v2): selhané úkoly i s promptem,
+      // payloadem (repo + grain id) a běhy s log_tail – ať klient nemusí nic
+      // párovat podle názvu. Chráněné tajemstvím jako /queue.
+      const tasks = await env.DB.prepare(
+        `SELECT id, title, kind, target, prompt, payload, status, attempts, created_at
+           FROM tasks WHERE status='failed' ORDER BY id DESC LIMIT 30`,
+      ).all();
+      const runs = await env.DB.prepare(
+        `SELECT task_id, run_key, status, summary, log_tail, pr_url, finished_at
+           FROM runs WHERE status NOT IN ('success', 'running')
+          ORDER BY id DESC LIMIT 120`,
+      ).all();
+      const poUlohach = new Map<number, Record<string, unknown>[]>();
+      for (const r of (runs.results || []) as {
+        task_id: number; run_key: string; status: string;
+        summary: string | null; log_tail: string | null;
+        pr_url: string | null; finished_at: string | null;
+      }[]) {
+        const seznam = poUlohach.get(r.task_id) || [];
+        seznam.push({
+          run_key: r.run_key, status: r.status, summary: r.summary,
+          log_tail: (r.log_tail || "").slice(0, 2000), pr_url: r.pr_url,
+          finished_at: r.finished_at,
+        });
+        poUlohach.set(r.task_id, seznam);
+      }
+      const ven = (tasks.results || []).map((t) => {
+        let payload: Record<string, unknown> = {};
+        try { payload = JSON.parse(String((t as { payload?: string | null }).payload || "{}")); }
+        catch { payload = {}; }
+        return { ...t, payload, runs: poUlohach.get((t as { id: number }).id) || [] };
+      });
+      return json({ tasks: ven });
     }
 
     if (path === "/status") {
@@ -737,7 +773,8 @@ export default {
     return json({
       service: "forge-conductor",
       endpoints: ["/health", "/tick", "/poll", "/queue", "/status", "/workers",
-                  "/games", "/game", "/heartbeat", "/claim", "/task", "/report"],
+                  "/games", "/game", "/heartbeat", "/claim", "/task", "/report",
+                  "/failed"],
     });
   },
 };
