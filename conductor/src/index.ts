@@ -184,6 +184,16 @@ function repoOf(payload: string | null, env: Env): string {
   return env.GITHUB_REPO;
 }
 
+function lockKeys(payload: string | null, env: Env): string[] {
+  // Zámky souborů scoped na repo: dvě hry se stejným jménem souboru (obě mají
+  // scripts/game.gd) se NESMÍ blokovat navzájem – proto klíč "{repo}/{soubor}".
+  try {
+    const p = JSON.parse(payload || "{}");
+    const repo = typeof p.repo === "string" && p.repo ? p.repo : env.GITHUB_REPO;
+    return (p.owns || []).map((f: string) => `${repo}/${f}`);
+  } catch { return []; }
+}
+
 async function github(env: Env, repo: string, path: string): Promise<any> {
   const res = await fetch(`https://api.github.com/repos/${repo}${path}`, {
     headers: {
@@ -353,7 +363,7 @@ async function roadmapTick(env: Env): Promise<string> {
   ).all<{ payload: string | null }>();
   const locked = new Set<string>();
   for (const r of runningRows.results || []) {
-    try { for (const f of (JSON.parse(r.payload || "{}").owns || [])) locked.add(f); } catch { /* */ }
+    for (const k of lockKeys(r.payload, env)) locked.add(k);
   }
 
   let created = 0;
@@ -378,10 +388,11 @@ async function roadmapTick(env: Env): Promise<string> {
     if (!items.length) continue;
 
     // Připravené granule: ne-dispatchnuté, depends_on hotové, owns volné.
+    // Zámek je scoped na repo ({repo}/{soubor}), ať se dvě hry neblokují.
     const ready = items.filter((i) =>
       !dispatched.has(`${g.game_id}/${i.id}`)
       && (i.depends_on || []).every((d) => done.has(`${g.game_id}/${d}`))
-      && !(i.owns || []).some((f) => locked.has(f)),
+      && !(i.owns || []).some((f) => locked.has(`${g.repo}/${f}`)),
     );
     if (!ready.length) continue;
 
@@ -472,8 +483,7 @@ async function tick(env: Env): Promise<string> {
       "SELECT * FROM tasks WHERE status='ready' AND target='cloud' ORDER BY id LIMIT 25",
     ).all<Task>();
     const task = (readyAll.results || []).find((t) => {
-      try { return !(JSON.parse(t.payload || "{}").owns || []).some((f: string) => locked.has(f)); }
-      catch { return true; }
+      return !lockKeys(t.payload, env).some((k) => locked.has(k));
     });
     if (!task) break;
 

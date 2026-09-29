@@ -11,9 +11,14 @@
     "",
     "Když je hotovo, conductor se zastaví sám (a napíše to do notifikace).",
     "Otevřené pull requesty se počítají: když jich visí víc než ROADMAP_MAX_PRS,",
-    "conductor počká, až je zkontroluješ – nemá smysl vršit další."
+    "conductor počká, až je zkontroluješ – nemá smysl vršit další.",
+    "",
+    "DAG (volitelně): `depends_on` = id granulí, které musejí být hotové dřív;",
+    "`owns` = soubory, které granule smí měnit – conductor díky nim pustí",
+    "SOUBĚŽNĚ jen granule s disjunktními owns (bezpečný paralelní dispatch).",
+    "Plánovač (`forge plan`) vyplňuje owns sám ze zadání („V souboru X“)."
   ],
-  "tasks": [
+  "grains": [
     {
       "id": "chest-unlock2",
       "title": "Odemčení východu mincemi (druhý pokus)",
