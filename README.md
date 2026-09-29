@@ -40,9 +40,13 @@ cd orchestra
 
 ## Modely (řetězec free LLM)
 
-`repo/.forge/providers.json` definuje řetězec bezplatných poskytovatelů. Zkouší
-se **popořadě** (štědré rotované podle `run_key`, skromný gemini nakonec) a
-první, kdo odpoví, vyhraje — nikoli paralelně.
+`repo/.forge/providers.json` je **jediný zdroj pravdy** pro řetězec bezplatných
+poskytovatelů. Herní repy si ho **stahují za běhu** (`pick-provider.mjs` fetchně
+čerstvou verzi z `raw.githubusercontent.com`), lokální kopie v repu hry je jen
+záloha. Mrtvý model se proto opraví **jednou tady** a všechny hry ho uvidí.
+
+Zkouší se **popořadě** (štědré rotované podle `run_key`, skromný gemini nakonec)
+a první, kdo odpoví, vyhrává — nikoli paralelně.
 
 - **Kontrola zdraví**: `node repo/.forge/node/providers-check.mjs`
 - **Pravidelná kontrola**: `repo/.github/workflows/model-check.yml` (denně,
@@ -57,3 +61,10 @@ první, kdo odpoví, vyhraje — nikoli paralelně.
 | WEBHOOK_SECRET, NTFY_TOPIC, TELEGRAM_BOT_TOKEN | Cloudflare Secrets |
 | GitHub PAT (dispatch/PR) | Cloudflare Secrets + lokálně `.secrets/` |
 | Klíče free LLM (mistral/gemini/…) | GitHub Secrets herních repů |
+
+> **Proč klíče zůstávají v herních repech:** LLM volání běží v Actions runneru
+> toho repa hry (GitHub ToS — agent smí pracovat jen na svém repu), takže klíč
+> se tam čte lokálně. Je to **jedna hodnota klíče na N repů** (GitHub Secrets
+> jsou per-repo a `ssevcikm-spec` je uživatel, ne organizace — nejsou žádné
+> „org secrets"). Otočení klíče = aktualizace v N repech; `providers.json` to
+> ale řešit neumí, proto je řetězec single-source a klíče zůstávají data.
