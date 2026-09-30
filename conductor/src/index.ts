@@ -913,9 +913,14 @@ export default {
     // probudily úkoly #11–#98 z éry GameForge a začaly se dispatchovat
     // paralelně s novými (#107+), což pálilo free kvótu na dvakrát.
     //
-    // Co smaže: úkoly ve stavu `ready`/`failed`, na které neodkazuje žádný
+    // Úkoly se NEMAŽOU, jen se označí `blocked`: tabulka `runs` má
+    // `task_id REFERENCES tasks(id)`, takže DELETE padá na cizím klíči
+    // (Worker pak vrátí 500). `blocked` úlohy conductor nedispatchuje a `claim`
+    // je taky nebere — a historie běhů zůstane dohledatelná.
+    //
+    // Co označí: úkoly ve stavu `ready`/`failed`, na které neodkazuje žádný
     // řádek `roadmap` a které nejsou zrovna `running`.
-    // Co NEDĚLÁ: nemaže běžící úkoly, hotové úkoly ani historii běhů (`runs`).
+    // Co NEDĚLÁ: nesahá na běžící ani hotové úkoly, nemaže běhy.
     //
     // Doporučený postup: nejdřív se hra vypne (`/game/active` false), pak
     // cleanup, pak se hra zapne — tiky mezitím nezakládají nové úkoly.
@@ -926,29 +931,18 @@ export default {
       const podminka = `status IN ('ready','failed')
           AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`;
 
-      // Seznam ID zvlášť a mazání po dávkách: DELETE s poddotazem narazil na
-      // CPU limit Workeru (10 ms) a házel výjimku 1101.
-      const nalezeno = await env.DB.prepare(
-        `SELECT id FROM tasks WHERE ${podminka} ORDER BY id LIMIT 200`).all<{ id: number }>();
-      const ids = (nalezeno.results || []).map((r) => r.id);
-
       if (body.dry_run) {
+        const n = await env.DB.prepare(`SELECT COUNT(*) AS n FROM tasks WHERE ${podminka}`)
+          .first<{ n: number }>();
         const ukazka = await env.DB.prepare(
           `SELECT id, title, status FROM tasks WHERE ${podminka} ORDER BY id LIMIT 10`).all();
-        return json({ ok: true, dry_run: true, smazal_bych: ids.length,
-                      ukazka: ukazka.results });
+        return json({ ok: true, dry_run: true, oznacil_bych: n?.n ?? 0, ukazka: ukazka.results });
       }
-      if (!ids.length) return json({ ok: true, smazano: 0 });
 
-      let smazano = 0;
-      for (let i = 0; i < ids.length; i += 25) {
-        const davka = ids.slice(i, i + 25);
-        const r = await env.DB.prepare(
-          `DELETE FROM tasks WHERE id IN (${davka.map(() => "?").join(",")})`,
-        ).bind(...davka).run();
-        smazano += r.meta.changes ?? 0;
-      }
-      return json({ ok: true, smazano });
+      const upd = await env.DB.prepare(
+        `UPDATE tasks SET status='blocked', updated_at=datetime('now') WHERE ${podminka}`,
+      ).run();
+      return json({ ok: true, oznaceno_blocked: upd.meta.changes });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
