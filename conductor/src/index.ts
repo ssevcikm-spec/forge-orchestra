@@ -26,6 +26,7 @@ export interface Env {
   ROADMAP_FILE?: string;      // odkud brát úkoly, když je fronta prázdná
   ROADMAP_MAX_PRS?: string;   // kolik otevřených PR od agenta tolerovat (výchozí 3)
   RETRY_HOURS?: string;       // po kolika hodinách smí selhaná granule znovu do fronty (výchozí 6)
+  MAX_ATTEMPTS?: string;      // kolik pokusů smí úloha mít, než zůstane 'failed' (výchozí 5)
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -237,6 +238,7 @@ async function github(env: Env, repo: string, path: string): Promise<any> {
 }
 
 async function pollRuns(env: Env): Promise<string> {
+  const maxAttempts = Number(env.MAX_ATTEMPTS || "5");
   const rows = await env.DB.prepare(
     `SELECT r.id AS run_id, r.run_key, r.task_id, t.title, t.payload
        FROM runs r JOIN tasks t ON t.id = r.task_id
@@ -302,7 +304,7 @@ async function pollRuns(env: Env): Promise<string> {
     } else {
       const t = await env.DB.prepare("SELECT attempts FROM tasks WHERE id=?")
         .bind(row.task_id).first<{ attempts: number }>();
-      const nextStatus = (t?.attempts ?? 0) >= 3 ? "failed" : "ready";
+      const nextStatus = (t?.attempts ?? 0) >= maxAttempts ? "failed" : "ready";
       await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
         .bind(nextStatus, row.task_id).run();
       // Když úkol definitivně selhal, označíme i položku roadmapy. Jinak by
@@ -574,6 +576,11 @@ interface Task {
 async function tick(env: Env): Promise<string> {
   const maxConcurrent = Number(env.MAX_CONCURRENT || "1");
   const staleMin = Number(env.STALE_MINUTES || "90");
+  // Strop pokusů. Slabé free modely mají úspěšnost kolem 10 %, takže tři pokusy
+  // jsou málo (naměřeno 30. 9. 2026: po třech selháních čekala granule 6 h,
+  // i když šlo jen o syntaktickou chybu v jednom souboru). Pět pokusů s kratším
+  // cooldownem drží postup, ale pořád to není nekonečná smyčka.
+  const maxAttempts = Number(env.MAX_ATTEMPTS || "5");
 
   // 0) nejdřív si vyzvedni výsledky běžících cloudových úloh z GitHubu
   const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
@@ -585,16 +592,16 @@ async function tick(env: Env): Promise<string> {
      WHERE status='running' AND started_at < datetime('now', ?)`,
   ).bind(`-${staleMin} minutes`).run();
   if (stale.meta.changes) {
-    // úkol se vrací do fronty; po třech pokusech už ne (řeší /report i claim)
-    // POZOR: `blocked` je terminální stav — úklid (POST /tasks/cleanup) jím
-    // označuje osiřelé úkoly a ty se NESMÍ vracet do fronty, jinak je
-    // stale-recovery resurrectuje a conductor je dispatchuje dokola
-    // (naměřeno 30. 9. 2026: běhy #58 a spol. se obnovovaly každé ~2 minuty).
+    // Úkol se vrací do fronty, ale JEN dokud má pokusy. Bez téhle podmínky
+    // vznikala smyčka: úloha spadla (attempts=3), stale-recovery ji vrátila
+    // jako 'ready', dispatch přidal čtvrtý pokus a běh zůstal navěky
+    // 'running' — naměřeno 30. 9. 2026 (#107/#108/#109 měly attempts 3 a
+    // přesto jely dál). Strop drží `maxAttempts`.
     await env.DB.prepare(
       `UPDATE tasks SET status='ready', updated_at=datetime('now')
-        WHERE status='running' AND attempts < 3
+        WHERE status='running' AND attempts < ?
           AND id IN (SELECT task_id FROM runs WHERE status='timeout')`,
-    ).run().catch((e) => console.log("requeue po timeoutu selhal:", String(e)));
+    ).bind(maxAttempts).run().catch((e) => console.log("requeue po timeoutu selhal:", String(e)));
     await env.DB.prepare(
       `UPDATE tasks SET status='failed', updated_at=datetime('now')
         WHERE status='running'
@@ -1127,9 +1134,14 @@ export default {
           "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id=?",
         ).bind(run.task_id).run().catch(() => undefined);
       } else {
-        const t = await env.DB.prepare("SELECT attempts FROM tasks WHERE id=?")
-          .bind(run.task_id).first<{ attempts: number }>();
-        const nextStatus = (t?.attempts ?? 0) >= 3 ? "failed" : "ready";
+        const t = await env.DB.prepare("SELECT attempts, status FROM tasks WHERE id=?")
+          .bind(run.task_id).first<{ attempts: number; status: string }>();
+        // `blocked` je terminální (úklid) – report ho nesmí vzkřísit na 'ready'.
+        // `done` taky ne: běh mohl doběhnout pozdě, po úspěšnějším pokusu.
+        if (t?.status === "blocked" || t?.status === "done") {
+          return json({ ok: true, task_id: run.task_id, poznamka: `stav '${t.status}' se nemění` });
+        }
+        const nextStatus = (t?.attempts ?? 0) >= maxAttempts ? "failed" : "ready";
         await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
           .bind(nextStatus, run.task_id).run();
         if (nextStatus === "failed") {
