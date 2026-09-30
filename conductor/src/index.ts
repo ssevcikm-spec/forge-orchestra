@@ -850,6 +850,49 @@ export default {
       return json({ ok: true, game_id: body.game_id, active });
     }
 
+    // Reset stavu roadmapy. Potřebné, když se změní ID granulí v souboru
+    // roadmapy (např. přechod `default/*` → `{game}/*` po registraci hry):
+    // staré řádky zůstanou v tabulce a conductor se jimi dál řídí, i když
+    // v souboru už nejsou. Naměřeno 30. 9. 2026: 81 starých řádků drželo
+    // orchestra na mrtvých granulích a granule s `model: strong` se pouštěly
+    // slabým modelům (úloha #103 měla 15 pokusů).
+    //
+    // Co dělá:
+    //   - smaže řádky v `roadmap` (pro jednu hru, nebo všechny),
+    //   - vrátí jejich selhané úkoly do fronty (status='ready', attempts=0),
+    //     aby se rozjely znovu — už se správným modelem z roadmapy.
+    // Co NEDĚLÁ: nemaže úkoly ani běhy (historie zůstává) a nemaže `games`.
+    //
+    // Po resetu se stav obnoví sám: conductor si v dalším tiku načte roadmapu
+    // z repa a založí granule znovu, se správným `{game_id}/{grain_id}`.
+    if (path === "/roadmap/reset" && request.method === "POST") {
+      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
+      const body = await request.json<{ game_id?: string }>().catch(() => ({}));
+
+      const filtr = body.game_id ? " WHERE item_id LIKE ?" : "";
+      const vazba = body.game_id ? " WHERE item_id LIKE ?" : "";
+      const bindy = body.game_id ? [`${body.game_id}/%`] : [];
+
+      if (body.game_id) {
+        const g = await env.DB.prepare("SELECT game_id FROM games WHERE game_id = ?")
+          .bind(body.game_id).first();
+        if (!g) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);
+      }
+
+      // POZOR na pořadí: úkoly se hledají PŘES tabulku roadmap, takže se musí
+      // přečíst dřív, než se řádky smažou.
+      const upd = await env.DB.prepare(
+        `UPDATE tasks SET status='ready', attempts=0, updated_at=datetime('now')
+          WHERE status='failed' AND id IN (
+            SELECT task_id FROM roadmap${vazba} AND task_id IS NOT NULL
+          )`,
+      ).bind(...bindy).run();
+      const del = await env.DB.prepare(`DELETE FROM roadmap${filtr}`).bind(...bindy).run();
+
+      return json({ ok: true, game_id: body.game_id ?? "(vse)",
+                    smazano_granuli: del.meta.changes, vraceno_do_fronty: upd.meta.changes });
+    }
+
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
     if (path === "/heartbeat" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
