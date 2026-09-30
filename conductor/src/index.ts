@@ -906,6 +906,39 @@ export default {
                     smazano_granuli: del.meta.changes, vraceno_do_fronty: upd.meta.changes });
     }
 
+    // Úklid osiřelých úkolů. Vznikají, když se změní ID granulí v roadmapě:
+    // staré úkoly zůstanou ve frontě `ready`, ale žádný řádek v `roadmap` už
+    // na ně neodkazuje — takže je conductor pořád dispatchuje, i když je
+    // v aktuální roadmapě nemá. Naměřeno 30. 9. 2026: po resetu roadmapy se
+    // probudily úkoly #11–#98 z éry GameForge a začaly se dispatchovat
+    // paralelně s novými (#107+), což pálilo free kvótu na dvakrát.
+    //
+    // Co smaže: úkoly ve stavu `ready`/`failed`, na které neodkazuje žádný
+    // řádek `roadmap` a které nejsou zrovna `running`.
+    // Co NEDĚLÁ: nemaže běžící úkoly, hotové úkoly ani historii běhů (`runs`).
+    //
+    // Doporučený postup: nejdřív se hra vypne (`/game/active` false), pak
+    // cleanup, pak se hra zapne — tiky mezitím nezakládají nové úkoly.
+    if (path === "/tasks/cleanup" && request.method === "POST") {
+      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
+      const body = await request.json<{ dry_run?: boolean }>().catch(() => ({}));
+
+      const podminka = `status IN ('ready','failed')
+          AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`;
+
+      if (body.dry_run) {
+        const n = await env.DB.prepare(`SELECT COUNT(*) AS n FROM tasks WHERE ${podminka}`)
+          .first<{ n: number }>();
+        const ukazka = await env.DB.prepare(
+          `SELECT id, title, status FROM tasks WHERE ${podminka} ORDER BY id LIMIT 10`).all();
+        return json({ ok: true, dry_run: true, smazal_bych: n?.n ?? 0,
+                      ukazka: ukazka.results });
+      }
+
+      const del = await env.DB.prepare(`DELETE FROM tasks WHERE ${podminka}`).run();
+      return json({ ok: true, smazano: del.meta.changes });
+    }
+
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
     if (path === "/heartbeat" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
