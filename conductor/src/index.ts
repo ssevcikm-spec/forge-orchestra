@@ -586,6 +586,10 @@ async function tick(env: Env): Promise<string> {
   ).bind(`-${staleMin} minutes`).run();
   if (stale.meta.changes) {
     // úkol se vrací do fronty; po třech pokusech už ne (řeší /report i claim)
+    // POZOR: `blocked` je terminální stav — úklid (POST /tasks/cleanup) jím
+    // označuje osiřelé úkoly a ty se NESMÍ vracet do fronty, jinak je
+    // stale-recovery resurrectuje a conductor je dispatchuje dokola
+    // (naměřeno 30. 9. 2026: běhy #58 a spol. se obnovovaly každé ~2 minuty).
     await env.DB.prepare(
       `UPDATE tasks SET status='ready', updated_at=datetime('now')
         WHERE status='running' AND attempts < 3
@@ -597,6 +601,14 @@ async function tick(env: Env): Promise<string> {
           AND id IN (SELECT task_id FROM runs WHERE status='timeout')`,
     ).run().catch(() => undefined);
   }
+  // Blocked úkoly, které stale-recovery přesto vrátila do fronty, srovnat zpět.
+  // (Běží po každém tiku, takže se stav sám uzdraví i bez ručního úklidu.)
+  await env.DB.prepare(
+    `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+      WHERE status IN ('ready','running')
+        AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)
+        AND id IN (SELECT task_id FROM runs WHERE status='abandoned')`,
+  ).run().catch(() => undefined);
 
   // 1b) doplň připravené granule z roadmapy (závislosti hotové, owns volné).
   // Počítají se jen CLOUDOVÉ úlohy – úkol pro domácí uzel (telefon/PC) nemá
@@ -928,6 +940,41 @@ export default {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
       const body = await request.json<{ dry_run?: boolean }>().catch(() => ({}));
 
+      // ── KROK A: srovnat tabulku `roadmap` se SOUBORY roadmap v repech ──
+      // `roadmap` je jen cache toho, co conductor vydal. Když se soubor změní
+      // (granule se přejmenují nebo vypadnou), staré řádky v cache zůstanou
+      // a conductor se jimi dál řídí — dispatchuje práci, kterou soubor nezná.
+      // Naměřeno 30. 9. 2026: v cache bylo 81 řádků z éry GameForge, soubor má
+      // 18 granulí. Sedm starých úloh (#14–#59) tím zabíralo ~44 % kapacity.
+      const games = await listGames(env);
+      const platne = new Set<string>();
+      const hryBezSouboru: string[] = [];
+      for (const g of games) {
+        try {
+          const url = `https://raw.githubusercontent.com/${g.repo}/main/${g.roadmap_file}`;
+          const r = await fetch(url);
+          if (!r.ok) { hryBezSouboru.push(`${g.game_id} (HTTP ${r.status})`); continue; }
+          const doc = await r.json<{ grains?: { id?: string }[]; tasks?: { id?: string }[] }>();
+          for (const it of doc.grains || doc.tasks || []) {
+            if (it?.id) platne.add(`${g.game_id}/${it.id}`);
+          }
+        } catch (e) {
+          hryBezSouboru.push(`${g.game_id} (${String(e).slice(0, 60)})`);
+        }
+      }
+      // Bezpečnostní pojistka: kdyby se roadmapa nepodařila načíst, NEMAŽ.
+      if (hryBezSouboru.length) {
+        return json({ error: "roadmapa se nedá načíst, radši nemažu", hry: hryBezSouboru }, 503);
+      }
+      if (!platne.size) {
+        return json({ error: "žádná platná granule – roadmapy jsou prázdné, nemažu" }, 503);
+      }
+
+      const vsechnyRadky = await env.DB.prepare("SELECT item_id, task_id FROM roadmap").all<{ item_id: string; task_id: number | null }>();
+      const osirele = (vsechnyRadky.results || []).filter((r) => !platne.has(r.item_id));
+      const osireleTaskIds = osirele.map((r) => r.task_id).filter((x): x is number => typeof x === "number");
+
+      // ── KROK B: úlohy bez vazby na roadmapu (starý význam) ──
       const podminka = `status IN ('ready','failed')
           AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`;
 
@@ -936,7 +983,36 @@ export default {
           .first<{ n: number }>();
         const ukazka = await env.DB.prepare(
           `SELECT id, title, status FROM tasks WHERE ${podminka} ORDER BY id LIMIT 10`).all();
-        return json({ ok: true, dry_run: true, oznacil_bych: n?.n ?? 0, ukazka: ukazka.results });
+        return json({
+          ok: true, dry_run: true,
+          platnych_granuli_v_souborech: platne.size,
+          radku_v_cache: (vsechnyRadky.results || []).length,
+          osirelych_radku: osirele.length,
+          osirele_ukoly: osireleTaskIds.length,
+          ukoly_bez_vazby: n?.n ?? 0,
+          ukazka_osirelych: osirele.slice(0, 10).map((r) => r.item_id),
+          ukazka_bez_vazby: ukazka.results,
+        });
+      }
+
+      // Úlohy z osiřelých řádků zablokovat (jinak by běžely dál jako zombie).
+      let zablokovanoZRadku = 0;
+      for (let i = 0; i < osireleTaskIds.length; i += 25) {
+        const davka = osireleTaskIds.slice(i, i + 25);
+        const r = await env.DB.prepare(
+          `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+            WHERE id IN (${davka.map(() => "?").join(",")})
+              AND status NOT IN ('done','blocked')`,
+        ).bind(...davka).run();
+        zablokovanoZRadku += r.meta.changes ?? 0;
+      }
+      // A teprve pak smazat osiřelé řádky cache (po dávkách – DELETE s velkým
+      // IN naráží na CPU limit Workeru, 10 ms).
+      let smazanoRadku = 0;
+      for (const r of osirele) {
+        const res = await env.DB.prepare("DELETE FROM roadmap WHERE item_id = ?")
+          .bind(r.item_id).run();
+        smazanoRadku += res.meta.changes ?? 0;
       }
 
       const upd = await env.DB.prepare(
@@ -964,7 +1040,10 @@ export default {
             AND id NOT IN (SELECT task_id FROM runs WHERE status='running')`,
       ).run();
 
-      return json({ ok: true, oznaceno_blocked: upd.meta.changes,
+      return json({ ok: true,
+                    smazano_osirelych_radku: smazanoRadku,
+                    zablokovano_z_radku: zablokovanoZRadku,
+                    oznaceno_blocked: upd.meta.changes,
                     dorazeno_behu: doraz.meta.changes,
                     srovnano_tasku: srovnej.meta.changes });
     }
