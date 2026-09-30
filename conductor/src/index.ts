@@ -830,6 +830,26 @@ export default {
       return json({ ok: true, game_id: body.game_id, repo: body.repo });
     }
 
+    // Přepnutí aktivní hry. Orchestr je jeden projekt, který se přepíná mezi
+    // hrami – tohle je to přepínání. Deaktivace je potřeba, když se hra opustí:
+    // bez ní zůstane v `games` s active=1 a její roadmapa se pořád dispatchuje
+    // (naměřeno 30. 9. 2026: opuštěná hra pálila free kvótu každou minutu).
+    // Pozor: deaktivace hry NEuklízí její granule v tabulce `roadmap` – ty
+    // zůstávají a při opětovném zapnutí se na ně naváže.
+    if (path === "/game/active" && request.method === "POST") {
+      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
+      const body = await request.json<{ game_id?: string; active?: boolean }>();
+      if (!body.game_id) return json({ error: "chybi game_id" }, 400);
+      const active = body.active === false ? 0 : 1;
+      const res = await env.DB.prepare(
+        "UPDATE games SET active = ? WHERE game_id = ?",
+      ).bind(active, body.game_id).run();
+      if (!res.meta.changes) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);
+      await notify(env, active ? "Forge: hra zapnutá" : "Forge: hra vypnutá",
+                   body.game_id, active ? "game_die" : "game_off");
+      return json({ ok: true, game_id: body.game_id, active });
+    }
+
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
     if (path === "/heartbeat" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
