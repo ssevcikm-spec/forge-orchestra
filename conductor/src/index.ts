@@ -867,10 +867,11 @@ export default {
     // z repa a založí granule znovu, se správným `{game_id}/{grain_id}`.
     if (path === "/roadmap/reset" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
-      const body = await request.json<{ game_id?: string }>().catch(() => ({}));
+      const body = await request.json<{ game_id?: string; dry_run?: boolean }>().catch(() => ({}));
 
       const filtr = body.game_id ? " WHERE item_id LIKE ?" : "";
-      const vazba = body.game_id ? " WHERE item_id LIKE ?" : "";
+      const vazba = body.game_id ? " WHERE item_id LIKE ? AND task_id IS NOT NULL"
+                                 : " WHERE task_id IS NOT NULL";
       const bindy = body.game_id ? [`${body.game_id}/%`] : [];
 
       if (body.game_id) {
@@ -879,12 +880,24 @@ export default {
         if (!g) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);
       }
 
+      // dry_run: jen spočítá, co by se stalo — pro ověření SQL před zásahem.
+      if (body.dry_run) {
+        const gr = await env.DB.prepare(`SELECT COUNT(*) AS n FROM roadmap${filtr}`)
+          .bind(...bindy).first<{ n: number }>();
+        const ta = await env.DB.prepare(
+          `SELECT COUNT(*) AS n FROM tasks WHERE status='failed' AND id IN (
+             SELECT task_id FROM roadmap${vazba})`,
+        ).bind(...bindy).first<{ n: number }>();
+        return json({ ok: true, dry_run: true, game_id: body.game_id ?? "(vse)",
+                      smazal_bych_granuli: gr?.n ?? 0, vratil_bych_do_fronty: ta?.n ?? 0 });
+      }
+
       // POZOR na pořadí: úkoly se hledají PŘES tabulku roadmap, takže se musí
       // přečíst dřív, než se řádky smažou.
       const upd = await env.DB.prepare(
         `UPDATE tasks SET status='ready', attempts=0, updated_at=datetime('now')
           WHERE status='failed' AND id IN (
-            SELECT task_id FROM roadmap${vazba} AND task_id IS NOT NULL
+            SELECT task_id FROM roadmap${vazba}
           )`,
       ).bind(...bindy).run();
       const del = await env.DB.prepare(`DELETE FROM roadmap${filtr}`).bind(...bindy).run();
