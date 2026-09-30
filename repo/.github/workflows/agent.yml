@@ -196,11 +196,28 @@ jobs:
           else
             echo "::warning::granule neurčuje žádný soubor – agent dostane jen zadání"
           fi
+          # SOUBORY ZÁVISLÝCH GRANULÍ – JEN KE ČTENÍ.
+          #
+          # Naměřeno 30. 9. 2026 (běh #131, granule entity.npc): model pojmenoval
+          # typ podle závislé granule (`Economy`), ale její soubor nikdy neviděl
+          # → `Parse Error: Could not find type "Economy"`. Smlouvy závislostí
+          # má model dostat – jen je nesmí měnit, a to zajistí `--read`.
+          ARG_CTENI=""
+          CIT_DEPS=$(node .forge/files-to-edit.mjs --grain "$FORGE_GRAIN" --read-deps 2>/dev/null || true)
+          if [ -n "$CIT_DEPS" ]; then
+            echo "Soubory závislých granulí (jen ke čtení):"
+            echo "$CIT_DEPS" | sed 's/^/  /'
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              ARG_CTENI="$ARG_CTENI --read $f"
+            done <<< "$CIT_DEPS"
+          fi
           spust_agenta() {
             # shellcheck disable=SC2086
             aider \
               --model "openai/${FORGE_MODEL}" \
               --read CONVENTIONS.md \
+              $ARG_CTENI \
               $ARG_SOUBORY \
               --map-tokens 0 \
               --edit-format diff \

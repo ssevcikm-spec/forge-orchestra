@@ -28,8 +28,10 @@ const hodnota = (n) => {
   const i = args.indexOf(n);
   return i >= 0 ? args[i + 1] : '';
 };
+const prepinac = (n) => args.includes(n);
 const grain = hodnota('--grain');
 const prompt = hodnota('--prompt');
+const readDeps = prepinac('--read-deps');
 const roadmapCesta = hodnota('--roadmap') || '.forge/roadmap.json';
 
 const vydat = (seznam, odkud) => {
@@ -47,18 +49,46 @@ const vydat = (seznam, odkud) => {
   process.exit(0);
 };
 
-// 1) Nejpřesnější: `owns` granule z roadmapy (conductor podle něj zamyká souběh,
-//    takže je to i deklarace „tenhle soubor granule vlastní").
-if (grain && existsSync(roadmapCesta)) {
+// Načtení roadmapy (potřebná pro oba režimy).
+const nactiRoadmapu = () => {
+  if (!existsSync(roadmapCesta)) return null;
   try {
     const data = JSON.parse(readFileSync(roadmapCesta, 'utf8'));
-    const vsechny = data.grains || data.tasks || [];
-    const g = vsechny.find((x) => x.id === grain);
-    if (g && Array.isArray(g.owns) && g.owns.length) {
-      vydat(g.owns, `owns granule ${grain} v ${roadmapCesta}`);
-    }
+    return data.grains || data.tasks || [];
   } catch (e) {
     console.error(`[files-to-edit] roadmapu nejde přečíst: ${String(e).slice(0, 120)}`);
+    return null;
+  }
+};
+
+// 0) Režim `--read-deps`: soubory granulí z `depends_on` (jen KE ČTENÍ).
+//    Naměřeno 30. 9. 2026 (běh #131, granule entity.npc): model pojmenoval typ
+//    podle závislé granule (`Economy`), ale její soubor neviděl → Parse Error
+//    „Could not find type Economy". Smlouvy závislostí má přitom dostat – jen
+//    je nesmí měnit, a to zajišťuje `--read` místo `--file`.
+if (readDeps) {
+  const vsechny = nactiRoadmapu();
+  const g = vsechny && grain ? vsechny.find((x) => x.id === grain) : null;
+  if (!g) {
+    console.error(`[files-to-edit] granule ${grain || '(bez --grain)'} v roadmapě není`);
+    process.exit(0);
+  }
+  const soubory = [];
+  for (const idZav of g.depends_on || []) {
+    const zav = vsechny.find((x) => x.id === idZav);
+    for (const f of (zav && zav.owns) || []) soubory.push(f);
+  }
+  // Jen to, co v projektu skutečně je – `--read` na neexistující cestu aider shodí.
+  vydat(soubory.filter((f) => existsSync(f)), `depends_on granule ${grain}`);
+}
+
+// 1) Nejpřesnější: `owns` granule z roadmapy (conductor podle něj zamyká souběh,
+//    takže je to i deklarace „tenhle soubor granule vlastní").
+if (grain) {
+  const vsechny = nactiRoadmapu();
+  const g = vsechny ? vsechny.find((x) => x.id === grain) : null;
+  if (g && Array.isArray(g.owns) && g.owns.length) {
+    vydat(g.owns, `owns granule ${grain} v ${roadmapCesta}`);
   }
 }
 
