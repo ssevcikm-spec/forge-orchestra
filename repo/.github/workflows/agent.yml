@@ -242,8 +242,63 @@ jobs:
             fi
           fi
 
+      - name: Kontrola parsování GDScriptu (rychlá brána)
+        # PROČ A JAK (30. 9. 2026):
+        #
+        # `godot --check-only --script <soubor>` pro KAŽDÝ ZMĚNĚNÝ .gd soubor.
+        # Platí i pro nové soubory, které ještě nikdo nenačítá (přesně případ
+        # granulí, které soubor zakládají) – a vrátí přesný soubor i řádek.
+        # Kontrolují se JEN změněné soubory: staré skripty v repu jsou ověřené.
+        #
+        # Vypisují se VŠECHNY chyby, ne jen první (`head -12` dřív ukázal jednu
+        # a zbytek zahodil, takže model při opakování opravil jednu a spadl na
+        # další). Naměřeno 30. 9. 2026 (běh #131): čtyři chyby v jednom souboru.
+        timeout-minutes: 3
+        id: parse
+        run: |
+          ZMENENE=$(git status --porcelain \
+            | grep -Ev '\.(uid|import)$|^.. (smoke|agent)\.log$|^.. \.forge/provider\.(env|json)$' \
+            | awk '{print $NF}' | grep '\.gd$' || true)
+
+          if [ -z "$ZMENENE" ]; then
+            echo "Agent nezměnil žádný .gd soubor – není co kontrolovat."
+            exit 0
+          fi
+
+          echo "Kontroluji parsování těchto souborů:"
+          echo "$ZMENENE" | sed 's/^/  /'
+          echo ""
+
+          CHYBY=0
+          for f in $ZMENENE; do
+            VYSTUP=$("$FORGE_GODOT" --headless --path . --check-only --script "res://$f" 2>&1 || true)
+            if echo "$VYSTUP" | grep -q 'SCRIPT ERROR: Parse Error'; then
+              CHYBY=$((CHYBY + 1))
+              echo "::error file=$f::Skript se neparsuje – $f"
+              echo "$VYSTUP" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40
+              echo ""
+            else
+              echo "  OK  $f"
+            fi
+          done
+
+          if [ "$CHYBY" -gt 0 ]; then
+            echo "::error::$CHYBY souborů se neparsuje – testy nemá cenu pouštět"
+            echo "TIP: nejčastější příčiny (CONVENTIONS.md §1c/§1d/§1f):"
+            echo "     - File/json místo FileAccess/JSON"
+            echo "     - kolize jmen s enginem: class_name Item, funkce get()"
+            echo "     - NIKDY nedeklaruj var position/scale/rotation/visible/name"
+            echo "       (členové Area2D/Node2D → 'Member redefined')"
+            echo "     - 'var x := load(...)' potřebuje VÝSLOVNÝ typ, jinak"
+            echo "       'Cannot infer the type of x'"
+            echo "     - 'Identifier X not declared' bývá jen NÁSLEDEK předchozích"
+            echo "       chyb v témž souboru – oprav první z nich."
+            exit 1
+          fi
+          echo "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."
+
       - name: Kontrola class_name (staticky, Godot to nepozná)
-        # PROČ (naměřeno 30. 9. 2026, hra uo-shadows, granule entity.item):
+        # PROČ (naměřeno 30. 9. 2026, granule entity.item):
         #
         # Když soubor deklaruje `class_name GameItem` a ZÁROVEŇ uvnitř definuje
         # `class GameItem extends Resource`, vnořená třída přebije tu globální.
