@@ -622,6 +622,31 @@ async function tick(env: Env): Promise<string> {
   // blokovat práci, kterou dělá GitHub Actions.
   const roadmapMsg = await roadmapTick(env).catch((e) => `roadmapa selhala: ${String(e)}`);
 
+  // 1c) INVARIANT: úkol, na který neodkazuje žádný řádek `roadmap`, je zombie.
+  // Vzniká po resetu cache, po ručním zásahu nebo po změně ID granulí — a je
+  // nebezpečný: conductor ho dispatchuje souběžně s novým úkolem na tutéž
+  // granuli, takže se stejná práce dělá dvakrát (naměřeno 30. 9. 2026:
+  // #115–#118 jely paralelně s #119–#122).
+  //
+  // Zdroj pravdy je tabulka `roadmap` — do ní zapisuje VÝHRADNĚ `roadmapTick`
+  // (viz INSERT na jednom místě), takže „nemá řádek v roadmap" = „nevydal ho
+  // orchestr". Běží po každém tiku, takže se stav sám uzdraví do minuty;
+  // ruční úklid (@see /tasks/cleanup) je jen pro okamžitý zásah.
+  const zombie = await env.DB.prepare(
+    `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+      WHERE status IN ('ready','failed','running')
+        AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`,
+  ).run().catch(() => undefined);
+  if (zombie?.meta.changes) {
+    await env.DB.prepare(
+      `UPDATE runs SET status='abandoned', finished_at=datetime('now'),
+                       summary='invariant: úkol nemá řádek v roadmapě'
+        WHERE status='running'
+          AND task_id IN (SELECT id FROM tasks WHERE status='blocked')`,
+    ).run().catch(() => undefined);
+  }
+  const zombieMsg = zombie?.meta.changes ? `, zombie zablokováno: ${zombie.meta.changes}` : "";
+
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
   const started: number[] = [];
@@ -681,7 +706,7 @@ async function tick(env: Env): Promise<string> {
     started.push(task.id);
   }
 
-  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}`;
+  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}`;
 }
 
 // ---------------------------------------------------- claim pro domácí uzly ----
@@ -886,7 +911,8 @@ export default {
     // z repa a založí granule znovu, se správným `{game_id}/{grain_id}`.
     if (path === "/roadmap/reset" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
-      const body = await request.json<{ game_id?: string; dry_run?: boolean }>().catch(() => ({}));
+      const body = await request.json<{ game_id?: string; dry_run?: boolean }>()
+        .catch(() => ({} as { game_id?: string; dry_run?: boolean }));
 
       const filtr = body.game_id ? " WHERE item_id LIKE ?" : "";
       const vazba = body.game_id ? " WHERE item_id LIKE ? AND task_id IS NOT NULL"
@@ -908,21 +934,24 @@ export default {
              SELECT task_id FROM roadmap${vazba})`,
         ).bind(...bindy).first<{ n: number }>();
         return json({ ok: true, dry_run: true, game_id: body.game_id ?? "(vse)",
-                      smazal_bych_granuli: gr?.n ?? 0, vratil_bych_do_fronty: ta?.n ?? 0 });
+                      smazal_bych_granuli: gr?.n ?? 0, dotklo_bych_se_ukolu: ta?.n ?? 0 });
       }
 
-      // POZOR na pořadí: úkoly se hledají PŘES tabulku roadmap, takže se musí
-      // přečíst dřív, než se řádky smažou.
-      const upd = await env.DB.prepare(
-        `UPDATE tasks SET status='ready', attempts=0, updated_at=datetime('now')
-          WHERE status='failed' AND id IN (
-            SELECT task_id FROM roadmap${vazba}
-          )`,
-      ).bind(...bindy).run();
+      // POZOR — historie a proč to je takhle (opraveno 30. 9. 2026):
+      // První verze nejdřív vrátila selhané úkoly do fronty ('ready',
+      // attempts=0) a PAK smazala řádky roadmapy. Tím se ale úkoly staly
+      // osiřelými — a osiřelý úkol se v dalším tiku rozjede jako zombie
+      // souběžně s novým. Naměřeno: po resetu jely #115–#118 paralelně
+      // s novými #119–#122, tedy dvakrát stejná práce.
+      //
+      // Reset teď dělá JEDNU věc: vyprázdní cache. Frontu postaví znovu
+      // `roadmapTick` z aktuálního souboru (nové úkoly = čisté `attempts`).
+      // Staré úkoly řeší invariant v tiku (viz `syncWithRoadmap`).
       const del = await env.DB.prepare(`DELETE FROM roadmap${filtr}`).bind(...bindy).run();
 
       return json({ ok: true, game_id: body.game_id ?? "(vse)",
-                    smazano_granuli: del.meta.changes, vraceno_do_fronty: upd.meta.changes });
+                    smazano_granuli: del.meta.changes,
+                    poznamka: "fronta se znovu postaví v dalším tiku (do 1 minuty)" });
     }
 
     // Úklid osiřelých úkolů. Vznikají, když se změní ID granulí v roadmapě:
@@ -945,7 +974,8 @@ export default {
     // cleanup, pak se hra zapne — tiky mezitím nezakládají nové úkoly.
     if (path === "/tasks/cleanup" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
-      const body = await request.json<{ dry_run?: boolean }>().catch(() => ({}));
+      const body = await request.json<{ dry_run?: boolean }>()
+        .catch(() => ({} as { dry_run?: boolean }));
 
       // ── KROK A: srovnat tabulku `roadmap` se SOUBORY roadmap v repech ──
       // `roadmap` je jen cache toho, co conductor vydal. Když se soubor změní
@@ -1162,7 +1192,7 @@ export default {
         if (t?.status === "blocked" || t?.status === "done") {
           return json({ ok: true, task_id: run.task_id, poznamka: `stav '${t.status}' se nemění` });
         }
-        const nextStatus = (t?.attempts ?? 0) >= maxAttempts ? "failed" : "ready";
+        const nextStatus = (t?.attempts ?? 0) >= Number(env.MAX_ATTEMPTS || "5") ? "failed" : "ready";
         await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
           .bind(nextStatus, run.task_id).run();
         if (nextStatus === "failed") {
