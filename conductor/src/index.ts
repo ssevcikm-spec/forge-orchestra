@@ -396,17 +396,26 @@ async function roadmapTick(env: Env): Promise<string> {
   // Sloučené PR agentů: granule, jejíž úkol má sloučené PR, je hotová, i kdyby
   // úkol sám skončil jinak (typicky „agent nic nezměnil", protože práci stihl
   // sloučit paralelní pokus – přesně to se stalo u world.level 29. 9.).
-  // Větve PR se jmenují forge/task-{id}.
+  // Větve PR se jmenují forge/task-{id}; navíc se páruje i NÁZEV PR s názvem
+  // granule (titulky jsou v rámci hry jedinečné), protože starší úkoly mohly
+  // vzniknout pod jiným item_id (přechod default → registrovaná hra).
   const mergedTasks = new Set<number>();
+  const mergedTitlesByRepo = new Map<string, Set<string>>();
   for (const g of games) {
+    const titles = new Set<string>();
     try {
       const closed = await github(env, g.repo,
         "/pulls?state=closed&per_page=100&sort=updated&direction=desc");
       for (const pr of closed || []) {
         const m = String(pr.head?.ref || "").match(/^forge\/task-(\d+)$/);
-        if (m && pr.merged_at) mergedTasks.add(Number(m[1]));
+        if (pr.merged_at) {
+          if (m) mergedTasks.add(Number(m[1]));
+          const t = String(pr.title || "").replace(/^Forge #\d+:\s*/, "");
+          if (t) titles.add(t);
+        }
       }
     } catch { /* stav PR se nepodařilo zjistit – pokračuje se bez něj */ }
+    mergedTitlesByRepo.set(g.repo, titles);
   }
   if (mergedTasks.size) {
     const ph = [...mergedTasks].map(() => "?").join(",");
@@ -481,6 +490,19 @@ async function roadmapTick(env: Env): Promise<string> {
       continue; // hra bez čitelné roadmapy se přeskakuje, ostatní jedou dál
     }
     if (!items.length) continue;
+
+    // Granule, jejichž PR (podle názvu) už je sloučené, se označí hotové –
+    // pokryje to i staré úkoly pod jiným item_id (přechod default → hra).
+    const slouceneTituly = mergedTitlesByRepo.get(g.repo) ?? new Set<string>();
+    for (const i of items) {
+      const key = `${g.game_id}/${i.id}`;
+      if (slouceneTituly.has(i.title) && !done.has(key)) {
+        await env.DB.prepare(
+          "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE item_id=?",
+        ).bind(key).run().catch(() => undefined);
+        done.add(key);
+      }
+    }
 
     // Připravené granule: ne-hotové, depends_on hotové, owns volné a bez
     // čekajícího cooldownu po selhání. Zámek je scoped na repo ({repo}/{soubor}),
@@ -700,7 +722,8 @@ export default {
     // Veřejné je jen /health (kvůli hlídání dostupnosti). /report má vlastní
     // kontrolu (HMAC podpis z Actions, nebo hlavička s tajemstvím od workera).
     if ((path === "/queue" || path === "/status" || path === "/workers"
-         || path === "/games" || path === "/failed") && !secretOk(request, env)) {
+         || path === "/games" || path === "/failed" || path === "/roadmap")
+        && !secretOk(request, env)) {
       return json({ error: "bad secret" }, 401);
     }
 
@@ -709,6 +732,18 @@ export default {
         "SELECT id, title, kind, target, status, attempts, created_at FROM tasks ORDER BY id DESC LIMIT 50",
       ).all();
       return json({ tasks: tasks.results });
+    }
+
+    if (path === "/roadmap") {
+      // Stav granulí podle D1 – item_id, úkol a status. Slouží k ladění
+      // orchestrů (např. proč granule čeká). Chráněné tajemstvím jako /queue.
+      const rows = await env.DB.prepare(
+        `SELECT r.item_id, r.task_id, r.status, r.created_at, r.updated_at,
+                t.status AS task_status, t.attempts
+           FROM roadmap r LEFT JOIN tasks t ON t.id = r.task_id
+          ORDER BY r.item_id`,
+      ).all();
+      return json({ roadmap: rows.results });
     }
 
     if (path === "/failed") {
