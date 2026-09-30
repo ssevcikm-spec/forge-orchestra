@@ -1047,12 +1047,33 @@ export default {
             AND id NOT IN (SELECT task_id FROM runs WHERE status='running')`,
       ).run();
 
+      // ── KROK C: úlohy, které vypadly z cache roadmapy ──
+      // Po resetu roadmapy (nebo po srovnání cache se souborem) zůstanou úlohy,
+      // na které žádný řádek `roadmap` neodkazuje. Když doběhnou, `/report` je
+      // označí `failed` — a protože je nemá co vrátit do fronty, zůstanou
+      // navěky mrtvé a conductor je může znovu vydat jako duplicitní granuli.
+      // Naměřeno 30. 9. 2026: #107–#110 běžely souběžně s novými #111–#114,
+      // tedy dvakrát stejná práce.
+      const vypadle = await env.DB.prepare(
+        `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+          WHERE status IN ('ready','failed','running')
+            AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`,
+      ).run();
+      const dorazVypadlych = await env.DB.prepare(
+        `UPDATE runs SET status='abandoned', finished_at=datetime('now'),
+                         summary='úklid: úloha vypadla z cache roadmapy'
+          WHERE status='running'
+            AND task_id IN (SELECT id FROM tasks WHERE status='blocked')`,
+      ).run();
+
       return json({ ok: true,
                     smazano_osirelych_radku: smazanoRadku,
                     zablokovano_z_radku: zablokovanoZRadku,
                     oznaceno_blocked: upd.meta.changes,
                     dorazeno_behu: doraz.meta.changes,
-                    srovnano_tasku: srovnej.meta.changes });
+                    srovnano_tasku: srovnej.meta.changes,
+                    vypadlych_z_cache: vypadle.meta.changes,
+                    dorazeno_vypadlych: dorazVypadlych.meta.changes });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
