@@ -942,7 +942,19 @@ export default {
       const upd = await env.DB.prepare(
         `UPDATE tasks SET status='blocked', updated_at=datetime('now') WHERE ${podminka}`,
       ).run();
-      return json({ ok: true, oznaceno_blocked: upd.meta.changes });
+
+      // Navíc: dorazí běhy, které zůstaly navěky `running`, ale jejich úkol je
+      // už `blocked`. Bez toho je stale-recovery (STALE_MINUTES, 90 min) pořád
+      // vrací do fronty a conductor je dispatchuje dokola — naměřeno
+      // 30. 9. 2026: běhy #14/#35/#44/#58/#59 se resurrectovaly každých 90 min.
+      const doraz = await env.DB.prepare(
+        `UPDATE runs SET status='abandoned', finished_at=datetime('now'),
+                         summary='úklid: úkol byl označen blocked'
+          WHERE status='running' AND task_id IN (SELECT id FROM tasks WHERE status='blocked')`,
+      ).run();
+
+      return json({ ok: true, oznaceno_blocked: upd.meta.changes,
+                    dorazeno_behu: doraz.meta.changes });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
