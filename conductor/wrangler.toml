@@ -53,6 +53,9 @@ RETRY_HOURS = "3"
 # Strop zároveň brání smyčce: bez něj stale-recovery vracela do fronty i úlohu
 # s vyčerpanými pokusy a ta jela dál navěky.
 MAX_ATTEMPTS = "5"
+# Po kolika spálených pokusech se granule OHLÁSÍ (Telegram).
+# Nic se nevypíná – jen notifikace. Watchdog v tiku.
+ESCALATE_AFTER = "8"
 
 [[d1_databases]]
 binding = "DB"

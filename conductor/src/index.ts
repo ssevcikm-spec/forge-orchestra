@@ -27,6 +27,11 @@ export interface Env {
   ROADMAP_MAX_PRS?: string;   // kolik otevřených PR od agenta tolerovat (výchozí 3)
   RETRY_HOURS?: string;       // po kolika hodinách smí selhaná granule znovu do fronty (výchozí 6)
   MAX_ATTEMPTS?: string;      // kolik pokusů smí úloha mít, než zůstane 'failed' (výchozí 5)
+  // Po kolika spálených pokusech se granule OHLÁSÍ (Telegram). Nic se
+  // nevypíná – jen notifikace. `MAX_ATTEMPTS` je v provozu mrtvý kód, protože
+  // rozhoduje pollRuns (ten strop nezná), takže bez watchdogu by úkol mohl
+  // pokračovat donekonečna a nikdo by se to nedozvěděl.
+  ESCALATE_AFTER?: string;
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -220,6 +225,62 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string, attempt: n
     const text = await res.text();
     throw new Error(`GitHub dispatch ${res.status}: ${text.slice(0, 300)}`);
   }
+}
+
+/**
+ * Upozorní, když granule spálila příliš mnoho pokusů.
+ *
+ * PROČ: `MAX_ATTEMPTS` je v provozu mrtvý kód (rozhoduje `pollRuns`, který
+ * strop nezná), takže úkol může pokračovat donekonečna – 5 pokusů / 3h
+ * cooldown ≈ 40 pokusů za den na jednu granuli a nikdo se to nedozví.
+ * Naměřeno 30. 9. 2026: #128 i #131 měly 5 pokusů za 16 minut, v historii
+ * fronty 121 spálených pokusů.
+ *
+ * ZÁMĚRNĚ SE NIC NEVYPÍNÁ: granule se nechává dál zkoušet (může jít o přechodný
+ * výpadek poskytovatele) a posílá se jen notifikace, ať se na to člověk podívá.
+ * Aby se neopakovala při každém tiku, označí se úkol `payload.eskalovano`.
+ *
+ * @returns počet nově ohlášených granulí
+ */
+async function escalateStuckTasks(env: Env): Promise<number> {
+  const prah = Number(env.ESCALATE_AFTER || "8");
+  let ohlášeno = 0;
+  try {
+    const rows = await env.DB.prepare(
+      `SELECT t.id, t.title, t.payload,
+              (SELECT COUNT(*) FROM runs r WHERE r.task_id = t.id) AS pokusu
+         FROM tasks t
+        WHERE t.status IN ('ready','failed')
+        ORDER BY t.id DESC LIMIT 50`,
+    ).all<{ id: number; title: string; payload: string | null; pokusu: number }>();
+
+    for (const t of rows.results || []) {
+      if ((t.pokusu ?? 0) < prah) continue;
+      let p: Record<string, unknown> = {};
+      try { p = JSON.parse(t.payload || "{}"); } catch { /* */ }
+      if (p.eskalovano === true) continue; // už jsme hlásili
+
+      const granule = typeof p.grain === "string" ? p.grain : "?";
+      const soubory = Array.isArray(p.owns) ? (p.owns as string[]).join(", ") : "?";
+      await notify(
+        env,
+        "Forge: granule se nedari",
+        `#${t.id} ${granule}\n${t.title}\n`
+        + `spáleno ${t.pokusu} pokusů (prah ${prah})\n`
+        + `soubory: ${soubory}\n`
+        + `běh pokračuje dál – nic se nevypíná, jen na vědomí`,
+        "warning",
+      );
+      p.eskalovano = true;
+      p.eskalovano_pokusu = t.pokusu;
+      await env.DB.prepare("UPDATE tasks SET payload=? WHERE id=?")
+        .bind(JSON.stringify(p), t.id).run().catch(() => undefined);
+      ohlášeno++;
+    }
+  } catch (e) {
+    console.log("eskalace selhala:", String(e).slice(0, 160));
+  }
+  return ohlášeno;
 }
 
 // ------------------------------------------------------- polling běhů ----
@@ -627,6 +688,10 @@ async function tick(env: Env): Promise<string> {
   // 0) nejdřív si vyzvedni výsledky běžících cloudových úloh z GitHubu
   const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
 
+  // 0b) watchdog: granule, která spálila příliš mnoho pokusů, se OHLÁSÍ.
+  //     Nic se nevypíná – jen notifikace, ať se na to dá podívat.
+  const eskalovano = await escalateStuckTasks(env);
+
   // 1) zaseknuté úlohy (runner umřel, Actions zrušily job, worker se odpojil)
   const stale = await env.DB.prepare(
     `UPDATE runs SET status='timeout', finished_at=datetime('now'),
@@ -688,6 +753,7 @@ async function tick(env: Env): Promise<string> {
     ).run().catch(() => undefined);
   }
   const zombieMsg = zombie?.meta.changes ? `, zombie zablokováno: ${zombie.meta.changes}` : "";
+  const eskalMsg = eskalovano ? `, ohlášeno granulí: ${eskalovano}` : "";
 
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
@@ -771,7 +837,7 @@ async function tick(env: Env): Promise<string> {
     started.push(task.id);
   }
 
-  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}`;
+  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}`;
 }
 
 // ---------------------------------------------------- claim pro domácí uzly ----
