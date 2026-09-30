@@ -75,17 +75,24 @@ if (minStrong) {
   // neplýtvá vzácnou kvótou silných modelů.
   //
   // Vypnout se dá `FORGE_MIN_STRONG=only` (chová se jako dřív = silné první).
-  const jeSilny = (p) => (p.strongModels || []).length > 0;
-  const { stedre, skromne } = splitScarce(providers);
-  const slabeStedre = stedre.filter((p) => !jeSilny(p));
-  const silneStedre = stedre.filter(jeSilny);
-  if (slabeStedre.length) {
-    providers = [...slabeStedre, ...silneStedre, ...skromne];
-    console.log(`granule 'any' – silné modely až po slabých: ${
-      providers.map((p) => p.name).join(' → ')}`);
-  } else {
-    console.log('granule "any" – žádný slabý poskytovatel, silné modely zůstávají v řetězci');
-  }
+  //
+  // Řazení pro `any` granule (od nejvhodnějšího):
+  //   1) štědré zdroje (ne `skromny`) podle `anyPriority` vzestupně
+  //      (mistral, cerebras) — nejvíc kvóty, nejspolehlivější,
+  //   2) poskytovatelé se `strongModels` (groq) — šetříme je na granule `strong`,
+  //      ale pro `any` jsou pořád lepší než skromné,
+  //   3) `skromny` (gemini ~20/den) a vysoké `anyPriority` (openrouter 50/den)
+  //      až na konci: každý probe tam zkouší víc modelů a kvóta je malá.
+  const skromny = (p) => Boolean(p.skromny) || Number(p.anyPriority ?? 0) >= 50;
+  const priorita = (p) => Number(p.anyPriority ?? (p.strongModels?.length ? 50 : 10));
+  const serad = [...providers].sort((a, b) => {
+    const sa = skromny(a) ? 1 : 0, sb = skromny(b) ? 1 : 0;
+    if (sa !== sb) return sa - sb;
+    return priorita(a) - priorita(b);
+  });
+  providers = serad;
+  console.log(`granule 'any' – řazení podle štědrosti kvóty: ${
+    providers.map((p) => `${p.name}(${priorita(p)})`).join(' → ')}`);
 }
 
 async function probe(baseUrl, apiKey, model) {
@@ -128,11 +135,17 @@ try {
   posledni = JSON.parse(raw).provider || '';
 } catch { /* první běh – žádný záznam není */ }
 
-const order = orderProviders(providers, seed);
+// POZOR na pořadí kroků: `orderProviders` posouvá pořadí podle `run_key`, což
+// u granulí `any` rozbíjí řazení podle štědrosti kvóty (rotace přesune skromný
+// zdroj dopředu). Proto se u `any` rotace NEPOUŽÍVÁ — priorita je důležitější
+// než rozmanitost modelů. Rotace zůstává u granulí `strong`, kde je jejím
+// smyslem, aby se opakované pokusy téže granule potkaly s jiným silným modelem
+// (naměřeno u úlohy #40: tři pokusy se stejným modelem selhaly stejně).
+const order = minStrong ? orderProviders(providers, seed) : providers;
 const start = startIndex(order, posledni, chciDalsiho);
 const poradi = probeOrder(order, start);
-if (seed) {
-  console.log(`pořadí posunuto podle run_key (${String(seed).slice(0, 8)}…): ` +
+if (minStrong && seed) {
+  console.log(`pořadí silných modelů posunuto podle run_key (${String(seed).slice(0, 8)}…): ` +
     `${order.map((p) => p.name).join(' → ')}`);
 }
 if (chciDalsiho && posledni) {
