@@ -63,6 +63,29 @@ if (minStrong) {
     console.error('CHYBA: granule má model=strong, ale v providers.json není žádný strongModels.');
     process.exit(1);
   }
+} else if (process.env.FORGE_MIN_STRONG !== 'only') {
+  // DISTRIBUCE any/strong (od 30. 9. 2026): granule `model: any` je malá (≤ 60
+  // řádků), takže ji zvládne i slabší model — a silné modely mají vzácnější
+  // kvótu (Cerebras jede z trial kreditu, Groq má 200k tokenů/den, naměřeno
+  // 30. 9.: 9 z 13 běhů skončilo na rate-limitu). Silné modely proto u `any`
+  // granulí zkoušíme až NAKONEC, ne první.
+  //
+  // POZOR na význam: tohle NENÍ „slabý model dostane velkou granuli" — to
+  // pořád hlídá strongModels u granule `strong`. Jen se u malých granulí
+  // neplýtvá vzácnou kvótou silných modelů.
+  //
+  // Vypnout se dá `FORGE_MIN_STRONG=only` (chová se jako dřív = silné první).
+  const jeSilny = (p) => (p.strongModels || []).length > 0;
+  const { stedre, skromne } = splitScarce(providers);
+  const slabeStedre = stedre.filter((p) => !jeSilny(p));
+  const silneStedre = stedre.filter(jeSilny);
+  if (slabeStedre.length) {
+    providers = [...slabeStedre, ...silneStedre, ...skromne];
+    console.log(`granule 'any' – silné modely až po slabých: ${
+      providers.map((p) => p.name).join(' → ')}`);
+  } else {
+    console.log('granule "any" – žádný slabý poskytovatel, silné modely zůstávají v řetězci');
+  }
 }
 
 async function probe(baseUrl, apiKey, model) {
