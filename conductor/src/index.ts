@@ -25,6 +25,7 @@ export interface Env {
   WORKFLOW_FILE?: string;     // který workflow spouštět
   ROADMAP_FILE?: string;      // odkud brát úkoly, když je fronta prázdná
   ROADMAP_MAX_PRS?: string;   // kolik otevřených PR od agenta tolerovat (výchozí 3)
+  RETRY_HOURS?: string;       // po kolika hodinách smí selhaná granule znovu do fronty (výchozí 6)
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -138,9 +139,33 @@ async function notify(env: Env, title: string, message: string, tags = "robot"):
 }
 
 // --------------------------------------------------------------- GitHub ----
+/** Limit velikosti granule: ze size_lines ("<= 120") číslo, jinak výchozích 60. */
+function maxLinesOf(sizeLines: string | null | undefined): number {
+  const m = String(sizeLines || "").match(/\d+/);
+  const n = m ? Number(m[0]) : 0;
+  return n > 0 ? n : 60;
+}
+
+/** Z payloadu úkolu: modelová třída granule ("any" | "strong"). */
+function modelOf(payload: string | null): string {
+  try {
+    const p = JSON.parse(payload || "{}");
+    return typeof p.model === "string" && p.model ? p.model : "any";
+  } catch { return "any"; }
+}
+
 async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<void> {
   const workflow = env.WORKFLOW_FILE || "agent.yml";
   const repo = repoOf(task.payload, env);
+  // max_lines a model se berou z granule roadmapy (payload) – brána auto-merge
+  // v workflow pak posuzuje velikost podle deklarace granule, ne globálně.
+  const maxLines = (() => {
+    try {
+      const p = JSON.parse(task.payload || "{}");
+      const n = Number(p.max_lines);
+      return Number.isFinite(n) && n > 0 ? n : 60;
+    } catch { return 60; }
+  })();
   const url = `https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`;
   const res = await fetch(url, {
     method: "POST",
@@ -159,6 +184,8 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<v
         kind: task.kind,
         title: task.title,
         prompt: task.prompt,
+        max_lines: String(maxLines),
+        model: modelOf(task.payload),
       },
     }),
   });
@@ -269,6 +296,9 @@ async function pollRuns(env: Env): Promise<string> {
     if (ok) {
       await env.DB.prepare("UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id=?")
         .bind(row.task_id).run();
+      await env.DB.prepare(
+        "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id=?",
+      ).bind(row.task_id).run().catch(() => undefined);
     } else {
       const t = await env.DB.prepare("SELECT attempts FROM tasks WHERE id=?")
         .bind(row.task_id).first<{ attempts: number }>();
@@ -277,9 +307,12 @@ async function pollRuns(env: Env): Promise<string> {
         .bind(nextStatus, row.task_id).run();
       // Když úkol definitivně selhal, označíme i položku roadmapy. Jinak by
       // zůstala navěky ve stavu „queued" a nebylo by poznat, že se nepovedla.
+      // updated_at slouží jako čas posledního pokusu – od něj se počítá
+      // cooldown, po kterém smí granule znovu do fronty.
       if (nextStatus === "failed") {
-        await env.DB.prepare("UPDATE roadmap SET status='failed' WHERE task_id=?")
-          .bind(row.task_id).run().catch(() => undefined);
+        await env.DB.prepare(
+          "UPDATE roadmap SET status='failed', updated_at=datetime('now') WHERE task_id=?",
+        ).bind(row.task_id).run().catch(() => undefined);
       }
     }
 
@@ -306,6 +339,9 @@ interface RoadmapItem {
   kind?: string;
   depends_on?: string[];  // id granulí, které musejí být sloučené dřív (v rámci hry)
   owns?: string[];        // soubory, které granule smí měnit (zámek souběhu)
+  size_lines?: string;    // deklarace velikosti granule, např. "<= 120"; bez ní 60
+  model?: string;         // "strong" = vydat jen silnému modelu; jinak any
+  done?: boolean;         // explicitní „už hotovo" – granule se přeskočí
 }
 
 interface Game {
@@ -332,15 +368,74 @@ async function listGames(env: Env): Promise<Game[]> {
 async function roadmapTick(env: Env): Promise<string> {
   const games = await listGames(env);
 
-  // „Hotové" = granule, jejichž úloha je done (sloučená). „Dispatchnuté" = cokoli,
-  // co už je v tabulce roadmap. item_id má tvar {game_id}/{grain_id}, aby se
-  // granule dvou her nesrazily.
-  const doneRows = await env.DB.prepare(
-    "SELECT r.item_id FROM roadmap r JOIN tasks t ON t.id = r.task_id WHERE t.status = 'done'",
-  ).all<{ item_id: string }>();
-  const done = new Set((doneRows.results || []).map((r) => r.item_id));
-  const allRows = await env.DB.prepare("SELECT item_id FROM roadmap").all<{ item_id: string }>();
-  const dispatched = new Set((allRows.results || []).map((r) => r.item_id));
+  // Samomigrace schématu (idempotentní): roadmap.updated_at přibyl kvůli
+  // cooldownu retry. Stará D1 sloupec nemá; CREATE TABLE IF NOT EXISTS v
+  // schema.sql ho tam nepřidá, proto se to dělá tady – když už existuje,
+  // ALTER selže s „duplicate column name" a to se tiše polkne.
+  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
+    .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
+  await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
+    .run().catch(() => undefined);
+
+  // Stav granulí drží tabulka roadmap (item_id = {game_id}/{grain_id}).
+  // Řádek sám o sobě nestačí – je vidět i stav úlohy (LEFT JOIN tasks).
+  interface GrainRow {
+    item_id: string;
+    task_id: number | null;
+    rstatus: string | null;
+    rupd: string | null;
+    tstatus: string | null;
+    tupd: string | null;
+  }
+  const rows = await env.DB.prepare(
+    `SELECT r.item_id, r.task_id, r.status AS rstatus, r.updated_at AS rupd,
+            t.status AS tstatus, t.updated_at AS tupd
+       FROM roadmap r LEFT JOIN tasks t ON t.id = r.task_id`,
+  ).all<GrainRow>();
+
+  // Sloučené PR agentů: granule, jejíž úkol má sloučené PR, je hotová, i kdyby
+  // úkol sám skončil jinak (typicky „agent nic nezměnil", protože práci stihl
+  // sloučit paralelní pokus – přesně to se stalo u world.level 29. 9.).
+  // Větve PR se jmenují forge/task-{id}.
+  const mergedTasks = new Set<number>();
+  for (const g of games) {
+    try {
+      const closed = await github(env, g.repo,
+        "/pulls?state=closed&per_page=100&sort=updated&direction=desc");
+      for (const pr of closed || []) {
+        const m = String(pr.head?.ref || "").match(/^forge\/task-(\d+)$/);
+        if (m && pr.merged_at) mergedTasks.add(Number(m[1]));
+      }
+    } catch { /* stav PR se nepodařilo zjistit – pokračuje se bez něj */ }
+  }
+  if (mergedTasks.size) {
+    const ph = [...mergedTasks].map(() => "?").join(",");
+    await env.DB.prepare(
+      `UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id IN (${ph})`,
+    ).bind(...[...mergedTasks]).run().catch(() => undefined);
+    await env.DB.prepare(
+      `UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id IN (${ph})`,
+    ).bind(...[...mergedTasks]).run().catch(() => undefined);
+  }
+
+  // Hotové / zablokované granule podle stavu úloh.
+  // SELHANÁ granule smí znovu do fronty až po cooldownu (RETRY_HOURS): free
+  // modely mají denní limity a okamžitý retry by jen pálil pokusy
+  // (naměřeno 29. 9. – 429 ze všech providerů naráz).
+  const done = new Set<string>();
+  const blocked = new Set<string>();
+  const retryH = Number(env.RETRY_HOURS || "6");
+  for (const r of rows.results || []) {
+    const failed = r.tstatus === "failed" || r.rstatus === "failed";
+    const finished = r.tstatus === "done" || r.rstatus === "done"
+      || (r.task_id != null && mergedTasks.has(r.task_id));
+    if (finished) { done.add(r.item_id); continue; }
+    if (!failed) { blocked.add(r.item_id); continue; }
+    const ts = r.tupd || r.rupd || null;
+    const stale = !ts
+      || (Date.now() - Date.parse(String(ts).replace(" ", "T") + "Z") > retryH * 3600e3);
+    if (!stale) blocked.add(r.item_id);
+  }
 
   // Nezahrnout uživatele hromadou pull requestů (limit se hlídá přes všechny hry).
   const maxPrs = Number(env.ROADMAP_MAX_PRS || "3");
@@ -387,10 +482,13 @@ async function roadmapTick(env: Env): Promise<string> {
     }
     if (!items.length) continue;
 
-    // Připravené granule: ne-dispatchnuté, depends_on hotové, owns volné.
-    // Zámek je scoped na repo ({repo}/{soubor}), ať se dvě hry neblokují.
+    // Připravené granule: ne-hotové, depends_on hotové, owns volné a bez
+    // čekajícího cooldownu po selhání. Zámek je scoped na repo ({repo}/{soubor}),
+    // ať se dvě hry neblokují.
     const ready = items.filter((i) =>
-      !dispatched.has(`${g.game_id}/${i.id}`)
+      i.done !== true
+      && !done.has(`${g.game_id}/${i.id}`)
+      && !blocked.has(`${g.game_id}/${i.id}`)
       && (i.depends_on || []).every((d) => done.has(`${g.game_id}/${d}`))
       && !(i.owns || []).some((f) => locked.has(`${g.repo}/${f}`)),
     );
@@ -398,18 +496,29 @@ async function roadmapTick(env: Env): Promise<string> {
 
     for (const grain of ready) {
       const key = `${g.game_id}/${grain.id}`;
+      // Payload nese i velikost a modelovou třídu granule: dispatch je předá
+      // workflowu (inputs.max_lines / inputs.model) a brána auto-merge pak
+      // posuzuje limit podle granule, ne podle jedné globální konstanty.
       const res = await env.DB.prepare(
         "INSERT INTO tasks (title, kind, target, prompt, payload) VALUES (?, ?, 'cloud', ?, ?)",
       ).bind(grain.title, grain.kind || "code", grain.prompt,
-             JSON.stringify({ owns: grain.owns || [], grain: grain.id, repo: g.repo, game: g.game_id })).run();
-      await env.DB.prepare("INSERT INTO roadmap (item_id, task_id) VALUES (?, ?)")
-        .bind(key, res.meta.last_row_id).run();
+             JSON.stringify({
+               owns: grain.owns || [], grain: grain.id, repo: g.repo, game: g.game_id,
+               max_lines: maxLinesOf(grain.size_lines), model: grain.model || "any",
+             })).run();
+      // Starý řádek téže granule (např. selhaný pokus) se přepíše na nový úkol.
+      await env.DB.prepare(
+        `INSERT INTO roadmap (item_id, task_id, status, updated_at)
+         VALUES (?, ?, 'queued', datetime('now'))
+         ON CONFLICT(item_id) DO UPDATE SET task_id=excluded.task_id,
+           status='queued', updated_at=datetime('now')`,
+      ).bind(key, res.meta.last_row_id).run();
       created++;
       createdKeys.push(key);
     }
   }
 
-  if (!created) return "roadmapa je hotová (nebo čeká na závislosti)";
+  if (!created) return "roadmapa je hotová (nebo čeká na závislosti / cooldown)";
   await notify(env, "Forge: z roadmapy",
     `založeno ${created} granulí: ${createdKeys.join(", ")}`, "clipboard");
   return `z roadmapy založeno ${created} granulí`;
@@ -749,12 +858,20 @@ export default {
       if (body.status === "success") {
         await env.DB.prepare("UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id=?")
           .bind(run.task_id).run();
+        await env.DB.prepare(
+          "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id=?",
+        ).bind(run.task_id).run().catch(() => undefined);
       } else {
         const t = await env.DB.prepare("SELECT attempts FROM tasks WHERE id=?")
           .bind(run.task_id).first<{ attempts: number }>();
         const nextStatus = (t?.attempts ?? 0) >= 3 ? "failed" : "ready";
         await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
           .bind(nextStatus, run.task_id).run();
+        if (nextStatus === "failed") {
+          await env.DB.prepare(
+            "UPDATE roadmap SET status='failed', updated_at=datetime('now') WHERE task_id=?",
+          ).bind(run.task_id).run().catch(() => undefined);
+        }
       }
 
       // Statistiky uzlu – podle nich je vidět, který stroj se osvědčil

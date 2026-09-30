@@ -58,8 +58,13 @@ CREATE TABLE IF NOT EXISTS roadmap (
   item_id     TEXT PRIMARY KEY,
   task_id     INTEGER,
   status      TEXT NOT NULL DEFAULT 'queued',  -- queued | done | failed
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))  -- poslední změna (cooldown retry)
 );
+
+-- Migrace starých tabulek: roadmap.updated_at přibyl kvůli cooldownu
+-- opakovaných pokusů selhaných granulí (RETRY_HOURS).
+-- ALTER TABLE roadmap ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));
 
 -- Registr her, na kterých orchestr pracuje. Když je prázdný, orchestr jede na
 -- jednom repu (GITHUB_REPO), přesně jako dřív – zpětná kompatibilita.

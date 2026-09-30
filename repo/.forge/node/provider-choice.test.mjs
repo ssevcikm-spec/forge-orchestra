@@ -8,7 +8,7 @@
 // Použití: node .forge/node/provider-choice.test.mjs
 
 import assert from "node:assert/strict";
-import { fnv1a, rotateOrder, startIndex, probeOrder, orderProviders } from "./provider-choice.mjs";
+import { fnv1a, rotateOrder, startIndex, probeOrder, orderProviders, strongProviders } from "./provider-choice.mjs";
 
 const P = [{ name: "a" }, { name: "b" }, { name: "c" }, { name: "d" }, { name: "e" }];
 let checks = 0;
@@ -81,5 +81,25 @@ ok(`rotace začíná u štědrých poskytovatelů (${zacinajici.size} různých 
 const jenSkromne = orderProviders([{ name: "a", skromny: true }, { name: "b", skromny: true }], "s");
 assert.equal(jenSkromne.length, 2);
 ok("když jsou skromní všichni, pořadí je pořád kompletní");
+
+// 5) granule model: strong smí běžet jen na strongModels
+const retezec = [
+  { name: "mistral", models: ["codestral-latest"], strongModels: ["codestral-latest"] },
+  { name: "cerebras", models: ["gpt-oss-120b"], strongModels: ["gpt-oss-120b"] },
+  { name: "gemini", skromny: true, models: ["gemini-3.8-flash"] },
+  { name: "groq", models: ["openai/gpt-oss-120b", "openai/gpt-oss-20b"], strongModels: ["openai/gpt-oss-120b"] },
+  { name: "openrouter", models: ["qwen/qwen3.8-27b:free"] },
+];
+const silni = strongProviders(retezec);
+assert.deepEqual(silni.map((p) => p.name), ["mistral", "cerebras", "groq"]);
+ok("silné granuli zůstanou jen poskytovatelé se strongModels");
+assert.deepEqual(silni[2].models, ["openai/gpt-oss-120b"]);
+ok("u groq se zkouší jen silný model, gpt-oss-20b slabé granuli nedostane");
+assert.equal(strongProviders([{ name: "jen-slabi", models: ["x"] }]).length, 0);
+ok("bez jediného strongModels je výběr prázdný (granule čeká)");
+// slabá cesta zůstává nedotčená: bez filtru se zkouší všechny modely
+assert.deepEqual(orderProviders(retezec, "").map((p) => p.name),
+  ["mistral", "cerebras", "groq", "openrouter", "gemini"]);
+ok("bez FORGE_MIN_STRONG jede řetězec jako dřív (skromní na konci)");
 
 console.log(`\n${checks} kontrol, 0 selhání`);

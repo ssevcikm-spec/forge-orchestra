@@ -41,6 +41,10 @@ STALE_MINUTES = "90"
 # takže si PR nemůžou odporovat. Proto tu může být > 1.
 ROADMAP_FILE = ".forge/roadmap.json"
 ROADMAP_MAX_PRS = "5"
+# Selhaná granule smí znovu do fronty až po tomhle cooldownu: free modely mají
+# denní limity (429 napříč providery – naměřeno 29. 9.) a okamžitý retry by jen
+# pálil pokusy. 6 hodin = rozumný odstup i přes limit „50 dotazů denně".
+RETRY_HOURS = "6"
 
 [[d1_databases]]
 binding = "DB"
