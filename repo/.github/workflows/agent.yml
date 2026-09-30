@@ -178,15 +178,20 @@ jobs:
             echo "$DO_EDITACE" | sed 's/^/  /'
             while IFS= read -r f; do
               [ -n "$f" ] || continue
-              if [ -e "$f" ]; then
-                ARG_SOUBORY="$ARG_SOUBORY --file $f"
-              else
-                # Soubor ještě neexistuje – ZÁMĚRNĚ se nezakládá prázdný:
-                # `zmenil_neco()` se ptá gitu, a prázdný soubor by vypadal jako
-                # změna od agenta (běh bez práce by se hlásil jako úspěch).
-                # Nový soubor umí aider založit sám, když ho model vytvoří.
-                echo "  (ještě neexistuje, nechá se na modelu: $f)"
+              if [ ! -e "$f" ]; then
+                # Soubor granule ještě neexistuje → ZALOŽÍ SE PRÁZDNÝ a předá
+                # se aideru jako `--file`. Naměřeno 30. 9. 2026 (běh #129):
+                # bez toho soubor v chatu nebyl, a i když ho měl model teprve
+                # VYTVOŘIT, odpověděl „add the file to the chat". Aiderův
+                # prompt sice pro nový soubor chce prázdnou SEARCH sekci, jenže
+                # model bez souboru v chatu odmítne navrhnout cokoli.
+                # Prázdný soubor je jen zámek pro chat – když do něj model nic
+                # nenapíše, běh se uklidí ve „Verdikt a vytvoření patche"
+                # (git add -A) a testy ho stejně shodí jako nefunkční.
+                : > "$f"
+                echo "  (založen prázdný, ať je v chatu: $f)"
               fi
+              ARG_SOUBORY="$ARG_SOUBORY --file $f"
             done <<< "$DO_EDITACE"
           else
             echo "::warning::granule neurčuje žádný soubor – agent dostane jen zadání"
@@ -197,6 +202,7 @@ jobs:
               --model "openai/${FORGE_MODEL}" \
               --read CONVENTIONS.md \
               $ARG_SOUBORY \
+              --map-tokens 0 \
               --edit-format diff \
               --message "$FORGE_PROMPT" \
               --yes --no-auto-commits --no-stream --no-check-update \
