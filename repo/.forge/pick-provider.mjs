@@ -28,17 +28,46 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // verze (raw.githubusercontent) a lokální kopie v repu hry je jen ZÁLOHA pro
 // případ, že by raw nebyl dostupný. Díky tomu se mrtvý model opraví jednou
 // (v orchestra) a všechny hry ho uvidí při dalším běhu – žádné kopie v repoch her.
+//
+// POZOR (naměřeno 30. 9. 2026): raw.githubusercontent má CDN cache, která po
+// pushi do orchestra slouží STAROU verzi i několik minut. To nevadí u seznamu
+// modelů (ten se mění málokdy), ale VADÍ to u směrovacích metadat
+// (`anyPriority`, `skromny`) — podle nich se řadí poskytovatelé, a stará verze
+// by poslala granuli `any` na gemini (~20 dotazů/den).
+// Řešení: seznam modelů a klíčů bere z orchestra (čerstvý), ale směrovací
+// metadata vždy z LOKÁLNÍ kopie — ta se do her synchronizuje při změně šablony.
 const ORCHESTRA_RAW = "https://raw.githubusercontent.com/ssevcikm-spec/forge-orchestra/main/repo/.forge/providers.json";
+const LOKALNI = JSON.parse(readFileSync(join(HERE, 'providers.json'), 'utf8'));
+
+/** Vezme z orchestra, co se mění často; routing metadata z lokální kopie. */
+function sloucitVOdkazy(remote, lokal) {
+  const podleJmena = new Map((lokal.providers || []).map((p) => [p.name, p]));
+  return {
+    ...remote,
+    providers: (remote.providers || []).map((p) => {
+      const l = podleJmena.get(p.name) || {};
+      const maRouting = l.anyPriority !== undefined || l.skromny !== undefined;
+      return {
+        ...p,                                  // z orchestra: modely, baseUrl, klíč
+        ...(l.anyPriority !== undefined ? { anyPriority: l.anyPriority } : {}),
+        ...(l.skromny !== undefined ? { skromny: l.skromny } : {}),
+        ...(maRouting ? { _routingZ: "lokální kopie" } : {}),
+      };
+    }),
+  };
+}
+
 let config;
 try {
   const r = await fetch(ORCHESTRA_RAW);
   if (r.ok) {
-    config = await r.json();
-    console.log("providers.json: čerstvá verze z orchestra");
+    config = sloucitVOdkazy(await r.json(), LOKALNI);
+    const routing = config.providers.filter((p) => p.anyPriority !== undefined).length;
+    console.log(`providers.json: orchestra + routing z lokální kopie (${routing}/${config.providers.length})`);
   }
 } catch { /* offline – spadni na lokální kopii */ }
 if (!config) {
-  config = JSON.parse(readFileSync(join(HERE, 'providers.json'), 'utf8'));
+  config = LOKALNI;
   console.log("providers.json: lokální kopie (orchestra nedostupná)");
 }
 
