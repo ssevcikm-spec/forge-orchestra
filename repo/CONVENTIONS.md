@@ -46,6 +46,135 @@ nepřátele" – kdyby v projektu chyběla, vypadá to jako úspěch.
 Alternativa bez nového souboru je `e.set_meta("smer", …)` / `e.get_meta("smer")`,
 ale vlastní skript je čitelnější.
 
+## 1c. `File` a `json` NEEXISTUJÍ – Godot má `FileAccess` a `JSON`
+
+Nejčastější chyba modelů, které znají Python: sáhnou po `File`, `open()` nebo
+`json.load()`. V GDScriptu nic z toho není a **skript se vůbec nenačte**:
+
+```gdscript
+# ŠPATNĚ – Parse Error: Identifier "File" not declared in the current scope
+var file = File.new()
+file.open("res://assets/data/items.json", File.READ)
+var data = json.load(file)
+
+# SPRÁVNĚ – Godot 4
+var text := FileAccess.get_file_as_string("res://assets/data/items.json")
+if text.is_empty():
+    push_error("items.json nejde načíst")
+    return
+var data: Variant = JSON.parse_string(text)
+if typeof(data) != TYPE_DICTIONARY:
+    push_error("items.json není objekt")
+    return
+```
+
+Pozor i na `json.parse()` (Python) vs `JSON.parse_string()` (Godot) a na to, že
+`JSON.parse_string()` vrací `null` při chybě – **vždy zkontroluj výsledek**,
+jinak dostaneš `Cannot infer the type` nebo pád na `null`.
+
+## 1d. Rezervovaná a globální jména tříd
+
+`class_name` vytváří **globální** jméno v celém projektu. Když se trefí do
+jména, které už používá Godot, parsování skriptu selže:
+
+```gdscript
+# ŠPATNĚ – Parse Error: Class "Item" hides a global script class.
+class_name Item
+
+# SPRÁVNĚ – konkrétnější jméno
+class_name GameItem
+```
+
+Naměřeno 30. 9. 2026: granule `entity.item` psala `class_name Item` a shodila
+tím celý běh (testy pak hlásily jen „překročen tvrdý limit 90 s").
+
+**Nepoužívej jako `class_name`:** `Item`, `Node`, `Object`, `Resource`, `Timer`,
+`Camera`, `Light`, `Shape`, `Curve`, `Animation`, `Environment`, `Material`,
+`Texture`, `Image`, `Font`, `Label`, `Button`, `Panel`, `Window`, `File`,
+`Directory`, `JSON`, `Input`, `Engine`, `OS`, `Time`, `RandomNumberGenerator`.
+
+Buď jméno projektu předřaď (`GameItem`, `UoItem`), nebo – ještě lépe – žádné
+`class_name` nedávej a přistupuj k souboru přes `preload()`/`load()`.
+
+## 1e. Než začneš psát, zkontroluj, že soubor není jen kostra
+
+Když granule říká „vytvoř `scripts/x.gd`", **nejdřív zjisti, jestli už
+existuje** a co v něm je. Přepisovat existující funkční soubor je zakázané
+(viz §6) – a slepé `class_name` do souboru, který ho už má, je okamžitá chyba.
+
+## 1f. `get()`, `set()`, `name` — kolize s vestavěnými členy uzlu
+
+I když je název „hezký", může kolidovat s tím, co má každý uzel od enginu.
+Naměřeno 30. 9. 2026 (po nasazení §1c/§1d tyhle chyby zbyly jako poslední):
+
+```gdscript
+# ŠPATNĚ – Parse Error: The method "get()" overrides a method from native
+# class "Object".  (a „function signature doesn't match the parent")
+func get(attr: String) -> int:
+    return atributy[attr]
+
+# ŠPATNĚ – Parse Error: Member "name" redefined (original in native class 'Node')
+var name := ""
+
+# SPRÁVNĚ – vlastní, konkrétní názvy
+func hodnota(attr: String) -> int:
+    return atributy[attr]
+
+var nazev := ""
+var jmeno := ""
+```
+
+**Nikdy nepoužívej jako název funkce:** `get`, `set`, `free`, `queue_free`,
+`connect`, `emit`, `call`, `has`, `is_class`, `duplicate`, `print`.
+**Nikdy nepoužívej jako název proměnné:** `name`, `owner`, `position`, `scale`,
+`rotation`, `visible`, `modulate`, `script`, `process_mode`, `children`, `size`.
+**Nikdy nepoužívej jako `class_name`:** `Item`, `Node`, `Object`, `Resource`,
+`Timer`, `Camera`, `Light`, `Shape`, `Curve`, `Animation`, `Environment`,
+`Material`, `Texture`, `Image`, `Font`, `Label`, `Button`, `Panel`, `Window`,
+`File`, `Directory`, `JSON`, `Input`, `Engine`, `OS`, `Time`.
+
+Když potřebuješ metodu „na získání hodnoty", pojmenuj ji česky nebo konkrétně
+(`hodnota`, `vypocitej`, `get_damage`) — nikdy holé `get`.
+
+## 1g. Soubor granule se instancuje přes `load(...).new()` – musí to být `extends Node`
+
+Testy berou každý soubor granule takhle:
+
+```gdscript
+var sc = load("res://scripts/item.gd")   # musí jít načíst
+var obj = sc.new()                       # musí jít zavolat BEZ argumentů
+obj.use()                                # smluvní metody musí existovat na té instanci
+```
+
+Z toho plynou tři pravidla, která Godot sám nezkontroluje (parse projde, testy
+pak spadnou na „překročen tvrdý limit 90 s" a příčina není vidět):
+
+1. **Soubor začíná `extends Node`.** Když je to `Resource` nebo `RefCounted`,
+   `new()` sice projde, ale instance není uzel – a uvolnění v testech (`free()`)
+   na RefCounted vyhodí chybu, která **přeruší celý běh testů**.
+2. **`class_name` NIKDY nesmí být i jméno vnořené `class` ve stejném souboru.**
+
+   ```gdscript
+   # ŠPATNĚ – vnořená třída přebije globální jméno; new() vrátí ji,
+   # ta nemá use/repair/broken a není to Node
+   class_name GameItem
+
+   class GameItem extends Resource:
+       func use() -> void: …
+
+   # SPRÁVNĚ – soubor SÁM JE ta třída
+   extends Node
+   class_name GameItem
+
+   func use() -> void: …
+   ```
+
+   Naměřeno 30. 9. 2026 na granulí `entity.item` (běh #122): model napsal přesně
+   první tvar, brána na parsování vrátila exit 0 **a přesto to bylo špatně**.
+   Orchestr teď tenhle tvar odchytí staticky, ale psát se to nemá vůbec.
+3. **`_init()` nesmí mít povinný argument.** `new()` se volá bez parametrů;
+   data načítej v `_ready()` nebo vlastní metodou `nacti(cesta)`.
+
 ## 2. Když se skript hry nenačte, poznáš to hned
 
 Testy to řeknou („skript hry jde načíst"), ale **spustit si je musí CI** – ty
@@ -82,7 +211,10 @@ zdi. Použij `_safe_spot(vp)` (už v `game.gd` je) nebo `marker_positions()`.
 `tests/`, `.github/`, `.forge/`, `project.godot` – to jsou pravidla hry
 a automatického sloučení. Když agent sáhne na testy, ztratí tím páku, která
 hlídá jeho vlastní práci. Automatické sloučení navíc pustí jen změny
-v `scripts/` a `assets/` do 60 řádků.
+v `scripts/` a `assets/` do 60 řádků. Výjimka: granule s deklarovaným
+`size_lines > 60` (`model: strong`) smí být větší — limit se bere z granule
+(vstup `max_lines`), a když orchestr nic nepředá, PR z takové granule čeká
+na ruční sloučení (záměr, ne chyba).
 
 ## 6. Styl
 
@@ -93,5 +225,7 @@ v `scripts/` a `assets/` do 60 řádků.
 
 ## 7. Ověření
 
-Testy běží v CI na každý PR (`Godot --headless`): 31 kontrol. Když něco
-nevyjde, je to vidět v logu jako `[test] FAIL …` – čti ten řádek, ne celý log.
+Testy běží v CI na každý PR (`Godot --headless`): 26 kontrol, počet roste
+s každou granulí (kontroly na komponenty se zapínají samy, až soubor granule
+v projektu je). Když něco nevyjde, je to vidět v logu jako `[test] FAIL …` –
+čti ten řádek, ne celý log.

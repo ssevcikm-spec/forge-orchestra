@@ -169,7 +169,7 @@ function grainOf(payload: string | null): string {
   } catch { return ""; }
 }
 
-async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<void> {
+async function dispatchWorkflow(env: Env, task: Task, runKey: string, attempt: number): Promise<void> {
   const workflow = env.WORKFLOW_FILE || "agent.yml";
   const repo = repoOf(task.payload, env);
   // max_lines a model se berou z granule roadmapy (payload) – brána auto-merge
@@ -208,6 +208,11 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<v
         // (naměřeno 30. 9. 2026: mistral i cerebras odpovídaly „please add the
         // file to the chat", granule upravující existující soubor selhaly vždy).
         grain: grainOf(task.payload),
+        // Číslo pokusu: workflow podle něj posune pořadí modelů, aby opakovaný
+        // pokus nezkoušel stejný model jako ten, co právě selhal. Naměřeno
+        // 30. 9. 2026: task #128 i #131 zkoušely 5× po sobě mistral/codestral
+        // a selhaly pokaždé stejně – rotace se u granulí `any` nepoužívala.
+        attempt: String(attempt),
       },
     }),
   });
@@ -523,8 +528,18 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
       const key = `${g.game_id}/${i.id}`;
       if (i.done === true) {
         if (!done.has(key)) {
+          // UPSERT, ne UPDATE (opraveno 30. 9. 2026). `done: true` v souboru je
+          // tvrzení „hotovo" a musí mít řádek v D1 – jinak se závislosti
+          // nemají čeho chytit. Dřív tu byl jen UPDATE: když řádek chyběl,
+          // neudělal NIC (tichý no-op) a `done.add(key)` přesto proběhl, takže
+          // se stav v paměti rozešel s databází.
+          // Naměřeno: `core.attributes` a `entity.item` řádek neměly a DAG
+          // držel pohromadě jen díky záložní cestě (kontrola `done: true`
+          // v souboru) – tedy šťastnou shodou okolností, ne konstrukcí.
           await env.DB.prepare(
-            "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE item_id=?",
+            `INSERT INTO roadmap (item_id, task_id, status, updated_at)
+             VALUES (?, NULL, 'done', datetime('now'))
+             ON CONFLICT(item_id) DO UPDATE SET status='done', updated_at=datetime('now')`,
           ).bind(key).run().catch(() => undefined);
           done.add(key);
         }
@@ -737,7 +752,8 @@ async function tick(env: Env): Promise<string> {
     ).bind(task.id, runKey, workflow).run();
 
     try {
-      await dispatchWorkflow(env, task, runKey);
+      // `attempts` se právě zvýšilo (claim výše), takže je to číslo TOHOTO pokusu.
+      await dispatchWorkflow(env, task, runKey, (task.attempts ?? 0) + 1);
     } catch (e) {
       await env.DB.batch([
         env.DB.prepare(

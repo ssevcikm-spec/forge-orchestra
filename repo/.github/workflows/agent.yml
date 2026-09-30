@@ -47,6 +47,10 @@ on:
         description: 'ID granule v roadmapě (např. core.skills) – podle něj se bere owns, tedy soubory k editaci'
         required: false
         default: ''
+      attempt:
+        description: 'Číslo pokusu (1 = první). Podle něj se posouvá pořadí modelů, aby opakovaný pokus nezkoušel stejný model.'
+        required: false
+        default: '1'
 
 permissions:
   contents: read
@@ -136,6 +140,11 @@ jobs:
           # Prázdné ID není chyba: `files-to-edit.mjs` si cestu v tom případě
           # vytáhne ze zadání.
           FORGE_GRAIN: ${{ inputs.grain }}
+          # Číslo pokusu: pick-provider podle něj posune pořadí modelů, aby
+          # opakovaný pokus nezkoušel stejný model jako ten, co právě selhal.
+          # Naměřeno 30. 9. 2026: task #128 i #131 zkoušely 5× po sobě
+          # mistral/codestral a selhaly pokaždé stejně.
+          FORGE_ATTEMPT: ${{ inputs.attempt }}
           # Klíče musí být i TADY, ne jen ve kroku s výběrem poskytovatele:
           # druhý pokus volá pick-provider.mjs znovu a bez klíčů by hlásil
           # „přeskočeno (chybí …)" u všech poskytovatelů. Naměřeno v běhu #57:
@@ -235,10 +244,21 @@ jobs:
           }
           spust_agenta
           if ! zmenil_neco; then
-            echo "::notice::model nezměnil žádný kód – zkouším jiného bezplatného poskytovatele"
-            if node .forge/pick-provider.mjs --next; then
-              nacti_poskytovatele
-              spust_agenta
+            # KVÓTA vs. SCHOPNOST (od 30. 9. 2026). Druhý pokus s jiným
+            # poskytovatelem má smysl jen tehdy, když je co zkoušet — tedy když
+            # model odpověděl, ale kód nezměnil (jiný model to může trefit).
+            # Když ale běh spadl na vyčerpané kvótě (rate-limit / denní strop),
+            # druhý pokus je jen další spálený pokus: naměřeno 30. 9. — 9 z 13
+            # běhů skončilo na rate-limitu a 11 z 13 zkoušelo druhého
+            # poskytovatele — žádný z nich neuspěl. Kvóta je vzácnější než čas.
+            if grep -qE 'RateLimitError|rate limit reached|exceeded your current quota' agent.log; then
+              echo "::warning::první pokus spadl na vyčerpané kvótě – druhý poskytovatel se nezkouší (šetřím kvótu)"
+            else
+              echo "::notice::model nezměnil žádný kód – zkouším jiného bezplatného poskytovatele"
+              if node .forge/pick-provider.mjs --next; then
+                nacti_poskytovatele
+                spust_agenta
+              fi
             fi
           fi
 
@@ -340,6 +360,18 @@ jobs:
           fi
           echo "class_name v pořádku."
 
+      - name: Import assetů (než se pustí brána a testy)
+        # PROČ SAMOSTATNÝ KROK (dřív byl import až uvnitř testů):
+        # assety potřebuje UŽ BRÁNA NA PARSOVÁNÍ. Godot v režimu `--script` ani
+        # `--check-only` assety NEIMPORTUJE, takže skript odkazující na texturu
+        # hlásí chybu, kterou nemá – a v čerstvém checkoutu runneru nejsou
+        # `.godot/imported/*.ctex` (`.godot/` je v .gitignore).
+        # Naměřeno 30. 9. 2026 (hra uo-shadows): bez importu padaly testy VŽDY
+        # na „všechny assety jdou načíst (3 OK, 16 chybí)" a orchestr nemohl
+        # uspět, i když agent udělal svou práci správně.
+        timeout-minutes: 5
+        run: '"$FORGE_GODOT" --headless --path . --import 2>&1 | tail -3'
+
       - name: Testy hry (Godot headless)
         # POZOR: tenhle timeout tam musí být. Bez něj se stalo, že patch od
         # agenta obsahoval nekonečnou smyčku, Godot se zasekl a krok visel
@@ -349,7 +381,6 @@ jobs:
         id: tests
         run: |
           set -o pipefail
-          "$FORGE_GODOT" --headless --path . --import 2>&1 | tail -3
 
           spust_testy() {
             timeout 150 "$FORGE_GODOT" --headless --path . \
