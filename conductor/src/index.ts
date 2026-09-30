@@ -695,19 +695,25 @@ async function tick(env: Env): Promise<string> {
     // nejstarší připravené úlohy; vyber první, jehož owns nekoliduje s běžícími
     //
     // POZOR – COOLDOWN SE MUSÍ VYNUTIT I TADY (opraveno 30. 9. 2026):
-    // `ready` úloha se nesmí vydat, dokud její granule čeká cooldown
-    // (roadmap.status='failed' mladší než RETRY_HOURS). Jinak se obchází
-    // pojistka proti pálení kvóty: polling (pollRuns) vrací selhaný úkol
-    // rovnou na `ready`, ale roadmapu neaktualizuje – takže se stejná granule
-    // vydala znovu za 2 minuty místo za 3 hodiny a spálila všech 5 pokusů.
-    // Naměřeno 30. 9. 2026: běhy #128–#130 se opakovaly každé ~2 minuty,
-    // zatímco RETRY_HOURS=3 a MAX_ATTEMPTS=5.
+    // `ready` úloha se nesmí vydat, dokud její granule čeká cooldown. Jinak se
+    // obchází pojistka proti pálení kvóty: polling (pollRuns) vrací selhaný
+    // úkol rovnou na `ready`, ale roadmapu neaktualizuje – takže se stejná
+    // granule vydala znovu za 2 minuty místo za 3 hodiny a spálila všech
+    // 5 pokusů (naměřeno: #128 měl 5 pokusů za 16 minut, #124/#125/#127 za
+    // čtvrt hodiny, zatímco RETRY_HOURS=3 a MAX_ATTEMPTS=5).
+    //
+    // POZOR 2 (druhá iterace téže opravy): podmínka NESMÍ filtrovat podle
+    // `rm.status`. První verze se ptala na `rm.status = 'failed'`, jenže
+    // pollRuns u ještě-opakovatelného selhání zapisuje `'queued'` (failed až
+    // u posledního pokusu) – guard se tak vůbec neuplatnil a díra zůstala.
+    // Rozhoduje proto VÝHRADNĚ čas poslední změny řádku, který failure zapisuje
+    // v obou případech. Řádek se nemaže, takže je to spolehlivý nositel
+    // cooldownu; dispatch smyčka se ptá jen na úlohy, které už jsou `ready`.
     const readyAll = await env.DB.prepare(
       `SELECT * FROM tasks WHERE status='ready' AND target='cloud'
          AND NOT EXISTS (
            SELECT 1 FROM roadmap rm
             WHERE rm.task_id = tasks.id
-              AND rm.status = 'failed'
               AND rm.updated_at > datetime('now', ?)
          )
         ORDER BY id LIMIT 25`,
