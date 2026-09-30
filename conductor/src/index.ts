@@ -493,9 +493,21 @@ async function roadmapTick(env: Env): Promise<string> {
 
     // Granule, jejichž PR (podle názvu) už je sloučené, se označí hotové –
     // pokryje to i staré úkoly pod jiným item_id (přechod default → hra).
+    // Explicitně hotové granule (roadmapa: done: true) se počítají jako hotové
+    // i pro ZÁVISLOSTI – ať na ně nečeká nic, až jejich PR vypadne z posledních
+    // 100 zavřených PR (titulkový matching by je pak nenašel a DAG by se zasekl).
     const slouceneTituly = mergedTitlesByRepo.get(g.repo) ?? new Set<string>();
     for (const i of items) {
       const key = `${g.game_id}/${i.id}`;
+      if (i.done === true) {
+        if (!done.has(key)) {
+          await env.DB.prepare(
+            "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE item_id=?",
+          ).bind(key).run().catch(() => undefined);
+          done.add(key);
+        }
+        continue;
+      }
       if (slouceneTituly.has(i.title) && !done.has(key)) {
         await env.DB.prepare(
           "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE item_id=?",
