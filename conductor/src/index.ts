@@ -943,18 +943,30 @@ export default {
         `UPDATE tasks SET status='blocked', updated_at=datetime('now') WHERE ${podminka}`,
       ).run();
 
-      // Navíc: dorazí běhy, které zůstaly navěky `running`, ale jejich úkol je
-      // už `blocked`. Bez toho je stale-recovery (STALE_MINUTES, 90 min) pořád
-      // vrací do fronty a conductor je dispatchuje dokola — naměřeno
-      // 30. 9. 2026: běhy #14/#35/#44/#58/#59 se resurrectovaly každých 90 min.
+      // Navíc: dorazí běhy, které zůstaly navěky `running`, i když jejich úkol
+      // je už `blocked`. Bez toho je stale-recovery (STALE_MINUTES) pořád
+      // vrací do fronty — a protože vrací `WHERE status='running'` bez ohledu
+      // na `blocked`, úloha se resurrectuje a dispatchuje dokola.
+      // Naměřeno 30. 9. 2026: běhy #14/#24/#35/#44/#58/#59 se obnovovaly
+      // každé ~2 minuty a pálily free kvótu na mrtvých granulích.
       const doraz = await env.DB.prepare(
         `UPDATE runs SET status='abandoned', finished_at=datetime('now'),
                          summary='úklid: úkol byl označen blocked'
-          WHERE status='running' AND task_id IN (SELECT id FROM tasks WHERE status='blocked')`,
+          WHERE status='running'
+            AND task_id IN (SELECT id FROM tasks WHERE status='blocked')`,
+      ).run();
+
+      // Pojistka: kdyby některá blocked úloha zůstala ve stavu running
+      // (stale-recovery ji stihla přeskočit), srovnat i ji.
+      const srovnej = await env.DB.prepare(
+        `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+          WHERE status='running'
+            AND id NOT IN (SELECT task_id FROM runs WHERE status='running')`,
       ).run();
 
       return json({ ok: true, oznaceno_blocked: upd.meta.changes,
-                    dorazeno_behu: doraz.meta.changes });
+                    dorazeno_behu: doraz.meta.changes,
+                    srovnano_tasku: srovnej.meta.changes });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
