@@ -155,6 +155,20 @@ function modelOf(payload: string | null): string {
   } catch { return "any"; }
 }
 
+/**
+ * Z payloadu úkolu: ID granule v roadmapě (např. "core.skills").
+ *
+ * Workflow podle něj hledá `owns` granule a ty soubory předá aideru jako
+ * `--file` (editovatelné). Bez toho je agent dostal jen přes repo-mapu
+ * (read-only) a model odmítl editovat – root cause 0% úspěšnosti.
+ */
+function grainOf(payload: string | null): string {
+  try {
+    const p = JSON.parse(payload || "{}");
+    return typeof p.grain === "string" ? p.grain : "";
+  } catch { return ""; }
+}
+
 async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<void> {
   const workflow = env.WORKFLOW_FILE || "agent.yml";
   const repo = repoOf(task.payload, env);
@@ -187,6 +201,13 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string): Promise<v
         prompt: task.prompt,
         max_lines: String(maxLines),
         model: modelOf(task.payload),
+        // ID granule v roadmapě (payload ho nese jako `grain`). Workflow podle
+        // něj najde `owns` a předá ty soubory aideru jako `--file`, tedy
+        // EDITOVATELNÉ. Bez toho měl agent soubory jen v repo-mapě (read-only)
+        // a model správně odmítl editovat – což byl root cause 0% úspěšnosti
+        // (naměřeno 30. 9. 2026: mistral i cerebras odpovídaly „please add the
+        // file to the chat", granule upravující existující soubor selhaly vždy).
+        grain: grainOf(task.payload),
       },
     }),
   });

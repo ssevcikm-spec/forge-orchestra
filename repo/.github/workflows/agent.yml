@@ -43,6 +43,10 @@ on:
         description: 'Modelová třída granule: any | strong (strong = jen silné modely z providers.json)'
         required: false
         default: any
+      grain:
+        description: 'ID granule v roadmapě (např. core.skills) – podle něj se bere owns, tedy soubory k editaci'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -126,6 +130,12 @@ jobs:
           FORGE_TITLE: ${{ inputs.title }}
           FORGE_RUN_KEY: ${{ inputs.run_key }}
           FORGE_MIN_STRONG: ${{ inputs.model }}
+          # ID granule v roadmapě (např. `core.skills`). Podle něj se hledá
+          # `owns` – seznam souborů, které agent smí měnit, a ty se předají
+          # aideru jako `--file` (editovatelné), ne jen přes repo-mapu.
+          # Prázdné ID není chyba: `files-to-edit.mjs` si cestu v tom případě
+          # vytáhne ze zadání.
+          FORGE_GRAIN: ${{ inputs.grain }}
           # Klíče musí být i TADY, ne jen ve kroku s výběrem poskytovatele:
           # druhý pokus volá pick-provider.mjs znovu a bez klíčů by hlásil
           # „přeskočeno (chybí …)" u všech poskytovatelů. Naměřeno v běhu #57:
@@ -145,10 +155,48 @@ jobs:
             . .forge/provider.env
             set +a
           }
+          # SOUBORY K EDITACI – ROOT CAUSE 0% ÚSPĚŠNOSTI (30. 9. 2026).
+          #
+          # Dřív se pouštěl aider jen s `--read CONVENTIONS.md`. Soubory granule
+          # se tím dostaly do repo-mapy (READ-ONLY), ale NE do chatu jako
+          # editovatelné. Aider má v promptu pravidlo „Only create SEARCH/REPLACE
+          # blocks for files that the user has added to the chat!" – takže model
+          # SPRÁVNĚ odmítl editovat a odpověděl „Please add the file's content to
+          # the chat". Udělaly to VŠECHNY modely (mistral 17–36 tokenů,
+          # cerebras 179–204) a běh skončil jako „agent nic nezměnil".
+          #
+          # Vysvětluje to i vzorec úspěch/neúspěch: granule, které soubor jen
+          # VYTVÁŘELY, prošly – na nový soubor není potřeba SEARCH blok. Granule,
+          # které existující soubor UPRAVOVALY, selhaly VŽDY, bez ohledu na model.
+          #
+          # `owns` granule je přesně seznam souborů, které granule vlastní
+          # (conductor podle něj zamyká souběh) – proto se bere odtud.
+          DO_EDITACE=$(node .forge/files-to-edit.mjs --grain "$FORGE_GRAIN" --prompt "$FORGE_PROMPT" || true)
+          ARG_SOUBORY=""
+          if [ -n "$DO_EDITACE" ]; then
+            echo "Soubory k editaci (dostane je jako --file, ne jen --read):"
+            echo "$DO_EDITACE" | sed 's/^/  /'
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              if [ -e "$f" ]; then
+                ARG_SOUBORY="$ARG_SOUBORY --file $f"
+              else
+                # Soubor ještě neexistuje – ZÁMĚRNĚ se nezakládá prázdný:
+                # `zmenil_neco()` se ptá gitu, a prázdný soubor by vypadal jako
+                # změna od agenta (běh bez práce by se hlásil jako úspěch).
+                # Nový soubor umí aider založit sám, když ho model vytvoří.
+                echo "  (ještě neexistuje, nechá se na modelu: $f)"
+              fi
+            done <<< "$DO_EDITACE"
+          else
+            echo "::warning::granule neurčuje žádný soubor – agent dostane jen zadání"
+          fi
           spust_agenta() {
+            # shellcheck disable=SC2086
             aider \
               --model "openai/${FORGE_MODEL}" \
               --read CONVENTIONS.md \
+              $ARG_SOUBORY \
               --edit-format diff \
               --message "$FORGE_PROMPT" \
               --yes --no-auto-commits --no-stream --no-check-update \
