@@ -171,6 +171,49 @@ jobs:
             fi
           fi
 
+      - name: Kontrola class_name (staticky, Godot to nepozná)
+        # PROČ (naměřeno 30. 9. 2026, hra uo-shadows, granule entity.item):
+        #
+        # Když soubor deklaruje `class_name GameItem` a ZÁROVEŇ uvnitř definuje
+        # `class GameItem extends Resource`, vnořená třída přebije tu globální.
+        # `new()` pak vrátí vnořenou třídu – nemá smluvní metody (testy hlásí
+        # „item.gd poskytuje use/repair/broken" jako FAIL) a jako RefCounted
+        # navíc spadne na `free()` v testech, což PŘERUŠÍ celý běh testů.
+        # V logu pak není nic než „překročen tvrdý limit 90 s".
+        #
+        # `godot --check-only` tenhle tvar propustí s exit 0 a BEZ chyby
+        # (ověřeno), takže na to engine nemá nástroj – kontroluje se text.
+        timeout-minutes: 2
+        run: |
+          ZMENENE=$(git status --porcelain \
+            | grep -Ev '\.(uid|import)$|^.. (smoke|agent)\.log$|^.. \.forge/provider\.(env|json)$' \
+            | awk '{print $NF}' | grep '\.gd$' || true)
+
+          if [ -z "$ZMENENE" ]; then
+            echo "Agent nezměnil žádný .gd soubor – není co kontrolovat."
+            exit 0
+          fi
+
+          CHYBY=0
+          for f in $ZMENENE; do
+            JMENO=$(grep -m1 -oE '^class_name[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' "$f" | awk '{print $2}' || true)
+            if [ -z "$JMENO" ]; then
+              continue
+            fi
+            if grep -qE "^class[[:space:]]+$JMENO([[:space:]]|:|$)" "$f"; then
+              echo "::error file=$f::$f deklaruje class_name $JMENO a zároveň definuje vnořenou class $JMENO – vnořená třída přebije globální jméno"
+              CHYBY=$((CHYBY + 1))
+            else
+              echo "  OK  $f (class_name $JMENO)"
+            fi
+          done
+
+          if [ "$CHYBY" -gt 0 ]; then
+            echo "TIP: soubor SÁM JE ta třída – začni 'extends Node' a vnořenou class smaž (CONVENTIONS.md §1g)."
+            exit 1
+          fi
+          echo "class_name v pořádku."
+
       - name: Testy hry (Godot headless)
         # POZOR: tenhle timeout tam musí být. Bez něj se stalo, že patch od
         # agenta obsahoval nekonečnou smyčku, Godot se zasekl a krok visel
@@ -401,6 +444,17 @@ jobs:
           del=0
           echo "soubory ve změně:"
           while read -r a d f; do
+            # Generované soubory se přeskakují PRVNÍ, ještě před kontrolou
+            # složky. Godot si .import/.uid přepisuje sám a při importu assetů
+            # v runneru jich přepíše stovky – řada z nich leží mimo scripts/
+            # a assets/ (např. tools/blender/, kde jich u uo-shadows bylo 260).
+            # Když se složka kontrolovala dřív, KAŽDÝ PR skončil na „mimo
+            # povolené složky" a nechal se na ruční sloučení.
+            case "$f" in
+              *.import|*.uid)
+                echo "  (generované Godotem, přeskočeno: $f)"
+                continue ;;
+            esac
             case "$f" in
               scripts/*|assets/*) ;;
               *) echo "  !! mimo povolené složky: $f"; ok=0 ;;
