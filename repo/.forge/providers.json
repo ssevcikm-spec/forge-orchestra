@@ -34,6 +34,8 @@
       "name": "mistral",
       "baseUrl": "https://api.mistral.ai/v1",
       "keyEnv": "MISTRAL_API_KEY",
+      "anyPriority": 10,
+      "_anyPriority": "Nejspolehlivější a nejštědřejší zdroj (naměřeno 30. 9.: 0 rate-limitů z 11 běhů). Pro granule `any` se zkouší první.",
       "models": [
         "codestral-latest"
       ],
@@ -45,6 +47,8 @@
       "name": "cerebras",
       "baseUrl": "https://api.cerebras.ai/v1",
       "keyEnv": "CEREBRAS_API_KEY",
+      "anyPriority": 20,
+      "_anyPriority": "Štědrý, ale jede z trial kreditu ($5/30 dní) — pro `any` druhá volba, aby kredit vydržel.",
       "models": [
         "gpt-oss-120b"
       ],
@@ -56,8 +60,10 @@
       "name": "gemini",
       "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
       "keyEnv": "GEMINI_API_KEY",
+      "anyPriority": 90,
       "skromny": true,
       "_skromny": "Malý denní limit (~20 dotazů/den). Naměřeno v běhu #61: rotace poslala úlohu na gemini, ten vrátil 429 'exceeded your current quota' a celý pokus se spálil. Proto se skromní poskytovatelé zkouší až na konci.",
+      "_anyPriority": "Skromný zdroj — pro granule `any` až na konci.",
       "models": [
         "gemini-3.8-flash",
         "gemini-3-flash-preview",
@@ -68,6 +74,8 @@
       "name": "groq",
       "baseUrl": "https://api.groq.com/openai/v1",
       "keyEnv": "GROQ_API_KEY",
+      "anyPriority": 30,
+      "_anyPriority": "Denní strop 200k tokenů a jeden běh spálí ~6k → ~33 běhů/den. Naměřeno 30. 9.: 6 z 6 běhů na rate-limitu. Pro `any` tedy až po mistralu a cerebrasu, ať kvóta zbyde na granule `strong`.",
       "models": [
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b"
@@ -80,6 +88,8 @@
       "name": "openrouter",
       "baseUrl": "https://openrouter.ai/api/v1",
       "keyEnv": "OPENROUTER_API_KEY",
+      "anyPriority": 90,
+      "_anyPriority": "Poslední záchrana pro granule `any`: 50 požadavků/den a každý probe zkouší až 4 modely, takže se vyčerpá rychle. Použije se, až když štědré zdroje selžou.",
       "models": [
         "poolside/laguna-s-2.1:free",
         "cohere/north-mini-code:free",
