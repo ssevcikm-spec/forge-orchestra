@@ -43,8 +43,16 @@ ROADMAP_FILE = ".forge/roadmap.json"
 ROADMAP_MAX_PRS = "5"
 # Selhaná granule smí znovu do fronty až po tomhle cooldownu: free modely mají
 # denní limity (429 napříč providery – naměřeno 29. 9.) a okamžitý retry by jen
-# pálil pokusy. 6 hodin = rozumný odstup i přes limit „50 dotazů denně".
-RETRY_HOURS = "6"
+# pálil pokusy. Původně 6 h; zkráceno na 3 h, protože typická příčina selhání
+# bývá syntaktická chyba v jednom souboru, kterou další pokus s jiným modelem
+# často trefí — a 6 h zdržení u 18granulového DAG znamenalo stát půl dne.
+RETRY_HOURS = "3"
+
+# Kolik pokusů smí úloha mít, než zůstane 'failed'. Slabé free modely mají
+# úspěšnost kolem 10 %, takže tři pokusy jsou málo (naměřeno 30. 9. 2026).
+# Strop zároveň brání smyčce: bez něj stale-recovery vracela do fronty i úlohu
+# s vyčerpanými pokusy a ta jela dál navěky.
+MAX_ATTEMPTS = "5"
 
 [[d1_databases]]
 binding = "DB"
