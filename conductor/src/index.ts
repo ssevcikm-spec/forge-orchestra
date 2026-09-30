@@ -753,7 +753,10 @@ async function tick(env: Env): Promise<string> {
     ).run().catch(() => undefined);
   }
   const zombieMsg = zombie?.meta.changes ? `, zombie zablokováno: ${zombie.meta.changes}` : "";
-  const eskalMsg = eskalovano ? `, ohlášeno granulí: ${eskalovano}` : "";
+  // Stav watchdogu se hlásí VŽDYCKY (i s nulou), aby bylo z odpovědi tiku vidět,
+  // že opravdu běžel a s jakým prahem – jinak by se jeho výpadek poznal jen
+  // tak, že by chyběla notifikace, což se snadno přehlédne.
+  const eskalMsg = `, watchdog: ${eskalovano} ohlášeno (prah ${Number(env.ESCALATE_AFTER || "8")})`;
 
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
