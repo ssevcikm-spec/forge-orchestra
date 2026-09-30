@@ -926,17 +926,29 @@ export default {
       const podminka = `status IN ('ready','failed')
           AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)`;
 
+      // Seznam ID zvlášť a mazání po dávkách: DELETE s poddotazem narazil na
+      // CPU limit Workeru (10 ms) a házel výjimku 1101.
+      const nalezeno = await env.DB.prepare(
+        `SELECT id FROM tasks WHERE ${podminka} ORDER BY id LIMIT 200`).all<{ id: number }>();
+      const ids = (nalezeno.results || []).map((r) => r.id);
+
       if (body.dry_run) {
-        const n = await env.DB.prepare(`SELECT COUNT(*) AS n FROM tasks WHERE ${podminka}`)
-          .first<{ n: number }>();
         const ukazka = await env.DB.prepare(
           `SELECT id, title, status FROM tasks WHERE ${podminka} ORDER BY id LIMIT 10`).all();
-        return json({ ok: true, dry_run: true, smazal_bych: n?.n ?? 0,
+        return json({ ok: true, dry_run: true, smazal_bych: ids.length,
                       ukazka: ukazka.results });
       }
+      if (!ids.length) return json({ ok: true, smazano: 0 });
 
-      const del = await env.DB.prepare(`DELETE FROM tasks WHERE ${podminka}`).run();
-      return json({ ok: true, smazano: del.meta.changes });
+      let smazano = 0;
+      for (let i = 0; i < ids.length; i += 25) {
+        const davka = ids.slice(i, i + 25);
+        const r = await env.DB.prepare(
+          `DELETE FROM tasks WHERE id IN (${davka.map(() => "?").join(",")})`,
+        ).bind(...davka).run();
+        smazano += r.meta.changes ?? 0;
+      }
+      return json({ ok: true, smazano });
     }
 
     // Heartbeat domácího uzlu – podle něj je vidět, že uzel žije
