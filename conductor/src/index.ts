@@ -328,15 +328,15 @@ async function pollRuns(env: Env): Promise<string> {
       const nextStatus = (t?.attempts ?? 0) >= maxAttempts ? "failed" : "ready";
       await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
         .bind(nextStatus, row.task_id).run();
-      // Když úkol definitivně selhal, označíme i položku roadmapy. Jinak by
-      // zůstala navěky ve stavu „queued" a nebylo by poznat, že se nepovedla.
-      // updated_at slouží jako čas posledního pokusu – od něj se počítá
-      // cooldown, po kterém smí granule znovu do fronty.
-      if (nextStatus === "failed") {
-        await env.DB.prepare(
-          "UPDATE roadmap SET status='failed', updated_at=datetime('now') WHERE task_id=?",
-        ).bind(row.task_id).run().catch(() => undefined);
-      }
+      // ROADMAP SE MUSÍ AKTUALIZOVAT PŘI KAŽDÉM SELHÁNÍ, ne jen u posledního
+      // pokusu (opraveno 30. 9. 2026). Dřív se `roadmap.updated_at` zapsal jen
+      // když úkol přešel do `failed`; u běžného selhání zůstal starý, takže
+      // dispatch smyčka (která cooldown čte z roadmapy) považovala granuli za
+      // odpočatou a vydala ji znovu za 2 minuty místo za RETRY_HOURS.
+      // Naměřeno: běhy #128–#130 se opakovaly každé ~2 minuty.
+      await env.DB.prepare(
+        `UPDATE roadmap SET status = ?, updated_at = datetime('now') WHERE task_id = ?`,
+      ).bind(nextStatus === "failed" ? "failed" : "queued", row.task_id).run().catch(() => undefined);
     }
 
     const prNote = prUrl
@@ -388,7 +388,7 @@ async function listGames(env: Env): Promise<Game[]> {
   }];
 }
 
-async function roadmapTick(env: Env): Promise<string> {
+async function roadmapTick(env: Env, retryH: number): Promise<string> {
   const games = await listGames(env);
 
   // Samomigrace schématu (idempotentní): roadmap.updated_at přibyl kvůli
@@ -456,7 +456,6 @@ async function roadmapTick(env: Env): Promise<string> {
   // (naměřeno 29. 9. – 429 ze všech providerů naráz).
   const done = new Set<string>();
   const blocked = new Set<string>();
-  const retryH = Number(env.RETRY_HOURS || "6");
   for (const r of rows.results || []) {
     const failed = r.tstatus === "failed" || r.rstatus === "failed";
     const finished = r.tstatus === "done" || r.rstatus === "done"
@@ -602,6 +601,13 @@ async function tick(env: Env): Promise<string> {
   // i když šlo jen o syntaktickou chybu v jednom souboru). Pět pokusů s kratším
   // cooldownem drží postup, ale pořád to není nekonečná smyčka.
   const maxAttempts = Number(env.MAX_ATTEMPTS || "5");
+  // Cooldown, po kterou selhaná granule nesmí znovu do fronty (RETRY_HOURS).
+  // Předává se do roadmapTick, protože ho potřebuje jak skládání `blocked`
+  // množiny, tak dispatch smyčka. Ta ho vynucuje i u úloh, které se do `ready`
+  // vrátily přes polling: pollRuns roadmapu neaktualizuje, takže bez téhle
+  // pojistky se selhaná granule vydala znovu za 2 minuty místo za RETRY_HOURS
+  // a spálila všech 5 pokusů (naměřeno 30. 9. 2026, běhy #128–#130).
+  const retryH = Number(env.RETRY_HOURS || "6");
 
   // 0) nejdřív si vyzvedni výsledky běžících cloudových úloh z GitHubu
   const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
@@ -641,7 +647,7 @@ async function tick(env: Env): Promise<string> {
   // 1b) doplň připravené granule z roadmapy (závislosti hotové, owns volné).
   // Počítají se jen CLOUDOVÉ úlohy – úkol pro domácí uzel (telefon/PC) nemá
   // blokovat práci, kterou dělá GitHub Actions.
-  const roadmapMsg = await roadmapTick(env).catch((e) => `roadmapa selhala: ${String(e)}`);
+  const roadmapMsg = await roadmapTick(env, retryH).catch((e) => `roadmapa selhala: ${String(e)}`);
 
   // 1c) INVARIANT: úkol, na který neodkazuje žádný řádek `roadmap`, je zombie.
   // Vzniká po resetu cache, po ručním zásahu nebo po změně ID granulí — a je
@@ -687,9 +693,25 @@ async function tick(env: Env): Promise<string> {
     }
 
     // nejstarší připravené úlohy; vyber první, jehož owns nekoliduje s běžícími
+    //
+    // POZOR – COOLDOWN SE MUSÍ VYNUTIT I TADY (opraveno 30. 9. 2026):
+    // `ready` úloha se nesmí vydat, dokud její granule čeká cooldown
+    // (roadmap.status='failed' mladší než RETRY_HOURS). Jinak se obchází
+    // pojistka proti pálení kvóty: polling (pollRuns) vrací selhaný úkol
+    // rovnou na `ready`, ale roadmapu neaktualizuje – takže se stejná granule
+    // vydala znovu za 2 minuty místo za 3 hodiny a spálila všech 5 pokusů.
+    // Naměřeno 30. 9. 2026: běhy #128–#130 se opakovaly každé ~2 minuty,
+    // zatímco RETRY_HOURS=3 a MAX_ATTEMPTS=5.
     const readyAll = await env.DB.prepare(
-      "SELECT * FROM tasks WHERE status='ready' AND target='cloud' ORDER BY id LIMIT 25",
-    ).all<Task>();
+      `SELECT * FROM tasks WHERE status='ready' AND target='cloud'
+         AND NOT EXISTS (
+           SELECT 1 FROM roadmap rm
+            WHERE rm.task_id = tasks.id
+              AND rm.status = 'failed'
+              AND rm.updated_at > datetime('now', ?)
+         )
+        ORDER BY id LIMIT 25`,
+    ).bind(`-${retryH} hours`).all<Task>();
     const task = (readyAll.results || []).find((t) => {
       return !lockKeys(t.payload, env).some((k) => locked.has(k));
     });
