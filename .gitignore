@@ -16,3 +16,8 @@ node_modules/
 .test/
 .state/
 *.log
+
+# Běhové artefakty volby poskytovatele (obsahují klíče) – nikdy do šablony
+# herního repa, agent by je poslal do PR
+repo/.forge/provider.env
+repo/.forge/provider.json
