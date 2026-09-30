@@ -48,10 +48,24 @@ záloha. Mrtvý model se proto opraví **jednou tady** a všechny hry ho uvidí.
 Zkouší se **popořadě** (štědré rotované podle `run_key`, skromný gemini nakonec)
 a první, kdo odpoví, vyhrává — nikoli paralelně.
 
+**Silné modely** (`strongModels` u providera): granule roadmapy s
+`model: strong` (size_lines > 60) smí zpracovat jen model z tohohle seznamu.
+Conductor pošle `model` do workflowu, ten nastaví `FORGE_MIN_STRONG=strong`
+a `pick-provider.mjs` vybírá jen z strongModels — slabý model silnou granuli
+nikdy nedostane, i kdyby fronta stála.
+
 - **Kontrola zdraví**: `node repo/.forge/node/providers-check.mjs`
 - **Pravidelná kontrola**: `repo/.github/workflows/model-check.yml` (denně,
   založí issue, když model zmizí z katalogu)
 - **Návrh pouček z chyb**: `tools/suggest-conventions.mjs`
+- **Test volby providera** (bez sítě): `node repo/.forge/node/provider-choice.test.mjs`
+
+## Conductor (API)
+
+Runtime endpointy: `/health` (veřejný), `/tick`, `/poll`, `/queue`, `/roadmap`
+(stav granulí v D1), `/failed`, `/status`, `/workers`, `/games`, `/game`,
+`/heartbeat`, `/claim`, `/task`, `/report` — vše kromě `/health` a `/report`
+(HMAC) chráněné `x-forge-secret`.
 
 ## Tajemství — kam patří
 
