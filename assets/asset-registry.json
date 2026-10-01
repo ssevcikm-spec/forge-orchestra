@@ -1,0 +1,128 @@
+{
+  "_popis": [
+    "Registr FREE zdrojů assetů pro orchestra. JEDINÝ zdroj pravdy o tom, ODKUD se assety smí brát,",
+    "pod jakou licencí a jak se stahují. Hry si ho samy nenačítají za běhu (na rozdíl od providers.json) –",
+    "používá ho orchestra/tools/asset-fetch.mjs, a to buď lokálně, nebo v běhu agenta.",
+    "",
+    "CO ZNAMENÁ 'overeno': položka byla SKUTEČNĚ stažena a hash porovnán (ne jen opsaná z webu).",
+    "Bez 'overeno' se položka nesmí použít ve hře – brána ji odmítne.",
+    "",
+    "LICENCE: povolené jsou cc0, cc-by, ofl, mit, public-domain. cc-by VYŽADUJE autora v CREDITS.md",
+    "(brána to kontroluje). cc-by-sa je zakázaná – vynucuje stejnou licenci na celou hru.",
+    "",
+    "POZOR NA VÝBĚR SOUBORŮ: balíky (kenney) mají desítky MB a stovky souborů nikdy nepotřebuješ",
+    "najednou. Ve hře je asset jen tehdy, když ho hra opravdu načítá – 'extract' vybírá jednotlivé",
+    "soubory z ZIPu, 'choose' vybírá mapu/rozlišení u Poly Haven."
+  ],
+  "verze": 1,
+  "aktualizovano": "2026-09-30",
+  "povolene_licence": [
+    "cc0",
+    "cc-by",
+    "ofl",
+    "mit",
+    "public-domain"
+  ],
+  "zdroje": [
+    {
+      "id": "polyhaven",
+      "nazev": "Poly Haven",
+      "web": "https://polyhaven.com",
+      "licence": "cc0",
+      "typ": [
+        "model",
+        "textura",
+        "hdri"
+      ],
+      "api": "https://api.polyhaven.com",
+      "strojove": true,
+      "jak": "GET /files/{asset} → mapa map→rozlišení→formát→{url,md5,size}. Hash i velikost dává API, takže se dá ověřit bez hádání.",
+      "poznamka": "Nejlepší zdroj pro automatizaci: CC0 + API + md5 u každého souboru. Modely mají i .gltf/.fbx pro Godot, textury jpg/png/exr."
+    },
+    {
+      "id": "kenney",
+      "nazev": "Kenney",
+      "web": "https://kenney.nl",
+      "licence": "cc0",
+      "typ": [
+        "sprite",
+        "tile",
+        "ui",
+        "zvuk",
+        "3d"
+      ],
+      "strojove": true,
+      "jak": "Přímý odkaz na ZIP se najde na stránce balíčku (https://kenney.nl/assets/{slug}) – je to odkaz „Continue without donating“. Hash v URL je otisk stránky, NE souboru, takže se sha256 musí dopočítat jednou a zapíšat sem.",
+      "poznamka": "Tisíce spritů/tile/UI/zvuků, vše CC0. ZIP se nestahuje celý do hry – vybírají se jednotlivé soubory."
+    },
+    {
+      "id": "google-fonts",
+      "nazev": "Google Fonts",
+      "web": "https://fonts.google.com",
+      "repo": "https://github.com/google/fonts",
+      "licence": "ofl",
+      "typ": [
+        "font"
+      ],
+      "strojove": true,
+      "jak": "Soubor z GitHub repa google/fonts podle cesty (např. ofl/inter/Inter[opsz,wght].ttf). Git = pinnutelné, stačí zaznamenat commit.",
+      "poznamka": "OFL dovoluje i komerční použití. Do hry patří i LICENSE soubor fontu."
+    },
+    {
+      "id": "rucni",
+      "nazev": "Ruční zdroje (OpenGameArt, Freesound, Incompetech, Mixamo, itch.io)",
+      "licence": "ruzne",
+      "typ": [
+        "zvuk",
+        "hudba",
+        "animace",
+        "grafika"
+      ],
+      "strojove": false,
+      "jak": "Stáhne člověk a zaeviduje: soubor do projektu + záznam do assets/asset-lock.json (soubor, zdroj, licence, autor). Brána pak hlídá jen licenci a CREDITS.",
+      "poznamka": "U těchto zdrojů se licence čte u KAŽDÉHO assetu zvlášť (itch.io, OpenGameArt) a Mixamo vyžaduje účet Adobe – automatizovat se nedá legálně."
+    }
+  ],
+  "assety": [
+    {
+      "id": "kenney/interface-sounds",
+      "zdroj": "kenney",
+      "nazev": "Kenney Interface Sounds",
+      "url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+      "licence": "cc0",
+      "autor": "Kenney",
+      "typ": "balik",
+      "sha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "velikost": 834536,
+      "pocet_souboru": 103,
+      "pouziti": "UI zvuky (klik, potvrzení, chyba) – v projektu uo-shadows zatím NENÍ ŽÁDNÝ zvuk.",
+      "extract": [],
+      "kam": "assets/audio/ui/",
+      "overeno": true,
+      "poznamka": "extract je ZÁMĚRNĚ prázdný: bez --extract se nevybaluje nic, jen se vypíše obsah balíčku. Vybírej jednotlivé soubory (např. --extract \"Audio/click_001.ogg\") – 100 souborů v repu nikdo nechce a hra je stejně nenačte.",
+      "overeno_dne": "2026-09-30",
+      "pocet_zvuku": 100
+    },
+    {
+      "id": "polyhaven/coast_sand_rocks_02",
+      "zdroj": "polyhaven",
+      "nazev": "coast_sand_rocks_02 (difuzní mapa)",
+      "licence": "cc0",
+      "autor": "Poly Haven",
+      "typ": "textura",
+      "api": "https://api.polyhaven.com/files/coast_sand_rocks_02",
+      "esc": {
+        "map": "Diffuse",
+        "rozliseni": "1k",
+        "format": "jpg"
+      },
+      "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coast_sand_rocks_02/coast_sand_rocks_02_diff_1k.jpg",
+      "md5": "6fa7bee516a8c01a383a782d802b6a3b",
+      "velikost": 839184,
+      "kam": "assets/textures/",
+      "overeno": true,
+      "poznamka": "Zkušební asset pro ověření cesty (P1). Pro hru se vybírá podle potřeby, ne tenhle.",
+      "overeno_dne": "2026-09-30"
+    }
+  ]
+}

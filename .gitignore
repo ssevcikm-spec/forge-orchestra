@@ -21,3 +21,24 @@ node_modules/
 # herního repa, agent by je poslal do PR
 repo/.forge/provider.env
 repo/.forge/provider.json
+
+# Godot pro Windows – LOKÁLNÍ binárka, do gitu NEPATŘÍ.
+# Je to 172,5 MB (nad limit GitHubu 100 MB na soubor) a nedá se verzovat.
+# V CI si Godot stahuje `repo/.forge/install-godot.sh` sám (linuxová verze,
+# cache v ~/.cache/forge) – tam tahle binárka není potřeba.
+#
+# POZOR: není to jen úklid, je to i dokumentace. Dva nástroje tuhle cestu
+# OČEKÁVAJÍ na disku (`tools/validate-all.mjs:118`, `tools/verify-setup.py:37`),
+# takže po klonu orchestra lokálně chybí a obě kontroly to hlásí. To je
+# správné – chybí skutečně. Kdo chce spouštět Godot lokálně, stáhne si
+# `Godot_v4.7.2-stable_win64_console.exe` do `tools/godot/`.
+#
+# `.gitignore` tu dřív NEBYL a binárka visela jako untracked – stačilo jedno
+# `git add -A` a byl by z toho 172MB commit, který GitHub odmítne.
+tools/godot/
+
+# Python cache (vzniká LOKÁLNÍM spuštěním bran – check-schema.py apod.).
+# Kdyby se dostala do gitu, `git add -A` by ji poslal dál a zbytečně
+# nafoukl diff i PR. (Tatáž past je popsaná v .gitignore herního repa.)
+__pycache__/
+*.pyc
