@@ -71,7 +71,10 @@ Start-Sleep -Seconds 2
 
 try {
     Write-Host "=== 3/5 Připravuji pracovní kopii projektu ===" -ForegroundColor Cyan
-    $dest = Join-Path $workDir 'forge-quest'
+    # Název pracovní kopie se ODVOZUJE z parametru -Game. Dřív tu bylo natvrdo
+    # `forge-quest`, což je JINÉ, živé repo s vlastní hrou i GitHub Pages –
+    # test se pak hlásil jménem cizího projektu.
+    $dest = Join-Path $workDir $Game
     robocopy $projDir $dest /E /XD .godot build artifacts _raw /NFL /NDL /NJH /NJS /NP | Out-Null
     $files = (Get-ChildItem $dest -Recurse -File | Measure-Object).Count
     Write-Host "  zkopírováno $files souborů do $dest"
@@ -79,7 +82,7 @@ try {
     Write-Host "=== 4/5 Zakládám úkol pro domácí uzel ===" -ForegroundColor Cyan
     & node (Join-Path $orch 'bin\task.mjs') add "Godot testy na uzlu" `
         "Import assetů a spuštění testů na domácím uzlu" test `
-        --target lan --name forge-quest --steps "godot-import;godot-test" --artifacts build | Out-Null
+        --target lan --name $Game --steps "godot-import;godot-test" --artifacts build | Out-Null
 
     Write-Host "=== 5/5 Worker vyzvedává úkol ===" -ForegroundColor Cyan
     & node (Join-Path $orch 'repo\.forge\node\worker.mjs') --once

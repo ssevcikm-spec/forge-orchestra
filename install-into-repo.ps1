@@ -5,10 +5,14 @@
 
 .POUŽITÍ
   # 1) suchý běh – jen vypíše, co by udělal
-  .\install-into-repo.ps1 -Target C:\Users\Ssevc\Local-Deepseek\forge-quest -WhatIfOnly
+  .\install-into-repo.ps1 -Target C:\Users\Ssevc\Local-Deepseek\games\uo-shadows -WhatIfOnly
 
   # 2) ostrý běh
-  .\install-into-repo.ps1 -Target C:\Users\Ssevc\Local-Deepseek\forge-quest -Project demo1
+  .\install-into-repo.ps1 -Target C:\Users\Ssevc\Local-Deepseek\games\uo-shadows -Project demo1
+
+  # POZOR: příklady dřív mířily na `…\forge-quest`. To je JINÝ, ŽIVÝ repozitář
+  # s vlastní hrou i GitHub Pages – orchestra na něm nic nevyvíjí. Cíl patří
+  # do `games\<nazev>` a dnes je to `games\uo-shadows`.
 #>
 [CmdletBinding()]
 param(
@@ -164,8 +168,9 @@ Write-Host @"
 Další kroky:
   1) git -C "$Target" init -b main
   2) git -C "$Target" add -A ; git -C "$Target" commit -m "Forge: zaklad hry + orchestr"
-  3) git -C "$Target" remote add origin https://github.com/ssevcikm-spec/forge-quest.git
+  3) git -C "$Target" remote add origin https://github.com/ssevcikm-spec/<repo>.git
   4) git -C "$Target" push -u origin main
-     (push z tohoto sandboxu jde přes gameforge\tools\git.cmd)
-Nastavení tajemství a conductora: gameforge\docs\ORCHESTR-NASTAVENI.md
+     (push z tohoto sandboxu jde přes orchestra\tools\git.cmd)
+Nastavení tajemství a conductora: viz README.md a docs v repu orchestra
+(ssevcikm-spec/forge-orchestra).
 "@

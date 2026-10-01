@@ -9,7 +9,7 @@
 //   node bin/task.mjs tick
 //
 // Adresa a tajemství se berou z prostředí FORGE_URL / FORGE_SECRET, nebo
-// ze souboru gameforge/orchestra/.env (řádky KEY=HODNOTA).
+// ze souboru orchestra/.env (řádky KEY=HODNOTA).
 //
 // Proč Node a ne curl/Invoke-RestMethod: PowerShell i curl na této stanici
 // neumí navázat TLS spojení (schannel: SEC_E_NO_CREDENTIALS). Node umí.
@@ -37,7 +37,7 @@ const SECRET = process.env.FORGE_SECRET || '';
 const [cmd = 'status', ...args] = process.argv.slice(2);
 
 if (!URL_BASE) {
-  console.error('Chybí FORGE_URL. Nastav ho v prostředí nebo do gameforge/orchestra/.env');
+  console.error('Chybí FORGE_URL. Nastav ho v prostředí nebo do orchestra/.env');
   process.exit(2);
 }
 

@@ -1,0 +1,19 @@
+# Git konfigurace pro práci v tomto sandboxu (workspace).
+#
+# PROC: systémový config GitHub Desktopu nastavuje http.sslBackend=schannel a ten
+# v sandboxu neumí získat TLS credentials (SEC_E_NO_CREDENTIALS) → každý
+# git clone/fetch/push přes HTTPS spadne. OpenSSL backend funguje.
+#
+# Použití: nastav GIT_CONFIG_GLOBAL na tento soubor (dělá to tools\git.cmd).
+# Systémový config se tím neruší, takže credential.helper=manager zůstává.
+
+[user]
+	name = ssevcikm-spec
+	email = ssevcikm@gmail.com
+
+[http]
+	sslBackend = openssl
+
+[core]
+	autocrlf = true
+	longpaths = true

@@ -14,8 +14,8 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const HERE = dirname(fileURLToPath(import.meta.url));       // gameforge\orchestra\tools
-const ORCH = join(HERE, '..');                              // gameforge\orchestra
+const HERE = dirname(fileURLToPath(import.meta.url));       // orchestra\tools
+const ORCH = join(HERE, '..');                              // orchestra
 const TOKEN_FILE = join(ORCH, '.secrets', 'telegram_bot_token.txt');
 
 const token = (process.argv[2] || (existsSync(TOKEN_FILE) ? readFileSync(TOKEN_FILE, 'utf8') : '')).trim();
