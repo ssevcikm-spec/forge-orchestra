@@ -9,9 +9,32 @@ vlastní hru — hry se registrují do registru her (`games` v D1) a kdykoli se 
 přepnout na jinou. Aktuálně jede na `uo-shadows`.
 
 > **Historie:** orchestra vznikala současně s GameForge (lokální pipeline
-> `forge.cmd`), která byla 30. 9. 2026 **zrušena a smazána**. Orchestra po ní
-> nezdědila nic než pár historických cest v dokumentaci — a ty byly opraveny.
-> Kdykoli narazíš na zmínku o GameForge, je to historie, ne závislost.
+> `forge.cmd`), která byla 30. 9. 2026 **zrušena a smazána**. V **kódu
+> conductora po ní nezůstalo nic** (ověřeno 1. 10. 2026: 0 výskytů `gameforge`,
+> `forge-quest`, `forge.cmd`, `--router` v `conductor/src/index.ts`).
+> **Ale v obálce ano** — viz rámeček níž. Kdykoli narazíš na zmínku o GameForge,
+> ověř, jestli je to historie v komentáři, nebo **mrtvá cesta v kódu**.
+
+> ### ⚠ Stav obálky k 1. 10. 2026 — přečti, než budeš něco kopírovat do hry
+>
+> Analýza architektury (`ANALYZA-ARCHITEKTURY-ORCHESTRA.md` ve workspace)
+> naměřila, že **to, co je v gitu, není to, co je na disku**:
+>
+> | Co | Naměřeno |
+> |---|---|
+> | `repo/` — změněné trackované soubory | **8** (z toho `vision.mjs` **+422 řádků**) |
+> | `repo/` — netrackované, ale hrou potřebované | **4**: `.forge/check-schema.py`, `.forge/baseline.py`, `.forge/vision-profile.json`, `.forge/node/vision.test.mjs` |
+> | `tools/` | **51 untracked**, z toho **24 trvalých nástrojů** (`git.cmd`, `status.mjs`, `validate-all.mjs`, `zjisti-pages.mjs`, …) |
+> | `repo/.forge/roadmap.json` | **31 granul STARÉ hry** — a kopíruje se do každé nové hry |
+> | `repo/.github/workflows/release.yml` **v gitu** | odkaz na `…github.io/forge-quest/` (jiná živá hra); na disku už opraveno |
+>
+> **Důsledek:** kdo orchestra naklonuje z gitu a založí hru, dostane šablonu
+> **bez bran**, s **cizím odkazem** a s **cizí roadmapou**. A
+> `install-into-repo.ps1` je dnes **mrtvá větev** — vyžaduje `projects\<Projekt>`
+> (`:36-38`), ale `projects/` bylo smazáno s GameForge; `:86` navíc radí
+> smazaný `forge.cmd pull`. **Zakládání nové hry tedy dnes neexistuje.**
+>
+> **Než něco z `repo/` zkopíruješ do hry, zkontroluj `git status` v orchestra.**
 
 ## Struktura
 
@@ -54,6 +77,26 @@ POST /tasks/cleanup {}
 # zase zapnout
 POST /game/active  {"game_id": "uo-shadows", "active": true}
 ```
+
+> **⚠ POZOR — tenhle postup je v dnešním kódu NEBEZPEČNÝ, dokud se neopraví
+> `listGames` fallback** (naměřeno 1. 10. 2026,
+> `ANALYZA-ARCHITEKTURY-ORCHESTRA.md` S11/D14). `/tasks/cleanup` bere
+> **jen aktivní hry** (`index.ts:1120` → `listGames`), a `listGames` má
+> fallback (`:447-454`): když je registr her prázdný, vrátí
+> `[{game_id: "default", repo: env.GITHUB_REPO, …}]`. S **vypnutou** hrou tedy
+> úklid porovnává řádky `uo-shadows/*` proti prefixu `default/` — **nic se
+> neshoduje, takže smaže celou cache roadmapy** (`:1184`) a zablokuje úlohy
+> (`:1174`). Pojistka „roadmapa se nedá načíst, radši nemažu" (`:1137-1142`)
+> to nechytí, protože fallback soubor načte úspěšně.
+>
+> **Do té doby:** spusť nejdřív `POST /tasks/cleanup {"dry_run": true}` a
+> zkontroluj, že `platnych_granuli_v_souborech` odpovídá skutečné roadmapě
+> (u `uo-shadows` **18**). Když je tam `default/*` nebo nesmysl, úklid
+> **nespouštěj**.
+>
+> Druhá část téhož nálezu: **vypnutí poslední registrované hry orchestra
+> nezastaví** — fallback ji nahradí `GITHUB_REPO`. Dokud se to neopraví,
+> „vypnout hru" není spolehlivá pojistka.
 
 `/tasks/cleanup` úlohy **nemaže** (tabulka `runs` má cizí klíč na `tasks`, takže
 `DELETE` padá na 500) — označí je `blocked`, což je terminální stav, který
@@ -166,16 +209,51 @@ selhání zapisují dvě cesty:
   u opakovatelného selhání zapisuje `'queued'`, takže se guard vůbec neuplatnil
   a běhy se opakovaly každé 2 minuty místo za 3 h.
 
-**Watchdog (`ESCALATE_AFTER`, výchozí 8).** `MAX_ATTEMPTS` je v provozu mrtvý
-kód — rozhoduje `pollRuns`, který strop nezná, takže úkol může pokračovat
-donekonečna (5 pokusů / 3 h ≈ 40 pokusů za den na jednu granuli). Watchdog
-v tiku proto počítá **spálené runy** a po dosažení prahu pošle notifikaci
-(Telegram/Discord/ntfy podle konfigurace). **Nic nevypíná** — granule se zkouší
-dál, může jít o přechodný výpadek. Aby se notifikace neopakovala při každém
-tiku, označí úkol `payload.eskalovano`.
+> **POZOR — v tomhle stavu má cooldown dvě naměřené díry** (1. 10. 2026,
+> `ANALYZA-ARCHITEKTURY-ORCHESTRA.md` S12/S13). Guard se ptá na **tentýž
+> sloupec**, do kterého se píše i **vznik** řádku — takže:
+>
+> 1. **Nová granule se 3 h nevydá.** `roadmapTick:643-646` zapíše řádek
+>    s `updated_at = now` a guard (`:796-804`) ho považuje za „právě selhal".
+>    Replika SQL v SQLite: nová granule → `[]`, týž řádek starý 4 h → `[1]`.
+>    **Navenek to vypadá jako „orchestra nic nedělá", a `/queue` hlásí `ready`.**
+> 2. **U selhání přes `/report` se cooldown obchází** — `/report:1329-1336`
+>    zapíše jen `tasks`, `roadmap.updated_at` ne (`pollRuns:403-405` to dělá
+>    správně). Projev: granule se zkouší každé 2 minuty a spálí 5 pokusů za
+>    čtvrt hodiny.
+>
+> Oprava: oddělit „vzniklo" od „naposledy selhalo" (vlastní sloupec místo
+> přetíženého `updated_at`).
+
+**Watchdog (`ESCALATE_AFTER`, výchozí 8).** `MAX_ATTEMPTS` **není mrtvý kód**
+(dřív to tu stálo a byla to nepravda) — čte se na `index.ts:328`, `:394`,
+`:679`, `:709` a `:1329` a rozhoduje o návratu do fronty i o `failed`.
+Zastaralé jsou jen komentáře v conductoru (`:31`, `:233`), které tvrdí opak.
+**Co ale nefunguje, je jeho účel:** strop je na **úkol**, kdežto smyčka je na
+**granuli** — `roadmapTick` zakládá pro každý retry **nový úkol s `attempts=0`**,
+takže granule jede donekonečna. Watchdog v tiku počítá **spálené runy úkolu**
+a po dosažení prahu pošle notifikaci (Telegram/Discord/ntfy podle konfigurace).
+**Nic nevypíná** — to je záměr. Ale protože je prah 8 **větší** než strop 5
+a počítá běhy jednoho úkolu, **nikdy se nespustí.** Aby se notifikace
+neopakovala při každém tiku, označí úkol `payload.eskalovano`.
 
 Stav watchdogu je vidět v odpovědi `/tick` vždy, i s nulou:
-`watchdog: 0 ohlášeno (prah 8)`.
+`watchdog: 0 ohlášeno (prah 8)`. **Nula tady neznamená „je to v pořádku"** —
+znamená to i „watchdog na to nikdy nedosáhne".
+
+**Další dvě věci, které v tiku nefungují podle dokumentace** (naměřeno
+1. 10. 2026, tamtéž):
+- **Zámek souborů v dispatch smyčce neblokuje nic.** `index.ts:774-776` staví
+  `locked` z **holých jmen**, ale `:806` porovnává s klíči `{repo}/{soubor}`
+  (`lockKeys`, `:308`). Dvě granule se stejnými `owns` se rozjedou paralelně.
+  (V `roadmapTick` je tatáž dvojice správně.) `lint-roadmapa.py` u kolize
+  tvrdí „poběží sériově" — **není pravda.**
+- **`listGames` fallback** (`:447-454`): když je registr her prázdný,
+  conductor si vystačí s `env.GITHUB_REPO` → **vypnutí poslední registrované
+  hry orchestra nezastaví.** A `/tasks/cleanup` bere jen aktivní hry (`:1120`),
+  takže s vypnutou hrou **smaže cache roadmapy** (`:1184`) — přitom
+  doporučený postup v témž kódu (`:1107-1108`) je „nejdřív hru vypni, pak
+  cleanup, pak zapni".
 
 ## Nástroje pro analýzu (30. 9. 2026)
 
@@ -192,8 +270,8 @@ Stav watchdogu je vidět v odpovědi `/tick` vždy, i s nulou:
 | `tools/kontrola-driftu.mjs` | šablona vs. klon hry; u YAML porovnává STRUKTURU |
 | `tools/lint-roadmapa.py` | statický lint plánu (8 druhů vad DAG) |
 | `tools/simulace-dag.py` | co odblokuje dokončení které granule (kritická cesta) |
-| `tools/test-cooldown.py` | offline test SQL logiky cooldownu (6 scénářů) |
-| `tools/test-eskalace.py` | offline test watchdogu (10 scénářů) |
+| `tools/test-cooldown.py` | offline test SQL logiky cooldownu (6 scénářů). **Pozor: nemá assert ani `sys.exit`, takže končí vždy 0 — a je slepý vůči nové granuli (díra 1 výše).** |
+| `tools/test-eskalace.py` | offline test watchdogu (10 scénářů). **Pozor: prah má natvrdo 8 a scénáře podávají 8–20 běhů na úkol = stav, který conductor neumí vyrobit → díru s `MAX_ATTEMPTS` nechytí.** |
 | `tools/mereni-poskytovatelu.mjs` | změří dostupnost a velikost výstupu providerů |
 
 ## Conductor (API)
