@@ -304,15 +304,25 @@ jobs:
 
           if [ "$CHYBY" -gt 0 ]; then
             echo "::error::$CHYBY souborů se neparsuje – testy nemá cenu pouštět"
+            # POZOR: v TIP echách NESMÍ být zpětné apostrofy ani $( ). Bash je
+            # uvnitř dvojitých uvozovek bere jako substituci, takže se text
+            # POKUSÍ SPUSTIT – a do logu se místo chyby modelu vysypou
+            # 'var: command not found' a 'syntax error near unexpected token'.
+            # Naměřeno 1. 10. 2026 (běh #241): skutečná příčina selhání
+            # (ALIGN_LEFT neexistuje v Godotu 4) se v tom šumu ztratila.
+            # Kódové ukázky proto BEZ apostrofů – jen slovy a v uvozovkách.
             echo "TIP: nejčastější příčiny (CONVENTIONS.md §1c/§1d/§1f):"
             echo "     - File/json místo FileAccess/JSON"
             echo "     - kolize jmen s enginem: class_name Item, funkce get()"
-            echo "     - NIKDY nedeklaruj var position/scale/rotation/visible/name"
+            echo "     - NIKDY nedeklaruj promenne position/scale/rotation/visible/name"
             echo "       (členové Area2D/Node2D → 'Member redefined')"
-            echo "     - 'var x := load(...)' potřebuje VÝSLOVNÝ typ, jinak"
-            echo "       'Cannot infer the type of x'"
+            echo "     - prirazeni z load(...) nebo z uzlu potrebuje VYJADRENY typ"
+            echo "       ('var x: Node = ...'), jinak 'Cannot infer the type of x'"
             echo "     - 'Identifier X not declared' bývá jen NÁSLEDEK předchozích"
             echo "       chyb v témž souboru – oprav první z nich."
+            echo "     - konstanty z Godotu 3 NEEXISTUJÍ (CONVENTIONS.md §1h):"
+            echo "       ALIGN_LEFT -> HORIZONTAL_ALIGNMENT_LEFT, VALIGN_TOP ->"
+            echo "       VERTICAL_ALIGNMENT_TOP (naměřeno 1. 10. 2026, běh #241)."
             exit 1
           fi
           echo "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."

@@ -208,6 +208,15 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   test('.gitignore hry chrání tajemství (kontrakt generátor ↔ hra)',
     gitignoreTesty.stav === 0, `exit=${gitignoreTesty.stav}`);
 
+  // Workflowy nesmí mít v `echo` neescapovaný zpětný apostrof — bash ho bere
+  // jako substituci a text, který má jen vypadat jako kód, se POKUSÍ SPUSTIT.
+  // Naměřeno 1. 10. 2026 (běh #241): skutečná příčina selhání se v tom šumu
+  // ztratila. Nástroj rozlišuje vadu (neescapovaný apostrof) od záměru ($( )),
+  // protože falešný poplach nutí „opravovat" správný kód.
+  const echoTesty = spust('python', [`${ORCH}/tools/kontrola-echo-substituci.py`]);
+  test('workflowy: žádné neescapované apostrofy v echo (bash by je spustil)',
+    echoTesty.stav === 0, `exit=${echoTesty.stav}`);
+
   const vision = spust(process.execPath, [`${ORCH}/repo/.forge/node/vision.test.mjs`]);
   test('vision.mjs: offline testy (mock API) projdou', vision.stav === 0, `exit=${vision.stav}`);
 
