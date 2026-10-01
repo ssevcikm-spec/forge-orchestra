@@ -108,8 +108,22 @@ def auto_ignore(level_path: Path, level: dict) -> list[tuple[int, int, int, int]
     return [(int(vp[0]) - 124, int(vp[1]) - 68, 124, 68)]
 
 
+def stred_bunky(x: int, y: int, projekce: str, cell: int, cell_h: int,
+                off_x: float, off_y: float) -> tuple[int, int]:
+    """Střed dlaždice (x, y) na snímku – podle projekce, ne natvrdo čtvercově.
+
+    Izometrie kreslí na ((x-y)*w/2, (x+y)*h/2); obdélník na (x*w, y*h).
+    Když se to splete, kontrola hlásí chybu na SPRÁVNĚ vykreslené mapě.
+    """
+    if projekce.startswith("izo"):
+        return (int(round(off_x + (x - y) * cell / 2.0)),
+                int(round(off_y + (x + y) * cell_h / 2.0)))
+    return (int(off_x + x * cell + cell / 2.0),
+            int(off_y + y * cell_h + cell_h / 2.0))
+
+
 def porovnej(img, grid, cell, off_x, off_y, want, palety, ignorovat, marker_cells,
-             wrong_limit: int = 8):
+             wrong_limit: int = 8, projekce: str = "ctvercova", cell_h: int = 0):
     """Projde políčka mapy a spočítá, kolik jich sedí s dlaždicemi na snímku.
 
     Vrací (ok, total, entities, overlays, outside, wrong). Vytáhl jsem to do
@@ -125,8 +139,7 @@ def porovnej(img, grid, cell, off_x, off_y, want, palety, ignorovat, marker_cell
     wrong: list[str] = []
     for y, row in enumerate(grid):
         for x, znak in enumerate(row):
-            px = int(off_x + x * cell + cell / 2)
-            py = int(off_y + y * cell + cell / 2)
+            px, py = stred_bunky(x, y, projekce, cell, cell_h or cell, off_x, off_y)
             if px < 0 or py < 0 or px >= img.width or py >= img.height:
                 outside += 1
                 continue
@@ -192,8 +205,46 @@ def main() -> int:
         print(f"Automaticky vyjímám oblasti: {auto} (miniatura mapy)")
     ignorovat += auto
     grid = level["grid"]
-    cell = int(level["cell"])
+    # PROJEKCE SE ČTE ZE SPECU HRY, ne z levelu: schéma je vlastnost hry.
+    spec_cesta = level_path.parent.parent / "spec.json"
+    projekce, cell, cell_h = "ctvercova", int(level["cell"]), 0
+    if spec_cesta.is_file():
+        try:
+            spec = json.loads(spec_cesta.read_text(encoding="utf-8-sig"))
+            proj = spec.get("projekce", {})
+            tile = spec.get("tile", {})
+            projekce = str(proj.get("typ") or "").lower()
+            cw = proj.get("dlazdice_sirka") or tile.get("sirka")
+            ch = proj.get("dlazdice_vyska") or tile.get("vyska")
+            if cw:
+                cell = int(cw)
+            if ch:
+                cell_h = int(ch)
+            if not projekce:
+                projekce = "izometricka" if cell != cell_h else "ctvercova"
+        except Exception as e:
+            print(f"VAROVÁNÍ: {spec_cesta} nejde přečíst ({e}) – beru obdélníkovou mřížku")
+    if not cell_h:
+        cell_h = cell
+
     off_x, off_y = level.get("offset", [0, 0])
+    # IZOMETRICKÝ OFFSET SE POČÍTÁ, NEHÁDÁ: hra mapu vystřeďuje na spawn
+    # (`level.gd::vystredni_na_spawn`), takže `offset` v datech nezná skutečné
+    # posunutí. Bere se stejný vzorec jako ve hře – a hledání posunutí níž ho
+    # jen doladí (třes obrazovky).
+    if projekce.startswith("izo"):
+        spawn = None
+        for m in level.get("markers", []):
+            if str(m.get("type")) == "spawn":
+                spawn = (int(m["cell"][0]), int(m["cell"][1]))
+        vp = spec.get("viewport") if spec_cesta.is_file() else None
+        if spawn and vp:
+            sx = (spawn[0] - spawn[1]) * cell / 2.0
+            sy = (spawn[0] + spawn[1]) * cell_h / 2.0
+            off_x = int(vp[0]) / 2.0 - sx
+            off_y = int(vp[1]) / 2.0 - sy
+            print(f"Izometrie: offset počítán z viewportu a spawnu {spawn} "
+                  f"→ ({off_x:.0f}, {off_y:.0f})")
     want = {k: v for k, v in level["tiles"].items()}  # "0" -> brick, "1" -> stone, "2" -> dirt
     # Palety dlaždic se čtou z obrázků projektu – díky tomu kontrola funguje
     # s jakoukoli sadou z katalogu dílů, ne jen s tou, která byla dřív natvrdo.
@@ -230,7 +281,7 @@ def main() -> int:
     for dx in range(-args.max_shift, args.max_shift + 1):
         for dy in range(-args.max_shift, args.max_shift + 1):
             v = porovnej(img, grid, cell, off_x + dx, off_y + dy, want, palety,
-                         ignorovat, marker_cells)
+                         ignorovat, marker_cells, projekce=projekce, cell_h=cell_h)
             ter = v[1] - v[2]
             podil = v[0] / ter if ter else 0.0
             if nejlepsi is None or podil > nejlepsi[0]:
@@ -243,8 +294,9 @@ def main() -> int:
 
     terrain = total - entities
     ratio = ok / terrain if terrain else 0.0
+    rozmer = f"{cell}×{cell_h}px" if cell != cell_h else f"{cell}px"
     print(f"Snímek {img.width}×{img.height}, úroveň {len(grid[0])}×{len(grid)} "
-          f"po {cell}px, offset {[off_x + ddx, off_y + ddy]}")
+          f"{projekce} po {rozmer}, offset {[round(off_x + ddx), round(off_y + ddy)]}")
     print(f"Terén sedí {ok}/{terrain} políček = {ratio * 100:.1f}% "
           f"(překrytých entitami: {entities}, ignorovaných oblastí: {overlays}, "
           f"mimo snímek: {outside})")

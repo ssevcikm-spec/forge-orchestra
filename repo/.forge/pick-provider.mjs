@@ -20,7 +20,7 @@
 import { readFileSync, appendFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { orderProviders, startIndex, probeOrder, strongProviders } from './node/provider-choice.mjs';
+import { orderProviders, startIndex, probeOrder, strongProviders, rotateByAttempt } from './node/provider-choice.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -119,9 +119,20 @@ if (minStrong) {
     if (sa !== sb) return sa - sb;
     return priorita(a) - priorita(b);
   });
-  providers = serad;
+  // ROZLIŠENÍ OPAKOVANÝCH POKUSŮ (od 30. 9. 2026): pořadí se posune podle
+  // čísla pokusu, takže druhý pokus téže granule zkusí JINÝ model.
+  // Naměřeno: task #128 i #131 zkoušely 5x po sobě mistral/codestral a selhaly
+  // stejně – model, který na granulí selhal, selže znovu skoro jistě.
+  // Posun je jen mezi štěd rými; skromné zůstávají na konci (viz rotateByAttempt).
+  const stedre = serad.filter((p) => !skromny(p));
+  const skromne = serad.filter((p) => skromny(p));
+  providers = [...rotateByAttempt(stedre, process.env.FORGE_ATTEMPT), ...skromne];
   console.log(`granule 'any' – řazení podle štědrosti kvóty: ${
     providers.map((p) => `${p.name}(${priorita(p)})`).join(' → ')}`);
+  const pokus = Number(process.env.FORGE_ATTEMPT || 0);
+  if (pokus > 1) {
+    console.log(`pokus č. ${pokus} – pořadí posunuto, aby se nezkoušel stejný model jako minule`);
+  }
 }
 
 async function probe(baseUrl, apiKey, model) {

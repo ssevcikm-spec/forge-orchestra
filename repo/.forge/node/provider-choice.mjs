@@ -85,3 +85,31 @@ export function probeOrder(order, start) {
   if (!n) return [];
   return Array.from({ length: n }, (_, step) => order[(start + step) % n]);
 }
+
+/**
+ * Posun pořadí podle ČÍSLA POKUSU – aby každý opakovaný pokus zkusil jiný model.
+ *
+ * PROČ (naměřeno 30. 9. 2026): u granulí `any` se rotace záměrně nepoužívala
+ * (řazení podle štědrosti kvóty je důležitější). Důsledek ale byl, že opakované
+ * pokusy téže granule zkoušely POŘÁD STEJNÝ model:
+ *
+ *   task #128 (core.skills)  5 běhů -> mistral/codestral 5x
+ *   task #131 (entity.npc)   5 běhů -> mistral/codestral 5x
+ *
+ * Když model na granulí selže, další pokus se stejným modelem selže skoro jistě
+ * – což je přesně to, co rotace u `strong` granulí řeší přes `run_key`. Tady se
+ * to dělá podle čísla pokusu, protože to je mezi běhy stabilní a monotónní.
+ *
+ * POZOR na kompromis: posun je jen mezi „štědrými" poskytovateli. Skromné
+ * (gemini ~20 dotazů/den, openrouter 50/den) zůstávají na konci, aby se jimi
+ * neplýtvalo na první pokus – to je záměr původního řazení a zachovává se.
+ */
+export function rotateByAttempt(items, attempt) {
+  const n = items.length;
+  if (n < 2) return [...items];
+  const a = Number(attempt);
+  if (!Number.isFinite(a) || a <= 1) return [...items]; // první pokus = původní pořadí
+  const offset = (a - 1) % n;
+  return [...items.slice(offset), ...items.slice(0, offset)];
+}
+

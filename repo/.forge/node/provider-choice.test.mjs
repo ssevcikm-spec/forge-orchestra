@@ -8,7 +8,7 @@
 // Použití: node .forge/node/provider-choice.test.mjs
 
 import assert from "node:assert/strict";
-import { fnv1a, rotateOrder, startIndex, probeOrder, orderProviders, strongProviders } from "./provider-choice.mjs";
+import { fnv1a, rotateOrder, startIndex, probeOrder, orderProviders, strongProviders, rotateByAttempt } from "./provider-choice.mjs";
 
 const P = [{ name: "a" }, { name: "b" }, { name: "c" }, { name: "d" }, { name: "e" }];
 let checks = 0;
@@ -101,5 +101,47 @@ ok("bez jediného strongModels je výběr prázdný (granule čeká)");
 assert.deepEqual(orderProviders(retezec, "").map((p) => p.name),
   ["mistral", "cerebras", "groq", "openrouter", "gemini"]);
 ok("bez FORGE_MIN_STRONG jede řetězec jako dřív (skromní na konci)");
+
+// 6) rotace podle čísla pokusu – opakovaný pokus nesmí zkusit stejný model.
+//
+// PROČ: naměřeno 30. 9. 2026 – task #128 i #131 zkoušely 5× po sobě
+// mistral/codestral a selhaly pokaždé stejně. U granulí `any` se rotace
+// nepoužívala (řazení podle štědrosti kvóty), takže další pokus začínal
+// pořád na tomtéž modelu.
+const stedri = [{ name: "mistral" }, { name: "cerebras" }, { name: "groq" }];
+
+// první pokus = původní pořadí (priorita kvóty se nesmí rozbít)
+assert.deepEqual(rotateByAttempt(stedri, 1).map((p) => p.name), ["mistral", "cerebras", "groq"]);
+assert.deepEqual(rotateByAttempt(stedri, 0).map((p) => p.name), ["mistral", "cerebras", "groq"]);
+ok("1. pokus nechává pořadí podle štědrosti kvóty (mistral první)");
+
+// druhý pokus začne jiným poskytovatelem než první
+assert.notEqual(rotateByAttempt(stedri, 2)[0].name, rotateByAttempt(stedri, 1)[0].name);
+ok("2. pokus začíná jiným modelem než 1. (rotace podle pokusu)");
+
+// tři pokusy po sobě = tři různí první poskytovatelé
+const prvniVolby = [1, 2, 3].map((a) => rotateByAttempt(stedri, a)[0].name);
+assert.equal(new Set(prvniVolby).size, 3, prvniVolby.join(","));
+ok(`tři pokusy po sobě zkusí tři různé modely (${prvniVolby.join(" → ")})`);
+
+// rotace nikoho neztratí (porovnávají se jména – `sort` na kopii, ať se
+// neseřadí i referenční pole a test pak neporovnává seřazené s neseřazeným)
+const poRotaciJmena = rotateByAttempt(stedri, 2).map((p) => p.name).sort();
+const puvodniJmena = stedri.map((p) => p.name).sort();
+assert.deepEqual(poRotaciJmena, puvodniJmena);
+ok("rotace podle pokusu nikoho neztratí (je to jen posun)");
+
+// nesmyslné číslo pokusu se chová jako první pokus
+assert.deepEqual(rotateByAttempt(stedri, NaN).map((p) => p.name), ["mistral", "cerebras", "groq"]);
+assert.deepEqual(rotateByAttempt(stedri, undefined).map((p) => p.name), ["mistral", "cerebras", "groq"]);
+ok("chybějící/nesmyslné číslo pokusu = chovej se jako první pokus");
+
+// skromný poskytovatel zůstává na konci i po rotaci (řeší pick-provider, tady
+// se ověřuje jen to, že rotace sama skromné nezvedne dopředu)
+const seSkromnym2 = [...stedri, { name: "gemini", skromny: true }];
+const stedriJen = seSkromnym2.filter((p) => !p.skromny);
+const poRotaci = [...rotateByAttempt(stedriJen, 2), ...seSkromnym2.filter((p) => p.skromny)];
+assert.equal(poRotaci[poRotaci.length - 1].name, "gemini");
+ok("skromný poskytovatel zůstává na konci i při rotaci podle pokusu");
 
 console.log(`\n${checks} kontrol, 0 selhání`);

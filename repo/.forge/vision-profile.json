@@ -1,0 +1,63 @@
+{
+  "_popis": [
+    "Vizuální profil HRY – co má vision kontrolovat a jak přísně.",
+    "",
+    "PROČ JE PROFIL PER-GAME A NE GLOBÁLNÍ: ne každá hra je izometrická. Profil",
+    "proto NEOBSAHUJE velikost dlaždice, projekci ani viewport – ty se čtou",
+    "z `assets/spec.json`, kde jsou data té které hry. Tady je jen to, co je",
+    "o KONTROLE, ne o hře.",
+    "",
+    "Zdroj pravdy o schématu je VŽDY spec.json. Když si hra odporuje (spec tvrdí",
+    "izometrii a level.gd kreslí čtvercově), pozná to `orchestra/tools/kontrola-",
+    "schematu.py` – a vision nemá smysl spouštět, dokud to není srovnané."
+  ],
+
+  "verze": 1,
+  "hra": "uo-shadows",
+
+  "ocekavany_obsah": "z_mapy",
+  "mapa": "assets/levels/main.json",
+
+  "styl_popis": "izometrická 2.5D jako Ultima Online: předrenderovaný 3D model do 2D spritu, realistické světlo a materiály, dlaždicový svět viděný shora. NE pixel art, NE 16barevná paleta.",
+
+  "zakazy_v_promptu": [
+    "Nehodnoť počet barev: spec.json kvantizaci výslovně zapovídá, plné barvy jsou záměr.",
+    "Nehodnoť rozlišení ani ostrost pixelů – o zmenšování (Lanczos) rozhoduje spec, ne ty.",
+    "Nedoporučuj stylové změny; porovnávej jen s tím, co je vidět."
+  ],
+
+  "poskytovatele": [
+    {
+      "nazev": "deepseek",
+      "keyEnv": "DEEPSEEK_API_KEY",
+      "url": "https://api.deepseek.com/chat/completions",
+      "model": "deepseek-flash",
+      "role": "worker",
+      "_role": "Rutinní kontroly přítomnosti obsahu. ~384 tokenů za obrázek → ~$0,0001, tedy 20–50× levnější než konkurence."
+    },
+    {
+      "nazev": "gemini",
+      "keyEnv": "GEMINI_API_KEY",
+      "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "model": "gemini-3.8-flash",
+      "role": "judge",
+      "_role": "Styl, diff proti baseline a sporné případy. Free kvóta je malá (~20 dotazů/model/den), proto se neplýtvá na rutinu."
+    }
+  ],
+
+  "self_consistency": true,
+  "_self_consistency": "Dva běhy týmž modelem a porovnání. Neshoda = nejistota k lidskému rozhodnutí, ne chyba nástroje.",
+
+  "cache": {
+    "zapis": false,
+    "_zapis": "Zapisovat verdikty do .forge/vision/verdicts.jsonl. V CI to nejde (runner je čistý), smysl to má na uzlu a v session.",
+    "preskocit_schvalene": true,
+    "_preskocit": "Co je v baseline.json se znovu nekontroluje."
+  },
+
+  "stropy": {
+    "volani_na_den": 200,
+    "kol_na_granuli": 3,
+    "_kol": "Po třech kolech eskaluj člověku. Každé kolo stojí GPU čas, ne jen kvótu."
+  }
+}

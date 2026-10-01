@@ -79,9 +79,14 @@ jobs:
             echo "Automatický build ze commitu \`${GITHUB_SHA:0:7}\` ($(date -u '+%Y-%m-%d %H:%M UTC'))."
             echo
             echo "**Jak si zahrát:**"
-            echo "- v prohlížeči: https://ssevcikm-spec.github.io/forge-quest/"
+            echo "- v prohlížeči: https://ssevcikm-spec.github.io/NAZEV-REPA/"
             echo "- Windows: stáhni \`game-windows.zip\` a spusť \`game.exe\`"
             echo "- Linux: stáhni \`game-linux.zip\` a spusť \`game.x86_64\`"
+            echo
+            echo "> V \`NAZEV-REPA\` musí být název TOHOHLE repa (Settings → Pages)."
+            echo "> Odkaz se NIKDY neopisuje z historie: v téhle šabloně býval"
+            echo "> natvrdo \`forge-quest\`, což je JINÁ živá hra s vlastními Pages –"
+            echo "> kdo odkaz otevřel, hrál jinou hru a divil se, proč vypadá jinak."
             echo
             if [ -f docs/DESIGN.md ]; then
               echo "---"
@@ -132,7 +137,10 @@ jobs:
 
       - name: Označit nasazený web
         if: steps.pages.outcome == 'success'
-        run: echo "Web se nasadí na https://ssevcikm-spec.github.io/forge-quest/"
+        # POZOR: adresa webu se ODVOZUJE Z NÁZVU REPA (Settings → Pages).
+        # Dřív tu bylo natvrdo `.../forge-quest/` – tedy JINÝ, živý repozitář
+        # s vlastní hrou. Odkaz málem poslal uživatele hrát jinou hru.
+        run: echo "Web se nasadí na https://ssevcikm-spec.github.io/NAZEV-REPA/"
 
   deploy:
     name: Nasazení webu

@@ -1,5 +1,5 @@
 #!/data/data/com.termux/files/usr/bin/bash
-# GameForge – bootstrap telefonu jako domácího uzlu orchestra (FÁZE 1).
+# Orchestra – bootstrap telefonu jako domácího uzlu (FÁZE 1).
 #
 # Spouštět V TERMUXU (ne v proot-distro). Je idempotentní – dá se pustit víckrát.
 #
@@ -94,9 +94,9 @@ HOTOVO (fáze 1). Co ještě ručně:
  2) Nainstaluj aplikaci Termux:Boot z F-Droidu a jednou ji otevři
  3) Zkopíruj workera do telefonu (až bude repo na GitHubu):
       cd ~/forge/phone
-      # buď z repa:
-      #   git clone --depth 1 https://github.com/ssevcikm-spec/forge-quest /tmp/fq
-      #   cp /tmp/fq/…           (worker.mjs se bere z gameforge/orchestra/phone)
+      # buď z repa (NAZEV-REPA nahraď repem hry, na které orchestra pracuje):
+      #   git clone --depth 1 https://github.com/ssevcikm-spec/NAZEV-REPA /tmp/hra
+      #   cp /tmp/hra/.forge/node/worker.mjs ~/forge/phone/   (worker je v repu hry)
       # nebo ho sem přenes přes Tailscale/scp z PC
  4) Test bez připojení:
       node worker.mjs --info
