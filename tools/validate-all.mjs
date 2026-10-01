@@ -178,13 +178,24 @@ test('brána projde na skutečném klonu hry', spust('python', [`${ORCH}/tools/c
 //   2) VLASTNÍ TESTY VISION. vision.mjs se v provozu testuje těžko (klíč, kvóta,
 //      obrázek), takže jeho logika má vlastní offline test s mock API.
 //
-// POZOR: rozpor schématu je DNES OČEKÁVANÝ STAV, ne regrese. Dokud se
-// nerozhodne, které schéma platí, kontrola správně hlásí vady – proto se tu
-// testuje, že kontrola UMÍ rozpor pojmenovat, ne že prochází.
+// POZOR: „rozpor schématu" tu NENÍ očekávaný stav — schéma je od 1. 10. 2026
+// rozhodnuté (per-game, autoritou je `assets/spec.json` hry) a CI hry je
+// zelené. Testuje se tedy obojí: že kontrola UMÍ rozpor pojmenovat (exit 1),
+// a že se vůbec spustí (exit 2 = „nemám co měřit" NENÍ zelená).
 console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
 {
-  const kontrola = spust('python', [`${ORCH}/tools/kontrola-schematu.py`, `${ORCH}/../games/uo-shadows`]);
-  test('kontrola schématu se spustí (0 = soulad, 1 = rozpory)', [0, 1].includes(kontroly(kontrola)),
+  // POZOR (opraveno 1. 10. 2026, krok A1 plánu): tady se dřív volalo
+  // `tools/kontrola-schematu.py` — STARÁ, SLEPÁ kopie téhož pravidla.
+  // Naměřeno: stará kopie vypsala `level.gd: výchozí cell=[], fallback=[]`
+  // (regexy nenašly po migraci na izometrii nic) a hlásila ZELENOU, kdežto
+  // správná kopie v `.forge/` změří `96×48px` a pojmenuje mrtvou větev
+  // v `world.gd`. Validátor tedy měřil jinou kopii, než jaká běží v CI.
+  // Správný zdroj je `repo/.forge/check-schema.py` (tentýž soubor dostane hra).
+  const kontrola = spust('python', [`${ORCH}/repo/.forge/check-schema.py`, `${ORCH}/../games/uo-shadows`]);
+  // 0 = soulad, 1 = rozpory, 2 = chybí spec (nedá se měřit).
+  // 2 NENÍ úspěch — „nemám co měřit" se nesmí počítat jako zelená.
+  test('kontrola schématu se spustí (0 = soulad, 1 = rozpory, 2 = chybí spec)',
+    [0, 1].includes(kontroly(kontrola)),
     `exit=${kontrola.stav}`);
   test('kontrola schématu je i v šabloně a v herním repu',
     existsSync(`${ORCH}/repo/.forge/check-schema.py`)
@@ -239,6 +250,24 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   const ci = spust(process.execPath, [`${ORCH}/tools/test-ci-workflow.mjs`]);
   test('CI workflow: struktura a pořadí kroků', ci.stav === 0, `exit=${ci.stav}`);
 
+  // ── COOLDOWN GUARD (krok A3 plánu, 1. 10. 2026) ───────────────────────────
+  //
+  // PROČ TU JE: `test-cooldown.py` SQL dřív OPSOVAL (vlastní kopie podmínky,
+  // včetně té STARÉ děravé varianty) a neměl `assert` ani `sys.exit` – vypsal
+  // `CHYBA` a skončil `exit 0`. Teď SQL vytahuje **ze zdrojáku conductora**,
+  // takže když se změní, test použije novou verzi.
+  //
+  // POZOR – TENHLE TEST JE DNES ČERVENÝ A JE TO SPRÁVNĚ: naměřil vadu **S12**
+  // (nová granule se kvůli guardu na `updated_at` 3 h nevydá). Opravuje ji krok
+  // **B1** plánu (`naposledy_selhalo`). Až se B1 udělá, test zčervená v opačném
+  // směru a donutí scénář přepsat — takže nezůstane viset na staré pravdě.
+  //
+  // Kdyby to někdo potřeboval odlišit: `test-eskalace.py` je NAPROSTO V POŘÁDKU
+  // (má `sys.exit(0 if vse_ok else 1)`); „lže zelenou" se týkalo JEN tohohle testu.
+  const cooldown = spust('python', [`${ORCH}/tools/test-cooldown.py`]);
+  test('cooldown guard: SQL ze zdrojáku + chování (dnes nachází vadu S12 → B1)',
+    cooldown.stav === 0, `exit=${cooldown.stav}`);
+
   // ── BASELINE A LGTM CACHE ─────────────────────────────────────────────────
   // Bez baseline nelze měřit drift: „vypadá to jinak" je tvrzení, které se
   // nedá ověřit, dokud není s čím porovnávat. Testuje se tu jak logika
@@ -269,3 +298,16 @@ function kontroly(v) {
 
 console.log(`\n${'═'.repeat(60)}`);
 console.log(chyb === 0 ? '✓ VŠE V POŘÁDKU' : `✗ NALEZENO ${chyb} PROBLÉMŮ`);
+
+// ── NÁVRATOVÝ KÓD (opraveno 1. 10. 2026, krok A1 plánu) ─────────────────────
+//
+// PROČ TO TU JE: do 1. 10. 2026 tenhle nástroj vypsal „✗ NALEZENO 3 PROBLÉMŮ"
+// a PŘESTO skončil s exit kódem 0 — takže v CI by prošel a každý skript, který
+// se ptá na návratový kód, by ho považoval za úspěch. Naměřeno opakovaně.
+//
+// Je to přesně ta třída chyby, kterou projekt řeší: BRÁNA, KTERÁ NEMÁ JAK
+// SELHAT, NENÍ BRÁNA. Test bez nenulového exit kódu je jen výpis.
+//
+// `process.exitCode` se nastavuje MÍSTO `process.exit()`: kód se má dočíst
+// celý (i s výpisem výše), jen se podle něj pozná výsledek.
+process.exitCode = chyb === 0 ? 0 : 1;

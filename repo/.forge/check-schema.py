@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 r"""Kontrola, že si hra neodporuje ve vizuálním schématu.
 
-PROČ TO EXISTUJE — naměřeno 30. 9. 2026 na `uo-shadows`, kde se rozešly ČTYŘI
-zdroje pravdy a každý tvrdil jiné číslo:
+PROČ TO EXISTUJE — naměřeno 30. 9. 2026 na hře, kde se rozešly ČTYŘI zdroje
+pravdy a každý tvrdil jiné číslo:
 
-    deklarace   assets/spec.json          96×48 dlaždice, viewport 960×540
-    vykreslení  scripts/level.gd          16px buňka, osově zarovnaný čtverec
-    dlaždice    assets/tiles/*.png        32×32 (a tiles/manifest.json: 32)
-    logika      scripts/world.gd          32px buňka + izometrická projekce
+    deklarace   assets/spec.json          dlaždice a viewport podle specu
+    vykreslení  vstupní bod vykreslování  vlastní konstanty buňky
+    dlaždice    assets/tiles/*.png        skutečná velikost obrázků
+    logika      druhá logika světa        třetí názor na totéž číslo
 
-Důsledek: `spec.json` slibuje izometrii 2:1, ale `level.gd` kreslí osově
+Změřený rozptyl byl 16 px, 32 px a 96×48 px — čtyři čísla pro jednu věc.
+Důsledek: `spec.json` slibuje izometrii 2:1, ale vykreslování kreslí osově
 zarovnané čtverce – takže izometrický pohled nemůže vzniknout, ať se sebevíc
 ladí sprity. Nikdo si toho nevšiml, protože se to NIKDE neporovnávalo.
 
@@ -18,9 +19,13 @@ než side-scroller nebo top-down. Zdroj pravdy je proto `assets/spec.json`
 KAŽDÉ hry; tenhle nástroj ho jen čte a porovnává se skutečností. Nepředepisuje
 žádné konkrétní číslo – jen to, že všechny vrstvy musí říkat totéž.
 
+KONKRÉTNÍ DŮKAZ PATŘÍ HŘE, NE SEM: která vrstva tvrdila co, má vypsané
+konkrétní hra (v `docs/` nebo v commitu, který migraci dělal). Sem se neopisuje,
+aby šablona netvrdila nic o projektu, který ještě neexistuje.
+
 Použití:
-    python orchestra/tools/kontrola-schematu.py <cesta k repu hry>
-    python orchestra/tools/kontrola-schematu.py games/uo-shadows --json
+    python .forge/check-schema.py <cesta k repu hry>
+    python .forge/check-schema.py . --json
 Návratový kód: 0 = v pořádku, 1 = rozpory, 2 = chybí spec (nedá se měřit).
 """
 from __future__ import annotations
@@ -159,7 +164,7 @@ def zkontroluj(repo: Path) -> tuple[list[str], list[str], list[str], dict]:
         return ([f"{spec_cesta} není platné JSON: {spec['_chyba']}"], [], [], {})
 
     # Schéma může být zapsané dvěma způsoby – bere se, co hra má:
-    #   A) `tile: {sirka, vyska}` + `viewport`   (uo-shadows)
+    #   A) `tile: {sirka, vyska}` + `viewport`   (konkrétní dlaždice + okno)
     #   B) `projekce: {...}`                      (obecnější, pro jiné hry)
     proj = spec.get("projekce", {})
     tile = spec.get("tile", {})
@@ -247,7 +252,7 @@ def zkontroluj(repo: Path) -> tuple[list[str], list[str], list[str], dict]:
         #   a) výchozí buňku nejde přečíst → kontrola NEPROBĚHLA (vada),
         #   b) fallback v kódu není          → není co měřit, ale to je stav
         #      kódu, ne selhání kontroly (poznámka).
-        # `uo-shadows` je případ (b): `level.gd` má výchozí konstanty, ale
+        # Případ (b) je běžný: vstupní bod má výchozí konstanty buňky, ale
         # `data.get("cell", [0, 0])` u markerů fallback nemá.
         if not vychozi and not fallback:
             vady.append(

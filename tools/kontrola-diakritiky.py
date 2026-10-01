@@ -24,6 +24,16 @@ SOUBORY = [
     WS / "ANALYZA-ARCHITEKTURY-ORCHESTRA.md",
     WS / "ANALYZA-PODKLADY-CONDUCTOR-A-NASTROJE.md",
     WS / "PLAN-ROZVOJ-ORCHESTRA.md",
+    # 1. 10. 2026 (večer): hloubková analýza a její druhé kolo měření.
+    # NAMĚŘENO PŘI PŘIDÁVÁNÍ: tenhle nástroj má PEVNÝ seznam, takže nový
+    # dokument projde zeleně, i když ho kontrola nikdy neotevřela. Je to táž
+    # vada jako `kontrola-driftu.mjs` s ručním seznamem 12 souborů — a je
+    # zapsaná jako S27 v ANALYZA-HLOUBKOVA-ORCHESTRA.md §4.
+    WS / "ANALYZA-HLOUBKOVA-ORCHESTRA.md",
+    WS / "_analyza" / "HLOUBKOVA-MERENI.md",
+    WS / "_analyza" / "HLOUBKOVA-MERENI-2.md",
+    WS / "ANALYZA-HLOUBKOVA-2-ZADANI.md",
+    WS / "OTEVRENA-TEMATA.md",
     WS / "orchestra" / "repo" / ".forge" / "check-schema.py",
     WS / "orchestra" / "repo" / ".forge" / "vision-profile.json",
     WS / "orchestra" / "repo" / ".forge" / "baseline.py",

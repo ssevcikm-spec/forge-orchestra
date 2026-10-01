@@ -9,32 +9,48 @@ vlastní hru — hry se registrují do registru her (`games` v D1) a kdykoli se 
 přepnout na jinou. Aktuálně jede na `uo-shadows`.
 
 > **Historie:** orchestra vznikala současně s GameForge (lokální pipeline
-> `forge.cmd`), která byla 30. 9. 2026 **zrušena a smazána**. V **kódu
-> conductora po ní nezůstalo nic** (ověřeno 1. 10. 2026: 0 výskytů `gameforge`,
-> `forge-quest`, `forge.cmd`, `--router` v `conductor/src/index.ts`).
-> **Ale v obálce ano** — viz rámeček níž. Kdykoli narazíš na zmínku o GameForge,
-> ověř, jestli je to historie v komentáři, nebo **mrtvá cesta v kódu**.
+> `forge.cmd`), která byla 30. 9. 2026 **zrušena a smazána**. Z **kódu
+> conductora po ní nezůstala žádná mrtvá větev** — ověřeno 1. 10. 2026:
+> `forge-quest`, `forge.cmd` i `--router` mají v `conductor/src/index.ts`
+> **0 výskytů** a `GameForge` zbyl jen ve **dvou komentářích** (`:1104`,
+> `:1127`), které vysvětlují, odkud se vzaly staré úlohy v cache — to je
+> historie, ne závislost. (Pozor: hledej na **obě velikosti písmen** —
+> `gameforge` case-sensitive najde 0 a vypadá to jako čistý kód.)
+> **V obálce zbývá jedna mrtvá cesta** — a je pojmenovaná (`FORGE_CMD`):
+> `repo/.forge/node/worker.mjs` má na `:28`, `:80` a `:83` krok `forge:`
+> a default cesty na **smazaný `forge.cmd`**. Naměřeno 1. 10. 2026:
+> nesestoupí na `…\gameforge\forge.cmd` (jak tvrdí komentář `:80-82`), ale na
+> `C:\Users\Ssevc\Local-Deepseek\forge.cmd` — `path.join` čtvrté `..` nezkrátí.
+> Ani jeden z těch souborů neexistuje. **Je to nález 5
+> ve `FORGE-ORCHESTRA-MOZNOSTI.md`**, čeká na rozhodnutí o uzlu `pc-domaci`.
+> Kdykoli narazíš na zmínku o GameForge, ověř, jestli je to historie
+> v komentáři, nebo **mrtvá cesta v kódu**.
 
-> ### ⚠ Stav obálky k 1. 10. 2026 — přečti, než budeš něco kopírovat do hry
+> ### ✅ Stav obálky k 1. 10. 2026 — F0 UZAVŘENO (dřív to bylo jinak)
 >
 > Analýza architektury (`ANALYZA-ARCHITEKTURY-ORCHESTRA.md` ve workspace)
-> naměřila, že **to, co je v gitu, není to, co je na disku**:
+> naměřila, že **to, co je v gitu, není to, co je na disku**. To bylo opraveno
+> fází **F0** téhož dne — tabulka níž je ponechaná jako **záznam, co se spravovalo**,
+> aby se někdo nelekl čísel, která už neplatí:
 >
-> | Co | Naměřeno |
-> |---|---|
-> | `repo/` — změněné trackované soubory | **8** (z toho `vision.mjs` **+422 řádků**) |
-> | `repo/` — netrackované, ale hrou potřebované | **4**: `.forge/check-schema.py`, `.forge/baseline.py`, `.forge/vision-profile.json`, `.forge/node/vision.test.mjs` |
-> | `tools/` | **51 untracked**, z toho **24 trvalých nástrojů** (`git.cmd`, `status.mjs`, `validate-all.mjs`, `zjisti-pages.mjs`, …) |
-> | `repo/.forge/roadmap.json` | **31 granul STARÉ hry** — a kopíruje se do každé nové hry |
-> | `repo/.github/workflows/release.yml` **v gitu** | odkaz na `…github.io/forge-quest/` (jiná živá hra); na disku už opraveno |
+> | Co | Naměřeno tehdy | Stav dnes (ověřeno 1. 10. 2026) |
+> |---|---|---|
+> | `repo/` — změněné trackované soubory | **8** (z toho `vision.mjs` **+422 řádků**) | **0** — commitnuto (`eac2790`) |
+> | `repo/` — netrackované, ale hrou potřebované | **4**: `.forge/check-schema.py`, `.forge/baseline.py`, `.forge/vision-profile.json`, `.forge/node/vision.test.mjs` | **v gitu**; `git ls-files repo/.forge` → **21** |
+> | `tools/` | **51 untracked**, z toho **24 trvalých** | **v gitu**; `git ls-files tools` → **70** (= i na disku) |
+> | `repo/.forge/roadmap.json` | **31 granul STARÉ hry** — a kopírovala se do každé nové hry | **0 granul** (F0.2) |
+> | `repo/.forge/vision-profile.json` | natvrdo `"hra": "uo-shadows"` | **`hra: null`**, žádná data o konkrétní hře (F0.3) |
+> | `repo/.github/workflows/release.yml` **v gitu** | odkaz na `…github.io/forge-quest/` (jiná živá hra) | **odvozuje se z názvu repa** (`…/NAZEV-REPA/`) |
+> | jednorázové záplaty v `tools/` | kandidáti na smazání | **8 smazáno** (`525d45b`), `oprav-ps1-kodovani.py` zůstal (je živý) |
 >
-> **Důsledek:** kdo orchestra naklonuje z gitu a založí hru, dostane šablonu
-> **bez bran**, s **cizím odkazem** a s **cizí roadmapou**. A
-> `install-into-repo.ps1` je dnes **mrtvá větev** — vyžaduje `projects\<Projekt>`
-> (`:36-38`), ale `projects/` bylo smazáno s GameForge; `:86` navíc radí
-> smazaný `forge.cmd pull`. **Zakládání nové hry tedy dnes neexistuje.**
+> **Co platí dál:** `install-into-repo.ps1` je pořád **mrtvá větev** —
+> vyžaduje `projects\<Projekt>` (`:36-38`), ale `projects/` bylo smazáno
+> s GameForge; `:86` navíc radí smazaný `forge.cmd pull`. **Zakládání nové hry
+> tedy ještě neexistuje** — je to krok **F4.1/F4.2** v
+> `PLAN-ROZVOJ-ORCHESTRA.md`, nehotové a vědomě odložené.
 >
-> **Než něco z `repo/` zkopíruješ do hry, zkontroluj `git status` v orchestra.**
+> **Pravidlo, které z toho zůstává:** šablona `repo/` nesmí nést nic, co platí
+> jen pro jednu hru. Test: *„platí to i pro hru, která ještě neexistuje?"*
 
 ## Struktura
 
