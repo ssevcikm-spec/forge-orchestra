@@ -768,12 +768,21 @@ async function tick(env: Env): Promise<string> {
     if ((running?.n ?? 0) >= maxConcurrent) break;
 
     // soubory uzamčené běžícími úlohami
+    //
+    // POZOR – TADY BYLA VADA (opraveno 1. 10. 2026, invariant 17):
+    // `locked` se plnilo HOLÝMI jmény souborů (`locked.add(f)`), ale porovnání
+    // níž jde proti `lockKeys()`, což jsou klíče `"{repo}/{soubor}"`. Množiny se
+    // tedy NIKDY nemohly protnout a zámek neblokoval nic – dvě granule se
+    // stejnými `owns` se rozjely paralelně. Dnes to nemělo následek (roadmapa
+    // hry kolizi `owns` nemá), ale při `MAX_CONCURRENT=5` je to tikající bomba:
+    // dva agenti si přepíšou tentýž soubor a auto-merge to slije jako cizí práci.
+    // Klíč se proto bere z TÉHOŽ místa jako při porovnání.
     const runningRows = await env.DB.prepare(
       "SELECT payload FROM tasks WHERE status='running' AND target='cloud'",
     ).all<{ payload: string | null }>();
     const locked = new Set<string>();
     for (const r of runningRows.results || []) {
-      try { for (const f of (JSON.parse(r.payload || "{}").owns || [])) locked.add(f); } catch { /* */ }
+      for (const k of lockKeys(r.payload, env)) locked.add(k);
     }
 
     // nejstarší připravené úlohy; vyber první, jehož owns nekoliduje s běžícími
