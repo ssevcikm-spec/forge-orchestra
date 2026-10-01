@@ -199,6 +199,15 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   test('check-schema.py: offline testy (známá správná i chybná hodnota)',
     schemaTesty.stav === 0, `exit=${schemaTesty.stav}`);
 
+  // Kontraktní test: `.gitignore`, který orchestra vnucuje hrám, musí chránit
+  // tajemství. `install-into-repo.ps1` kopíruje do hry `.env` s REÁLNÝM
+  // FORGE_SECRET – a ten soubor nebyl ignorovaný (naměřeno 1. 10. 2026).
+  // Test hlídá SHODU generátoru a hry a ověřuje, že pravidla opravdu platí
+  // (`git check-ignore`), ne jen že jsou napsaná.
+  const gitignoreTesty = spust('python', [`${ORCH}/tools/test-gitignore-tajemstvi.py`]);
+  test('.gitignore hry chrání tajemství (kontrakt generátor ↔ hra)',
+    gitignoreTesty.stav === 0, `exit=${gitignoreTesty.stav}`);
+
   const vision = spust(process.execPath, [`${ORCH}/repo/.forge/node/vision.test.mjs`]);
   test('vision.mjs: offline testy (mock API) projdou', vision.stav === 0, `exit=${vision.stav}`);
 

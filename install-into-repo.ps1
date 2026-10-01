@@ -124,6 +124,25 @@ build/
 artifacts/
 assets/_raw/
 
+# Tajemství – NIKDY do gitu.
+#
+# POZOR, tohle tu DŘÍV NEBYLO a byla to díra (opraveno 1. 10. 2026):
+# tenhle skript sám kopíruje `.env` DO HRY (viz `$envSoubor` výš) a ten soubor
+# obsahuje REÁLNÝ `FORGE_SECRET` (`repo\.forge\node\.env`). `.gitignore` hry ho
+# ale neignoroval – ověřeno `git check-ignore .forge/node/.env` → nic.
+# Agent v CI dělá `git add -A`, takže by ho poslal do patche i do PR.
+# Že k úniku zatím nedošlo, je jen tím, že ten soubor v herním repu ještě není.
+#
+# `.env` platí i na `.forge/node/.env` (git vzor bez lomítka matchuje
+# v každé úrovni), ale obojí je tu výslovně – ať je záměr vidět.
+.env
+.forge/node/.env
+
+# Python cache po LOKÁLNÍM spuštění bran (.forge/check-schema.py apod.).
+# Kdyby se dostala do repa, `git add -A` by ji poslal do patche a do PR.
+__pycache__/
+*.pyc
+
 # Lokální nástroje
 .forge/provider.json
 # Volba poskytovatele pro shell v témže kroku (druhý pokus agenta). Kdyby se
