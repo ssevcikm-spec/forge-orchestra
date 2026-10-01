@@ -203,6 +203,30 @@ console.log('=== vision.mjs – offline testy (mock API) ===');
     prompt.slice(0, 200));
 }
 
+// 2b) DVĚ JMÉNA TÉHOŽ POLE: `styl_popis` (starší profily) i `popis_stylu`
+//     (nová šablona). Kdyby kód znal jen jedno, hra s tím druhým by o styl
+//     TICHE přišla – a to je přesně ta třída chyby, kterou tenhle projekt řeší.
+//     Testuje se OBOJÍ, protože „funguje to" u jednoho jména nic neříká o druhém.
+{
+  prijatePrompty = [];
+  zapisProfil({ styl_popis: undefined, popis_stylu: 'styl z nového jména pole' });
+  await spust(['--mode', 'presence', 'snimek.png']);
+  const novy = prijatePrompty.find((p) => p.includes('kontrolor')) ?? '';
+  test('profil s `popis_stylu` (nové jméno) styl NESMÍ ztratit',
+    novy.includes('styl z nového jména pole'),
+    novy.slice(0, 220));
+
+  // A když není ani jedno, použije se styl ze spec.json – nesmí spadnout.
+  prijatePrompty = [];
+  zapisProfil({ styl_popis: undefined, popis_stylu: '' });
+  await spust(['--mode', 'presence', 'snimek.png']);
+  const prazdny = prijatePrompty.find((p) => p.includes('kontrolor')) ?? '';
+  test('profil bez stylu nespadne a prompt pošle (styl ze spec, nebo prázdný)',
+    prazdny.length > 0,
+    'prompt se vůbec neposlal – prázdný styl nesmí vision zastavit');
+  zapisProfil(); // vrátit výchozí profil pro další testy
+}
+
 // 3) Neshoda dvou běhů se pozná a NEZHODÍ to běh.
 {
   fronta = ['{"videno":["hráč","podlaha"],"chybi":[],"navic":[],"popis":"a"}',

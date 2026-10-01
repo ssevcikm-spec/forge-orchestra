@@ -18,6 +18,29 @@ const ROOT = 'C:/Users/Ssevc/Local-Deepseek';
 const SABLONA = join(ROOT, 'orchestra/repo');
 
 // Co se kopíruje ze šablony do hry. Klíč = cesta v šabloně i ve hře (stejná).
+//
+// POZOR – CO TU ZÁMĚRNĚ NENÍ (a proč). Tenhle seznam je zároveň DEKLARACE
+// VLASTNICTVÍ: co v něm je, patří orchestře a hra to jen dostane; co v něm
+// není, patří HŘE. Když sem někdo přidá soubor z druhého seznamu, přepíše
+// hře její data – a to je přesně ta vada, kterou projekt řeší (S4/S5).
+//
+//   .forge/vision-profile.json  – profil je PER-GAME. Šablona má `hra: null`
+//                                 a prázdný `popis_stylu`; hra má svoje.
+//                                 Naměřeno 1. 10. 2026: šablona v sobě měla
+//                                 natvrdo `uo-shadows` a dědila to každá nová
+//                                 hra. Sync sem by hru o její profil připravil.
+//   .forge/roadmap.json         – PLÁN JE HRY. Šablona má prázdný (`grains: []`),
+//                                 hra má svoje granule. Sync by hru vymazal.
+//   .forge/providers.json       – zdroj pravdy je ORCHESTRA a čte se za běhu
+//                                 (fetch v `pick-provider.mjs`), lokální kopie
+//                                 ve hře je jen záloha. Kopírovat ji sem by
+//                                 z ní udělalo druhou pravdu.
+//   .forge/check-schema.py      – v tomhle seznamu NENÍ, ale jeho shodu hlídá
+//                                 `tools/test-check-schema.py` (porovnává hash
+//                                 obou kopií) – ověřeno 1. 10. 2026: hashe
+//                                 shodné. Tady chybí jen proto, že se sem
+//                                 nepřidal; `--sync` by ho tedy nesjednotil.
+//                                 Není to díra v ochraně, jen v pohodlí.
 const SOUBORY = [
   '.forge/pick-provider.mjs',
   '.forge/files-to-edit.mjs',

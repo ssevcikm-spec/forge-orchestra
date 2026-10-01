@@ -2,29 +2,47 @@
   "_popis": [
     "Vizuální profil HRY – co má vision kontrolovat a jak přísně.",
     "",
-    "PROČ JE PROFIL PER-GAME A NE GLOBÁLNÍ: ne každá hra je izometrická. Profil",
-    "proto NEOBSAHUJE velikost dlaždice, projekci ani viewport – ty se čtou",
-    "z `assets/spec.json`, kde jsou data té které hry. Tady je jen to, co je",
-    "o KONTROLE, ne o hře.",
+    "POZOR – TENHLE SOUBOR JE ŠABLONA. Co je v ní, dostane KAŽDÁ nová hra,",
+    "takže tu NESMÍ být nic, co platí jen pro jednu z nich. Do 1. 10. 2026 tu",
+    "bylo natvrdo \"hra\": \"uo-shadows\" a popis UO stylu – každá nová hra je",
+    "zdědila a profil pak lhal o tom, na co se dívá.",
     "",
-    "Zdroj pravdy o schématu je VŽDY spec.json. Když si hra odporuje (spec tvrdí",
-    "izometrii a level.gd kreslí čtvercově), pozná to `orchestra/tools/kontrola-",
-    "schematu.py` – a vision nemá smysl spouštět, dokud to není srovnané."
+    "CO JE OBECNÉ (patří sem – je to o KONTROLE, ne o hře):",
+    "  verze, poskytovatele, self_consistency, cache, stropy, ocekavany_obsah, mapa",
+    "",
+    "CO JE KONKRÉTNÍ (patří DO HRY, ne sem):",
+    "  hra              – název TÉTO hry; musí odpovídat `game_id` v registru.",
+    "  popis_stylu      – čím ta hra JE (izometrie? pixel art? 16 barev?).",
+    "  zakazy_v_promptu – co u TÉ hry nemá smysl hodnotit.",
+    "",
+    "KDY SE NASTAVÍ: když orchestra začne na hře pracovat (`POST /game`).",
+    "Profil je per-game proto, že ne každá hra je izometrická – velikost dlaždice,",
+    "projekci ani viewport tu proto NEHLEDEJ; ty se čtou z `assets/spec.json`.",
+    "",
+    "ZDROJ PRAVDY O SCHÉMATU JE VŽDY spec.json. Když si hra odporuje (spec tvrdí",
+    "izometrii a level.gd kreslí čtvercově), pozná to `.forge/check-schema.py`",
+    "(tvrdá brána, běží v CI PŘED vision) – a vision nemá smysl spouštět, dokud",
+    "to není srovnané."
   ],
 
   "verze": 1,
-  "hra": "uo-shadows",
+
+  "hra": null,
+  "_hra": "DOPLŇ NÁZEV TÉTO HRY (= `game_id` v registru orchestra). `vision.mjs` hodnotu nečte (je to dokumentace a klíč pro lidi), ale nesmí tu zůstat cizí jméno – naměřeno 1. 10. 2026: v šabloně bylo `uo-shadows` a dědila ho každá nová hra.",
 
   "ocekavany_obsah": "z_mapy",
-  "mapa": "assets/levels/main.json",
+  "_ocekavany_obsah": "`z_mapy` = obsah se spočítá z `mapa` (doporučeno; když se mapa změní, kontrola se změní s ní). Nebo vlastní seznam očekávaných věcí.",
 
-  "styl_popis": "izometrická 2.5D jako Ultima Online: předrenderovaný 3D model do 2D spritu, realistické světlo a materiály, dlaždicový svět viděný shora. NE pixel art, NE 16barevná paleta.",
+  "mapa": "assets/levels/main.json",
+  "_mapa": "Odkud se bere očekávaný obsah scény. Musí to být mapa TÉTO hry.",
+
+  "popis_stylu": "",
+  "_popis_stylu": "DOPLŇ: čím je TATO hra vizuálně. Např. „izometrická 2.5D, předrenderovaný 3D do 2D, realistické světlo; NE pixel art“. Když zůstane prázdný, vezme se `styl._popis` z `assets/spec.json`; když není ani to, jde modelu prázdný styl (nic nespadne).",
 
   "zakazy_v_promptu": [
-    "Nehodnoť počet barev: spec.json kvantizaci výslovně zapovídá, plné barvy jsou záměr.",
-    "Nehodnoť rozlišení ani ostrost pixelů – o zmenšování (Lanczos) rozhoduje spec, ne ty.",
     "Nedoporučuj stylové změny; porovnávej jen s tím, co je vidět."
   ],
+  "_zakazy": "DOPLŇ, co u TÉTO hry nemá smysl hodnotit. Obecný zákaz výš platí pro všechny; hra přidá svoje (např. „Nehodnoť počet barev – spec kvantizaci zapovídá.“).",
 
   "poskytovatele": [
     {
@@ -44,9 +62,13 @@
       "_role": "Styl, diff proti baseline a sporné případy. Free kvóta je malá (~20 dotazů/model/den), proto se neplýtvá na rutinu."
     }
   ],
+  "_poskytovatele": "Zkouší se popořadě, první kdo odpoví vyhrává. `role` je dnes jen dokumentace – `vision.mjs` ji nečte (řetěz je obyčejný fallback).",
+
+  "strict_poskytovatele": false,
+  "_strict_poskytovatele": "true = použij POUZE poskytovatele z tohoto profilu (nedoplňuj z `providers.json`). Výchozí false = profil je první, zbytek se přidá jako záloha.",
 
   "self_consistency": true,
-  "_self_consistency": "Dva běhy týmž modelem a porovnání. Neshoda = nejistota k lidskému rozhodnutí, ne chyba nástroje.",
+  "_self_consistency": "Dva běhy týmž modelem a porovnání. Neshoda = nejistota k rozhodnutí, ne chyba nástroje.",
 
   "cache": {
     "zapis": false,
@@ -58,6 +80,6 @@
   "stropy": {
     "volani_na_den": 200,
     "kol_na_granuli": 3,
-    "_kol": "Po třech kolech eskaluj člověku. Každé kolo stojí GPU čas, ne jen kvótu."
+    "_kol": "Po třech kolech eskaluj (u této hry zatím jen notifikace). Každé kolo stojí čas, ne jen kvótu."
   }
 }

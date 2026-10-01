@@ -136,7 +136,12 @@ function ocekavanyObsah() {
 
 // -------------------------------------------------------------- prompty ----
 function sestavPrompt() {
-  const styl = profil?.styl_popis ?? spec?.styl?._popis?.[0] ?? '';
+  // POZOR NA DVĚ JMÉNA TÉHOŽ POLE (opraveno 1. 10. 2026):
+  // starší profily mají `styl_popis`, nová šablona používá `popis_stylu`
+  // (neutrálnější jméno, ať pole neodkazuje na jednu hru). Kdyby kód znal jen
+  // jedno, hra s tím druhým by o svůj styl TICHE přišla – a to je přesně ta
+  // třída chyby, kterou tenhle projekt řeší pořád. Čtou se proto obě.
+  const styl = profil?.styl_popis ?? profil?.popis_stylu ?? spec?.styl?._popis?.[0] ?? '';
   const zakazy = (profil?.zakazy_v_promptu ?? []).join(' ');
   const otazkaUzivatele = pozice.length > 1 && !pozice[1].endsWith('.png') ? pozice[1] : null;
 
