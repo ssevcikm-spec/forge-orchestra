@@ -296,6 +296,64 @@ function kontroly(v) {
   return typeof v.stav === 'number' ? v.stav : -1;
 }
 
+// ── L. BRÁNY NAD KÓDEM CONDUCTORA A ŠABLONOU (rozhodnutí 2. 10. 2026) ────────
+//
+// PROČ SAMOSTATNÁ SEKCE: brány A1/A2/A3 a „datum spotřeby analýzy" vznikly při
+// ověřování práce session `eb127abd` a bydlely v `_analyza\` — tedy MIMO oba
+// repozitáře a mimo veškerou automatiku. Naměřeno 2. 10. 2026: `write_text` se
+// v nich nevyskytuje ani jednou (jsou POUZE ČTOUCÍ), takže do validátoru patří;
+// kdežto `*mutace*.py` a `hl2-kostra-*.py` soubory schválně PŘEPISUJÍ a vrací,
+// a ty sem NEPATŘÍ — pustit je z validátoru znamená riskovat pracovní strom.
+//
+// POJISTKA, KTERÁ JE V TOM SCHVÁLNĚ: u každého nástroje se nejdřív ověří, že
+// v jeho zdroji není zápis (`write_text`/`write_bytes`/`copyfile`/`writeFileSync`).
+// Kdyby někdo nástroj později „vylepšil" o zápis, validátor ho PŘESTANE spouštět
+// a řekne to — místo aby tiše mazal soubory. Bez téhle kontroly by seznam
+// „co je pouze čtoucí" zastaral jako každý jiný ručně vedený seznam.
+console.log('\n════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ════');
+{
+  // `_analyza\` je pracovní složka workspace (mimo oba repozitáře), proto se
+  // cesta bere z umístění tohohle souboru a NEnapevno. Když složka není
+  // (čerstvý klon orchestra), sekce to ŘEKNE — ticho by vypadalo jako úspěch.
+  const ANALYZA = `${ORCH}/../_analyza`;
+  const BRANY = [
+    ['a1-a2-over.py',
+     'A1/A2: `done` jen při ok && merged, `owns` proti origin/main, cache s TTL',
+     ['python', `${ANALYZA}/a1-a2-over.py`]],
+    ['a3-over.py',
+     'A3: krok „Když pravidla neprošla" končí `exit 1` v OBOU kopiích agent.yml',
+     ['python', `${ANALYZA}/a3-over.py`]],
+    ['n8-zastarala-analyza.py',
+     'stárnutí analýzy: porovnává její tvrzení s KÓDEM (ne s dokumentem)',
+     ['python', `${ANALYZA}/n8-zastarala-analyza.py`]],
+    ['b5-over-tvrzeni.py',
+     'týchž 5 tvrzení ověřených NEZÁVISLE na n8-* (jiné měřidlo, s úryvky kódu)',
+     ['python', `${ANALYZA}/b5-over-tvrzeni.py`]],
+  ];
+  const zapisuje = /write_text|write_bytes|copyfile|copy2|writeFileSync/;
+  let spusteno = 0;
+  for (const [soubor, popis, prikaz] of BRANY) {
+    const cesta = `${ANALYZA}/${soubor}`;
+    if (!existsSync(cesta)) {
+      // Není to vada orchestra: `_analyza\` je pracovní složka vývojáře.
+      console.log(`  ?    ${soubor} — není v ${ANALYZA} (přeskočeno)`);
+      continue;
+    }
+    // ── POJISTKA: jen POUZE ČTOUCÍ nástroje. ──────────────────────────────
+    if (zapisuje.test(readFileSync(cesta, 'utf8'))) {
+      test(`${soubor}: NEBYL spuštěn — zdroj obsahuje zápis`, false,
+        'nástroj, který přepisuje soubory, do validátoru nepatří');
+      continue;
+    }
+    const v = spust(prikaz[0], prikaz.slice(1));
+    spusteno++;
+    test(popis, v.stav === 0, `${soubor} → exit=${v.stav}`);
+  }
+  if (spusteno === 0) {
+    console.log('  ?    žádná brána nespuštěna — zkontroluj, že `_analyza\\` existuje');
+  }
+}
+
 console.log(`\n${'═'.repeat(60)}`);
 console.log(chyb === 0 ? '✓ VŠE V POŘÁDKU' : `✗ NALEZENO ${chyb} PROBLÉMŮ`);
 

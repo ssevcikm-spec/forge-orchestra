@@ -76,6 +76,15 @@ SOUBORY = [
     # POZOR: tenhle soubor sám sobě přikazuje, že sem patří — a je to právě ten
     # krok, na kterém to v tomhle workspace padlo ŠESTKRÁT (vada S27: ruční seznam).
     WS / "NEXT-SESSION-INSTRUKCE.md",
+    # 2. 10. 2026 (11:3x–12:0x): dokumenty, které vznikly při plnění zadání
+    # (push orchestra, granule, N1/N3, rozhodnutí o nástrojích, podklad pro
+    # plánovací session). Přidány ve STEJNÉ session, která je napsala — je to
+    # **posedmé**, co se tenhle krok dělá ručně, a posedmé to byl krok, na
+    # kterém to v tomhle workspace padalo (vada S27: ruční seznam místo projití
+    # složky). Důkaz, že to není formalita: kdyby tu nebyly, brána by nad nimi
+    # hlásila „VŠE OK", aniž je otevřela.
+    WS / "_analyza" / "C-PODKLAD-SMLOUVY.md",
+    WS / "_analyza" / "a3-brany-novych-granuli.md",
     WS / "orchestra" / "repo" / ".forge" / "check-schema.py",
     WS / "orchestra" / "repo" / ".forge" / "vision-profile.json",
     WS / "orchestra" / "repo" / ".forge" / "baseline.py",

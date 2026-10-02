@@ -66,19 +66,46 @@ const HRY = ['uo-shadows'];
 // do prostředí.
 const jeYaml = (f) => f.endsWith('.yml') || f.endsWith('.yaml');
 
-/** Vytáhne z workflow to podstatné: vstupy, názvy kroků, klíče env. */
+/**
+ * Vytáhne z workflow to podstatné: vstupy, názvy kroků a U KTERÉHO KROKU je
+ * který klíč `env`.
+ *
+ *  ⚠ PROČ `envKlice` = MAPA `KLÍČ → [jména kroků]` (opraveno 2. 10. 2026):
+ *  Do té doby se všechny klíče `env` sypaly do jednoho plochého pole. To je
+ *  slepé k TOMU, NA ČEM NEJVÍC ZÁLEŽÍ — ke kterému kroku klíč patří, protože
+ *  `env:` na úrovni kroku platí JEN pro ten krok. Naměřeno: `FORGE_ATTEMPT`
+ *  byl v obou kopiích (33 výskytů, 16 unikátních klíčů — množiny SHODNÉ), ale
+ *  v herním repu byl na kroku „Vyber bezplatného poskytovatele LLM" místo na
+ *  „Spusť agenta". `pick-provider.mjs` (ř. 129, 132) ho přitom čte
+ *  z `process.env`, takže rotace modelů podle čísla pokusu byla v herním repu
+ *  MRTVÁ — a drift hlásil `OK (struktura)`. Táž třída jako S27: zelená nad
+ *  tím, co se neměří.
+ *
+ *  Porovnává se proto podle KLÍČE, ne podle pozice kroku: kopie mají různý
+ *  počet kroků (šablona má parsování a class_name jako dva kroky, hra je má
+ *  v jednom), takže pořadí se posouvá a porovnání podle indexu hlásí falešné
+ *  rozdíly u nesouvisejících kroků. Mapa „klíč → kde je" je na posunu nezávislá.
+ *  Podle JMÉNA kroku se porovnávat nedá — kopie mají jména jiná i tam, kde
+ *  dělají totéž („Kontrola parsování (rychlá brána)" vs. „… GDScriptu (…)").
+ */
 function strukturaWorkflow(text) {
   const radky = text.split('\n');
   const vstupy = [];
   const kroky = [];
-  const envKlice = [];
+  const envKlice = {}; // KLÍČ -> [jména kroků, které ho mají v env]
   let vVstupech = false;
   let vEnv = false;
+  let aktualni = '(úvod)';
   for (const l of radky) {
     const bezKomentare = l.replace(/\s+#.*$/, '');
     if (/^\s{2,}workflow_dispatch:/.test(bezKomentare)) { vVstupech = true; vEnv = false; continue; }
     if (/^\s{2,}(permissions|concurrency|jobs):/.test(bezKomentare)) { vVstupech = false; }
-    if (/^\s+- name:\s*(.+)$/.test(bezKomentare)) { kroky.push(RegExp.$1.trim()); vEnv = false; continue; }
+    if (/^\s+- name:\s*(.+)$/.test(bezKomentare)) {
+      aktualni = bezKomentare.replace(/^\s+- name:\s*/, '').trim();
+      kroky.push(aktualni);
+      vEnv = false;
+      continue;
+    }
     if (/^\s+env:\s*$/.test(bezKomentare)) { vEnv = true; continue; }
     if (vVstupech) {
       const m = /^\s{6}([a-z_]+):\s*$/.exec(bezKomentare);
@@ -86,7 +113,11 @@ function strukturaWorkflow(text) {
     }
     if (vEnv) {
       const m = /^\s+([A-Z_]+):/.exec(bezKomentare);
-      if (m) { envKlice.push(m[1]); continue; }
+      if (m) {
+        if (!envKlice[m[1]]) envKlice[m[1]] = [];
+        if (!envKlice[m[1]].includes(aktualni)) envKlice[m[1]].push(aktualni);
+        continue;
+      }
       if (/^\s+(run|uses|with):/.test(bezKomentare)) vEnv = false;
     }
   }
@@ -130,11 +161,26 @@ for (const hra of HRY) {
         // Ukaž, co konkrétně se liší – ať je vidět, jestli jde o práci, nebo šum.
         const sa = JSON.parse(strukturaWorkflow(normalizuj(a)));
         const sb = JSON.parse(strukturaWorkflow(normalizuj(b)));
-        for (const klic of ['vstupy', 'kroky', 'envKlice']) {
+        for (const klic of ['vstupy', 'kroky']) {
           const jenA = sa[klic].filter((x) => !sb[klic].includes(x));
           const jenB = sb[klic].filter((x) => !sa[klic].includes(x));
           if (jenA.length) console.log(`    jen v šabloně (${klic}): ${jenA.join(', ')}`);
           if (jenB.length) console.log(`    jen ve hře (${klic}): ${jenB.join(', ')}`);
+        }
+        // NOVÉ (2. 10. 2026): u každého klíče `env` se porovnává, NA KTERÉM
+        // KROKU je. Do té doby byl `env` plochý seznam a přesun klíče na jiný
+        // krok (který rozhoduje o tom, jestli ho skript dostane) zůstal
+        // neviditelný. Porovnává se podle klíče, ne podle pozice kroku — obě
+        // kopie mají různý počet kroků, takže indexy se posouvají.
+        const kliceA = sa.envKlice, kliceB = sb.envKlice;
+        for (const k of [...new Set([...Object.keys(kliceA), ...Object.keys(kliceB)])].sort()) {
+          const kdeA = (kliceA[k] || []).join(' | ');
+          const kdeB = (kliceB[k] || []).join(' | ');
+          if (kdeA !== kdeB) {
+            console.log(`    env ${k}:`);
+            console.log(`      šablona: ${kdeA || '(nikde)'}`);
+            console.log(`      hra:     ${kdeB || '(nikde)'}`);
+          }
         }
       }
       if (sync) { copyFileSync(a, b); console.log(`    → přepsáno šablonou`); }
