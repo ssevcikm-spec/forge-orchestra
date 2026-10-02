@@ -211,26 +211,23 @@ SOUBORY = [
     WS / "games" / "uo-shadows" / ".github" / "workflows" / "ci.yml",
     WS / "README.md",
     WS / "orchestra" / "README.md",
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\dsh-prostredi\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\vision\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\game-assets\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\game-developer\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\orchestra\SKILL.md"),
-    # 2. 10. 2026 (plánovací session): NAMĚŘENO PŘI PŘIDÁVÁNÍ — na disku je
-    # **12 skillů**, ale v tomhle seznamu bylo jen **5**. Chybělo i `overovani`,
-    # tedy skill, do kterého táž session právě psala (§8.1/§8.2 o tom, že
-    # „vydalo se" není „podařilo se") — brána by ho **nikdy neotevřela**
-    # a hlásila „VŠE OK". Je to **po jedenácté** táž vada (S27: ruční seznam).
-    # Dopsány všechny, které na disku jsou; `kontrola-diakritiky.py` sám se
-    # kontroluje zvlášť (má vzorek rozbitých znaků), takže tady není.
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\dsh-usage\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\hlouchkova-analyza\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\imagegen\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\imagegen-local\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\otevrena-temata\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\overovani\SKILL.md"),
-    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\session-handoff\SKILL.md"),
 ]
+
+# ── SKILLY: PROJITÍM SLOŽKY, NE SEZNAMEM ────────────────────────────────────
+# Do 2. 10. 2026 tu bylo **12 ručně psaných cest** a byl to dvanáctý výskyt
+# vady S27 (ruční seznam místo projití složky) — naposledy se přišlo na to,
+# že v seznamu bylo **5 z 12 skillů**, takže brána hlásila „VŠE OK" nad sedmi
+# soubory, které nikdy neotevřela. Naměřený důkaz, že to není formalita:
+# `overovani` — skill, do kterého táž session psala — v seznamu NEBYL.
+#
+# Teď se složka PROJDE. Nový skill je vidět ve chvíli vzniku; když některý
+# zmizí, brána to ohlásí jako `CHYBA ... neexistuje` (a to je správně —
+# chybějící skill je nález, ne ticho).
+SKILLS_DIR = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+_skilly = sorted(SKILLS_DIR.glob("*/SKILL.md")) if SKILLS_DIR.is_dir() else []
+if not _skilly:
+    print(f"  CHYBA {SKILLS_DIR}: žádné skilly k projití (složka chybí nebo je prázdná)")
+SOUBORY += _skilly
 
 # Typické znaky dvojitého kódování UTF-8 přečtené jako Windows-1250
 ROZBITE = ["Ã", "Ä", "Å"]

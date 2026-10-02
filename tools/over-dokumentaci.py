@@ -1,8 +1,11 @@
 """Ověří, že dokumentační změny sedí: frontmatter, diakritika, nové sekce.
 
 Kontroluje se i to, že v souborech nezůstalo dvojité kódování češtiny
-(„zaÄÃ­najÃ­") – přesně to jednou vzniklo, když se do souboru psalo
-PowerShellem místo Pythonu.
+(UTF-8 přečtené jako Windows-1250 — z jednoho písmene s diakritikou se stanou
+dva znaky) – přesně to jednou vzniklo, když se do souboru psalo
+PowerShellem místo Pythonu. Ukázku sem ZÁMĚRNĚ nepíšu doslovnými znaky:
+zakazuje to `AGENTS.md` a `g1-diakritika-novych.py` to hlásí jako vadu
+souboru (naměřeno 2. 10. 2026).
 """
 
 import pathlib

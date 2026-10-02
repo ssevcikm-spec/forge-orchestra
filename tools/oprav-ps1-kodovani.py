@@ -4,7 +4,11 @@ PROČ TO EXISTUJE — dvě chyby, které dokážou rozbít .ps1 tak, že to vypa
 chyba logiky:
 
   1) **Chybějící BOM.** PowerShell bez BOM čte soubor jako Windows-1252, české
-     znaky se rozbijí a parser hlásí nesmysly ("Unexpected token 'CÃ­l'").
+     znaky se rozbijí (z jednoho písmene s diakritikou se stanou dva znaky)
+     a parser hlásí nesmysly — v hlášce se místo českého slova objeví rozbité
+     jméno. Ukázku sem ZÁMĚRNĚ nepíšu doslovnými znaky: zakazuje to `AGENTS.md`
+     a `g1-diakritika-novych.py` to hlásí jako vadu souboru (naměřeno
+     2. 10. 2026 — tenhle docstring byl jedno ze dvou takových míst).
 
   2) **Zdvojené konce řádků `\\r\\r\\n`.** Vzniknou, když se text s `\\r\\n`
      zapíše Pythonem bez `newline=''` – Python přeloží `\\n` na `\\r\\n` a druhé
