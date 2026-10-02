@@ -427,8 +427,11 @@ async function pollRuns(env: Env): Promise<string> {
       // dispatch smyčka (která cooldown čte z roadmapy) považovala granuli za
       // odpočatou a vydala ji znovu za 2 minuty místo za RETRY_HOURS.
       // Naměřeno: běhy #128–#130 se opakovaly každé ~2 minuty.
+      // B1: tohle je SELHÁNÍ — proto se plní `naposledy_selhalo` (z něj čte
+      // cooldown). `updated_at` se plní dál, ale cooldown ho už nečte.
       await env.DB.prepare(
-        `UPDATE roadmap SET status = ?, updated_at = datetime('now') WHERE task_id = ?`,
+        `UPDATE roadmap SET status = ?, updated_at = datetime('now'),
+           naposledy_selhalo = datetime('now') WHERE task_id = ?`,
       ).bind(nextStatus === "failed" ? "failed" : "queued", row.task_id).run().catch(() => undefined);
     }
 
@@ -537,6 +540,11 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
     .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
   await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
     .run().catch(() => undefined);
+  // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
+  // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
+  // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
+  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
+    .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
 
   // Stav granulí drží tabulka roadmap (item_id = {game_id}/{grain_id}).
   // Řádek sám o sobě nestačí – je vidět i stav úlohy (LEFT JOIN tasks).
@@ -545,11 +553,13 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
     task_id: number | null;
     rstatus: string | null;
     rupd: string | null;
+    rfail: string | null;
     tstatus: string | null;
     tupd: string | null;
   }
   const rows = await env.DB.prepare(
     `SELECT r.item_id, r.task_id, r.status AS rstatus, r.updated_at AS rupd,
+            r.naposledy_selhalo AS rfail,
             t.status AS tstatus, t.updated_at AS tupd
        FROM roadmap r LEFT JOIN tasks t ON t.id = r.task_id`,
   ).all<GrainRow>();
@@ -600,7 +610,12 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
       || (r.task_id != null && mergedTasks.has(r.task_id));
     if (finished) { done.add(r.item_id); continue; }
     if (!failed) { blocked.add(r.item_id); continue; }
-    const ts = r.tupd || r.rupd || null;
+    // B1 (2. 10. 2026): rozhoduje `naposledy_selhalo`, NE `updated_at`.
+    // `updated_at` je i čas VZNIKU řádku, takže nová granule vypadala jako
+    // „právě selhala" a RETRY_HOURS se na ni vztáhl, i když nikdy neselhala
+    // (vada S12, naměřeno `tools/test-cooldown.py`). `tupd` zůstává jako
+    // záložní cesta pro řádky, u kterých sloupec ještě není vyplněný.
+    const ts = r.rfail || r.tupd || null;
     const stale = !ts
       || (Date.now() - Date.parse(String(ts).replace(" ", "T") + "Z") > retryH * 3600e3);
     if (!stale) blocked.add(r.item_id);
@@ -901,15 +916,18 @@ async function tick(env: Env): Promise<string> {
     // `rm.status`. První verze se ptala na `rm.status = 'failed'`, jenže
     // pollRuns u ještě-opakovatelného selhání zapisuje `'queued'` (failed až
     // u posledního pokusu) – guard se tak vůbec neuplatnil a díra zůstala.
-    // Rozhoduje proto VÝHRADNĚ čas poslední změny řádku, který failure zapisuje
-    // v obou případech. Řádek se nemaže, takže je to spolehlivý nositel
-    // cooldownu; dispatch smyčka se ptá jen na úlohy, které už jsou `ready`.
+    // B1 (2. 10. 2026): rozhoduje `naposledy_selhalo`, ne `updated_at`.
+    // Původní úvaha („čas poslední změny řádku je spolehlivý nositel cooldownu")
+    // platila jen do chvíle, než se do téhož sloupce začal psát i VZNIK granule:
+    // `INSERT … status='queued', updated_at=datetime('now')`. Od té chvíle byla
+    // nová granule v cooldownu, i když nikdy neselhala (vada S12).
+    // Dispatch smyčka se ptá jen na úlohy, které už jsou `ready`.
     const readyAll = await env.DB.prepare(
       `SELECT * FROM tasks WHERE status='ready' AND target='cloud'
          AND NOT EXISTS (
            SELECT 1 FROM roadmap rm
             WHERE rm.task_id = tasks.id
-              AND rm.updated_at > datetime('now', ?)
+              AND rm.naposledy_selhalo > datetime('now', ?)
          )
         ORDER BY id LIMIT 25`,
     ).bind(`-${retryH} hours`).all<Task>();
@@ -1440,9 +1458,17 @@ export default {
         const nextStatus = (t?.attempts ?? 0) >= Number(env.MAX_ATTEMPTS || "5") ? "failed" : "ready";
         await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
           .bind(nextStatus, run.task_id).run();
+        // B1: `naposledy_selhalo` se plní při KAŽDÉM selhání, ne jen u
+        // posledního pokusu — cooldown se ptá na něj, takže kdyby tu chybělo,
+        // granule by se po opakovatelném selhání vydala okamžitě.
         if (nextStatus === "failed") {
           await env.DB.prepare(
-            "UPDATE roadmap SET status='failed', updated_at=datetime('now') WHERE task_id=?",
+            `UPDATE roadmap SET status='failed', updated_at=datetime('now'),
+               naposledy_selhalo = datetime('now') WHERE task_id=?`,
+          ).bind(run.task_id).run().catch(() => undefined);
+        } else {
+          await env.DB.prepare(
+            `UPDATE roadmap SET naposledy_selhalo = datetime('now') WHERE task_id=?`,
           ).bind(run.task_id).run().catch(() => undefined);
         }
       }

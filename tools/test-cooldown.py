@@ -25,16 +25,20 @@ Test má **assert i nenulový exit kód**. Každá kontrola vypíše, co naměř
 
 CO DNES CHCE VĚDĚT (a co z toho vychází)
 ----------------------------------------
-Test měří **chování, které je dnes v kódu** – ne to, které by mělo být. Proto
-u jednoho scénáře vychází VADA, a to je správný výsledek: je to přesně ta vada,
-kterou analýza naměřila jako **S12** a kterou má opravit krok **B1**
-(`naposledy_selhalo` místo `updated_at`). **Až se B1 udělá, scénář se otočí**
-a test donutí jeho očekávání přepsat – tím je zaručené, že test nezůstane
-viset na staré pravdě.
+**STAV PO B1 (2. 10. 2026): všech 5 scénářů je OK.** Guard se ptá na
+`naposledy_selhalo` — čas posledního SELHÁNÍ, ne čas poslední změny řádku.
 
-Naměřená vada:
-  * **nová granule se 3 h nevydá** (S12) – guard se ptá na `updated_at`, což je
-    i čas VZNIKU řádku, takže nová granule vypadá jako „právě selhala".
+Historie (aby se neopakovalo): do B1 vycházel scénář „NOVÁ granule" jako VADA.
+Guard se ptal na `updated_at`, což je ale i čas VZNIKU řádku, takže nová granule
+vypadala jako „právě selhala" a `RETRY_HOURS` se na ni vztáhl (vada **S12**).
+Test to hlásil jako naměřenou vadu kódu — a přesně tím si vynutil opravu.
+
+⚠ V TÉTO FIXTURE BYLA DRUHÁ VADA (odhalila se až po B1, naměřeno 2. 10. 2026):
+`vloz()` plnil `naposledy_selhalo` přes `datetime('now', ?)`, jenže `?` je tam
+argumentem FUNKCE, ne hodnotou sloupce — SQLite uložil doslovný řetězec
+`'-10 minutes'`, který se v porovnání `>` chová jako 0. Scénář „v cooldownu" pak
+vycházel jako „má se vydat". Do B1 to nebylo vidět, protože se sloupec nečetl.
+Časy se proto počítají v Pythonu (`_cas_pred`).
 
 Co test naopak POTVRDILO jako správné (a dřívější test to měl špatně):
   * řádek `done` **neblokuje** nový `ready` úkol – guard čte jen čas a řádek je
@@ -45,10 +49,12 @@ Co test naopak POTVRDILO jako správné (a dřívější test to měl špatně):
     neuplatnil vůbec.
 """
 
+import datetime
 import pathlib
 import re
 import sqlite3
 import sys
+import time
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -113,6 +119,17 @@ def priprav() -> sqlite3.Connection:
     return db
 
 
+def _cas_pred(minut: int) -> str:
+    """Čas `minut` zpět ve tvaru, který SQLite porovnává jako datum.
+
+    POZOR: musí to být SKUTEČNÝ čas, ne řetězec `-10 minutes` — přesně na tom
+    padala první verze fixture (viz komentář ve `vloz`).
+    """
+    return datetime.datetime.fromtimestamp(
+        time.time() - minut * 60, tz=datetime.timezone.utc
+    ).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def vloz(
     db: sqlite3.Connection,
     task_id: int,
@@ -126,15 +143,22 @@ def vloz(
     `selhal_pred_min` = kolik minut zpět naposledy selhal (None = neselhal).
     """
     db.execute("INSERT INTO tasks VALUES (?,?,?,?)", (task_id, "ready", "cloud", "{}"))
+    # ⚠ ČASY SE POČÍTAJÍ V PYTHONU, NE PŘES `datetime('now', ?)`.
+    # Naměřeno 2. 10. 2026 (`_analyza\f2-sonda-cooldown.py`): dokud byl `?`
+    # ARGUMENTEM funkce `datetime()`, SQLite uložil DOSLOVNÝ ŘETEZEC
+    # `'-10 minutes'` místo času — a ten se v porovnání `>` chová jako 0.
+    # Scénář „v cooldownu" pak vycházel jako „má se vydat" a vypadalo to jako
+    # vada guardu, i když byla vada fixture. Do B1 to nebylo vidět, protože se
+    # `naposledy_selhalo` vůbec nečetlo.
     db.execute(
         "INSERT INTO roadmap (item_id, task_id, status, updated_at, naposledy_selhalo)"
-        " VALUES (?,?,?,datetime('now', ?),?)",
+        " VALUES (?,?,?,?,?)",
         (
             f"hra/g{task_id}",
             task_id,
             stav,
-            f"-{vznikl_pred_min} minutes",
-            None if selhal_pred_min is None else f"-{selhal_pred_min} minutes",
+            _cas_pred(vznikl_pred_min),
+            None if selhal_pred_min is None else _cas_pred(selhal_pred_min),
         ),
     )
     db.commit()
@@ -158,6 +182,8 @@ test("SQL čte tabulku roadmap", "roadmap" in sql)
 test("SQL má bind parametr pro retry hours", "datetime('now', ?)" in sql)
 # Tohle je invariant 13: první verze opravy filtrovala podle `rm.status='failed'`,
 # ale pollRuns u opakovatelného selhání zapisuje 'queued' → guard se neuplatnil.
+# PO B1 (2. 10. 2026) guard čte `naposledy_selhalo`; kdyby někdo vrátil
+# `updated_at`, scénář „NOVÁ granule" zčervená — je to tedy regresní test na S12.
 test(
     "SQL NEFILTRUJE podle rm.status (invariant 13 — jinak se cooldown neuplatní)",
     "rm.status" not in sql and "rm. status" not in sql,
@@ -170,11 +196,19 @@ print(f"  {'scénář':<52} {'čekáno':>7} {'naměřeno':>9}  výsledek")
 print("  " + "-" * 84)
 
 # (popis, stav řádku, vznikl před min, selhal před min, MÁ se vydat?, je to vada?)
+#
+# PO B1 (2. 10. 2026): guard se ptá na `naposledy_selhalo`, ne na `updated_at`.
+# Očekávání se tím OTOČILO u „NOVÉ granule" — dřív se nevydala (vada S12),
+# teď se vydat MÁ, protože nikdy neselhala. Zbylé scénáře drží:
+#   * selhalo před 10 min  → cooldown 3 h běží → NEVYDÁ se,
+#   * selhalo před 4 h     → cooldown vypršel  → VYDÁ se,
+#   * řádek 'done'         → nový ready úkol se vydá,
+#   * 'failed' před 2 min  → terminální selhání v cooldownu → NEVYDÁ se.
 scenare = [
-    ("NOVÁ granule (vznikla teď, neselhal)", "queued", 0, None, True, True),
+    ("NOVÁ granule (vznikla teď, neselhal)", "queued", 0, None, True, False),
     ("selhalo před 10 min (v cooldownu)", "queued", 60, 10, False, False),
     ("selhalo před 4 h (cooldown vypršel)", "queued", 300, 240, True, False),
-    ("řádek 'done' + nový ready úkol", "done", 600, None, True, True),
+    ("řádek 'done' + nový ready úkol", "done", 600, None, True, False),
     ("selhalo před 2 min, 'failed' (poslední pokus)", "failed", 60, 2, False, False),
 ]
 
@@ -198,8 +232,7 @@ if vad:
     print("ZNÁMÉ VADY (nejsou to vady testu — měří skutečný kód):")
     for popis, ma, je in vad:
         print(f"  * {popis}: má se vydat={ma}, vydá se={je}")
-    print("  → opravuje krok B1 plánu (`naposledy_selhalo` místo `updated_at`).")
-    print("    Po B1 test zčervená v OPAČNÉM směru a donutí scénář přepsat.")
+    print("  → tohle je naměřená vada KÓDU, ne testu.")
 print()
 print(f"VÝSLEDEK: {kontrol} kontrol, {chyb} chyb")
 if chyb:

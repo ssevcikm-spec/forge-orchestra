@@ -59,12 +59,19 @@ CREATE TABLE IF NOT EXISTS roadmap (
   task_id     INTEGER,
   status      TEXT NOT NULL DEFAULT 'queued',  -- queued | done | failed
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at  TEXT NOT NULL DEFAULT (datetime('now'))  -- poslední změna (cooldown retry)
+  updated_at  TEXT NOT NULL DEFAULT (datetime('now')),  -- poslední změna řádku
+  -- KDY NAPOSLEDY SELHALA (B1, 2. 10. 2026). Do té doby se cooldown ptal na
+  -- `updated_at`, což je ale i čas VZNIKU řádku — nová granule proto vypadala
+  -- jako „právě selhala" a RETRY_HOURS se na ni vztáhl (vada S12). NULL =
+  -- ještě neselhala.
+  naposledy_selhalo TEXT
 );
 
 -- Migrace starých tabulek: roadmap.updated_at přibyl kvůli cooldownu
 -- opakovaných pokusů selhaných granulí (RETRY_HOURS).
 -- ALTER TABLE roadmap ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));
+-- B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
+-- ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT;
 
 -- Registr her, na kterých orchestr pracuje. Když je prázdný, orchestr jede na
 -- jednom repu (GITHUB_REPO), přesně jako dřív – zpětná kompatibilita.

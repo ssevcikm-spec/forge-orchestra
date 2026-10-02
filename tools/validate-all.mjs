@@ -329,6 +329,17 @@ console.log('\n════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ═══�
     ['b5-over-tvrzeni.py',
      'týchž 5 tvrzení ověřených NEZÁVISLE na n8-* (jiné měřidlo, s úryvky kódu)',
      ['python', `${ANALYZA}/b5-over-tvrzeni.py`]],
+    // N1 (2. 10. 2026): nástroj hlásil „0 vrácených" nad ZASTARALÝM inventářem.
+    // Teď vypíše stáří, přepočítá otisk vstupů a při rozchodu skončí nenulově.
+    // Zápis do inventáře dělá SKENER (`hl-neanglicky-v-kodu.py`), který se
+    // pouští jako podproces — proto tenhle nástroj sám zůstává pouze čtoucí
+    // a pojistka níž na něm nic nenajde.
+    ['hl-rizika-jazyka.py',
+     'N1: inventář se hlásí stářím a otiskem vstupů; zastaralý SHODÍ nástroj',
+     ['python', `${ANALYZA}/hl-rizika-jazyka.py`]],
+    // POZOR: `c2-mutace.py` sem NEPATŘÍ, i když je to brána k N1. Sama
+    // přepisuje `_inventar.json` (a vrací ho) — přesně to pojistka níž hlídá.
+    // Pouští se ručně; výsledek je v `HANDOFF.md` §16.
   ];
   const zapisuje = /write_text|write_bytes|copyfile|copy2|writeFileSync/;
   let spusteno = 0;
