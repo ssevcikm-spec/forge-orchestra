@@ -85,6 +85,14 @@ SOUBORY = [
     # hlásila „VŠE OK", aniž je otevřela.
     WS / "_analyza" / "C-PODKLAD-SMLOUVY.md",
     WS / "_analyza" / "a3-brany-novych-granuli.md",
+    # 2. 10. 2026 (11:0x–12:0x): PLÁN dalších kroků. NAMĚŘENO PŘI PŘIDÁVÁNÍ:
+    # tenhle dokument v seznamu **NEBYL**, ačkoli ho plánovací session sama
+    # napsala a sám uživatel na to upozornil („PLAN-DALSI-KROK.md tam ještě
+    # není"). Je to **po osmé** táž vada (S27: ruční seznam místo projití
+    # složky) — a je to zároveň důkaz, že ani upozornění v zadání ten krok
+    # neudělá samo. Ručně ověřeno týmž vzorem: 17 960 znaků, rozbito: ne.
+    WS / "PLAN-DALSI-KROK.md",
+    WS / "_analyza" / "A-UKOL-ZAZNAM.md",
     # 2. 10. 2026: POSTUP PŘEDÁVÁNÍ mezi sessionami (dva kroky: plánovací
     # a akční) se šablonami promptů. Nahrazuje jednorázový PROMPT-NOVA-SESSION.md.
     # Je to dokument, ze kterého se bude **řídit každé další předání** — kdyby ho
@@ -95,6 +103,69 @@ SOUBORY = [
     WS / "orchestra" / "repo" / ".forge" / "vision-profile.json",
     WS / "orchestra" / "repo" / ".forge" / "baseline.py",
     WS / "orchestra" / "tools" / "test-check-schema.py",
+    # 2. 10. 2026: BRÁNA SAMA SEBE. Naměřeno při psaní `g1-diakritika-novych.py`
+    # (nezávislé ověření všech souborů té session): tenhle soubor **v seznamu
+    # nebyl** — tedy kdyby se v NĚM rozbila diakritika, brána by to nikdy
+    # neohlásila a sama by přitom hlásila „VŠE OK". Je to **po deváté** táž
+    # vada (S27: ruční seznam, který neobsahuje sám sebe).
+    # POZOR: soubor obsahuje `ROZBITE` znaky **jako vzorek** — musí je mít, aby
+    # je uměl hledat. Kdyby se kontroloval stejně jako ostatní, spadl by sám na
+    # sobě (a to je přesně ta past z `AGENTS.md`: „ukázku rozbitého kódování
+    # popisuj slovem"). Kontroluje se proto jinak: hledá se jeho typický český
+    # text, který by se dvojím kódováním rozbil.
+    WS / "orchestra" / "tools" / "kontrola-diakritiky.py",
+    # 2. 10. 2026 (plánovací session, 11:4x–12:3x UTC): ověření práce akční
+    # session (Úkoly A–D a B1). Doplněny ve STEJNÉ session, která je napsala —
+    # a NAMĚŘENO PŘI PŘIDÁVÁNÍ: `HANDOFF.md` v seznamu **už byl** (přidán dřív),
+    # ale `_analyza/c2-sonda-uvozovky.py` v něm **nebyl**, ačkoli na něj
+    # odkazovaly DVA dokumenty (`HANDOFF.md` §16.11 a `g1-diakritika-novych.py`)
+    # — přitom soubor na disku vůbec neexistoval. Byl to **doklad, který se
+    # ztratil**; obnoven a přidán sem. Je to **po desáté** táž vada (S27).
+    WS / "_analyza" / "c2-sonda-uvozovky.py",
+    # 2. 10. 2026 (11:4x–12:4x): oddíly, kterými se `HANDOFF.md` rozšířil
+    # (§17 výsledky ověření, §8f vlastní omyly). Drží se jako samostatné
+    # soubory, protože se zapisovaly skriptem (`s17-zapis-handoff.py`,
+    # `s8f-zapis-handoff.py`) — a skript, který text vkládá, se musí dát ověřit.
+    WS / "_analyza" / "s17-novy-oddil.md",
+    WS / "_analyza" / "s8f-novy-oddil.md",
+    # 2. 10. 2026 (12:2x): §17.11 — doplnění na konci session (finální souhrn
+    # bran, přegenerovaný inventář, doplnění všech 12 skillů do brány).
+    WS / "_analyza" / "s17b-doplneni.md",
+    # 2. 10. 2026 (12:3x): KRONIKA PROJEKTU — nový TRVALÝ dokument, který
+    # přežívá předávání (na rozdíl od `HANDOFF.md`, který se přepisuje).
+    # Drží celý příběh: sessions, nálezy, omyly, poučení, návrhy.
+    # Patří sem proto, že je to **autorita o průběhu projektu** — kdyby v ní
+    # byla rozbitá diakritika, nikdo by si toho nevšiml právě ve chvíli,
+    # kdy se podle ní dělá analýza postupu a návrhy na zlepšení.
+    WS / "KRONIKA-PROJEKTU.md",
+    # 2. 10. 2026 (12:5x–13:3x UTC, PLÁNOVACÍ session — ověření práce akční
+    # session o krok dřív): nástroje, kterými se to ověřovalo. Jsou tady proto,
+    # že vznikly ve STEJNÉ session, která je psala — a to je krok, na kterém to
+    # v tomhle workspace padlo **dvanáctkrát** (S27: ruční seznam místo
+    # projití složky). NAMĚŘENO PŘI PŘIDÁVÁNÍ: `p18-sonda-tpm.py` je toho
+    # dokladem — jeho první verze stahovala log `urllib`em a padala na
+    # `HTTP 401` po přesměrování (TLS v Pythonu), což vypadalo jako vadný
+    # přístup na GitHub, a byl to přitom jen špatný nástroj na tuhle práci.
+    WS / "_analyza" / "p18-sonda-tpm.py",
+    WS / "_analyza" / "p18-stahni-log.mjs",
+    WS / "_analyza" / "p18-prompt-tokeny.py",
+    WS / "_analyza" / "p18-pr-a-behy.mjs",
+    WS / "_analyza" / "p18b-jmena-behu.mjs",
+    WS / "_analyza" / "p18c-stav-uloh.mjs",
+    WS / "_analyza" / "s18-zapis-handoff.py",
+    WS / "_analyza" / "s18-prepocitej-omyly.py",
+    WS / "_analyza" / "s18-novy-oddil.md",
+    WS / "_analyza" / "s8g-novy-oddil.md",
+    WS / "_analyza" / "s18b-doplneni.md",
+    WS / "_analyza" / "s18c-omyl68-radek.md",
+    WS / "_analyza" / "s18c-doplneni.md",
+    WS / "_analyza" / "s18c-dopln-omyl68.py",
+    WS / "_analyza" / "s18c-sonda-kotvy.py",
+    WS / "_analyza" / "s18d-sestav-handoff.py",
+    WS / "_analyza" / "s18e-l13-radek.md",
+    WS / "_analyza" / "s18e-dopln-l13.py",
+    WS / "_analyza" / "s18f-oprav-hlavicku.py",
+    WS / "_analyza" / "p18d-kontrola-utf8.py",
     WS / "games" / "uo-shadows" / ".github" / "workflows" / "ci.yml",
     WS / "README.md",
     WS / "orchestra" / "README.md",
@@ -103,10 +174,45 @@ SOUBORY = [
     pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\game-assets\SKILL.md"),
     pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\game-developer\SKILL.md"),
     pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\orchestra\SKILL.md"),
+    # 2. 10. 2026 (plánovací session): NAMĚŘENO PŘI PŘIDÁVÁNÍ — na disku je
+    # **12 skillů**, ale v tomhle seznamu bylo jen **5**. Chybělo i `overovani`,
+    # tedy skill, do kterého táž session právě psala (§8.1/§8.2 o tom, že
+    # „vydalo se" není „podařilo se") — brána by ho **nikdy neotevřela**
+    # a hlásila „VŠE OK". Je to **po jedenácté** táž vada (S27: ruční seznam).
+    # Dopsány všechny, které na disku jsou; `kontrola-diakritiky.py` sám se
+    # kontroluje zvlášť (má vzorek rozbitých znaků), takže tady není.
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\dsh-usage\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\hlouchkova-analyza\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\imagegen\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\imagegen-local\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\otevrena-temata\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\overovani\SKILL.md"),
+    pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\session-handoff\SKILL.md"),
 ]
 
 # Typické znaky dvojitého kódování UTF-8 přečtené jako Windows-1250
 ROZBITE = ["Ã", "Ä", "Å"]
+
+# ── VÝJIMKA PRO TENHLE SOUBOR ────────────────────────────────────────────────
+# Vzor `ROZBITE` výš MUSÍ být v tomhle souboru doslovně — jinak by nehledal nic.
+# Kdyby se ale kontroloval stejně jako ostatní, našel by **sám sebe** a brána by
+# hlásila vadu na souboru, který je v pořádku (tatáž past, na kterou upozorňuje
+# `AGENTS.md`: ukázku rozbitého kódování popisuj slovem, ne znaky).
+#
+# Kontroluje se proto JINAK — a to DVĚMA pohledy:
+#   1. v souboru nesmí být NÁHRADNÍ ZNAK (tím se dvojí kódování projeví:
+#      z českého písmene se stane `U+FFFD`), a
+#   2. musí v něm být český text (sondou je pět slov).
+#
+# ⚠ PROČ NESTAČÍ HLEDAT JEN TA SLOVA (naměřeno 2. 10. 2026): seznam
+# `VLASTNI_TEXTY` je psaný v TOMTÉŽ souboru, takže když se rozbije text okolo,
+# hledané slovo v seznamu zůstane správně — a kontrola projde. Odhalil to až
+# mutační test: rozbil jsem VŠECH 7 výskytů jednoho slova a brána stejně
+# hlásila „VŠE OK", protože to své (v seznamu) pořád našla. Náhradní znak tuhle
+# slepou uličku zavírá — je v souboru vidět, ať je rozbité cokoli.
+VLASTNI = WS / "orchestra" / "tools" / "kontrola-diakritiky.py"
+VLASTNI_TEXTY = ["diakritiky", "kódování", "souborů", "příliš", "žluťoučký"]
+NAHRADNI = "\ufffd"
 
 chyb = 0
 for f in SOUBORY:
@@ -115,6 +221,25 @@ for f in SOUBORY:
         chyb += 1
         continue
     s = f.read_text(encoding="utf-8")
+    if f.resolve() == VLASTNI.resolve():
+        # Sebekontrola: český text musí být CELÝ, a to i kdyby se `ROZBITE`
+        # znaky v souboru vyskytovaly (vyskytovat se MUSÍ — je to vzorek).
+        chybejici = [t for t in VLASTNI_TEXTY if t not in s]
+        nahradnich = s.count(NAHRADNI)
+        if chybejici or nahradnich:
+            chyb += 1
+            duvod = []
+            if chybejici:
+                duvod.append(f"chybí text {', '.join(chybejici)}")
+            if nahradnich:
+                duvod.append(f"{nahradnich}× náhradní znak")
+            print(f"  CHYBA {f.name:34} {len(s):7} znaků  "
+                  f"rozbito: {'; '.join(duvod)}")
+        else:
+            print(f"  OK   {f.name:34} {len(s):7} znaků  "
+                  f"rozbito: ne (sebekontrola: {len(VLASTNI_TEXTY)} českých slov, "
+                  f"0 náhradních znaků)")
+        continue
     nalezene = [z for z in ROZBITE if z in s]
     stav = "OK  " if not nalezene else "CHYBA"
     if nalezene:
