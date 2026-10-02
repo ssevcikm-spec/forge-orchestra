@@ -13,7 +13,9 @@ free modelu. Tenhle lint projde plán ještě před dispatchováním a najde:
      kritické, aby měla řádek v D1 (jinak zůstane závislost viset),
   6. granule bez `owns` (agent nemá co editovat),
   7. `model: strong` bez deklarovaného `size_lines` (neví se, proč je silná),
-  8. prázdný nebo chybějící `prompt`.
+  8. prázdný nebo chybějící `prompt`,
+  9. chybějící `size_lines` u granule, jejíž soubory už v `main` jsou přes
+     výchozích 60 řádků – to je příčina zaseknutých PR (A4a).
 """
 
 import json
@@ -80,8 +82,8 @@ def main() -> int:
         if gid in zavislych:
             problemy.append(
                 f"[5] {gid} je 'done: true' a čeká na ni {len(zavislych[gid])} granulí "
-                f"({', '.join(zavislych[gid])}) – MUSÍ mít řádek v D1, jinak závislosti "
-                f"zůstanou viset (conductor dělá jen UPDATE, ne INSERT)")
+                f"({', '.join(zavislych[gid])}) – musí mít řádek v D1, jinak závislosti "
+                f"zůstanou viset")
 
     # 6) granule bez owns
     for g in grains:
@@ -99,6 +101,15 @@ def main() -> int:
         if len(p) < 40:
             problemy.append(f"[8] {g['id']}: prompt je prázdný nebo příliš krátký ({len(p)} znaků)")
 
+    # 9) chybějící size_lines (A4a) – ZÁMĚRNĚ mimo `problemy`.
+    # `size_lines` mají jen granule určené silnému modelu; u slabého modelu je
+    # výchozích 60 SPRÁVNĚ. Kdyby to byla „vada", lint by začal blokovat i to,
+    # co je v pořádku – tedy brána, která nemá jak nezasáhnout.
+    # Přesto to musí být VIDĚT: naměřeno 2. 10. 2026 — `size_lines` chybí
+    # u 13 z 18 granul a je to příčina všech tří visících PR (#28 save.gd +91,
+    # #29 hud.gd +77, #30 mining.gd +66 – všechny přes výchozích 60).
+    bez_velikosti = [g["id"] for g in grains if not g.get("size_lines")]
+
     # --- výstup ---
     print(f"Granulí: {len(grains)} | hotových: {len(hotove)} | strong: {sum(1 for g in grains if g.get('model')=='strong')}")
     print(f"Nalezeno problémů: {len(problemy)}")
@@ -113,6 +124,16 @@ def main() -> int:
     print("=== SOUBORY Vlastněné VÍC GRANULEMI (brzdí paralelismus) ===")
     kolize = {f: k for f, k in vlastnici.items() if len(k) > 1}
     print(f"  {len(kolize)} souborů" if kolize else "  žádné")
+
+    # 9) chybějící size_lines – informativní, viz komentář výš.
+    print()
+    print("=== GRANULE BEZ 'size_lines' (platí výchozích 60 řádků) ===")
+    if bez_velikosti:
+        print(f"  {len(bez_velikosti)} z {len(grains)}: {', '.join(bez_velikosti)}")
+        print("  Není to vada u slabého modelu. U granule, jejíž změna je větší,")
+        print("  ale 'size_lines' chybí, gate auto-merge PR zamítne (pravidlo 60).")
+    else:
+        print("  žádné – všechny granule mají deklarovanou velikost")
     return 0
 
 

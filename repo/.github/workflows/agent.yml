@@ -689,3 +689,10 @@ jobs:
           gh pr comment "$PR" --body "🤖 **Automatické sloučení neproběhlo** (pravidla: ${{ steps.gate.outputs.ok }}, CI: ${{ steps.ci.outputs.ci }}).
 
           Buď je změna větší než limit granule (${{ inputs.max_lines }} řádků), sahá mimo \`scripts/\` a \`assets/\`, nebo se dotýká testů či orchestrace – a to agent sám nesmí. Podívej se na ni prosím ručně."
+          # A3: nenulový kód je PODSTATNÝ. Bez něj byl celý job zelený i když se
+          # nesloučilo – a conductor se ptal na `conclusion` běhu, takže z toho
+          # vznikalo „hotovo" bez práce v `main` (S31/S32). Komentář sám
+          # nestačí: brána, která nemá jak selhat, není brána.
+          # POZOR: tohle smí být až POTÉ, co `done` závisí na `merged` (A1) –
+          # jinak PR nesloučen → běh červený → úloha zpět `ready` → smyčka.
+          exit 1

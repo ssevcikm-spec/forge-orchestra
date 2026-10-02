@@ -389,7 +389,7 @@ def zkontroluj(repo: Path) -> tuple[list[str], list[str], list[str], dict]:
     sp = repo / "assets" / "sprites"
     if role and sp.is_dir():
         from PIL import Image  # lokální import: bez spritů není potřeba
-        nesedí = []
+        mismatched = []
         for jmeno, pozadovano in role.items():
             f = sp / f"{jmeno}.png"
             if not f.is_file():
@@ -399,9 +399,11 @@ def zkontroluj(repo: Path) -> tuple[list[str], list[str], list[str], dict]:
                 continue
             w, h = Image.open(f).size
             if w != int(canvas) or h != int(canvas):
-                nesedí.append(f"{jmeno}.png je {w}×{h}, spec chce plátno {canvas}×{canvas}")
-        data["sprity"] = {"zkontrolovano": len(role), "nesedi": nesedí}
-        vady += nesedí
+                mismatched.append(f"{jmeno}.png je {w}×{h}, spec chce plátno {canvas}×{canvas}")
+        # Klíč ve výstupu zůstává `nesedi` (malé s) – čte ho `:445` téhož
+        # souboru a je to součást strojového výstupu, ne identifikátor v kódu.
+        data["sprity"] = {"zkontrolovano": len(role), "nesedi": mismatched}
+        vady += mismatched
 
     return vady, varovani, poznamky, data
 

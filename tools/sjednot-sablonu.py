@@ -108,12 +108,29 @@ def main() -> int:
     data = yaml.safe_load(SABLONA.read_text(encoding="utf-8"))
     klic = True if True in data else "on"
     vstupy = list(data[klic]["workflow_dispatch"]["inputs"].keys())
-    kroky = [s for s in data["jobs"]["agent"]["steps"] if s.get("name") == "Spusť agenta"]
-    env_ok = bool(kroky) and "FORGE_ATTEMPT" in kroky[0].get("env", {})
+
+    # Z8: krok se hledá podle SVÉHO OBSAHU (env.FORGE_ATTEMPT), ne podle
+    # doslovného českého názvu. Původní kritérium `name == "Spusť agenta"`
+    # fungovalo jen shodou okolností a selhávalo TICHE: po přejmenování kroku
+    # byl `kroky` prázdný list -> `env_ok = False` -> skript to vypsal
+    # a PŘESTO skončil úspěšně (návratový kód 0). To je přesně „brána, která
+    # nemá jak selhat".
+    # Naměřeno 2. 10. 2026: ve hře nese FORGE_ATTEMPT JINÝ krok než v šabloně
+    # („Vyber bezplatného poskytovatele LLM" vs. „Spusť agenta") – obě kopie
+    # dnes projdou, ale z různých důvodů.
+    kroky_env = [s for s in data["jobs"]["agent"]["steps"]
+                 if "FORGE_ATTEMPT" in (s.get("env") or {})]
+    env_ok = len(kroky_env) == 1
 
     print("\nZměny:", ", ".join(zmeny) if zmeny else "(žádné)")
     print("YAML platný, vstupy:", ", ".join(vstupy))
-    print("FORGE_ATTEMPT v env kroku:", env_ok)
+    print("FORGE_ATTEMPT v env kroku:", env_ok,
+          f"({kroky_env[0].get('name')!r})" if env_ok else "")
+    if not env_ok:
+        # Nenulový kód: bez něj by se vada (krok přejmenován / env odstraněno)
+        # projevila jen řádkem ve výpisu, který v CI nikdo nečte.
+        print(f"CHYBA: kroků s FORGE_ATTEMPT v env je {len(kroky_env)}, čekán právě 1.")
+        return 1
     return 0
 
 

@@ -244,7 +244,7 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string, attempt: n
  */
 async function escalateStuckTasks(env: Env): Promise<number> {
   const prah = Number(env.ESCALATE_AFTER || "8");
-  let ohlášeno = 0;
+  let notified = 0;
   try {
     const rows = await env.DB.prepare(
       `SELECT t.id, t.title, t.payload,
@@ -275,12 +275,12 @@ async function escalateStuckTasks(env: Env): Promise<number> {
       p.eskalovano_pokusu = t.pokusu;
       await env.DB.prepare("UPDATE tasks SET payload=? WHERE id=?")
         .bind(JSON.stringify(p), t.id).run().catch(() => undefined);
-      ohlášeno++;
+      notified++;
     }
   } catch (e) {
     console.log("eskalace selhala:", String(e).slice(0, 160));
   }
-  return ohlášeno;
+  return notified;
 }
 
 // ------------------------------------------------------- polling běhů ----
@@ -370,8 +370,19 @@ async function pollRuns(env: Env): Promise<string> {
         const prs = await github(env, repo, `/pulls?head=${owner}:forge/task-${row.task_id}&state=all`);
         prUrl = prs?.[0]?.html_url ?? null;
         // `run.status === completed` znamená, že doběhl CELÝ workflow – tedy
-        // i krok automatického sloučení. Stav mergnutí je proto v tuhle chvíli
-        // už konečný a dá se věřit.
+        // i krok automatického sloučení. Proto je stav `merged_at` v tuhle
+        // chvíli KONEČNÝ (nezmění se až po přečtení) – to je jediné, co z toho
+        // plyne. NEPLYNE z toho, že se PR opravdu sloučilo: krok auto-merge
+        // může skončit jen komentářem.
+        //
+        // POZOR (opraveno 2. 10. 2026, A1): `conclusion === "success"` NENÍ totéž
+        // co „sloučeno". Workflow posílá `success` hned po VZNIKU PR (krok
+        // „Vytvoř pull request"), zatímco auto-merge je samostatný krok za ním –
+        // a když pravidla neprojdou, jen založí komentář. Naměřeno 2. 10. 2026:
+        // `persist.save` (#139), `ui.hud` (#140), `sim.mining` (#136) byly
+        // v D1 `done`, ale všechny tři PR měly `merged_at: null` a ani jeden
+        // soubor (`save.gd`, `hud.gd`, `mining.gd`) nebyl v `origin/main`.
+        // Proto o `done` rozhoduje `ok && merged`, ne `ok` samo.
         merged = Boolean(prs?.[0]?.merged_at);
       } catch { /* PR nemusí existovat, to není chyba běhu */ }
     }
@@ -382,11 +393,27 @@ async function pollRuns(env: Env): Promise<string> {
     ).bind(ok ? "success" : String(run.conclusion || "failed"),
            `GitHub Actions: ${run.conclusion}`, prUrl, row.run_id).run();
 
-    if (ok) {
+    // A1: `done` se zapíše JEN když běh uspěl A PR je sloučený. Když PR
+    // vzniklo, ale nesloučilo se (gate ho poslal k ruční kontrole), úkol
+    // zůstane `awaiting_human` – práce není v `main`, takže „hotovo" by bylo
+    // tvrzení bez protějšku (S29/S31/S33).
+    if (ok && merged) {
       await env.DB.prepare("UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id=?")
         .bind(row.task_id).run();
       await env.DB.prepare(
         "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id=?",
+      ).bind(row.task_id).run().catch(() => undefined);
+    } else if (ok) {
+      // Běh uspěl, ale PR není sloučený: čeká se na člověka. NENÍ to selhání
+      // (agent svou práci udělal), takže se NEPOČÍTÁ pokus a nezvyšuje se
+      // `attempts` – jinak by granule po `maxAttempts` zbytečně přešla do
+      // `failed` za to, že si ji nikdo nepřečetl.
+      // `awaiting_human` žije JEN v D1 (`tasks.status`); do `roadmap.json` se
+      // nepropisuje – soubor je autorita plánu, ne stavu běhu (analýza §⑨).
+      await env.DB.prepare("UPDATE tasks SET status='awaiting_human', updated_at=datetime('now') WHERE id=?")
+        .bind(row.task_id).run();
+      await env.DB.prepare(
+        "UPDATE roadmap SET status='awaiting_human', updated_at=datetime('now') WHERE task_id=?",
       ).bind(row.task_id).run().catch(() => undefined);
     } else {
       const t = await env.DB.prepare("SELECT attempts FROM tasks WHERE id=?")
@@ -408,9 +435,15 @@ async function pollRuns(env: Env): Promise<string> {
     const prNote = prUrl
       ? (merged ? "\n(sloučeno automaticky)" : "\n(čeká na tvé sloučení – nesplnilo pravidla)")
       : "";
-    await notify(env, ok ? "Forge: hotovo" : "Forge: selhalo",
+    // A1: nadpis notifikace musí odpovídat SKUTEČNÉMU stavu. Dřív se posílalo
+    // „Forge: hotovo" i u PR, které se nesloučilo – a to je totéž tvrzení bez
+    // protějšku, jen v jiné vrstvě (S33/S35).
+    const titulek = ok && merged ? "Forge: hotovo"
+      : ok ? "Forge: čeká na tvé sloučení"
+      : "Forge: selhalo";
+    await notify(env, titulek,
       `#${row.task_id} ${row.title}\n${run.conclusion}${prUrl ? `\n${prUrl}` : ""}${prNote}`,
-      ok ? "white_check_mark" : "warning");
+      ok && merged ? "white_check_mark" : ok ? "hourglass_flowing_sand" : "warning");
     updated++;
   }
   return updated ? `aktualizovano behu: ${updated}` : "zadna zmena";
@@ -438,6 +471,45 @@ interface Game {
   repo: string;
   roadmap_file: string;
   active: number;
+}
+
+// A2: soubor je autorita plánu, ale `done: true` v něm je TVRZENÍ, které nikdo
+// neporovnává s realitou (S36). Než se z něj zapíše `done` do D1, ověří se, že
+// aspoň jeden soubor z `owns` opravdu existuje v `origin/main` hry.
+//
+// Cache je nutná: `roadmapTick` běží každou minutu (`* * * * *`, wrangler.toml).
+// Bez cache by to bylo až 18 granul × 1–3 soubory × 1440 tiků denně – na free
+// plánu reálné riziko.
+//
+// POZOR NA STÁŘÍ CACHE (a je to táž past, jakou popisuje N1 v
+// `IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md`): modulová proměnná žije tak dlouho
+// jako izolát, ne jako tik — a Cloudflare izolát recykluje, ale **nezaručuje
+// kdy**. Cache bez expirace by tedy mohla sloužit strom `origin/main` libovolně
+// dlouho po sloučení PR. Proto má **TTL** a nikdy se nepoužije napořád.
+const originMainCache = new Map<string, { strom: Set<string> | null; expiruje: number }>();
+const ORIGIN_MAIN_TTL_MS = 10 * 60 * 1000; // TTL // 10 minut
+
+async function filesInOriginMain(env: Env, repo: string): Promise<Set<string> | null> {
+  const ted = Date.now();
+  const vCache = originMainCache.get(repo);
+  if (vCache && vCache.expiruje > ted) return vCache.strom;
+  let strom: Set<string> | null = null;
+  try {
+    // Celý strom naráz (1 volání), ne dotaz na každý soubor zvlášť.
+    const data = await github(env, repo, "/git/trees/origin%2Fmain?recursive=1");
+    if (Array.isArray(data?.tree)) {
+      strom = new Set<string>(data.tree.filter((e: any) => e?.type === "blob").map((e: any) => String(e.path)));
+    }
+  } catch (e) {
+    // Když se strom nepodaří načíst, je `null` = NEVÍME. Nesmí se to zaměnit
+    // s prázdným setem („v mainu není nic“) – to by zastavilo celou roadmapu.
+    // Neúspěch se needspiruje na plnou dobu – zkusí se dřív.
+    console.log(`origin/main ${repo} nejde přečíst: ${String(e).slice(0, 120)}`);
+    originMainCache.set(repo, { strom: null, expiruje: ted + 60 * 1000 });
+    return null;
+  }
+  originMainCache.set(repo, { strom, expiruje: ted + ORIGIN_MAIN_TTL_MS });
+  return strom;
 }
 
 async function listGames(env: Env): Promise<Game[]> {
@@ -585,10 +657,29 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
     // i pro ZÁVISLOSTI – ať na ně nečeká nic, až jejich PR vypadne z posledních
     // 100 zavřených PR (titulkový matching by je pak nenašel a DAG by se zasekl).
     const slouceneTituly = mergedTitlesByRepo.get(g.repo) ?? new Set<string>();
+    // A2: strom `origin/main` se načte jednou na hru a jen když je potřeba
+    // (líně uvnitř smyčky) – hra, která žádné `done: true` nemá, nezaplatí nic.
+    let stromMain: Set<string> | null | undefined;
+    // Granule, u kterých soubor v `origin/main` chybí – hlásí se jednou za tik.
+    const bezPrace: string[] = [];
     for (const i of items) {
       const key = `${g.game_id}/${i.id}`;
       if (i.done === true) {
         if (!done.has(key)) {
+          // A2: `done: true` v souboru NENÍ důkaz, že práce je v `main`
+          // (S29/S36). Ověřuje se proti `origin/main`; granule bez `owns`
+          // (dokumentační) se ověřit nedá a bere se jako hotová.
+          if (stromMain === undefined) stromMain = await filesInOriginMain(env, g.repo);
+          const owns = i.owns || [];
+          const overitelna = stromMain !== null && owns.length > 0;
+          const maPraci = overitelna && owns.some((f) => stromMain!.has(f));
+          if (overitelna && !maPraci) {
+            // Soubor v `main` není → `done` se NEZAPÍŠE a granule se NEVYDÁ.
+            // (Chybějící řádek v D1 ji zablokuje i pro závislosti – to je
+            // přesně stav, který dřív vznikal tichým no-op UPDATE.)
+            bezPrace.push(i.id);
+            continue;
+          }
           // UPSERT, ne UPDATE (opraveno 30. 9. 2026). `done: true` v souboru je
           // tvrzení „hotovo" a musí mít řádek v D1 – jinak se závislosti
           // nemají čeho chytit. Dřív tu byl jen UPDATE: když řádek chyběl,
@@ -625,6 +716,17 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
       && !(i.owns || []).some((f) => locked.has(`${g.repo}/${f}`)),
     );
     if (!ready.length) continue;
+
+    // A2: `done: true` bez práce v `origin/main` se musí VIDĚT – jinak je to
+    // tichý stav, který vypadá jako hotovo (S35: soubor si varování napíše sám
+    // a sám ho ignoruje). Hlásí se jednou za tik, ne za granuli.
+    if (bezPrace.length) {
+      console.log(`roadmapa ${g.game_id}: done:true bez prace v origin/main: ${bezPrace.join(", ")}`);
+      await notify(env, "Forge: done bez práce v main",
+        `${g.game_id}: ${bezPrace.length} granulí je v roadmapě 'done: true', `
+        + `ale jejich soubory v origin/main nejsou – nezapisuji 'done' a nevydávám je:\n`
+        + bezPrace.join(", "), "warning").catch(() => undefined);
+    }
 
     for (const grain of ready) {
       const key = `${g.game_id}/${grain.id}`;

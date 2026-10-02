@@ -42,7 +42,7 @@ def pridej_ukol(db, task_id, stav, runu, eskalovano=False):
 
 
 def watchdog(db):
-    """Zjednodušená kopie logiky z conductora; vrací (ohlášeno, značky)."""
+    """Zjednodušená kopie logiky z conductora; vrací (notified, značky)."""
     rows = db.execute(
         """SELECT t.id, t.title, t.payload,
                   (SELECT COUNT(*) FROM runs r WHERE r.task_id = t.id) AS pokusu
@@ -51,19 +51,19 @@ def watchdog(db):
             ORDER BY t.id DESC LIMIT 50"""
     ).fetchall()
 
-    ohlášeno = []
+    notified = []
     for tid, title, payload, pokusu in rows:
         if (pokusu or 0) < PRAH:
             continue
         p = json.loads(payload or "{}")
         if p.get("eskalovano") is True:
             continue
-        ohlášeno.append((tid, pokusu))
+        notified.append((tid, pokusu))
         p["eskalovano"] = True
         p["eskalovano_pokusu"] = pokusu
         db.execute("UPDATE tasks SET payload=? WHERE id=?", (json.dumps(p), tid))
     db.commit()
-    return ohlášeno
+    return notified
 
 
 scenare = [
