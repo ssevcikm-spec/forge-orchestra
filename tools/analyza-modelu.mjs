@@ -42,7 +42,8 @@ const videno = new Set();
 for (const x of forge) {
   const id = Number(/Forge #(\d+)/.exec(x.name)[1]);
   const grain = taskGrain[id] || '(mimo DAG)';
-  const poz = trida[grain] || '—';
+  const trida_hodnota = trida[grain] || '';   // PRÁZDNÁ hodnota = „neurčeno"
+  const poz = trida_hodnota || '—';           // '—' je JEN výplň pro tisk
   const jobs = await (await fetch(`https://api.github.com/repos/${REPO}/actions/runs/${x.id}/jobs`, { headers: H })).json();
   const j = (jobs.jobs || []).find((z) => z.name.startsWith('Agent'));
   let prov = '?', mod = '?';
@@ -55,7 +56,14 @@ for (const x of forge) {
     }
   }
   const vysl = x.conclusion ?? x.status;
-  const trida_ok = poz === 'any' || poz === '—' ? '' : (['codestral-latest', 'gpt-oss-120b', 'openai/gpt-oss-120b'].includes(mod) ? ' [strong OK]' : ' [!!! strong granule na slabém modelu]');
+  // Rozhoduje se podle HODNOTY (`trida_hodnota`), ne podle vytištěného textu.
+  // `trida` je hodnota z reportu; `'—'` je jen VÝPLŇ pro prázdnou hodnotu,
+  // kterou si tenhle skript sám vykresluje (viz `poz.padEnd` níž). Porovnávat
+  // logiku s výplní znamená, že změna výplně (jiná pomlčka, '?', '-') tiše
+  // rozjede rozhodování.
+  const trida_ok = trida_hodnota === '' || trida_hodnota === 'any'
+    ? ''
+    : (['codestral-latest', 'gpt-oss-120b', 'openai/gpt-oss-120b'].includes(mod) ? ' [strong OK]' : ' [!!! strong granule na slabém modelu]');
   console.log(`#${String(id).padEnd(5)} ${grain.padEnd(19)} ${poz.padEnd(9)} ${prov.padEnd(10)} ${mod.padEnd(22)} ${vysl}${trida_ok}`);
   if (videno.size > 24) break;
   videno.add(id);

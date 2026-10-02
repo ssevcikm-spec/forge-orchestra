@@ -39,12 +39,12 @@ import { extname, join } from 'node:path';
 
 // ------------------------------------------------------------------ vstup ----
 const argv = process.argv.slice(2);
-function vezmiPrepínac(nazev, vychozi = null) {
+function readSwitch(nazev, vychozi = null) {
   const i = argv.indexOf(nazev);
   if (i < 0) return vychozi;
   return argv[i + 1] ?? vychozi;
 }
-const rezim = vezmiPrepínac('--mode', null);
+const rezim = readSwitch('--mode', null);
 const pozice = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--mode');
 
 if (pozice.length === 0) {

@@ -47,7 +47,7 @@ FUNKCE = '''/**
  */
 async function escalateStuckTasks(env: Env): Promise<number> {
   const prah = Number(env.ESCALATE_AFTER || "8");
-  let ohlášeno = 0;
+  let notified = 0;
   try {
     const rows = await env.DB.prepare(
       `SELECT t.id, t.title, t.payload,
@@ -78,12 +78,12 @@ async function escalateStuckTasks(env: Env): Promise<number> {
       p.eskalovano_pokusu = t.pokusu;
       await env.DB.prepare("UPDATE tasks SET payload=? WHERE id=?")
         .bind(JSON.stringify(p), t.id).run().catch(() => undefined);
-      ohlášeno++;
+      notified++;
     }
   } catch (e) {
     console.log("eskalace selhala:", String(e).slice(0, 160));
   }
-  return ohlášeno;
+  return notified;
 }
 
 '''
