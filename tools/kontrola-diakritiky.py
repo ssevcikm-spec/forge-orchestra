@@ -198,6 +198,7 @@ SOUBORY = [
     WS / "_analyza" / "s19k-zapis.py",
     WS / "_analyza" / "s19l-souhrn-8g.py",
     WS / "_analyza" / "s19j-hlavicka-ziva.py",
+    WS / "_analyza" / "s19m-dopln-commity.py",
     WS / "games" / "uo-shadows" / ".github" / "workflows" / "ci.yml",
     WS / "README.md",
     WS / "orchestra" / "README.md",
