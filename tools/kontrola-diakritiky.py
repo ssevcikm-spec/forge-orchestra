@@ -85,6 +85,12 @@ SOUBORY = [
     # hlásila „VŠE OK", aniž je otevřela.
     WS / "_analyza" / "C-PODKLAD-SMLOUVY.md",
     WS / "_analyza" / "a3-brany-novych-granuli.md",
+    # 2. 10. 2026: POSTUP PŘEDÁVÁNÍ mezi sessionami (dva kroky: plánovací
+    # a akční) se šablonami promptů. Nahrazuje jednorázový PROMPT-NOVA-SESSION.md.
+    # Je to dokument, ze kterého se bude **řídit každé další předání** — kdyby ho
+    # brána neviděla, mohla by v něm být rozbitá diakritika a nikdo by si toho
+    # nevšiml právě ve chvíli, kdy se podle něj rozhoduje.
+    WS / "PREDAVANI-SESSION.md",
     WS / "orchestra" / "repo" / ".forge" / "check-schema.py",
     WS / "orchestra" / "repo" / ".forge" / "vision-profile.json",
     WS / "orchestra" / "repo" / ".forge" / "baseline.py",
