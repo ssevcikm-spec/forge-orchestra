@@ -211,7 +211,96 @@ SOUBORY = [
     WS / "games" / "uo-shadows" / ".github" / "workflows" / "ci.yml",
     WS / "README.md",
     WS / "orchestra" / "README.md",
+    # 2. 10. 2026 (18:0x–19:0x, AKČNÍ session — dokončení auditu dokumentace):
+    # zadání, podle kterého se pracovalo. Přidáno **ve stejné session, která
+    # vzniklo** — a je to **po třinácté** táž vada (S27: ruční seznam místo
+    # projití složky): tenhle soubor vznikl v 18:09:30, tedy AŽ PO auditu,
+    # a do seznamu se musel doplnit ručně.
+    # ⚠ NAMĚŘENO PŘI PŘIDÁVÁNÍ a zapsáno jako nález: v tomhle seznamu **NENÍ**
+    # ani `_analyza/AUDIT-DOKUMENTACE.md` ani žádný z nástrojů, kterými audit
+    # měřil (`audit1-*` … `audit6-*`) — jinými slovy **audit dokumentace sám
+    # skončil jako dokument, který brána nikdy neotevře.** Pokrývá je jen
+    # `g1-diakritika-novych.py` (prochází složku). Náprava je opatření **6**
+    # (projití složky místo seznamu) a patří do session B — sem se nedoplňuje,
+    # aby se ruční seznam nerozrůstal na stovky cest (audit: 105 cest,
+    # 96 řádků komentářů).
+    WS / "ZADANI-DOKONCENI-AUDITU.md",
+    # 2. 10. 2026 (18:4x): zadání pro PLÁNOVACÍ session, která ověří dokončení
+    # auditu. Vzniklo **mimo** `NEXT-SESSION-INSTRUKCE.md`, protože ten patří
+    # souběžné session (nález **H28**, `HANDOFF.md` §23.7).
+    # Je to **po čtrnácté** táž vada (S27: ruční seznam místo projití složky) —
+    # a proto je u toho číslo: **dokud se seznam nenahradí projitím složky
+    # (opatření 6), poroste to s každým novým dokumentem.** Tenhle komentář
+    # sám je toho dokladem: za jednu session se sem doplňovalo **dvakrát**.
+    WS / "ZADANI-PO-AUDITU.md",
+    # 2. 10. 2026 (19:0x, PLÁNOVACÍ session): oprava měřidel. Vzniklo **mimo**
+    # `NEXT-SESSION-INSTRUKCE.md`, protože ten patří souběžné session
+    # (nález **H28**, `HANDOFF.md` §23.7 a §24.9).
+    WS / "ZADANI-OPRAVA-MERIDEL.md",
+    # 2. 10. 2026 (21:2x, AKČNÍ session — oprava měřidel): zadání pro DALŠÍ
+    # session. Vzniklo **mimo** `NEXT-SESSION-INSTRUKCE.md` ze stejného důvodu
+    # jako předchozí (ten patří souběžné session, nález **H28**).
+    WS / "ZADANI-DODELAT-MERIDLA.md",
 ]
+
+# ── PROJITÍ SLOŽKY (2. 10. 2026, 19:0x) — KONEC RUČNÍHO SEZNAMU ──────────────
+# **To je opatření 6 z auditu dokumentace** (`AUDIT-DOKUMENTACE.md` §6) a je to
+# **patnáctý** výskyt vady S27 (ruční seznam místo projití složky) v projektu.
+#
+# ⚠ CO SE TÍM MĚŘILO PŘEDTÍM (naměřeno, ne odhad): seznam výš obsahoval
+# **57 dokumentů**, ale v kořeni workspace jich bylo **39** a v `_analyza`
+# **45** — dohromady **84**. Brána tedy byla zelená nad **28 dokumenty, které
+# nikdy neotevřela**; mezi nimi `_analyza\AUDIT-DOKUMENTACE.md` — tedy sám
+# audit, podle kterého se opravovalo. Klasický „zelená nad neotevřeným
+# souborem" (`overovani` §7.10).
+#
+# ⚠ A DRUHÁ PAST, KTERÁ SE TÍM ZAVÍRÁ: ruční seznam se musel doplňovat při
+# **každém** novém dokumentu — jen 2. 10. 2026 se sem doplňovalo **třikrát**
+# (dva dokumenty doplnila předchozí session, třetí tahle). Kdo na to zapomene,
+# dostane zelenou od brány, která soubor nevidí, a **nikdo to nepozná**.
+#
+# PROJITÍM SE ROZSAH ROZŠIŘUJE, NIC SE NEZTRÁCÍ: seznam výš zůstává
+# (jsou v něm i soubory mimo tyhle dvě složky) a projdou se k němu navíc
+# VŠECHNY `.md` a `.py` v kořeni workspace a v `_analyza\`. Deduplikuje se
+# podle `resolve()`, aby se soubor nepočítal dvakrát.
+#
+# ⚠ CO SE ZÁMĚRNĚ VYLUČUJE (a je to VIDĚT ve výpisu, ne tiché):
+#   · `snapshot-*` — zmrazené kopie dokumentace (nález **H27**: kopie nemají
+#     vstupovat do měřidel; `audit1-inventar.py` je ze stejného důvodu vylučuje)
+#   · `_zaloha*`, `zaloha*`, `*-pred-*`, `*-zaloha*` — **zálohy a pracovní
+#     kopie**. Mají právo být rozbité (jsou to kopie stavu před opravou),
+#     takže jejich kontrola by vyráběla **falešné poplachy** (`overovani` §9.5).
+#     ⚠ **To je přiznaná mez:** co je záloha, pozná brána podle JMÉNA, ne podle
+#     obsahu — a to je ruční seznam o vrstvu níž. Zapsáno jako nález **H31**.
+VYLOUCENE_PREDPONY = ("snapshot-", "_zaloha", "zaloha", "handoff-pred", "kronika-pred")
+VYLOUCENE_OBSAHUJE = ("-pred-", "-zaloha")
+
+
+def _je_zaloha(p: pathlib.Path) -> bool:
+    jmeno = p.name.lower()
+    if jmeno.startswith(VYLOUCENE_PREDPONY):
+        return True
+    return any(cast in jmeno for cast in VYLOUCENE_OBSAHUJE)
+
+
+_uz = {p.resolve() for p in SOUBORY}
+_projdene, _preskocene = 0, []
+for _slozka in (WS, WS / "_analyza"):
+    if not _slozka.is_dir():
+        continue
+    for _vzor in ("*.md", "*.py"):
+        for _p in sorted(_slozka.glob(_vzor)):
+            if _je_zaloha(_p) or _p.resolve() in _uz:
+                if _je_zaloha(_p):
+                    _preskocene.append(_p.name)
+                continue
+            SOUBORY.append(_p)
+            _uz.add(_p.resolve())
+            _projdene += 1
+print(f"  PROJITÍ SLOŽKY: přidáno {_projdene} souborů (kořen + _analyza), "
+      f"celkem ke kontrole {len(SOUBORY)}")
+print(f"  VYLOUČENO jako záloha/snapshot: {len(_preskocene)} "
+      f"({', '.join(sorted(set(_preskocene))[:6])}{' …' if len(set(_preskocene)) > 6 else ''})")
 
 # ── SKILLY: PROJITÍM SLOŽKY, NE SEZNAMEM ────────────────────────────────────
 # Do 2. 10. 2026 tu bylo **12 ručně psaných cest** a byl to dvanáctý výskyt
