@@ -845,11 +845,11 @@ To je přesně past **H42**: *syntaktická kontrola je slepá k smyslu.* **A jed
 
 ---
 
-### 8r. Omyly 138–142 — PLÁNOVACÍ (ověřovací) session 4. 10. 2026 (OVĚŘENÍ PŘESUNU)
+### 8r. Omyly 138–143 — PLÁNOVACÍ (ověřovací) session 4. 10. 2026 (OVĚŘENÍ PŘESUNU)
 
-**Pět omylů, a všechny mají stejný podpis: měřil jsem něco jiného, než jsem
-si myslel.** Záznam: `HANDOFF.md` **§30.16**. **Čtyři z pěti** (138, 139, 140,
-141) vznikly **v prostředku měření**, ne v datech — a **každý z nich by
+**Šest omylů, a všechny mají stejný podpis: měřil jsem něco jiného, než jsem
+si myslel.** Záznam: `HANDOFF.md` **§30.16**. **Čtyři z prvních pěti** (138, 139,
+140, 141) vznikly **v prostředku měření**, ne v datech — a **každý z nich by
 vyrobil falešný nález o CIZÍ práci**, kdybych se zastavil u prvního výsledku.
 
 | # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
@@ -859,11 +859,13 @@ vyrobil falešný nález o CIZÍ práci**, kdybych se zastavil u prvního výsle
 | **140** | „`hra.cmd` v repu **neexistuje** → rozhodnutí **D7 nesedí**." | **Existuje** — v repu **HRY** (`E:\Workspaces\uo-shadows\hra.cmd`, git-trackovaný) a **funguje** (spuštěno, Godot naběhl). **Hledal jsem jen v repu orchestra** | **Nehledal jsem v obou repech**, i když zadání před ním výslovně varuje („nezaměňovat oba repy"). Byl jsem **jeden krok od falešného nálezu** o práci, která je v pořádku — a to je **nejdražší druh falešného poplachu** |
 | **141** | „`Get-PSDrive E:` hlásí nulu → návrh **NA25 potvrzuji**." | **Hlásí správně** (`Free=869273522176`). Nula je **vlastnost omezeného oprávnění** (`ConstrainedLanguage`), **ne stanice** | Přebíral jsem **závěr z dokumentu** místo vlastního měření. Kdybych NA25 potvrdil, zapsal bych do skillu **nepravdivé pravidlo** — a to je horší než žádné (`AGENTS.md`). Opraveno na **H56** s přesnějším zněním |
 | **142** | „§29.5 tvrdí `exit 0` u všech 12 bran, ale `kontrola-driftu` má `exit 1` → nález o nepravdivém čísle." | **Je to nepřesnost NADPISU, ne nepravdivé číslo** — nástroj má `exit 1` **správně** (hlásí rozdíl). Číslo `12 souborů, 1 rozdíl` i verdikt „není regrese" **sedí** | Než jsem číslo označil za nepravdivé, **nepřečetl jsem, co ta věta tvrdí** (`overovani` §10.1: „vzor našel" ≠ „vzor našel to, co hledám"). Výsledkem je **H54**, ale **menší**: drobná nepřesnost dokumentu, ne vada práce |
+| **143** | „Do `HANDOFF.md` opíšu starou cestu tak, jak ji vypsal nástroj — je to citace výstupu." | **Brána `kronika-kontrola.py` ji ohlásila jako NEEXISTUJÍCÍ ODKAZ** (`CHYBA kronika odkazuje na neexistující …`), protože jsem ji vysázel **ve zpětných apostrofech** — a její vzor nerozliší **odkaz** od **citace cesty** | **Tatáž past, před kterou `AGENTS.md` varuje u ukázky rozbitého kódování** („popisuj ji slovem") — jen u **cesty** místo znaku. Odhalila to **brána**, ne já; opraveno **popisem slova** („README orchestra"). Je to **falešný poplach na správném dokumentu** — a ten se hledá hůř než slepé místo |
 
-**Vzor z těch pěti (a je poučnější než u 132–137):** akční session měla
+**Vzor z těch šesti (a je poučnější než u 132–137):** akční session měla
 **pět ze šesti** omylů odhalených **až spuštěním**. Tahle session měla
-**čtyři z pěti** omylů ve **vlastním měřidle** — a **tři z nich** (139, 140, 141)
-by vedly k **nepravdivému nálezu o cizí práci**. Rozdíl je v tom, že ověřovatel
+**čtyři z šesti** omylů ve **vlastním měřidle** — a **tři z nich** (139, 140, 141)
+by vedly k **nepravdivému nálezu o cizí práci**. **A jeden (143) našla brána,
+ne autor** — stejně jako u akční session (137). Rozdíl je v tom, že ověřovatel
 **pracuje s cizími čísly a nemá je jak poznat** — proto musí být každé jeho
 tvrzení **měřené, ne převzaté**, a proto má **mutace dokazovat i to, že se
 skutečně provedla** (138).
@@ -5129,7 +5131,7 @@ ne parser** — a to je poučení: *syntaxe ≠ smysl.*
 > Zadání bylo `NEXT-SESSION-INSTRUKCE.md` ve verzi pro plánovací session.
 > **Nic se z §29 ani z §2 nemaže** — §29 zůstává **záznamem o provedení**
 > a jeho čísla jsou **ve svém čase správná** (i ta, která dnešní měření
-> posunula). Nálezy: **H48–H56**, vlastní omyly: **138–142** (§8r).
+> posunula). Nálezy: **H48–H56**, vlastní omyly: **138–143** (§8r).
 
 ### 30.1 Výsledek v jedné větě
 
@@ -5459,7 +5461,7 @@ a **vypadalo to jako slepá brána**. Sonda pak ukázala, že skener soubor
 **vůbec neviděl** (`git ls-files`). **Nebyla to slepá brána, byla to vadná
 mutace** (`overovani` §7.14) — a z měření se stal **nález H52**.
 
-### 30.16 Vlastní omyly této session — viz §8r (omyl **138–142**)
+### 30.16 Vlastní omyly této session — viz §8r (omyl **138–143**)
 
 **Pět omylů, a všechny mají stejný podpis: měřil jsem něco jiného, než jsem
 si myslel** — tedy přesně ta třída, kterou hledám u cizí práce.

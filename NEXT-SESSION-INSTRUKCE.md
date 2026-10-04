@@ -1,10 +1,10 @@
 # ZADÁNÍ PRO AKČNÍ SESSION — opravit, co ověření přesunu našlo
 
-**Zkontrolováno při:** `dea6f5c` („P8b: jednorázová sonda p8-sonda-vzor.py do _archiv")
+**Zkontrolováno při:** `dbe4e4e` („P13: ověření přesunu na E: — HANDOFF §30, nálezy H48–H56, omyly 138–143")
 **Zapsáno:** 4. 10. 2026, plánovací (ověřovací) session
-**Stav obou repů při psaní:** `forge-orchestra` = `dea6f5c` (strom čistý) · `uo-shadows` = `869dce8` (strom čistý)
-**Pushnuto:** **NE** — `origin/main..HEAD = 6` (orchestra) a **1** (hra). Push **jen na vyžádání**.
-**Co je v `HANDOFF.md`:** **§30 = OVĚŘENÍ PŘESUNU** (výsledky, nálezy H48–H56, omyly **138–142**) · §29 = záznam akční session · §2 = co je otevřené
+**Stav obou repů při psaní:** `forge-orchestra` = `dbe4e4e` (strom čistý) · `uo-shadows` = `869dce8` (strom čistý)
+**Pushnuto:** **NE** — `origin/main..HEAD = 7` (orchestra) a **1** (hra). Push **jen na vyžádání**.
+**Co je v `HANDOFF.md`:** **§30 = OVĚŘENÍ PŘESUNU** (výsledky, nálezy H48–H56, omyly **138–143**) · §29 = záznam akční session · §2 = co je otevřené
 **Co je v `KRONIKA-PROJEKTU.md`:** řádek **26** (ověření) · nálezy **H48–H56** v §2 · rozhodnuté návrhy **NA24–NA26** v §6
 **Co tenhle dokument JE:** **zadání pro AKČNÍ session**, které má **opravit vady nalezené ověřením** přesunu na `E:`.
 
@@ -12,6 +12,12 @@
 > a byla **zastaralá** (HEAD se mezitím posunul o 2 commity) — a nástroj
 > `_analyza/zadani-kontrola.py`, který to má hlídat, je **slepý na orchestra**
 > (nález **H53**). Proto se hlavička odteď měří, ne odhaduje.
+>
+> **⚠ A pozor na zdánlivý rozchod:** `dbe4e4e` je commit, kterým se tahle session
+> **zapsala** — takže **živý HEAD bude o 1–2 commity napřed** (další commit
+> vznikne zápisem téhle hlavičky). **Není to zastaralé zadání** — je to táž past
+> jako „dvě měření v různých časech" (`overovani` §7.7). Kdo se ptá na shodu
+> hlavičky a HEAD, musí **odečíst commity vlastního zápisu**.
 
 ---
 
