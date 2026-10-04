@@ -364,8 +364,20 @@ VLASTNI_TEXTY = ["diakritiky", "kódování", "souborů", "příliš", "žluťou
 NAHRADNI = "\ufffd"
 
 chyb = 0
+archivovanych = []      # soubory v seznamu, které se ARCHIVOVALY (D5)
 for f in SOUBORY:
     if not f.exists():
+        # ⚠ P8b (přesun na E:, 4. 10. 2026): archivace (rozhodnutí D5) přesunula
+        # ~99 jednorázových nástrojů do `_analyza/_archiv/`. Tenhle seznam je
+        # RUČNÍ a nástroje z 2. 10. pořád jmenuje — dřív by každý z nich hlásil
+        # `neexistuje` (naměřeno 44 chyb u souborů, které jsou v pořádku, jen
+        # archivované).
+        # Pravidlo: archivovaný soubor NENÍ chyba, ale musí být VIDĚT — kdyby se
+        # přeskočil tiše, brána by nad ním vypadala zeleně, aniž ho otevřela
+        # (přesně vada S27, kterou tenhle soubor sám popisuje).
+        if (REPO / "_analyza" / "_archiv" / f.name).exists():
+            archivovanych.append(f.name)
+            continue
         print(f"  CHYBA {f.name}: neexistuje")
         chyb += 1
         continue
@@ -400,5 +412,17 @@ for f in SOUBORY:
           f"rozbito: {', '.join(nalezene) if nalezene else 'ne'}")
 
 print()
+if archivovanych:
+    # Viditelný výčet, ne ticho: brána se má přiznat, co NEotevřela.
+    print(f"ARCHIVOVÁNO (D5) — neotevřeno, není to chyba: {len(archivovanych)} "
+          f"souborů v `_analyza/_archiv/`")
+    for j in sorted(archivovanych)[:6]:
+        print(f"    {j}")
+    if len(archivovanych) > 6:
+        print(f"    … +{len(archivovanych) - 6}")
+    print()
+print(f"ZMĚŘENO: otevřeno {len(SOUBORY) - len(archivovanych)} z "
+      f"{len(SOUBORY)} souborů v seznamu "
+      f"(archivováno {len(archivovanych)}, chyb {chyb})")
 print("VŠE OK" if chyb == 0 else f"NALEZENY CHYBY ({chyb})")
 sys.exit(0 if chyb == 0 else 1)

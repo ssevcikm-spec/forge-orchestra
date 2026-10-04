@@ -345,10 +345,27 @@ if chybi:
     print("  CHYBÍ (bylo očekáváno, není v datech):")
     for c in chybi:
         print(f"     - {c}")
+# ⚠ PŘESNĚNÍ 4. 10. 2026 (přesun na E:): pravidlo projektu zní
+# **„identifikátory, klíče a literály rozhraní ASCII"** — ale **texty, hlášky
+# a porovnávané literály diakritiku MÍT MAJÍ** (dokumentace a texty pro člověka
+# jsou česky). Původní podmínka padala na KAŽDÝ neočekávaný nález, takže brána
+# hlásila „NESEDÍ" i u `x[2] == "granulí"` (porovnání textu dokumentu) — což
+# NENÍ identifikátor a přejmenovat se NESMÍ.
+# Rozdělení je proto viditelné a exit kód se rozhoduje podle SKUTEČNÝCH
+# identifikátorů (to je to, co pravidlo zakazuje).
+IDENT_KONTEXTY = ("IDENTIFIKÁTOR", "klíč", "KEY")
+skutecne_vady = [x for x in neocekavane
+                 if any(k.lower() in x["kontext"].lower() for k in IDENT_KONTEXTY)]
+textove = [x for x in neocekavane if x not in skutecne_vady]
+
 if neocekavane:
     print(f"  NOVÉ / NEZAŘAZENÉ ({len(neocekavane)}) — projdi je, ať nic neuteče:")
     for x in neocekavane:
         print(f"     - {x['soubor']}:{x['radek']}  [{x['kontext']}]  {x['text'][:70]}")
+    print()
+    print(f"     z toho IDENTIFIKÁTORY (pravidlo je zakazuje): {len(skutecne_vady)}")
+    print(f"     z toho TEXTY / POROVNÁVANÉ LITERÁLY (diakritika je SPRÁVNĚ): "
+          f"{len(textove)}")
 
 print()
 print("── CO SE ZÁMĚRNĚ NEPŘEJMENOVÁVÁ ─────────────────────────────────────────")
@@ -356,12 +373,17 @@ for (s, t), proc in NEPREJMENOVAT.items():
     print(f"  {s} :: {t}")
     print(f"     → {proc}")
 
-if chybi or neocekavane or vratilo_se:
+if chybi or skutecne_vady or vratilo_se:
     print()
     print("SEZNAM NESEDÍ S OČEKÁVÁNÍM — to je signál, ne chyba. Projdi výpis výš.")
+    print("(Padá se jen na SKUTEČNÝCH identifikátorech a vrácených místech —")
+    print(" texty a porovnávané literály diakritiku mít MAJÍ.)")
     sys.exit(1)
 
 print()
-print("SEZNAM SEDÍ: žádné očekávané místo nechybí, nic nového nepřibylo")
+print("SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl")
 print("a žádné přejmenované místo se nevrátilo.")
+if textove:
+    print(f"(Textových/porovnávaných literálů s diakritikou mimo seznam: "
+          f"{len(textove)} — to je v pořádku, pravidlo se týká identifikátorů.)")
 sys.exit(0)

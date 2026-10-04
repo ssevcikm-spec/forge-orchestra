@@ -1,7 +1,7 @@
 # P8b (presun na E:, 4. 10. 2026): `_analyza/` je v repu, takze
 #   REPO    = root repa (_analyza/.. )
 #   STANICE = alias na REPO (HANDOFF, KRONIKA i _analyza se presunuly do repa)
-#   HRA     = sourozenec repa (byla `WS/games/uo-shadows`)
+#   _HRA     = sourozenec repa (byla `WS/games/uo-shadows`)
 import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
@@ -53,7 +53,7 @@ if "--soubor" in sys.argv:
     ZADANI = pathlib.Path(sys.argv[_i + 1])
     if not ZADANI.is_absolute():
         ZADANI = WS / ZADANI
-REPA = [("orchestra", WS), ("uo-shadows", HRA)]
+REPA = [("orchestra", WS), ("uo-shadows", _HRA)]
 
 
 def git(repo: pathlib.Path, *args: str) -> str:

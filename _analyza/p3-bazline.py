@@ -33,7 +33,7 @@ STROMY = {
 VYSTUP = WS / "_analyza" / "p3-bazline.json"
 
 
-def změř(p: Path) -> dict:
+def zmer(p: Path) -> dict:
     if not p.exists():
         return {"existuje": False}
     soubory = 0
@@ -52,7 +52,7 @@ def změř(p: Path) -> dict:
 def main() -> int:
     vysledek = {}
     for jmeno, cesta in STROMY.items():
-        m = změř(cesta)
+        m = zmer(cesta)
         vysledek[jmeno] = {"cesta": str(cesta), **m}
         if m["existuje"]:
             print(f"{jmeno:12} {m['souboru']:6} souboru  {m['MB']:9.1f} MB   {cesta}")

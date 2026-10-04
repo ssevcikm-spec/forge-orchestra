@@ -52,7 +52,14 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 WS = pathlib.Path(__file__).resolve().parents[1]
-GIT = WS / "orchestra" / "tools" / "git.cmd"
+# P8 (presun na E:, 4. 10. 2026): `WS` je od teď KOREN REPA orchestra (dřív
+# to byl koren stanice, kde orchestra bydlela v podslozce `orchestra/`).
+# Hra je SOUROZENEC repa, ne potomek — proto se koren repa pro `git ls-files`
+# bere z `KOREN_REPA`, ne z `WS / "orchestra"`.
+HRA = WS.parent / "uo-shadows"
+# jmeno repa -> koren na disku (klice zustavaji, aby se nemenily otisky a vypisy)
+KOREN_REPA = {"orchestra": WS, "games/uo-shadows": HRA}
+GIT = WS / "tools" / "git.cmd"
 
 # „Neanglické" = obsahuje znak mimo ASCII. Tím se chytí diakritika i „–" nebo "„".
 def neascii(s: str) -> bool:
@@ -78,7 +85,7 @@ RIZIKO_KONTEXT = {
 
 
 def soubory(repo: str) -> list[str]:
-    r = subprocess.run([str(GIT), "-C", str(WS / repo), "ls-files"],
+    r = subprocess.run([str(GIT), "-C", str(KOREN_REPA[repo]), "ls-files"],
                        capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0:
         raise SystemExit(f"CHYBA: git ls-files v {repo} selhalo: {r.stderr.strip()}")
@@ -103,7 +110,7 @@ def obsahovy_otisk(seznamy: dict[str, list[str]]) -> dict:
     for repo in sorted(seznamy):
         relativni = []
         for f in sorted(seznamy[repo]):
-            p = WS / repo / f
+            p = KOREN_REPA[repo] / f
             if not p.is_file():
                 continue
             data = p.read_bytes()
@@ -224,7 +231,7 @@ def _regex_konci(text: str, i: int) -> int:
     regex**".
     """
     j = i + 1
-    v_tridе = False
+    v_tride = False
     n = len(text)
     vypada_jako_regex = False
     while j < n:
@@ -241,10 +248,10 @@ def _regex_konci(text: str, i: int) -> int:
                 continue
             return i + 1               # dělení → tohlencto regex nebyl
         if c == "[":
-            v_tridе = True
+            v_tride = True
         elif c == "]":
-            v_tridе = False
-        elif c == "/" and not v_tridе:
+            v_tride = False
+        elif c == "/" and not v_tride:
             j += 1
             while j < n and text[j].isalpha():   # příznaky g, i, m, s, u, y
                 j += 1
@@ -584,7 +591,7 @@ if "--otisk" in sys.argv:
 js_ts_cesty: list[pathlib.Path] = []
 for repo in REPA:
     for f in seznamy[repo]:
-        p = WS / repo / f
+        p = KOREN_REPA[repo] / f
         if p.is_file() and p.suffix.lower() in JS_TS_PRIPONY:
             js_ts_cesty.append(p)
 
@@ -597,7 +604,7 @@ if js_ts_cesty:
 
 for repo in REPA:
     for f in seznamy[repo]:
-        p = WS / repo / f
+        p = KOREN_REPA[repo] / f
         if not p.is_file():
             continue
         klic = f"{repo}/{f}"

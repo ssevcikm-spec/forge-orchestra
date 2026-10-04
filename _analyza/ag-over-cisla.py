@@ -55,6 +55,20 @@ OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
 ORCHESTRA = WS
 GIT = str(ORCHESTRA / "tools" / "git.cmd")
 
+# ⚠ PŘIDÁNO 4. 10. 2026 (přesun na E:). Adresáře, které NEJSOU zdrojový kód
+# projektu: generované, stažené nebo archivované. Měřidlo „non-ASCII v názvu
+# orchestra" se musí ptát na KÓD, ne na všechno na disku — jinak do čísla
+# vleze stažený CI log (`ci-rozbal*`) a vypadá to jako vada orchestra.
+# Naměřeno: v gitu je 652 souborů a non-ASCII názvů 0; na disku 3310 souborů
+# a 68 non-ASCII — všech 68 je v `ci-rozbal*` (gitignorované logy z CI).
+ARTEFAKTY = {
+    "_archiv", "ci-rozbal", "ci-rozbal2", "ci-rozbal3", "ci-rozbal4",
+    "__pycache__", "a-godot-user", "a-ukol-scratch", "merge-scratch",
+    "zaloha-p8", "zaloha-p8b", "zaloha-p8d", "zaloha-p8l",
+    "snapshot-20261002-181237", "snapshot-20261002-183213",
+    "fixcheck", "patch-test", "patch",
+}
+
 if not AGENTS.is_file():
     print(f"CHYBA: {AGENTS} neexistuje")
     sys.exit(2)
@@ -107,10 +121,24 @@ def md_diakritika() -> tuple[int, int]:
 
 
 def nonascii_nazvy() -> tuple[int, int]:
-    """(soubory s non-ASCII v názvu, všechny soubory) v orchestra."""
+    """(soubory s non-ASCII v názvu, všechny soubory ZDROJOVÉHO KÓDU) v orchestra.
+
+    ⚠ PŘEMĚŘENO 4. 10. 2026 (přesun na E:) — a je to past měřidla, ne kódu:
+    funkce dřív brala `ORCHESTRA.rglob("*")`, tedy **vše na disku**. To
+    zahrnovalo i **stažené CI logy** (`_analyza/ci-rozbal*`, gitignorované)
+    a archiv; naměřeno 68 non-ASCII názvů — a to vypadalo jako vada orchestra.
+    **Není:** v gitu (`git ls-files`, 652 souborů) je non-ASCII názvů **0**
+    a ve zdrojovém kódu bez artefaktů (1444 souborů) taky **0**. Všech 68 je
+    v CI logech.
+
+    Pravidlo: měřidlo se musí ptát na ZDROJOVÝ KÓD, ne na cokoli, co je na disku.
+    """
     vse = nonascii = 0
     for p in ORCHESTRA.rglob("*"):
         if "node_modules" in str(p) or ".git" in p.parts:
+            continue
+        # generované / stažené / archivované — není to zdrojový kód projektu
+        if any(a in p.parts for a in ARTEFAKTY):
             continue
         if p.is_file():
             vse += 1

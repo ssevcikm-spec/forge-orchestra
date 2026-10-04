@@ -118,16 +118,24 @@ co je vázané na tento projekt:
 > člověka česky, hodnota pro program anglicky. **Tady je jen měření tohoto
 > projektu** — je to důkaz pravidla, ne pravidlo.
 
-**Změřeno inventářem `_analyza\hl-neanglicky-v-kodu.py`** nad **161 soubory**
-(2 002 nálezů, **0 nepokrytých**):
+**Změřeno inventářem `_analyza\hl-neanglicky-v-kodu.py`.**
 
-| Vrstva | Naměřeno | Verdikt |
-|---|---|---|
-| Názvy souborů a cest (orchestra) | 113 souborů, non-ASCII v názvu: **0** | bez rizika |
-| Názvy sloupců D1 (`conductor/schema.sql`) | 5 tabulek, **40 sloupců, českých 0** | serverová vrstva čistá |
-| Klíče a identifikátory CI | `task_id`, `run_key`, `FORGE_*` — ASCII | bez rizika |
-| Diakritika v `.md` orchestra | 2 533 znaků ze 44 781 = **5,7 %** | zbytek je ASCII kód a cesty |
-| Čeština jako IDENTIFIKÁTOR | **10 míst** (viz níž) | **riziko → má být ASCII** |
+> **⚠ PŘEMĚŘENO 4. 10. 2026 PO PŘESUNU NA `E:`** — a je to **nález o měřidle,
+> ne o kódu**: tabulka níž byla naměřená **1. 10. 2026** nad **161 soubory**,
+> ale po přesunu měří tentýž nástroj **jiný rozsah** (3310 souborů): do repa se
+> totiž přesunuly i **projektové dokumenty a `_analyza/`** (D3), které dřív
+> v žádném gitu nebyly. Řádek o **názvech souborů** proto **přestal platit**
+> (tvrdil 0 non-ASCII názvů, naměřeno **68**) — a odhalila to brána
+> `ag-over-cisla.py`. **Historické hodnoty se nepřepisují** (jsou „ve svém čase
+> správné"); co platí dnes, je u nich uvedené.
+
+| Vrstva | Naměřeno 1. 10. (161 souborů) | Dnes (3310 souborů) | Verdikt |
+|---|---|---|---|
+| Názvy souborů a cest | 113 souborů, non-ASCII v názvu: **0** | **68** non-ASCII názvů | ⚠ **změna rozsahu** — `_analyza/` a dokumenty se přesunuly do repa; 68 názvů je v archivech a scratchích, ne v živém kódu |
+| Názvy sloupců D1 (`conductor/schema.sql`) | 5 tabulek, **40 sloupců, českých 0** | **5 / 40 / 0** | ✅ nezměněno |
+| Klíče a identifikátory CI | `task_id`, `run_key`, `FORGE_*` — ASCII | totéž | bez rizika |
+| Diakritika v `.md` orchestra | 2 533 znaků ze 44 781 = **5,7 %** | **536 623 ze 7 476 476 = 7,2 %** | ⚠ **změna rozsahu** — `.md` se commitovaly (3a2e691) a přesunuly; **poměr zůstal**, jev je týž |
+| Čeština jako IDENTIFIKÁTOR | **10 míst** | **0** (přejmenováno Z1–Z8) | ✅ vyřešeno |
 
 **Naměřené příklady (každý z kódu, ne z dojmu):**
 

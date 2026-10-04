@@ -44,6 +44,10 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 WS = pathlib.Path(__file__).resolve().parent.parent
+# P8 (presun na E:, 4. 10. 2026): hra je SOUROZENEC repa, ne potomek
+# (`games/uo-shadows` uz neexistuje). Kronika na ni odkazuje relativnimi
+# cestami (`docs/ARCHITEKTURA.md`), takze se existence overuje v ni.
+_HRA = WS.parent / "uo-shadows"
 # Cesty lze přebít argumenty — používá to `t3-kronika-mutace.py`.
 KRONIKA = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else WS / "KRONIKA-PROJEKTU.md"
 HANDOFF = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else WS / "HANDOFF.md"
@@ -385,20 +389,34 @@ SKILLY = ("dsh-prostredi", "overovani", "orchestra", "game-developer",
           "game-assets", "vision", "dsh-usage", "hlouchkova-analyza",
           "imagegen", "imagegen-local", "otevrena-temata", "session-handoff")
 chybejici = []
+# ⚠ PŘESUN NA E: (4. 10. 2026) — kronika odkazuje na TRI ruzna mista a kazde
+# ma po presunu jiny koren. Kdo je slije do jednoho, hlasi chybu u dokumentu,
+# ktery je v poradku (naměřeno: 5 falešných chyb).
+#   REPO   = root repa (orchestra)  — projektove dokumenty se presunuly sem
+#   HRA    = E:\Workspaces\uo-shadows — sourozenec; `docs/...` je UVNITR ni
+#   STANICE= C:\Users\Ssevc\Local-Deepseek — dokumenty, ktere zustaly stanici (D6)
+STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
+SKILLY_DIR = pathlib.Path.home() / ".dsh" / "skills"
 for o in odkazy:
-    if (WS / o).is_file():
+    if (WS / o).is_file():                 # v repu orchestra
         continue
-    # `SKILL.md` je zkratka: soubor existuje ve všech 12 složkách skillů,
-    # které leží MIMO workspace — existence se ověřuje tam, ne v `WS / o`.
+    if (_HRA / o).is_file():               # relativni cesta v hernim repu
+        continue
+    if (WS / "repo" / o).is_file():         # sablona herniho repa
+        continue
+    if (STANICE / o).is_file():            # dokument zustal stanici (D6)
+        continue
+    # ⚠ HISTORICKÁ CITACE (4. 10. 2026): kronika je ZÁZNAM a nepřepisuje se —
+    # takže v ní PO PRÁVU zůstávají cesty, které po přesunu na E: už neplatí
+    # (`games/uo-shadows/docs/ARCHITEKTURA.md`). Pravidlo projektu je jasné:
+    # „historická čísla a citace se nepřepisují". Kontrola se proto ptá, jestli
+    # soubor existuje na dněšním místě — NE jestli sedí starý literál.
+    if o.startswith("games/uo-shadows/"):
+        zbytek = o[len("games/uo-shadows/"):]
+        if (_HRA / zbytek).is_file() or (WS / zbytek).is_file():
+            continue
     if o == "SKILL.md" and all(
-            (pathlib.Path.home() / ".dsh" / "skills" / d / "SKILL.md").is_file()
-            for d in SKILLY):
-        continue
-    # ⚠ FALEŠNÝ POPLACH, naměřeno 2. 10. 2026: `docs/ARCHITEKTURA.md` je
-    # **relativní cesta UVNITŘ HERnÍHO REPA**, ne soubor ve workspace — a ten
-    # dokument navíc v `origin/main` **NENÍ** (je jen v pracovním stromě, nález
-    # H9/H11). Kontrola se proto ptá **repa**, ne workspace.
-    if (WS / "games" / "uo-shadows" / o).is_file():
+            (SKILLY_DIR / d / "SKILL.md").is_file() for d in SKILLY):
         continue
     chybejici.append(o)
 print("  různých .md odkazů: %d, z toho chybí: %d" % (len(odkazy), len(chybejici)))

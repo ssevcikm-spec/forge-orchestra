@@ -40,7 +40,7 @@ def zapis(t: str) -> None:
     radky.append(t)
 
 
-def změř(p: Path) -> tuple[int, int]:
+def zmer(p: Path) -> tuple[int, int]:
     """(pocet souboru, bajty) — pocita se týmž kodem pred i po."""
     if not p.exists():
         return (-1, -1)
@@ -73,12 +73,12 @@ def presun(jmeno: str, zdroj: Path, cil: Path, mazat: bool) -> bool:
         cil.mkdir(parents=True, exist_ok=True)
         zapis("  (cil vytvoren)")
 
-    pred = změř(zdroj)
+    pred = zmer(zdroj)
     zapis(f"  PRED: {pred[0]} souboru, {pred[1] / 1024 / 1024:.1f} MB")
 
     shutil.copytree(zdroj, cil, dirs_exist_ok=True, symlinks=False)
 
-    po = změř(cil)
+    po = zmer(cil)
     zapis(f"  PO:   {po[0]} souboru, {po[1] / 1024 / 1024:.1f} MB")
 
     if po[0] != pred[0]:
