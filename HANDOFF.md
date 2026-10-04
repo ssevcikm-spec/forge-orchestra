@@ -823,6 +823,28 @@ téže třídy** („měřidlo odpovídá na jinou otázku") v jedné session �
 
 ---
 
+### 8q. Omyly 132–137 — AKČNÍ session 4. 10. 2026 (PŘESUN NA `E:`)
+
+**Šest omylů, a všech šest je v MĚŘIDLE OPRAVY, ne v datech.** Záznam:
+`PLAN-SEPARACE-WORKSPACE.md` **§11.4**.
+
+| # | Co jsem si myslel | Jak to vzniklo | Jak se to poznalo | Správně |
+|---|---|---|---|---|
+| **132** | „Nahradím literály cest výrazem — je to jen substituce." | první verze `p8-oprava-cest.py` vložila `join(PARENT, 'repo')` **dovnitř uvozovek** | **až parser po zápisu**: `SyntaxError: Unexpected identifier 'uo'` | Nahrazovat se musí **celý literál včetně uvozovek**. Po každém zápisu se parsuje a při chybě se soubor **vrací ze zálohy**. Cena: 4 kola opravy skriptu |
+| **133** | „Když to projde parserem, je to správně." | `r`-prefix z literálu `r"C:\..."` zůstal před výrazem → vzniklo jméno proměnné **`r_PARENT`** | **pohledem na výstup** (až po zápisu), ne parserem | `r_PARENT / 'repo'` je **platný Python** — `ast.parse` ho PUSTÍ a vada se projeví až `NameError` **za běhu**. **Syntaxe ≠ smysl.** Musela přibýt kontrola podezřelých jmen. Nález **H42** |
+| **134** | „`HRA` prostě nahradím." | v `a3-mutace.py` vzniklo **`HRA = HRA / ...`** — proměnná se definuje **sama sebou** | `NameError` za běhu; `node --check` ani `ast.parse` to **nevidí** | Nahrazovat **jen volání**, ne definici. Vznikla kontrola „použitá vs. definovaná proměnná" (`p8m`) |
+| **135** | „Mrtvé cesty stačí ohlásit, ať je vidět." | ochrana před `gameforge\...` byla napsaná **ZA** nahrazováním, takže se mrtvá cesta **stihla změnit** na `rSTANICE` | **pohledem na výstup** — vzniklo `Image.open(rSTANICE)` | Mrtvá cesta se musí **vyloučit PŘED** nahradou. Muselo se to opravit zvlášť (`p8k`) |
+| **136** | „Hlavička s `_STANICE = koren stanice` je ta správná." | `p8b` vložil do 29 nástrojů `_STANICE = C:\Users\Ssevc\Local-Deepseek` | **spuštěním brány**: `ag-over-cisla.py` hlásil „AGENTS.md neexistuje" — hledal ho **na stanici**, ale `HANDOFF.md` se přesunul **do repa** | `WS` v těch nástrojích znamenalo **„kořen s projektovými dokumenty"** — a ten je **REPO**. Kdyby zůstalo, **26 nástrojů by tiše četlo jiný strom**. Opraveno `p8c` |
+| **137** | „Česky píšu pořád, to je v tomhle projektu správně." | psal jsem `def změř(...)` v `p3-bazline.py` a `p5-presun.py` | **brána `hl-rizika-jazyka.py`** — ne já: `IDENTIFIKÁTOR (jméno funkce/třídy) změř` | Pravidlo zní **identifikátory = ASCII**; diakritika patří do **komentářů a dokumentace**. Přejmenováno na `zmer`. **Tatáž session přitom opravila cyrilské `е` v cizím nástroji (H46)** — a svého vlastního přehlédnutí si nevšimla |
+
+**Vzor z těch šesti (jiný než u 97–101):** **pět ze šesti** odhalil **až POHLED
+NA VÝSTUP nebo SPUŠTĚNÁ BRÁNA** — ne parser, ne `node --check`, ne čtení kódu.
+To je přesně past **H42**: *syntaktická kontrola je slepá k smyslu.* **A jeden
+(137) našla brána, ne autor** — což je argument pro to, proč brány po přesunu
+**musely** být spuštěné, ne jen „měly by být zelené".
+
+---
+
 ## 9. Co už otevřené NENÍ
 
 - ~~F0.1–F0.6~~ → hotové a pushnuté.
@@ -4945,3 +4967,131 @@ python orchestra\tools\over-skilly.py         # 13 skillu, 0 chyb
 python _analyza\kronika-kontrola.py           # exit 0
 python _analyza\handoff-kontrola-uplnost.py   # nic nezmizelo
 ```
+
+## 29. PROVEDENO 4. 10. 2026 (21:0x–23:4x UTC) — AKČNÍ session: PŘESUN NA `E:`
+
+> **Co je v téhle sekci:** **záznam o provedení** přesunu orchestra a hry
+> z `C:\Users\Ssevc\Local-Deepseek` na `E:\Workspaces` (kroky **P0–P12**
+> zadání `NEXT-SESSION-INSTRUKCE.md`). **Nic se z §28 nemaže** — §28 popisuje
+> stav **před** přesunem a zůstává jako záznam.
+> Plný záznam s nálezy: `PLAN-SEPARACE-WORKSPACE.md` **§11**.
+
+### 29.1 Co je teď kde
+
+| Co | Před | Po |
+|---|---|---|
+| orchestra | `Local-Deepseek\orchestra` | **`E:\Workspaces\forge-orchestra`** |
+| hra UO | `Local-Deepseek\games\uo-shadows` | **`E:\Workspaces\uo-shadows`** (sourozenec) |
+| Godot | `orchestra\tools\godot\` | **`E:\Tools\godot\`** (obecný nástroj, D7) |
+| projektové dokumenty | root stanice (**nebyl git**) | **v repu orchestra**, commitnuté (D3) |
+| `_analyza\` | root stanice | **v repu orchestra**; živé commitnuté, archiv gitignorovaný |
+| dokumenty **stanice** | root stanice | **zůstaly** (D6) |
+| **junctiona** | — | **ŽÁDNÁ** (záměr, P7) |
+
+### 29.2 Ověření přesunu (měřeno)
+
+| Kontrola | Výsledek |
+|---|---|
+| počet souborů a bajtů | orchestra **5 450 / 1 003,7 MB** · hra **1 787 / 16,1 MB** · Godot **2 / 172,7 MB** — **vše na bajt** |
+| oba `.git` | `E:/Workspaces/forge-orchestra` @ `710c6db` · `E:/Workspaces/uo-shadows` @ `0fdc784`; stromy čisté |
+| staré cesty | orchestra **False** · hra **False** · `games\` **prázdný** · Godot **False** |
+
+Postup: **kopie → ověření (počet souborů I bajty) → smazání zdroje** — záměrně
+**ne** `robocopy /MOVE`, které maže průběžně a při selhání nechá strom na obou
+místech.
+
+### 29.3 Cesty v kódu — ODVOZUJÍ se, nepřepisují
+
+**45 souborů v `tools/`** a živé nástroje `_analyza/` teď cestu odvozují
+z umístění skriptu (`__file__` / `import.meta.url`). Kdyby se přepsaly na
+`E:\Workspaces\forge-orchestra`, repo by bylo znovu svázané s jedním místem
+— tedy tatáž vada, která přesun vynutila.
+
+- **`kontrola-diakritiky.py` a `over-dokumentaci.py` mají DVA rooty** (D6):
+  `REPO` (projektové dokumenty) a `STANICE` (dokumenty, které zůstaly stanici).
+- **Tři nástroje zapisující do hry** mají `FORGE_HRA` s výchozí
+  `..\uo-shadows` (D4): `sync-sablona-hra.py`, `kontrola-driftu.mjs`,
+  `asset-fetch.mjs` — zapisují **mimo workspace**, takže si vyžádají schválení.
+- **`hra.cmd`** má funkční fallback na `E:\Tools\godot\...` + `FORGE_GODOT`
+  jako override (D7). Hra **nemá** `.forge\node\.env` a `hra.cmd` ho **nečte**
+  → bez fallbacku by v čerstvém klonu skončil „Godot nenalezen".
+
+### 29.4 `AGENTS.md` je v OBOU repech (P9) — a byl to nejnebezpečnější krok
+
+**Ověřeno před přesunem:** orchestra **`.git` True, `AGENTS.md` False** — tedy
+session otevřená v repu by **nedostala žádná projektová pravidla** (DSH hledá
+projektový root podle `.git` a načítá řetězec **od rootu k cwd**). Hra měla
+**tutéž vadu**.
+
+| Repo | Co v `AGENTS.md` je |
+|---|---|
+| `forge-orchestra` | **projektová pravidla orchestra** — kde co po přesunu leží, brány a jejich měření, jazyk, jak dokumentovat, jak ověřit nasazení na Pages, „co nikdy" |
+| `uo-shadows` | **malá pravidla HRY** — kde co leží, jak spustit hru a testy, brány hry **a jejich známá slepá místa**, design a smlouvy, jazyk |
+
+Koren stanice dostal **rozcestník** (`Local-Deepseek\AGENTS.md`): projektová
+pravidla orchestra tam **už nejsou** a je tam řečeno, **kde jsou**.
+
+### 29.5 Brány z nového místa (P11) — vše `exit 0`
+
+| Brána | Výsledek |
+|---|---|
+| `tools/over-dokumentaci.py` | **67 kontrol, 0 chyb** |
+| `tools/kontrola-diakritiky.py` | **VŠE OK** — *otevřeno 150 z 194* (44 archivováno, vypsáno) |
+| `tools/over-skilly.py` | **13 skillů, 0 chyb** |
+| `_analyza/hl-rizika-jazyka.py` | **0 vrácených** (+ 11 textových literálů vypsáno) |
+| `_analyza/ag-over-cisla.py` | **5 v pořádku, 2 historická, 0 rozchodů** |
+| `_analyza/ag-mutace.py` | spadne na vrácené vadě i na přeformulovaném tvrzení |
+| `_analyza/n1-over-inventar.py` | 4 běhy, správné chování |
+| `_analyza/kronika-kontrola.py` | **KRONIKA SEDÍ** (24 sessions, 39 nálezů) |
+| `_analyza/handoff-kontrola-uplnost.py` | **83/83 bodů** |
+| `_analyza/hl2-kontrola.py` | **10/10** |
+| `_analyza/a3-over.py`, `a1-a2-over.py` | OK (obě kopie `agent.yml`, 23 kontrol) |
+| `tools/kontrola-driftu.mjs` | **12 souborů, 1 známý rozdíl** (3 kroky v šabloně) |
+
+### 29.6 Nové nálezy H40–H47 (naměřené při přesunu)
+
+| # | Nález | Stav |
+|---|---|---|
+| **H40** | **Měřidlo, které měří práci, měří i sebe.** Inventura cest dala 177–182 souborů místo plánovaných 176 — a číslo **roste s prací**, protože skripty této session samy obsahují `Local-Deepseek` (proměnná `_STANICE`). Každý nový nástroj si připočte sebe | **otevřeno** — číslo „176" je časové, ne absolutní |
+| **H41** | **Odvozené cesty jsou většinou BEZPEČNÉ.** `__file__` a `import.meta.url` odvozují od souboru, který se přesunul s repem. Riziko je jen **od rodiče repa** (`$PSScriptRoot\..`, `Split-Path -Parent`). Naměřeno: 255 souborů s odvozenou cestou, **21 rizikových**, z toho většina jen **zmínka v komentáři** | **vyřešeno měřením** — P1b zúženo |
+| **H42** | **`r_PARENT` je platný PYTHON a `ast.parse` ho pustí.** Nahrazení literálu `r"C:\..."` výrazem nechalo viset prefix `r` → vzniklo jméno proměnné `r_PARENT`. **Syntaktická kontrola to NEODHALÍ** (syntaxe je v pořádku), projeví se to až `NameError` za běhu. Musela přibýt kontrola podezřelých jmen | **vyřešeno** + pravidlo do §8 |
+| **H43** | **Archivace rozbila RUČNÍ seznam brány.** `kontrola-diakritiky.py` jmenoval i 44 archivovaných nástrojů → 44 chyb `neexistuje` u souborů, které jsou v pořádku. Brána teď archivované **přeskočí a VYPÍŠE** (ticho by bylo S27) | **vyřešeno** — `ZMĚŘENO: otevřeno N z M` |
+| **H44** | **Změna rozsahu měření vypadá jako vada kódu.** `ag-over-cisla.py` měřil `rglob("*")` = vše na disku. Po přesunu do repa do toho spadly **stažené CI logy** (`ci-rozbal*`, 68 non-ASCII názvů) → hlásilo to jako vadu orchestra. Ve zdrojovém kódu (1444 souborů) je **0**, v gitu (652) **0** | **vyřešeno** — měřidlo se ptá na zdrojový kód |
+| **H45** | **Brána měřila víc, než pravidlo říká.** `hl-rizika-jazyka.py` padal na **každý** neočekávaný nález — tedy i na **porovnávané literály** (`x[2] == "granulí"`), které diakritiku mít **mají**. Pravidlo zakazuje jen **identifikátory** | **vyřešeno** — padá jen na identifikátorech |
+| **H46** | **CYRILSKÉ `е` (U+0435) v názvu proměnné.** `hl-neanglicky-v-kodu.py` měl `v_tridе` — poslední znak byl **cyrilský**, tedy **neviditelný homoglyf**, který vypadá jako latinské `e`. Kód fungoval (definice i použití měly týž znak), ale jméno **není ASCII** | **vyřešeno** — přejmenováno na `v_tride` |
+| **H47** | **Jeden root pro tři různá místa.** `kronika-kontrola.py` ověřoval všechny `.md` odkazy pod jedním kořenem, ale kronika odkazuje na **tři** místa: repo orchestra, hru (sourozenec) a **stanici** (dokumenty, které zůstaly). Po přesunu → **5 falešných chyb** | **vyřešeno** — tři kořeny + historické citace se **nepřepisují** |
+
+### 29.7 Co zůstává OTEVŘENÉ (nové z 4. 10. 2026, po přesunu)
+
+- **`install-into-repo.ps1` a `tools\test-local.ps1:39` jsou mimo provoz** —
+  obě odvozují `projects\<Projekt>` z **rodiče repa** a `projects\`
+  v `Local-Deepseek` **neexistuje**. Po přesunu by hledaly
+  `E:\Workspaces\projects\` — **jinam, a pořád tiše** (nález **H37**).
+  **Rozhodnout: opravit, nebo smazat** — samostatně, ne během přesunu.
+- **18 vs. 29 živých nástrojů** (H40/§11.3): `AGENTS.md` uvádí **18**, ale
+  `_analyza\g3-brany.py` jich **spouští 29** a `hl-rizika-jazyka.py` je pro
+  inventář potřeba (tedy **19.**). Uživatel 4. 10. rozhodl **držet 18** a
+  zbytek archivovat — **plánovací session má rozhodnout**, zda nástroje, které
+  přehled bran spouští, patří mezi živé.
+- **`.secrets` má stejná práva jako root stanice** (sandbox SID `(W,D,DC)`) —
+  přesun to **neopravil** (SID se dědí z rootu). Samostatné rozhodnutí (S9).
+- **`E:\Workspaces\game-clone`** (repo) a **`C:\idle-realm`** (repo)
+  **nemají `AGENTS.md`** → jejich session nedostanou projektová pravidla
+  (D9 — samostatný úkol, teď NE).
+- **`_analyza/_archiv/` leží JEN na `E:`** (gitignorovaný, do veřejného repa
+  nepatří) — **není nikde zálohovaný**.
+- **`grep` na `Local-Deepseek` v kódu orchestra není 0**, ale **1 soubor**:
+  `install-into-repo.ps1` — a to **jen ve dvou řádcích komentáře** (příklady
+  použití). Kritérium „grep → 0" z §5 zadání je proto **nepřesné**.
+- **Nic není pushnuto** (oba repy mají commity navíc: orchestra **3**,
+  hra **1**). Push **jen na vyžádání**.
+- **Otevřené body z §2 a §28 platí dál** — tahle sekce je **nemaže**.
+
+### 29.8 Vlastní omyly této session — viz §8 (omyl **132–137**)
+
+Šest omylů, všechny v **měřidlech opravy**, ne v datech: nahrazení literálu
+uvnitř uvozovek (132), `r_PARENT` jako platné jméno (133), self-assignment
+`HRA = HRA` (134), mrtvá cesta změněná dřív, než se vyloučila (135),
+`_STANICE` přepojující 26 nástrojů na **jiný strom** (136) a čeština
+v identifikátorech (137). **Pět z nich odhalil až pohled na výstup nebo brána,
+ne parser** — a to je poučení: *syntaxe ≠ smysl.*

@@ -1,303 +1,207 @@
-# ZADÁNÍ PRO AKČNÍ (PROVÁDĚCÍ) SESSION — přesun orchestra a hry na `E:`
+# ZADÁNÍ PRO PLÁNOVACÍ (OVĚŘOVACÍ) SESSION — ověř přesun na `E:`
 
-**Zkontrolováno při:** `c2f730f` (`roadmapa: entity.player hotová (DAG bez world.map) + smlouva`) · **4. 10. 2026, 20:1x UTC**
-**Stav obou repů při psaní:** `orchestra` = `c2f730f` · `uo-shadows` = `0fdc784`
-**Pushnuto:** **oba ANO** — `origin/main..HEAD = 0` (naměřeno). ⚠ Pracovní strom **orchestra má 2 změněné** soubory (`tools/over-dokumentaci.py`, `tools/kontrola-diakritiky.py` — přepojení bran ze 4. 10., **necommitnuto**); hra **čistá**.
-**Co je v `HANDOFF.md`:** §28 (výsledky validace, nová sekce) · §2 (co je otevřené)
-**Co je v `PLAN-SEPARACE-WORKSPACE.md`:** **§10.3b = ROZHODNUTÍ D1–D9 (závazná)** · **§10.2b = přeměřená císla** · **§10.7 = záznam o validaci**
-**Co je v `KRONIKA-PROJEKTU.md`:** řádek **24** (přesun obecných pravidel + validace)
-**Co tenhle dokument JE:** **zadání pro AKČNÍ session**, která přesun **provede**. Není to stav (`HANDOFF.md`) ani plán (`PLAN-SEPARACE-WORKSPACE.md` §10).
-
-> **⚠ Přečti nejdřív tohle:** plán prošel **validací** (4. 10. 2026, devět bodů
-> V1–V9 spuštěním). Validace **opravila 8 tvrzení** plánu — a **kdo bude číst
-> §10.1–§10.6 bez §10.2b a §10.3b, bude pracovat se zastaralými čísly.**
-> Rozhodnutí D1–D9 **už padla** — **nerozehravuj je znovu**, jen je prováděj.
+**Zkontrolováno při:** `6ce423f` („presun na E: — archivace jednorazovek (D5), opravy bran a inventar") · **4. 10. 2026, 20:5x UTC**
+**Stav obou repů při psaní:** `forge-orchestra` = `6ce423f` · `uo-shadows` = `869dce8`
+**Pushnuto:** **NE** — `origin/main..HEAD = 3` (orchestra) a **1** (hra). Push **jen na vyžádání**.
+**⚠ Pracovní strom `forge-orchestra` má 3 změněné soubory** (`PLAN-SEPARACE-WORKSPACE.md`, `HANDOFF.md`, `KRONIKA-PROJEKTU.md` — zápis provedení P12); hra **čistá**.
+**Kde jsou repa:** `E:\Workspaces\forge-orchestra` · `E:\Workspaces\uo-shadows` (sourozenec) · Godot `E:\Tools\godot\`
+**Co je v `HANDOFF.md`:** §29 (provedení přesunu, nová) · **§8q** (omylly 132–137) · §2 (co je otevřené)
+**Co je v `PLAN-SEPARACE-WORKSPACE.md`:** **§11 = ZÁZNAM O PROVEDENÍ** (co se stalo, nálezy H40–H47, co zůstává otevřené) · §10 = plán + záznam o validaci (nepřepisuje se)
+**Co je v `KRONIKA-PROJEKTU.md`:** řádek **25** (přesun) + nálezy **H40–H47** v §2
+**Co tenhle dokument JE:** **zadání pro PLÁNOVACÍ session**, jejímž cílem je **ověřit práci akční session** — ne ji zopakovat ani „dokončit".
 
 ---
 
-## 0. Rozhodnutí, která už PADLA (nerozhoduj znovu, jen prováděj)
+## 0. ⚠ Tohle je práce AKČNÍ session, kterou je potřeba nezávisle ověřit
 
-| # | Rozhodnutí | Závazné pro krok |
+Akční session provedla **přesun orchestra a hry na `E:`** (kroky P0–P12). **Sama
+sebe prohlásila za hotovou** — a podle `PREDAVANI-SESSION.md` §5 to **není**
+důkaz. Tvůj úkol je **zkusit ji vyvrátit**.
+
+**Tvrdí (a musíš to ověřit spuštěním, ne čtením):**
+
+| # | Co akční session tvrdí | Kde to tvrdí |
 |---|---|---|
-| **D1** | Složky **`forge-orchestra`** a **`uo-shadows`** (shodné s názvy rep) | P5 |
-| **D2** | **DVA samostatné workspaces**, každý = kořen svého repa | P10, P9 |
-| **D3** | Dokumenty **+ 18 živých nástrojů** do repa a **COMMITNOUT**; archiv 99 **gitignorovat** | P8b, P9, P8c |
-| **D4** | `FORGE_HRA` (env) + `--hra`, výchozí **`..\uo-shadows`** (sourozenec) | P8 |
-| **D4b** | **3** nástroje zapisují do hry (ne 4) → **3× schvalování** při zápisu mimo workspace | P8, P11 |
-| **D5** | **Archivovat 99** do `_analyza\_archiv\`, opravit **18 živých** + `_analyza\cesty.py` | P8b |
-| **D6** | Dokumenty stanice **zůstávají stanici**; brány orchestra dostanou **druhý root `STANICE`** | P8 |
-| **D7** | Godot = **obecný nástroj** → `E:\Tools\godot\`; `hra.cmd` dostane **funkční fallback** + `FORGE_GODOT` override | P5, P8 |
-| **D8** | `.secrets` jde s orchestrou; **ACL se neopravuje** (samostatný nález S9) | — |
-| **D9** | `game-clone` + `idle-realm` = **samostatný úkol, teď NE** | — |
+| 1 | Přesun proběhl a **data sedí na bajt** | `PLAN-SEPARACE-WORKSPACE.md` §11.2 |
+| 2 | Oba `.git` jsou v pořádku, historie nedotčená | §11.2 |
+| 3 | **Žádná junctiona** na staré místo neexistuje | §11.2, `HANDOFF.md` §29.2 |
+| 4 | **Cesty v kódu se odvozují**, žádná nevede na `C:\...\orchestra` | §11.3 |
+| 5 | **`AGENTS.md` je v obou repech** — a orchestra ho **předtím neměla** | §11.4, `HANDOFF.md` §29.4 |
+| 6 | **12 bran je zelených** | `HANDOFF.md` §29.5 |
+| 7 | Archivováno **317** jednorázovek, v `_analyza/` zůstalo **50** | `HANDOFF.md` §29 |
+| 8 | **`_analyza/_archiv/` je gitignorovaný** a v gitu není | §11.1 |
+| 9 | Nálezy **H40–H47** jsou naměřené, ne odhadnuté | kronika §2 |
 
 ---
 
 ## 1. Cíl (jedna věta)
 
-**Přesunout `orchestra` a `games\uo-shadows` na `E:` podle §10 plánu tak, aby
-žádná cesta nezůstala tiše fungovat — a aby se po přesunu dalo měřením říct,
-co se rozbilo přesunem a co bylo rozbité už před ním.**
-
-**Hlavní riziko (naměřené, ne dohad):** pracovní jednotka je **176 souborů**
-s pevnou cestou (ne „208 výskytů") — a **`install-into-repo.ps1` dokazuje, že
-existují i cesty ODVOZENÉ** (`Split-Path $PSScriptRoot -Parent`), které sken
-přímých cest **nevidí**. Kdo opraví jen to, co sken našel, nechá tiše fungovat
-odvozené cesty.
+**Nezávisle ověřit, že přesun na `E:` proběhl tak, jak §11 tvrdí — a najít,
+co akční session PŘEHLÉDLA, protože o sobě tvrdila, že je hotová.**
 
 ---
 
-## 2. Co je naměřeno (s příkazem) — a co se MUSÍ přeměřit
+## 2. Povinné kroky ověření
 
-**Validace proběhla 4. 10. 2026 19:5x–20:1x UTC. Devět bodů V1–V9 je v
-`PLAN-SEPARACE-WORKSPACE.md` §10.7 — i s tím, co vyvrátily.** Tady je jen to,
-co akční session potřebuje při ruce:
+### 2.1 Hlavička a živý stav (POVINNĚ PRVNÍ)
 
-| Co | Příkaz | Naměřeno 20:0x |
+1. `git -C E:\Workspaces\forge-orchestra rev-parse HEAD` → musí být **`6ce423f`**
+   (nebo novější, pokud session mezitím commitla zápis P12 — pak to **je nález**).
+2. `git -C E:\Workspaces\uo-shadows rev-parse HEAD` → **`869dce8`**.
+3. Když **nesedí**: strom se pohnul → **přeměř všechna tvrzení** a zapiš to jako
+   **nález**. **Nepřepisuj zadání podle sebe** (`PREDAVANI-SESSION.md` §6.2 B).
+4. Ověř, že **staré cesty už neexistují**:
+   `Test-Path C:\Users\Ssevc\Local-Deepseek\orchestra` → **False**;
+   totéž `games\uo-shadows`; `Test-Path E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe` → **True**.
+
+### 2.2 Ověř aspoň PĚT tvrzení SPUŠTĚNÍM (ne čtením)
+
+Ke každému **spusť příkaz a podívej se na VÝSTUP**, ne na `exit 0`:
+
+| # | Tvrzení | Čím to ověříš |
 |---|---|---|
-| Živý stav repů | `git -C <repo> rev-parse HEAD` + `status --porcelain` | orchestra `c2f730f` + **2 M** · hra `0fdc784` čistá |
-| Push | `git -C <repo> rev-list --count origin/main..HEAD` | **0 / 0** |
-| Pages | `node orchestra\tools\zjisti-pages.mjs` | `release.yml` **#76 completed/success** na `0fdc784` |
-| Cena přesunu | `python _analyza\sken-cest-celek.py` | **KÓD 208** · DOKUMENTY 128 · **176 souborů** (§10.2b) |
-| Kdo píše do hry | `python _analyza\skryte-vazby-na-hru.py` | 13 kandidátů, **3 živé** (§10.7) |
-| Cíle | `Test-Path` + `Get-ChildItem -Force` | obě složky **existují, prázdné** |
-| Disk `E:` | `New-Object System.IO.DriveInfo('E')` | **810,8 GB** volných ⚠ **ne** `Get-PSDrive` (hlásí 0) |
-| Velikosti (P3) | Python walk | orchestra **5 447 / 1 176,4 MB** · hra **1 787 / 16,1 MB** |
-| `.git` / `AGENTS.md` | `Test-Path` | `.git` True/True · `AGENTS.md` **False/False** |
+| 1 | **cesty se odvozují** | `grep` na `Local-Deepseek` v kódu obou rep → **musí zbýt jen `install-into-repo.ps1` (2 řádky komentáře)**. Když zbude víc, je to nález |
+| 2 | **brány měří z nového místa** | spusť **všech 12** z `HANDOFF.md` §29.5 a u každé si zapiš, **kolik toho otevřela** (past S27: „zelená bez čísla" **není** zelená) |
+| 3 | **`AGENTS.md` je v obou repech** | `Test-Path` + **přečti, co v nich je** — musí obsahovat projektová pravidla, ne prázdný soubor |
+| 4 | **archiv je gitignorovaný** | `git check-ignore _analyza/_archiv/x.py` → cesta; a `git ls-files _analyza/_archiv` → **0** |
+| 5 | **žádná junctiona** | `Test-Path` na obě staré cesty → **False**; `Get-Item` na staré cesty → **neexistuje** (ne jen „LinkType prázdný") |
 
-> **⚠ Povinně přeměř hlavičku a živý stav, než sáhneš na cokoli.** Když
-> `git rev-parse HEAD` nesedí na `c2f730f`/`0fdc784`, **strom se pohnul** →
-> přeměř **všechna** čísla výš a zapiš to jako nález. **Nepřepisuj zadání
-> podle sebe** — ztratila by se informace, že zadání bylo vadné
-> (`PREDAVANI-SESSION.md` §6.2 B).
+### 2.3 Ověř, že brány po přesunu měří TOTÉŽ co před ním
 
----
+**Tohle je jádro ověření a akční session to mohla pokazit:** při přesunu se
+**změnil rozsah měření** hned u **dvou** měřidel (nálezy **H43**, **H44**, **H45**).
+U každé opravy měřidla se ptej: **měří teď brána totéž co před přesunem — nebo
+něco jiného, jen to vypadá lépe?**
 
-## 3. Kroky P0–P12 (pořadí je závazné) — s „Hotovo znamená"
+Konkrétně prověř (a **mutačním testem**, ne čtením):
 
-### P0 — PŘEDPOKLAD: čisté pracovní stromy ✋ **POTŘEBUJE SOUHLAS UŽIVATELE**
+| Brána | Co akční session změnila | Na co se ptát |
+|---|---|---|
+| `tools/kontrola-diakritiky.py` | archivované soubory **přeskakuje** a vypisuje | Není to **oslabení**? Když vrátím soubor z archivu zpět, **otevře ho**? A když do živého souboru vrátím rozbitou diakritiku, **spadne**? |
+| `_analyza/ag-over-cisla.py` | měří **jen zdrojový kód** (ne vše na disku) | Nezmizel tím nález, který tam **byl**? Zkus do zdrojového kódu vložit non-ASCII název → **musí** ho najít |
+| `_analyza/hl-rizika-jazyka.py` | padá **jen na identifikátorech** | Není to **slepota**? Vlož do kódu **identifikátor** s diakritikou → **musí** spadnout. (Pozor: akční session sama tuhle vadu měla — omyl **137**.) |
+| `_analyza/kronika-kontrola.py` | tři kořeny místo jednoho | Nezmizel tím nález? Vlož do kroniky odkaz na **neexistující** soubor → **musí** spadnout |
 
-| Co | Hotovo znamená |
-|---|---|
-| Ukázat `git status` a `git diff --stat` v orchestra a **počkat na vyžádání** | Uživatel viděl oba výstupy |
-| Po souhlasu commitnout **2 soubory** (`tools/over-dokumentaci.py`, `tools/kontrola-diakritiky.py`) — přepojení bran ze 4. 10. | `git -C orchestra status --porcelain` → **prázdné** v **obou** repech |
+**Každá z těch změn je „oprava měřidla" — a podle `AGENTS.md` platí: *opravuješ-li
+měřidlo, mutačně ověř OPRAVU, ne jen to, že původní vada zmizela.***
 
-**Proč první:** přesun s necommitnutou prací je hazard — po přesunu se nedá
-rozlišit, co rozbil přesun a co bylo rozdělané.
+### 2.4 Hledej, co v `HANDOFF.md` NENÍ
 
-### P1 — Inventura cest **po SOUBORECH** (ne po výskytech)
+1. `python _analyza\handoff-kontrola-uplnost.py` → musí být **83/83**.
+2. **Projdi §29.7** („co zůstává otevřené") a u **každého** bodu rozhodni:
+   *ještě otevřený? má cenu teď? co to blokuje?*
+3. **Porovnej §2 a §28 s §29** — akční session tvrdí, že nic nemazala.
+   Ověř to **hledáním**, ne dojmem.
+4. `python _analyza\kronika-kontrola.py` → `exit 0`; a zkontroluj, že řádek
+   **25** a nálezy **H40–H47** v kronice **odpovídají** `HANDOFF.md` §29.
 
-| Co | Hotovo znamená |
-|---|---|
-| Zapsat seznam **176 souborů** (117 `_analyza/`, 51 `orchestra/`, 5 root, 2 stanice, 1 hra) s rozhodnutím `opravit` / `archivovat` u každého | Soubor existuje; počty sedí na `sken-cest-celek.py` **a** na rozpad v §10.2b |
+### 2.5 Ověř rozhodnutí D1–D9 — byla DODRŽENA?
 
-### P1b — **NOVÝ KROK:** dohledat ODVOZENÉ cesty
+Plán §10.3b je **závazný**. U každého rozhodnutí zkontroluj, že se **skutečně
+provedlo** (a kde to je vidět):
 
-| Co | Hotovo znamená |
-|---|---|
-| Najít soubory, které cestu **odvozují** (`PSScriptRoot`, `Split-Path … -Parent`, `import.meta.url`, `__file__`, `parents[1]`) a **vysvětlit, kam odvozují** | Seznam existuje; u každého je řečeno, jestli po přesunu odvodí **správně**, nebo tiše jinam |
+| # | Rozhodnutí | Čím se to ověří |
+|---|---|---|
+| **D1** | složky `forge-orchestra` a `uo-shadows` | `Test-Path E:\Workspaces\...` |
+| **D2** | dva samostatné workspaces | oba mají `.git` **i** `AGENTS.md` ve svém kořeni |
+| **D3** | dokumenty + živé nástroje commitnuté; archiv gitignorovaný | `git ls-files` v repu; `git check-ignore` u archivu |
+| **D4** | `FORGE_HRA` + `--hra`, výchozí `..\uo-shadows` | **spusť** `node tools\kontrola-driftu.mjs` → musí najít hru **12 souborů, 1 známý rozdíl** |
+| **D4b** | **3** nástroje zapisují do hry | `grep FORGE_HRA` → tři soubory |
+| **D5** | archivovat, opravit živé | počet živých vs. archivovaných (a **nález H40**: 18 vs. 29) |
+| **D6** | dokumenty stanice zůstaly; brány mají **druhý root `STANICE`** | `grep STANICE` v `kontrola-diakritiky.py` a `over-dokumentaci.py`; **a že to není mrtvá proměnná** |
+| **D7** | Godot = obecný nástroj `E:\Tools\godot\` | `Test-Path` + `hra.cmd` **funguje bez** `FORGE_GODOT` (spusť ho a podívej se, že najde Godot) |
+| **D8** | `.secrets` jde s orchestrou; ACL se neopraví | `Test-Path E:\Workspaces\forge-orchestra\.secrets`; **a že není v gitu** |
+| **D9** | `game-clone` + `idle-realm` = teď NE | jen ověř, že se **neudělalo** nic navíc |
 
-**Proč:** `install-into-repo.ps1:34` bere `$ProjDir` z **rodiče repa** → dnes
-hledá `…\Local-Deepseek\projects\` (neexistuje, nástroj **neběží**). Po přesunu
-bude hledat `E:\Workspaces\projects\` — **jinam, a pořád tiše.**
+### 2.6 Nové otázky, které akční session otevřela
 
-### P2 — Rozhodnutí D1–D9 ✅ **HOTOVO** (viz §0 a plán §10.3b)
+Rozhodni u každé: **je ještě otevřená? má cenu teď? co to blokuje?**
 
-| Co | Hotovo znamená |
-|---|---|
-| Nic nerozhodovat znovu; jen ověřit, že §10.3b v plánu odpovídá tomu, co děláš | U každého kroku je dohledatelné, které rozhodnutí ho zdůvodňuje |
-
-### P3 — Změřit a zapsat velikosti **PŘED** přesunem
-
-| Co | Hotovo znamená |
-|---|---|
-| Počet souborů + velikost obou stromů | Čísla zapsaná; **před** přesunem naměřeno orchestra **5 447 / 1 176,4 MB**, hra **1 787 / 16,1 MB** (P3 v §10.4 má zastaralá čísla) |
-
-### P4 — Ověřit cílové cesty a volné místo
-
-| Co | Hotovo znamená |
-|---|---|
-| `Resolve-Path` na obě cílové složky; volné místo přes `System.IO.DriveInfo` | Obě cesty **jsou prázdné adresáře**; `E:` **≥ 2 GB** (naměřeno 810,8 GB) |
-
-### P5 — Přesun
-
-| Co | Hotovo znamená |
-|---|---|
-| **Nejdřív** vyndat `orchestra\tools\godot\` (172 MB) do `E:\Tools\godot\` (D7) | `Test-Path E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe` → **True**; v orchestra `tools\godot` **už není** |
-| Pak `robocopy /MOVE /XJ /E` pro **oba** stromy (orchestra → `E:\Workspaces\forge-orchestra`, hra → `E:\Workspaces\uo-shadows`) | Počet souborů a velikost **po** = čísla z P3 **minus Godot** u orchestra (zapiš obojí!) |
-
-### P6 — Ověřit oba `.git`
-
-| Co | Hotovo znamená |
-|---|---|
-| `git rev-parse --show-toplevel` v obou nových cestách | Ukazuje **na novou** cestu |
-| `git status --porcelain` | **Stejný počet řádků** jako před přesunem (po P0 tedy 0/0) |
-| `git log -1 --format=%h` | **`c2f730f`** a **`0fdc784`** — historie nedotčená |
-
-### P7 — ŽÁDNÁ junctiona na staré místo (záměr)
-
-| Co | Hotovo znamená |
-|---|---|
-| Zkontrolovat, že na starém místě nic nevede | `Test-Path C:\Users\Ssevc\Local-Deepseek\orchestra` → **False**; totéž hra |
-
-**Proč schválně:** junctiona by **tiše skryla** každou nepřepsanou cestu.
-Chceme, aby cesty **spadly nahlas** — ne aby fungovaly dál a rozbily se jindy.
-
-### P8 — Opravit cesty (tady se to musí rozbít nahlas)
-
-| Co | Hotovo znamená |
-|---|---|
-| Opravit podle P1 (jen `opravit`): `__file__` / `import.meta.url` místo literálů | **`grep` na `Local-Deepseek` v kódu obou rep → 0** (kromě archivovaných) |
-| `FORGE_HRA` + `--hra` s výchozí **`..\uo-shadows`** v **3 živých** nástrojích | Nástroje jdou spustit z jiné složky i pro jinou hru |
-| `FORGE_GODOT` do `test-local.ps1:54–56`, `validate-all.mjs:118`, `verify-setup.py:37`, **`hra.cmd:13`** | `hra.cmd` **funguje i bez** nastavené proměnné (fallback na `E:\Tools\godot\…`); `grep` na `..\..\orchestra` ve hře → **0** |
-| **Druhý root `STANICE`** do `kontrola-diakritiky.py` a `over-dokumentaci.py` (D6) | Obě brány po přesunu **otevřou** dokumenty stanice — a **vypíšou, kolik jich otevřely** |
-| `verify-setup.py` přepsat (seznam 9 sourozenců) | Skončí **OK** a kontroluje jen to, co orchestře patří |
-| Smazat mrtvé cesty na `gameforge/` | `grep` → 0; `validate-all.mjs` se nerozbil |
-
-### P8b — **NOVÝ KROK:** archivace `_analyza\` (D5)
-
-| Co | Hotovo znamená |
-|---|---|
-| Přesunout **99** souborů nezmíněných v `AGENTS.md` do `_analyza\_archiv\` | V `_analyza\` zůstane **18 živých**; archiv má **99** souborů; **seznam archivovaného je zapsaný** (co, odkud, proč) |
-| Z zavést `_analyza\cesty.py` (env → config → odvození) pro živé | Živé nástroje berou cesty z jednoho místa; `grep` na `Local-Deepseek` v živých → **0** |
-
-### P8c — **NOVÝ KROK:** `.gitignore` pro `_analyza\` (D3)
-
-| Co | Hotovo znamená |
-|---|---|
-| Přidat: `_inventar.json`, `snapshot-*`, `ci-rozbal*`, `tmp-*`, `*-scratch/`, `_zaloha*`, `handoff-pred-*`, `*vystup.txt`, `_archiv/` | `git status --porcelain` v novém repu **neukazuje** ani jeden z nich; `git check-ignore` u každého vzoru potvrdí |
-
-**Proč:** do **veřejného** repa by se jinak commitly CI logy, snapshoty
-dokumentace a zálohy handoffu (naměřeno: `a-ukol-scratch\.forge\vision\baseline.json`
-má **272** šedesátičtyřznakových hashů, `_inventar.json` je generovaný meziprodukt).
-
-### P9 — `AGENTS.md` do obou repů + commit dokumentů
-
-| Co | Hotovo znamená |
-|---|---|
-| `E:\Workspaces\forge-orchestra\AGENTS.md` = **projektová pravidla** z rootu `Local-Deepseek` (**přesun, ne kopie** — z rootu se ta část **odstraní**) | Soubor existuje **a je načtený** (ověřeno v nové session!) |
-| `E:\Workspaces\uo-shadows\AGENTS.md` = nová, **malá** pravidla hry (design, smlouvy, brány hry) | Soubor existuje a je načtený |
-| Dokumenty + **18 živých** nástrojů **commitnout**; archiv **gitignorovat** (D3) | `git log` v orchestra má nový commit s dokumenty; `_analyza\_archiv\` v gitu **není** |
-
-**⚠ Tohle je nejsnazší krok na pokažení:** `orchestra\` má `.git` a **NEMÁ**
-`AGENTS.md`. Když se session otevře s cwd v repu **dřív**, než tam `AGENTS.md`
-je, DSH najde projektový root v repu a **root `AGENTS.md` přestane načítat** →
-agent nedostane **žádná** projektová pravidla. Naměřeno: `.git` True,
-`AGENTS.md` **False**.
-
-### P10 — Zaregistrovat **DVA** workspaces (D2)
-
-| Co | Hotovo znamená |
-|---|---|
-| Zaregistrovat `E:\Workspaces\forge-orchestra` a `E:\Workspaces\uo-shadows` a otevřít v nich **nové** session | Nová session vidí **správná** pravidla (ověř **výpisem**, ne dojmem) |
-| Staré session **nechat být** | Dokumentace: *„a session from another directory cannot be moved in"* — přesunout je **nelze** |
-
-### P11 — Spustit brány z nového místa
-
-| Co | Hotovo znamená |
-|---|---|
-| Spustit brány z `HANDOFF.md` §6 a porovnat s referencí | Čísla sedí; **co nesedí, je regrese přesunu** a musí být **pojmenované** |
-| U **každé** brány ověřit, že **soubor otevřela** (kolik jich zpracovala) | U každé je vypsaný počet; „zelená bez čísla" **není** zelená |
-| Ověřit, že **3 nástroje zapisující do hry** fungují (a že si vyžádají schválení) | Zápis proběhl **po** schválení, ne tiše |
-
-### P12 — Zapsat provedení
-
-| Co | Hotovo znamená |
-|---|---|
-| Nový oddíl `§11` v `PLAN-SEPARACE-WORKSPACE.md` + řádek v `KRONIKA-PROJEKTU.md` + nová sekce v `HANDOFF.md` | Všechny tři existují; z `HANDOFF.md` **nic nezmizelo** (`handoff-kontrola-uplnost.py`) |
+- **18 vs. 29 živých nástrojů** (nález H40) — má `g3-brany.py` a jeho 29
+  spouštěných nástrojů patřit mezi živé? **Rozhodni.**
+- **`install-into-repo.ps1` a `test-local.ps1:39`** — opravit, nebo smazat?
+  (Jsou mimo provoz **už dnes**, ne kvůli přesunu.)
+- **Kritérium „`grep` na `Local-Deepseek` → 0"** ze zadání je **nepřesné**:
+  zbývá `install-into-repo.ps1` ve **dvou komentářích**. Je to splněné, nebo ne?
+- **`_analyza/_archiv/` není nikde zálohovaný** (jen na `E:`, gitignorovaný) —
+  je to riziko?
+- **`HANDOFF.md` a `KRONIKA-PROJEKTU.md` se přesunuly do repa** — ale
+  `PREDAVANI-SESSION.md` a `MOZNOSTI-AGENTA.md` **zůstaly stanici**. Je to
+  správně? (Stanice je používá i pro DSH.)
 
 ---
 
-## 4. Co NEDĚLAT (tvrdé zákazy)
-
-- **Nepřesouvat po částech.** Přesun s polovinou opravených cest je **horší**
-  než nepřesunuté — nedá se rozlišit, co rozbil přesun.
-- **Nedělat junctionu** na staré místo (P7) — je to záměr, ne opomenutí.
-- **Nepřepisovat historické citace cest** v `ANALYZA-*`, `HANDOFF.md`,
-  `KRONIKA-PROJEKTU.md` a `_analyza\_archiv\` — jsou to **záznamy** o tom, kde
-  co bylo. Kdo je „opraví", maže důkazy.
-- **Nerozhodovat znovu D1–D9.** Jsou rozhodnutá (§0); akční session je **provádí**.
-- **Nemazat `_analyza\_archiv\`** ani `_analyza\zaloha\` (včetně
-  `AGENTS.md.pred-presunem-2026-10-04.md`) — je to **cesta zpět**.
-- **Nepushovat bez vyžádání.** Předem ukázat `git status` a `git diff --stat`.
-- **Neměnit jen jednu ze dvou kopií** (`orchestra\repo\` vs. hra) — drift test
-  hlídá shodný hash.
-- **Necommitovat `.secrets`, `.env` ani `_analyza\_archiv\`** do **veřejného** repa.
-- **Neopravovat `install-into-repo.ps1` „mimochodem"** — je mimo provoz už dnes
-  a jeho oprava je **samostatné rozhodnutí** (P1b ho jen **zdokumentuje**).
-
----
-
-## 5. „Hotovo znamená" pro CELOU session (bez toho session neskončila)
+## 3. „Hotovo znamená" pro tuhle session
 
 | # | Podmínka | Jak se to pozná |
 |---|---|---|
-| 1 | Přesun **proběhl**, ne „začal" | Počty souborů **po** = **před** (P3), oba `.git` v pořádku (P6) |
-| 2 | **Nula junction** na stará místa | `Test-Path` na obě staré cesty → **False** |
-| 3 | **`grep` na `Local-Deepseek` v kódu obou rep → 0** | Spuštěno a vypsáno (kromě `_archiv`) |
-| 4 | **176 souborů** má rozhodnutí `opravit`/`archivovat` | Inventura existuje, počty sedí |
-| 5 | **Odvozené cesty** dohledané (P1b) | Seznam existuje; u každé je řečeno, kam odvodí **po** přesunu |
-| 6 | Brány zelené **a je vidět, co změřily** | U každé **počet** zpracovaných souborů/kontrol |
-| 7 | **`AGENTS.md` je v obou repech a je NAČTENÝ** | Ověřeno v **nové** session, ne odhadem |
-| 8 | Odpověď na „co zůstalo otevřené" | Nová sekce v `HANDOFF.md`; `handoff-kontrola-uplnost.py` → bez újmy |
-| 9 | `python _analyza\kronika-kontrola.py` → `exit 0` | Řádek v kronice je |
-| 10 | V chatu je **prompt pro uživatele** i **stavový řádek** | Ke zkopírování, ne odkaz |
+| 1 | **Každé tvrzení o stavu je ověřené měřením** | s příkazem a výstupem |
+| 2 | **Aspoň jedno tvrzení je vyvrácené nebo zpřesněné** | když opravdu nic, **napiš i to** — „nic jsem nevyvrátil" je tvrzení, které se ověřuje |
+| 3 | **U KAŽDÉ brány je ověřeno, že soubor otevřela** | vypsaný **počet** zpracovaných souborů/kontrol |
+| 4 | **Každá oprava měřidla z §11.3 má mutační test** | je vidět, že s **vrácenou vadou** brána **spadne** |
+| 5 | Odpověď na „co zůstalo otevřené" | nová sekce v `HANDOFF.md`; `handoff-kontrola-uplnost.py` → bez újmy |
+| 6 | `python _analyza\kronika-kontrola.py` → `exit 0` | a řádek 25 + H40–H47 sedí |
+| 7 | **Rozhodnutá D1–D9 ověřena jako DODRŽENÁ** | tabulka §2.5 s výsledkem u každého |
+| 8 | V chatu je **prompt pro uživatele** i **stavový řádek** | ke zkopírování, ne odkaz |
 
 ---
 
-## 6. Než začneš (povinné pořadí)
+## 4. Co NEDĚLAT
 
-1. **Ověř hlavičku:** `python _analyza\zadani-kontrola.py`. Když hlásí `exit 1`,
-   **všechna tvrzení o stavu se přeměřují** — a je to **nález**, ne důvod zadání zahodit.
-2. Přečti `PREDAVANI-SESSION.md` **§3, §5, §6.2** (role akční session), `AGENTS.md`,
-   `HANDOFF.md` **§28**, `PLAN-SEPARACE-WORKSPACE.md` **§10.2b, §10.3b, §10.4, §10.7**.
+- **Neopravovat kód.** Jsi **plánovací** session — piš zadání, ne opravy.
+  Když najdeš vadu, **zapiš ji jako nález** a navrhni opravu pro akční session.
+- **Nepřesouvat nic zpátky.** Přesun je hotový a ověřený; návrat by byl regrese.
+- **Nedělat junctionu** na staré místo (záměr, P7).
+- **Nepřepisovat historické citace cest** v `ANALYZA-*`, `HANDOFF.md`,
+  `KRONIKA-PROJEKTU.md` a `_analyza/_archiv/` — jsou to **záznamy** o tom,
+  kde co bylo. (Akční session to **sama respektovala** — nález H47.)
+- **Nepřepisovat `HANDOFF.md`** — jen **přidávat** (nic nesmí zmizet).
+- **Nemazat `_analyza/_archiv/`** ani `_analyza/zaloha/` — je to cesta zpět.
+- **Nepushovat bez vyžádání.** Předem ukázat `git status` a `git diff --stat`.
+- **Nezaměňovat `E:\Workspaces\forge-orchestra` a `E:\Workspaces\uo-shadows`** —
+  jsou to **dva různé repy** s dvěma různými `AGENTS.md`.
+
+---
+
+## 5. Než začneš (povinné pořadí)
+
+1. **Přečti** `HANDOFF.md` **§29** (provedení), **§2** (co je otevřené) a **§8q**
+   (omylly 132–137) — a `PLAN-SEPARACE-WORKSPACE.md` **§11**.
+2. **Přečti** `PREDAVANI-SESSION.md` §5 a §6.1 (role plánovací session).
 3. Načti skilly **`dsh-prostredi`** a **`overovani`**.
-4. **Ověř aspoň tři klíčová tvrzení spuštěním** (tabulka v §2) — ne čtením.
-5. **P0 vyžaduje souhlas uživatele.** Bez něj nepokračuj na P1.
-
-**Když něco nesedí:** zastav se **v tom bodě**, zapiš to jako nález a jdi dál
-na body, které sedí. **Nepřepisuj zadání podle sebe.**
+4. **Ověř hlavičku** (§2.1) — a **aspoň pět tvrzení spuštěním** (§2.2).
+5. **Když něco nesedí:** zastav se **v tom bodě**, zapiš to jako nález a jdi dál
+   na body, které sedí. **Nepřepisuj zadání podle sebe.**
 
 ---
 
-## 7. Prompt pro uživatele (zkopíruj do nového chatu)
+## 6. Prompt pro uživatele (zkopíruj do nového chatu)
 
 ```text
-Jsi AKČNÍ (prováděcí) session ve workspace C:\Users\Ssevc\Local-Deepseek.
+Jsi PLÁNOVACÍ (ověřovací) session. Repa jsou na E:
+  orchestra = E:\Workspaces\forge-orchestra
+  hra       = E:\Workspaces\uo-shadows
+Zadání pro tebe je v E:\Workspaces\forge-orchestra\NEXT-SESSION-INSTRUKCE.md
+— přečti ho CELÝ.
 
-Zadání pro tebe je v NEXT-SESSION-INSTRUKCE.md — přečti ho CELÝ.
-Plán přesunu je v PLAN-SEPARACE-WORKSPACE.md §10 — a POVINNĚ čti i §10.2b
-(přeměřená císla) a §10.3b (ROZHODNUTÍ D1-D9, závazná); §10.1-§10.6 samotné
-jsou z 19:5x a validace v nich opravila 8 tvrzení.
-Záznam o validaci (co se naměřilo a co to vyvrátilo) je v §10.7.
-Postup předávání je v PREDAVANI-SESSION.md, pravidla v AGENTS.md,
-stav v HANDOFF.md §28 (a §2 = co je otevřené).
+Záznam o přesunu je v PLAN-SEPARACE-WORKSPACE.md §11, stav v HANDOFF.md §29
+(a §2 = co je otevřené), omyly té session v §8q. Pravidla v AGENTS.md
+(orchestra má vlastní, hra má vlastní). Postup předávání v PREDAVANI-SESSION.md
+(ten zůstal na stanici: C:\Users\Ssevc\Local-Deepseek).
 
-Než začneš cokoli dělat, proveď kontrolu zadání:
-1. Ověř hlavičku: git rev-parse HEAD v obou repech proti tomu, co zadání tvrdí
-   (python _analyza\zadani-kontrola.py). Když se liší, PŘEMĚŘ všechna tvrzení
-   o stavu a zapiš to jako nález — zadání se nezahazuje.
-2. Ověř aspoň tři klíčová tvrzení SPUŠTĚNÍM, ne čtením (tabulka v §2 zadání).
-3. Když něco nesedí, zastav se v tom bodě a jdi dál na body, které sedí.
+Tvůj úkol NENÍ přesun dokončit — je ho NEZÁVISLE OVĚŘIT. Akční session
+o sobě tvrdí, že je hotová; zkus to vyvrátit.
 
-Cíl: přesunout orchestra a games\uo-shadows na E: podle plánu tak, aby žádná
-cesta nezůstala tiše fungovat — a aby se po přesunu dalo měřením říct,
-co rozbil přesun a co bylo rozbité už před ním.
+Než začneš:
+1. Ověř hlavičku: git rev-parse HEAD v obou repech proti tomu, co zadání tvrdí.
+   Když nesedí, přeměř VŠECHNA tvrzení o stavu a zapiš to jako nález.
+2. Ověř aspoň PĚT klíčových tvrzení SPUŠTĚNÍM, ne čtením (tabulka v §2.2).
+3. Zvlášť prověř, že opravy měřidel (§2.3) nejsou OSLEBENÍ — mutačním testem.
+4. Ověř, že rozhodnutí D1-D9 byla DODRŽENA (§2.5).
+5. Když něco nesedí, zastav se v tom bodě a jdi dál na body, které sedí.
 
-Hlavní riziko: pracovní jednotka je 176 SOUBORŮ s pevnou cestou (ne 208
-výskytů) — a existují i cesty ODVOZENÉ (Split-Path $PSScriptRoot -Parent),
-které sken přímých cest nevidí. Proto je v zadání nový krok P1b.
-
-Rozhodnutí D1-D9 UŽ PADLA (plán §10.3b) — nerozhoduj je znovu, prováděj je.
-P0 (commit 2 změněných souborů v orchestra) vyžaduje můj souhlas: ukaž
-git status a git diff --stat a počkej.
-
-NEPŘESOUVEJ po částech. Nedělej junctionu na staré místo. Nepřepisuj
-historické citace cest v ANALYZA-*, HANDOFF.md a KRONIKA-PROJEKTU.md.
-Nepushuj bez vyžádání. Nemaž _analyza\_archiv ani _analyza\zaloha.
-
-Na konci povinně: zapiš provedení do PLAN-SEPARACE-WORKSPACE.md (§11), novou
-sekci do HANDOFF.md (nic nemazat) a řádek do KRONIKA-PROJEKTU.md; přepiš
-NEXT-SESSION-INSTRUKCE.md jako zadání pro PLÁNOVACÍ (ověřovací) session
-s hlavičkou podle §3; a do chatu vlož prompt pro uživatele i se STAVOVÝM
-ŘÁDKEM podle §2.1.
+Na konci povinně: přepiš NEXT-SESSION-INSTRUKCE.md jako zadání pro AKČNÍ
+session, zapiš výsledky a omyly do HANDOFF.md (nic nemazat), doplň řádek do
+KRONIKA-PROJEKTU.md (a rozhodni návrhy ve stavu NEOVĚŘENO), a do chatu vlož
+prompt pro uživatele i se STAVOVÝM ŘÁDKEM.
 ```
