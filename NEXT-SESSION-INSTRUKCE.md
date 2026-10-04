@@ -1,9 +1,9 @@
 # ZADÁNÍ PRO PLÁNOVACÍ (OVĚŘOVACÍ) SESSION — ověř přesun na `E:`
 
-**Zkontrolováno při:** `6ce423f` („presun na E: — archivace jednorazovek (D5), opravy bran a inventar") · **4. 10. 2026, 20:5x UTC**
-**Stav obou repů při psaní:** `forge-orchestra` = `6ce423f` · `uo-shadows` = `869dce8`
-**Pushnuto:** **NE** — `origin/main..HEAD = 3` (orchestra) a **1** (hra). Push **jen na vyžádání**.
-**⚠ Pracovní strom `forge-orchestra` má 3 změněné soubory** (`PLAN-SEPARACE-WORKSPACE.md`, `HANDOFF.md`, `KRONIKA-PROJEKTU.md` — zápis provedení P12); hra **čistá**.
+**Zkontrolováno při:** `c3ee946` („P12 — zápis provedení přesunu na E:") · **4. 10. 2026, 21:0x UTC**
+**Stav obou repů při psaní:** `forge-orchestra` = `c3ee946` · `uo-shadows` = `869dce8`
+**Pushnuto:** **NE** — `origin/main..HEAD = 4` (orchestra) a **1** (hra). Push **jen na vyžádání**.
+**⚠ Pracovní stromy jsou ČISTÉ** (zápis P12 je commitnutý v `c3ee946`).
 **Kde jsou repa:** `E:\Workspaces\forge-orchestra` · `E:\Workspaces\uo-shadows` (sourozenec) · Godot `E:\Tools\godot\`
 **Co je v `HANDOFF.md`:** §29 (provedení přesunu, nová) · **§8q** (omylly 132–137) · §2 (co je otevřené)
 **Co je v `PLAN-SEPARACE-WORKSPACE.md`:** **§11 = ZÁZNAM O PROVEDENÍ** (co se stalo, nálezy H40–H47, co zůstává otevřené) · §10 = plán + záznam o validaci (nepřepisuje se)
@@ -45,7 +45,7 @@ co akční session PŘEHLÉDLA, protože o sobě tvrdila, že je hotová.**
 
 ### 2.1 Hlavička a živý stav (POVINNĚ PRVNÍ)
 
-1. `git -C E:\Workspaces\forge-orchestra rev-parse HEAD` → musí být **`6ce423f`**
+1. `git -C E:\Workspaces\forge-orchestra rev-parse HEAD` → musí být **`c3ee946`**
    (nebo novější, pokud session mezitím commitla zápis P12 — pak to **je nález**).
 2. `git -C E:\Workspaces\uo-shadows rev-parse HEAD` → **`869dce8`**.
 3. Když **nesedí**: strom se pohnul → **přeměř všechna tvrzení** a zapiš to jako
