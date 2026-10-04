@@ -13,6 +13,10 @@ import re
 import sys
 
 SKILLS = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+# Obecná pravidla stanice (DSH_HOME; `~\.dsh` je junction na E:\DeepSeekHarness-data).
+# OD 4. 10. 2026 sem patří obecné části trvalých pravidel — projektové AGENTS.md
+# je už nenese, aby se nezdvojovaly (viz PLAN-SEPARACE-WORKSPACE.md).
+OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
 README = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\README.md")
 
 # Typické znaky dvojitého kódování (UTF-8 přečtené jako Windows-1250)
@@ -273,23 +277,31 @@ zkontroluj(SKILLS / "vision" / "SKILL.md", [
     "POČÍTÁ Z DAT HRY",
 ], "vision režimy a cache")
 
-print("=== workspace: AGENTS.md (NOVÝ – trvalá pravidla) ===")
-zkontroluj(WS / "AGENTS.md", [
-    # Musí být jasné, čím se liší od HANDOFF.md.
+# ⚠ ROZDĚLENO 4. 10. 2026 (přesun obecných pravidel do DSH_HOME).
+# PROČ DVA BLOKY: obecná pravidla (prostředí, ověřování, dokumentace, jazyk,
+# nasazení) už v projektovém AGENTS.md NEJSOU — bydlí v `~/.dsh/AGENTS.md`, aby
+# je dostala každá session v každém workspace. Kdyby je kontrola hledala dál
+# v projektu, hlásila by po přesunu 13 chyb u souboru, který je v pořádku —
+# a kdo by je „opravil" vrácením textu, vrátil by i duplikaci.
+# Naměřeno před rozdělením: z 15 požadovaných textů jich 13 bydlelo v sekcích,
+# které se přesouvají (Prostředí, Jak ověřovat, Jak dokumentovat, Kdy práce…).
+print("=== DSH_HOME: AGENTS.md (OBECNÁ PRAVIDLA – platí v každé session) ===")
+zkontroluj(OBECNA, [
+    # Čím se liší od stavu projektu.
     "trvalá pravidla",
-    "HANDOFF.md",
+    # Prostředí.
+    "Select-String",
+    "PYTHONIOENCODING",
+    # Nástroje zapisují do tempu a NEMUSÍ to být vidět.
+    "Zapisuj do workspace",
+    # Pasti, které vypadají jako chyba logiky.
     "dsh-prostredi",
     # Ověřování: měření, ne dojem.
     "známém správném",
     "proběhla?",
     # 1. 10. 2026: „není to vada" je taky výsledek, ale musí být doložený.
     "Není to vada",
-    # Prostředí.
-    "Select-String",
-    "PYTHONIOENCODING",
-    # Nástroje zapisují do tempu a NEMUSÍ to být vidět.
-    "Zapisuj do workspace",
-    # Nasazení na Pages: HTTP 200 není důkaz.
+    # Nasazení: HTTP 200 není důkaz.
     "HTTP 200",
     "last-modified",
     # Handoff: přepis nesmí ztratit otevřené body.
@@ -298,8 +310,19 @@ zkontroluj(WS / "AGENTS.md", [
     "nezávislosti pohledu",
     # Co nikdy.
     "Nepushovat bez vyžádání",
+], "AGENTS.md obecná (DSH_HOME)")
+
+print("=== workspace: AGENTS.md (PRAVIDLA PROJEKTU) ===")
+zkontroluj(WS / "AGENTS.md", [
+    # Musí být jasné, čím se liší od HANDOFF.md.
+    "trvalá pravidla",
+    "HANDOFF.md",
+    # Pasti prostředí jsou sice obecné, ale projekt na ně musí odkázat —
+    # jinak agent v projektu o skillu `dsh-prostredi` neví.
+    "dsh-prostredi",
+    # forge-quest je ŽIVÁ hra, ne mrtvá minulost.
     "forge-quest",
-], "AGENTS.md")
+], "AGENTS.md projekt")
 
 print("=== dsh-prostredi: zapis do tempu bez chyby ===")
 zkontroluj(SKILLS / "dsh-prostredi" / "SKILL.md", [

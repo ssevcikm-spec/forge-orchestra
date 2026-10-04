@@ -9,7 +9,13 @@ import pathlib
 import sys
 
 WS = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
+# Obecná pravidla stanice leží MIMO workspace (DSH_HOME) — a od 4. 10. 2026
+# v nich bydlí obecné části trvalých pravidel. Kdo je sem nepřidá, nechá
+# nejčtenější dokument stanice bez kontroly diakritiky — a tahle brána má
+# ruční seznam, takže by to prošlo zeleně (vada S27).
+OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
 SOUBORY = [
+    OBECNA,
     WS / "AGENTS.md",
     WS / "ARCHITEKTURA-ANALYZA-ZADANI.md",
     WS / "HANDOFF.md",
@@ -76,6 +82,13 @@ SOUBORY = [
     # POZOR: tenhle soubor sám sobě přikazuje, že sem patří — a je to právě ten
     # krok, na kterém to v tomhle workspace padlo ŠESTKRÁT (vada S27: ruční seznam).
     WS / "NEXT-SESSION-INSTRUKCE.md",
+    # 4. 10. 2026: plán separace workspace — v něm přibyl §9 (záznam o přesunu
+    # obecných pravidel do DSH_HOME) a §10 (plán přesunu na E:, k validaci).
+    # Přidán ve STEJNÉ session, která ho psala. Bez toho by brána nad ním
+    # hlásila „VŠE OK", aniž ho otevřela — a to je **osmé** opakování téhož
+    # kroku (vada S27: ruční seznam místo projití složky). Naměřeno 4. 10. 2026:
+    # soubor v seznamu NEBYL, přestože do něj tahle session psala.
+    WS / "PLAN-SEPARACE-WORKSPACE.md",
     # 2. 10. 2026 (11:3x–12:0x): dokumenty, které vznikly při plnění zadání
     # (push orchestra, granule, N1/N3, rozhodnutí o nástrojích, podklad pro
     # plánovací session). Přidány ve STEJNÉ session, která je napsala — je to
