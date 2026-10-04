@@ -1,7 +1,14 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Vypise vsechny markdown soubory v repu orchestra (co prezilo smazani gameforge).
 import { readFileSync } from 'node:fs';
 
-const PAT = readFileSync('C:/Users/Ssevc/Local-Deepseek/orchestra/.secrets/github_pat.txt', 'utf8').trim();
+const PAT = readFileSync(join(PARENT, '.secrets', 'github_pat.txt'), 'utf8').trim();
 const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'forge-check' };
 
 const r = await fetch('https://api.github.com/repos/ssevcikm-spec/forge-orchestra/git/trees/main?recursive=1', { headers: H });

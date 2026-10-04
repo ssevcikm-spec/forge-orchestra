@@ -1,0 +1,194 @@
+{
+  "_popis": [
+    "UO Shadows (uo-shadows) — milník 1 jako DAG granulí podle docs/ARCHITEKTURA.md.",
+    "Každá granule = jeden soubor (owns), deklaruje depends_on a je samostatně ověřitelná.",
+    "Conductor vydá granuli, až když jsou všechny depends_on sloučené (task='done')",
+    "a její owns je disjunktní s owns běžících granulí — tak můžou běžet paralelně.",
+    "Pravidla pro agenta: jen do owns, používat jen deklarované provides, neměnit",
+    "tests/ ani .forge/ ani project.godot.",
+    "Velikost granule se řídí modelem: bez deklarace platí size_lines <= 60 a",
+    "model any (zvládne slabý model). Granule se size_lines > 60 mají model",
+    "strong — conductor je smí vydat jen silnému modelu a auto-merge posuzuje",
+    "limit podle granule, ne globálně.",
+    "acceptance = čím se ověřuje hotovo (tests = tests/run_tests.gd, wiring =",
+    "check-wiring, render = verify-level-render). done = sloučené, conductor je přeskakuje."
+  ],
+  "grains": [
+    {
+      "id": "data.content",
+      "title": "Obsah — data (materiály, skilly, recepty, příšery, předměty)",
+      "kind": "code",
+      "owns": ["assets/data/materials.json", "assets/data/skills.json", "assets/data/recipes.json", "assets/data/monsters.json", "assets/data/items.json"],
+      "depends_on": [],
+      "done": true,
+      "done_note": "PR #14 sloučené 29. 9.",
+      "acceptance": ["tests", "wiring"],
+      "prompt": "Vytvoř datovou vrstvu hry v assets/data/*.json. materials.json: železná ruda, dřevo, kámen a meziprodukt železný ingot (každý s id, název, obtížnost). skills.json: tezba, drevorubectvi, kovarstvi, boj_na_blizko. recipes.json: taveni (ruda→ingot), kovani_mece (ingot+dřevo→meč), kovani_zbroje (ingoty→zbroj). monsters.json: kostlivec (hp, drop zlato + občas ruda). items.json: železný meč (trvanlivost, damage), železná zbroj (trvanlivost, armor rating). Každý soubor je validní JSON a jde načíst."
+    },
+    {
+      "id": "core.attributes",
+      "title": "Atributy — Str/Dex/Int a odvozené staty",
+      "kind": "code",
+      "owns": ["scripts/attributes.gd"],
+      "depends_on": [],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/attributes.gd vytvoř atributy Str, Dex, Int (každý 0–100, výchozí 10) a funkci hodnota(attr: String) -> int. POZOR: funkci NIKDY nepojmenuj get() — koliduje s vestavěnou Object.get() a Godot skript odmítne naparsovat (CONVENTIONS.md §1f). Testy čtou atributy přes Object.get(\"Str\"), takže musí být veřejné vlastnosti (var Str := 10), ne schované za funkcí. Přidej derived() vracející slovník odvozených statů: damage = 1 + Str/10, hit_chance = 0.5 + Dex/200, attack_speed = 1.0 + Dex/100, mana = Int, carry = 40 + Str. Nic víc — je to základ, na který navazují boj, magie i výroba."
+    },
+    {
+      "id": "core.skills",
+      "title": "Dovednosti — model 0–100 rostoucí používáním",
+      "kind": "code",
+      "owns": ["scripts/skills.gd"],
+      "depends_on": [],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/skills.gd vytvoř dovednosti jako VLASTNOST s konkrétním jménem: var dovednosti: Dictionary = {\"tezba\": 0, \"drevorubectvi\": 0, \"kovarstvi\": 0, \"boj_na_blizko\": 0} (všechny začínají na 0). Přidej funkce add(skill: String, n: int) -> void (zvýší hodnotu, omezeno na 0–100) a hodnota(skill: String) -> int (vrátí hodnotu). DŮLEŽITÉ – JAK SE DOVEDNOSTI ČTOU: testy je čtou takto: var sk = load(\"res://scripts/skills.gd\").new() a pak sk.get(\"tezba\"). get() je metoda ENGINU (Object.get), která vrátí hodnotu vlastnosti podle jména – proto NEDEFINUJ žádnou vlastní funkci get() (kolidovala by s enginem a musela by sama řešit, co je klíč a co slovník; naměřeno 30. 9. 2026: model ji definoval a vracela null). Když skript vlastní get() nemá, sk.get(\"tezba\") vrátí hodnotu vlastnosti. Klíče drž přesně: tezba, drevorubectvi, kovarstvi, boj_na_blizko. Struktura souboru: začni extends Node, žádné class_name, _init() bez povinného argumentu (CONVENTIONS.md §1f a §1g). Nic dalšího neměň."
+    },
+    {
+      "id": "world.level",
+      "title": "Úroveň — načtení mapy z JSON",
+      "kind": "code",
+      "owns": ["scripts/level.gd"],
+      "depends_on": [],
+      "done": true,
+      "done_note": "PR #13 sloučené 29. 9. (level.gd načítá main.json, průchodnost, markery)",
+      "acceptance": ["tests", "render"],
+      "prompt": "Uprav scripts/level.gd tak, aby načetlo úroveň z assets/levels/main.json: load_file(path) -> bool (vrátí false, když soubor chybí nebo je poškozený), vlastnosti grid, cell, offset, spawn_cell, a funkce is_walkable_cell(cx, cy), cell_center(cx, cy), walkable_count(), reachable_count(). Logika průchodnosti: 0 = zeď, jinak průchozí."
+    },
+    {
+      "id": "world.map",
+      "title": "Svět — izo projekce, uzly surovin, respawn",
+      "kind": "code",
+      "owns": ["scripts/world.gd"],
+      "depends_on": ["world.level"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/world.gd vytvoř izometrickou projekci a surovinové uzly. iso_position(cx: int, cy: int) -> Vector2 vrací offset + Vector2((cx-cy)*cell/2, (cx+cy)*cell/4); cell_at(pos) -> Vector2i zpětný převod. Přidej seznam uzlů (žíla železa, strom, skála) s pozicí a stavem (vytěžen/aktivní) a respawn: vytěžený uzel se po čase (konstanta, např. 60 s) obnoví. Vystav gather(cell) -> bool a is_walkable(pos)."
+    },
+    {
+      "id": "entity.item",
+      "title": "Předmět — definice, trvanlivost, materiál",
+      "kind": "code",
+      "owns": ["scripts/item.gd"],
+      "depends_on": ["data.content"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/item.gd vytvoř reprezentaci předmětu načtenou z assets/data/items.json: id, název, materiál, trvanlivost (výchozí 20), damage nebo armor_rating, kvalita. Funkce use() -> void (sníží trvanlivost o 1, nejmíň 0), repair() -> void (obnoví trvanlivost na 20) a broken() -> bool (true, když je trvanlivost 0). STRUKTURA SOUBORU (testy berou load(...).new() a volají metody přímo): (1) soubor ZAČÍNÁ `extends Node`, (2) `class_name GameItem` může následovat, ale NIKDY nesmí být i jménem vnořené `class` v témž souboru — vnořená třída přebije globální jméno, `new()` pak vrátí ji a testy spadnou; soubor SÁM JE ta třída, žádnou vnořenou nedefinuj. (3) `_init()` nesmí mít povinný argument — `new()` se volá bez parametrů, data načti v `_ready()`. (4) NEPIŠ `class_name Item` — koliduje s globálním jménem (CONVENTIONS.md §1d). (5) Vlastnost trvanlivosti pojmenuj `trvanlivost` (testy ji čtou přes Object.get a přijímají i `durability`)."
+    },
+    {
+      "id": "entity.player",
+      "title": "Hráč — pohyb, inventář, smrt (mrtvola)",
+      "kind": "code",
+      "owns": ["scripts/player.gd"],
+      "depends_on": ["core.attributes", "core.skills", "world.map", "entity.item"],
+      "size_lines": "<= 120",
+      "model": "strong",
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/player.gd vytvoř hráče: move(dir) přepočítá směr na izometrické osy přes world.iso_position (2:1, ne volá level) a respektuje world.is_walkable, inventář (seznam předmětů), vybavení (zbraň + zbroj). die() -> void vytvoří mrtvolu (Area2D s předměty z těla) na místě smrti a hráč přijde o vše na těle. Při smrti se hráč přesune na spawn. Vystav take_item(item) a drop_item(item). ZACHOVEJ stávající _step(target) -> Vector2 (testy ho volají přímo) a _physics_process (čtení kláves, ať hra funguje, dokud game.gd nepřepojí engine.shell) – změna je aditivní, nic funkčního nemaž."
+    },
+    {
+      "id": "sim.combat",
+      "title": "Boj — rozřešení zásahu a poškození",
+      "kind": "code",
+      "owns": ["scripts/combat.gd"],
+      "depends_on": ["core.attributes", "core.skills", "entity.item"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/combat.gd vytvoř resolve(attacker, defender) -> Dictionary. Hit chance = 0.5 + (Dex útočníka)/200 + (skill boj_na_blizko)/200; když zasáhne, damage = 1 + Str/10 + zbraň.damage, zmenšené o armor rating obránce. Vrať {hit: bool, damage: int}. Používej provides z attributes.gd a skills.gd, nic nečti napřímo."
+    },
+    {
+      "id": "sim.mining",
+      "title": "Těžba a dřevorubectví — výtěžek dle skillu × obtížnosti",
+      "kind": "code",
+      "owns": ["scripts/mining.gd"],
+      "depends_on": ["core.skills", "world.map", "data.content"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/mining.gd vytvoř gather(node) -> int: výtěžek = 1 + (skill_těžby_or_dřevorubectví - obtížnost suroviny)/10, nejmíň 0. Při těžbě zvyš add(skill, 1) pro příslušný skill (tezba u rudy/kamene, drevorubectvi u dřeva) a zavolej world.gather(cell) (označí uzel vytěžený). Vrať počet vytěžených kusů."
+    },
+    {
+      "id": "sim.crafting",
+      "title": "Výroba — tavení, kování, oprava",
+      "kind": "code",
+      "owns": ["scripts/crafting.gd"],
+      "depends_on": ["core.skills", "core.attributes", "entity.item", "data.content"],
+      "size_lines": "<= 100",
+      "model": "strong",
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/crafting.gd vytvoř smelt(recipe) -> GameItem (železná ruda → ingot), forge(recipe) -> GameItem (ingot+dřevo → meč; ingoty → zbroj) a repair(item) -> void (za 1 ingot obnoví trvanlivost). Kvalita výrobku roste se skill kovarstvi (kvalita = skill/20). Po výrobě zavolej add('kovarstvi', 1). Recepty čti z assets/data/recipes.json. POZOR: jako návratový typ použij `GameItem` (ne `Item` — to je rezervované globální jméno), a pokud třída ještě neexistuje, deklaruj návratový typ jako Node nebo Variant (CONVENTIONS.md §1d)."
+    },
+    {
+      "id": "sim.economy",
+      "title": "Ekonomika — zlato, ceny, obchod",
+      "kind": "code",
+      "owns": ["scripts/economy.gd"],
+      "depends_on": ["entity.item", "data.content"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/economy.gd vytvoř ceny předmětů (price(item) -> int odvozená z materiálu a kvality) a obchod: buy(player, item) (hráč zaplatí zlato, dostane item) a sell(player, item) (hráč prodá, dostane zlato). Vystav gold(player) -> int. Hráč začíná s 0 zlatem."
+    },
+    {
+      "id": "entity.npc",
+      "title": "NPC — obchodník",
+      "kind": "code",
+      "owns": ["scripts/npc.gd"],
+      "depends_on": ["entity.item", "sim.economy"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/npc.gd vytvoř obchodníka (Area2D): při dotyku hráče otevře obchod — buy/sell přes economy.gd. Vystav trade(player) -> void, které volá economy.buy/sell podle interakce. Obchodník stojí na pevné pozici."
+    },
+    {
+      "id": "entity.enemy",
+      "title": "Nepřítel — kostlivec, boj a loot",
+      "kind": "code",
+      "owns": ["scripts/enemy.gd"],
+      "depends_on": ["entity.item", "sim.combat"],
+      "size_lines": "<= 90",
+      "model": "strong",
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/enemy.gd vytvoř kostlivce (Area2D) s hp (z assets/data/monsters.json) a attack(player) -> void přes combat.resolve. Když hp klesne na 0, drop_loot() -> void vytvoří loot (zlato + občas ruda) na místě smrti a nepřítel zmizí (s respawnem po čase). Vystav hp a is_dead()."
+    },
+    {
+      "id": "sim.offline",
+      "title": "Offline — rozřešení nečinnosti s denním stropem",
+      "kind": "code",
+      "owns": ["scripts/offline.gd"],
+      "depends_on": ["core.skills", "sim.mining", "sim.crafting", "sim.combat"],
+      "size_lines": "<= 100",
+      "model": "strong",
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/offline.gd vytvoř resolve(char, job: String, hours: float) -> Dictionary: jedno „rozřešení“ za dobu nečinnosti. job může být 'tezba', 'vyroba' nebo 'boj'; výstup = zisk (dle příslušného skillu × obtížnosti) s faktorem účinnosti 0.3 oproti aktivní hře. Denní strop: součet zisku za 24 h nepřesáhne konstantu (např. 100 kusů). Offline nikdy nezpůsobí smrt (konzervativní). Vrať {zisk: int, xp: int}."
+    },
+    {
+      "id": "sim.assist",
+      "title": "Asistence — reaktivní pravidla (spoušť → akce)",
+      "kind": "code",
+      "owns": ["scripts/assist.gd"],
+      "depends_on": ["entity.player", "entity.item"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/assist.gd vytvoř pravidla: add_rule(trigger, action) a evaluate(player) -> Array. Spouště: hp < X, mana < X, cíl mrtev. Akce: vypít lektvar, seslat kouzlo, přepnout cíl. Akce jen přes veřejné příkazy hráče (spotřebovávají skutečné zdroje), nikdy ne autonomní smyčky."
+    },
+    {
+      "id": "persist.save",
+      "title": "Ukládání — stav postavy a světa",
+      "kind": "code",
+      "owns": ["scripts/save.gd"],
+      "depends_on": ["core.skills", "core.attributes", "entity.player", "world.map", "sim.economy"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/save.gd vytvoř save() a load() přes ConfigFile do user://save.cfg: atributy, skilly, inventář, zlato, pozici hráče a stav uzlů světa (které jsou vytěžené). load() ošetří neexistující soubor (vrátí false). Vystav save() -> bool a load() -> bool."
+    },
+    {
+      "id": "ui.hud",
+      "title": "HUD — zobrazení stavu",
+      "kind": "code",
+      "owns": ["scripts/hud.gd"],
+      "depends_on": ["core.skills", "core.attributes", "entity.player", "sim.economy"],
+      "acceptance": ["tests", "wiring"],
+      "prompt": "V scripts/hud.gd vytvoř update() -> void, které zobrazí: HP, atributy (Str/Dex/Int), dovednosti (tezba/drevorubectvi/kovarstvi/boj_na_blizko), zlato a vybavenou zbraň/zbroj. Čte jen veřejné gettery (attributes.get, skills.get, economy.gold, player). Label se umístí do rohu obrazovky."
+    },
+    {
+      "id": "engine.shell",
+      "title": "Kostra — game.gd jako registr komponent (migrace monolitu)",
+      "kind": "code",
+      "owns": ["scripts/game.gd"],
+      "depends_on": ["data.content", "core.attributes", "core.skills", "world.level", "world.map", "entity.item", "entity.player", "entity.npc", "entity.enemy", "sim.mining", "sim.crafting", "sim.combat", "sim.economy", "sim.offline", "sim.assist", "persist.save", "ui.hud"],
+      "size_lines": "<= 120",
+      "model": "strong",
+      "acceptance": ["tests", "wiring", "render"],
+      "prompt": "Přepiš scripts/game.gd (starý monolit s vlastními dovednostmi tezba/kovarstvi/alchymie, surovinami, save/load a NPC=tavení) na KOSTRU s registrem komponent. Komponenty se instancují z pevného seznamu (Skills, Attributes, World, Level, Item, Player, Npc, Enemy, Mining, Crafting, Combat, Economy, Offline, Assist, Save, Hud) jako poduzly; chybějící soubor se přeskočí, hra musí zůstat hratelná. Vystav component(id: String) -> Node — POZOR: parametr NEPOJMENUJ `name`, to je rezervovaný člen Node a skript se nenaparsuje (CONVENTIONS.md §1f). Scénu sestav z veřejných provides komponent (world.iso_position, level.cell_center, player.move) – ne ze soukromých polí. Z monolitu SMAŽ: dovednosti (alchymie, denní cyklus cas_dne), vlastní suroviny, save/load, tavení u NPC – převzaly je komponenty (skills/attributes/save/crafting). Dovednosti sjednoť na 4 skilly z dat: tezba, drevorubectvi, kovarstvi, boj_na_blizko. ZACHOVEJ: uzel Player se scriptem scripts/player.gd na spawnu, uzel Label 'Hud' se skóre (testy ho čtou – scripts/hud.gd instancuj jako 'HudInfo' a volej jeho update(), 'Hud' zůstává Label), úroveň z main.json, mince, hudbu/pozadí a průchodnost. Nic jiného neměň (tests/, .forge/, project.godot se nesmí dotknout)."
+    }
+  ]
+}

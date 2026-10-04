@@ -1,0 +1,59 @@
+{
+    "mereno":  "2026-10-02T05:44:01Z",
+    "localHead":  "d0bf4f9126b4a9e54d7cb8d534119428240927bf",
+    "originMain":  "807803ec5095203b96e592c752764efa4e846aa3",
+    "localHeadScripts":  [
+                             "scripts/assist.gd",
+                             "scripts/attributes.gd",
+                             "scripts/combat.gd",
+                             "scripts/economy.gd",
+                             "scripts/game.gd",
+                             "scripts/item.gd",
+                             "scripts/level.gd",
+                             "scripts/player.gd",
+                             "scripts/skills.gd"
+                         ],
+    "originMainScripts":  [
+                              "scripts/assist.gd",
+                              "scripts/attributes.gd",
+                              "scripts/combat.gd",
+                              "scripts/economy.gd",
+                              "scripts/game.gd",
+                              "scripts/item.gd",
+                              "scripts/level.gd",
+                              "scripts/player.gd",
+                              "scripts/skills.gd"
+                          ],
+    "hotoveGranule":  [
+                          "data.content",
+                          "core.skills",
+                          "world.level",
+                          "world.map",
+                          "entity.player",
+                          "sim.combat",
+                          "sim.economy",
+                          "sim.assist",
+                          "persist.save",
+                          "ui.hud"
+                      ],
+    "vsechnyGranule":  [
+                           "data.content",
+                           "core.attributes",
+                           "core.skills",
+                           "world.level",
+                           "world.map",
+                           "entity.item",
+                           "entity.player",
+                           "sim.combat",
+                           "sim.mining",
+                           "sim.crafting",
+                           "sim.economy",
+                           "entity.npc",
+                           "entity.enemy",
+                           "sim.offline",
+                           "sim.assist",
+                           "persist.save",
+                           "ui.hud",
+                           "engine.shell"
+                       ]
+}

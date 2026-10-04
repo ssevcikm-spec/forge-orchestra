@@ -1,11 +1,18 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Porovna lokalni hru s repem ssevcikm-spec/uo-shadows na GitHubu.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const PAT = readFileSync('C:/Users/Ssevc/Local-Deepseek/orchestra/.secrets/github_pat.txt', 'utf8').trim();
+const PAT = readFileSync(join(PARENT, '.secrets', 'github_pat.txt'), 'utf8').trim();
 const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'forge-check' };
 const REPO = 'ssevcikm-spec/uo-shadows';
-const LOKAL = 'C:/Users/Ssevc/Local-Deepseek/games/uo-shadows';
+const LOKAL = join(PARENT, 'uo-shadows');
 
 const api = async (p) => {
   const r = await fetch(`https://api.github.com${p}`, { headers: H });

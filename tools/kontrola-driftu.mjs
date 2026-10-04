@@ -12,10 +12,23 @@
 //   node orchestra\tools\kontrola-driftu.mjs --sync     # rovnou zkopíruje šablona → hra
 
 import { readFileSync, existsSync, copyFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = 'C:/Users/Ssevc/Local-Deepseek';
-const SABLONA = join(ROOT, 'orchestra/repo');
+// P8l (presun na E:, 4. 10. 2026): hra je SOUROZENEC repa, ne potomek.
+// Poradi: --hra > FORGE_HRA > vychozi sourozenec `../uo-shadows` (D4).
+// P8n (presun na E:, 4. 10. 2026): `tools/` je primo v koreni repa,
+// takze PARENT = E:\Workspaces (rodic repa i sourozenecke hry).
+// `__dir` = <repo>/tools  →  `__dir/..` = <repo>  →  `<repo>/..` = E:\Workspaces
+const __dir = dirname(fileURLToPath(import.meta.url));
+const REPO = dirname(__dir);
+const PARENT = dirname(REPO);
+const ROOT = PARENT;  // = E:\\Workspaces (rodic repa i sourozenecke hry)
+const HRA_JMENO = process.env.FORGE_HRA
+  || (process.argv.indexOf('--hra') >= 0 ? process.argv[process.argv.indexOf('--hra') + 1] : null)
+  || 'uo-shadows';
+const HRA = join(PARENT, HRA_JMENO);
+const SABLONA = join(REPO, 'repo');  // sablona je UVNITR repa orchestra
 
 // Co se kopíruje ze šablony do hry. Klíč = cesta v šabloně i ve hře (stejná).
 //
@@ -57,7 +70,7 @@ const SOUBORY = [
 ];
 
 // Hry, které se kontrolují (klon v games/).
-const HRY = ['uo-shadows'];
+const HRY = [HRA_JMENO];
 
 // U YAML se porovnává STRUKTURA, ne text. Hra má v komentářích konkrétní
 // naměřené hodnoty a delší vysvětlivky (to je žádoucí), takže textové
@@ -132,7 +145,7 @@ let rozdilu = 0;
 let zkontrolovano = 0;
 
 for (const hra of HRY) {
-  const cil = join(ROOT, 'games', hra);
+  const cil = HRA;
   if (!existsSync(cil)) {
     console.log(`\n${hra}: klon neexistuje (${cil}) – přeskakuji`);
     continue;

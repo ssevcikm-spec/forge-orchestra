@@ -1,0 +1,103 @@
+diff --git a/scripts/save.gd b/scripts/save.gd
+new file mode 100644
+index 0000000..cde4792
+--- /dev/null
++++ b/scripts/save.gd
+@@ -0,0 +1,90 @@
++extends Node
++
++# Save and load game state using ConfigFile.
++# Stores: attributes, skills, economy gold, player position,
++# and generic world node states (group "world").
++
++func save() -> bool:
++    var cfg = ConfigFile.new()
++
++    # Attributes
++    var attr_node = get_tree().get_first_node_in_group("attributes")
++    if attr_node:
++        cfg.set_value("attributes", "Str", attr_node.Str)
++        cfg.set_value("attributes", "Dex", attr_node.Dex)
++        cfg.set_value("attributes", "Int", attr_node.Int)
++
++    # Skills
++    var skills_node = get_tree().get_first_node_in_group("skills")
++    if skills_node:
++        cfg.set_value("skills", "dovednosti", skills_node.dovednosti)
++
++    # Economy (gold)
++    var economy_node = get_tree().get_first_node_in_group("economy")
++    if economy_node:
++        cfg.set_value("economy", "gold", economy_node._gold)
++
++    # Player position
++    var player = get_tree().get_first_node_in_group("player")
++    if player:
++        cfg.set_value("player", "position", player.position)
++
++    # World nodes state (any node in group "world")
++    var world_nodes = get_tree().get_nodes_in_group("world")
++    var idx = 0
++    for node in world_nodes:
++        var state = null
++        if node.has_method("get"):
++            state = node.get("state") if node.has("state") else null
++        elif node.has_variable("state"):
++            state = node.state
++        cfg.set_value("world", str(idx), {"name": node.name, "state": state})
++        idx += 1
++
++    var err = cfg.save("user://save.cfg")
++    return err == OK
++
++func load() -> bool:
++    var cfg = ConfigFile.new()
++    var err = cfg.load("user://save.cfg")
++    if err != OK:
++        return false
++
++    # Attributes
++    var attr_node = get_tree().get_first_node_in_group("attributes")
++    if attr_node:
++        attr_node.Str = cfg.get_value("attributes", "Str", attr_node.Str)
++        attr_node.Dex = cfg.get_value("attributes", "Dex", attr_node.Dex)
++        attr_node.Int = cfg.get_value("attributes", "Int", attr_node.Int)
++
++    # Skills
++    var skills_node = get_tree().get_first_node_in_group("skills")
++    if skills_node:
++        skills_node.dovednosti = cfg.get_value("skills", "dovednosti", skills_node.dovednosti)
++
++    # Economy (gold)
++    var economy_node = get_tree().get_first_node_in_group("economy")
++    if economy_node:
++        economy_node._gold = cfg.get_value("economy", "gold", economy_node._gold)
++
++    # Player position
++    var player = get_tree().get_first_node_in_group("player")
++    if player:
++        player.position = cfg.get_value("player", "position", player.position)
++
++    # World nodes state
++    var world_nodes = get_tree().get_nodes_in_group("world")
++    var idx = 0
++    while cfg.has_section_key("world", str(idx)):
++        var data = cfg.get_value("world", str(idx), {})
++        var name = data.get("name", "")
++        var state = data.get("state", null)
++        for node in world_nodes:
++            if node.name == name:
++                if node.has_method("set"):
++                    node.set("state", state)
++                elif node.has_variable("state"):
++                    node.state = state
++        idx += 1
++
++    return true
+diff --git a/scripts/save.gd.uid b/scripts/save.gd.uid
+new file mode 100644
+index 0000000..ee22eaf
+--- /dev/null
++++ b/scripts/save.gd.uid
+@@ -0,0 +1 @@
++uid://cb1y7jn8bwvyr

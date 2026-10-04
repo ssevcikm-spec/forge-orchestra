@@ -1,0 +1,150 @@
+====================================================================================================
+AUDIT 2b — ČÍSLO PROTI ZDROJI
+====================================================================================================
+  veličina           ŽIVÝ ZDROJ     odkud
+  ----------------------------------------------------------------------------------------------
+  skillů             12             souborový systém
+  bran               30             g3-brany.py (seznam BRANY)
+  sloupců            40             conductor/schema.sql (bez komentářů)
+  tabul              5              conductor/schema.sql
+  dokumentů          40             *.md v kořeni
+  granulí            22             uo-shadows/.forge/roadmap.json
+  klíčových bodů     83             běh brány
+  omylů              99             běh brány
+  kontrol            65             běh Godotu nad hrou
+
+====================================================================================================
+  TVRZENÍ V JÁDRU vs. ŽIVÝ ZDROJ
+====================================================================================================
+  ZDROJE PODLE VELIČIN (s čím se srovnává a kolik z toho vyšlo):
+      veličina         ZMĚŘENÝ ZDROJ          odkud
+      ----------------------------------------------------------------------------------------
+      skillů           12                     souborový systém
+      bran             30                     g3-brany.py (seznam BRANY)
+      sloupců          40                     conductor/schema.sql (bez komentářů)
+      tabul            5                      conductor/schema.sql
+      dokumentů        40                     *.md v kořeni
+      granulí          22                     uo-shadows/.forge/roadmap.json
+      klíčových bodů   83                     běh brány
+      omylů            99                     běh brány
+      kontrol          brány: 65, 63, 61, 59, 23, 10 6 bran z registru (`_registr-bran.py`)
+
+  shod s živým zdrojem: 8
+
+  ROZCHODY (tvrzení bez známky minulosti) — 9:
+      HANDOFF.md               :590   dokumentů      tvrdí 8      zdroj 40          
+            | **22** | `Get-Content` přečte UTF-8 dokument správně | **Ne** — načetl ho jako **cp1252**, rozbil diakritiku
+      KRONIKA-PROJEKTU.md      :340   kontrol        tvrdí 39     zdroj —           
+            | **L4** | **Brána, která se ptá na PŘÍTOMNOST, neměří CHOVÁNÍ** | 3 PR prošla zeleným CI (39 kontrol, 0 selhá
+      KRONIKA-PROJEKTU.md      :341   kontrol        tvrdí 0      zdroj —           
+            | **L5** | **Brána, která NEPROBĚHLA, není červená — je NEZMĚŘENÁ** | `test-check-schema.py` 0 kontrol v sandb
+      PLAN-DALSI-KROK.md       :135   bran           tvrdí 10     zdroj 30          
+            ### KROK 4 — 3 z 10 bran bez mutačního testu 🟡 STŘEDNÍ
+      PLAN-DALSI-KROK.md       :175   dokumentů      tvrdí 57     zdroj 40          
+            `kontrola-diakritiky.py` **pořád obsahuje ruční seznam 57 dokumentů** a ten
+      PLAN-DALSI-KROK.md       :104   omylů          tvrdí 75     zdroj 99          
+            | **NA17** | Brána kroniky zná **8 bloků** → hlásí **75 omylů**; v `HANDOFF.md` je **10 bloků** (`8i` = 81–86,
+      NEXT-SESSION-INSTRUKCE.md :16    omylů          tvrdí 6      zdroj 99          
+            > u léku na M3 něco, co **není pravda** (§22.3) — a **ona sama udělala 6 omylů,
+      NEXT-SESSION-INSTRUKCE.md :92    omylů          tvrdí 6      zdroj 99          
+            a znalostí všech pravidel se **5 z 6 omylů tváří jako cizí vina**.
+      OTEVRENA-TEMATA.md       :128   kontrol        tvrdí 40     zdroj —           
+            - [x] **Tarifní logika indikátoru + test** — 40 kontrol, 4 mutační, sabotáž ověřena
+
+  ZÁZNAMY A CITACE MINULOSTI (nejsou to rozchody) — 252:
+      AGENTS.md                :62    sloupců        tvrdí 32     zdroj 40           | slova minulosti na řádku
+            `AGENTS.md` tvrdil u `conductor/schema.sql` **„32 sloupců"**, správně je
+      AGENTS.md                :152   sloupců        tvrdí 32     zdroj 40           | slova minulosti na řádku
+            **„32 sloupců"** — což je **citace dřívějšího chybného tvrzení** — a skutečné
+      AGENTS.md                :357   sloupců        tvrdí 40     zdroj 40           | oddíl: ## Jazyk: kde česky a kde ne (změřeno 1. 10. 2026)
+            | Názvy sloupců D1 (`conductor/schema.sql`) | 5 tabulek, **40 sloupců, českých 0** | serverová v
+      AGENTS.md                :481   sloupců        tvrdí 39     zdroj 40           | datum v bloku výskytu
+            | `_analyza\ag-mutace.py` | mutační test `ag-over-cisla.py` — vada **40→32** (kotva `39 sloupců`
+      AGENTS.md                :357   tabul          tvrdí 5      zdroj 5            | oddíl: ## Jazyk: kde česky a kde ne (změřeno 1. 10. 2026)
+            | Názvy sloupců D1 (`conductor/schema.sql`) | 5 tabulek, **40 sloupců, českých 0** | serverová v
+      AGENTS.md                :274   granulí        tvrdí 31     zdroj 22           | datum v bloku výskytu
+            **31 granul smazané hry** a `vision-profile.json` natvrdo `"hra":
+      AGENTS.md                :198   kontrol        tvrdí 39     zdroj —            | datum v bloku výskytu
+            PR prošla zeleným CI (`39 kontrol, 0 selhání`) a přitom `save()` uložil
+      AGENTS.md                :204   kontrol        tvrdí 59     zdroj mutace A (5 běhů) | datum v bloku výskytu
+            (`_analyza\a3-brany-novych-granuli.md`): testy hry hlásily **`59 kontrol,
+      AGENTS.md                :207   kontrol        tvrdí 60     zdroj —            | datum v bloku výskytu
+            a testy přešly na **`60 kontrol, 1 selhání`** — jediná nová kontrola je
+      AGENTS.md                :473   kontrol        tvrdí 23     zdroj a1-a2-over,test-neanglicky-skener | slova minulosti na řádku
+            | `_analyza\a1-a2-over.py` | **brána na A1/A2** (**23 kontrol** od 2. 10. 2026): rozhoduje `done
+      AGENTS.md                :473   kontrol        tvrdí 19     zdroj —            | slova minulosti na řádku
+            | `_analyza\a1-a2-over.py` | **brána na A1/A2** (**23 kontrol** od 2. 10. 2026): rozhoduje `done
+      HANDOFF.md               :1347  skillů         tvrdí 12     zdroj 12           | oddíl: ## 15. Ověření práce session `eb127abd` — plánovací 
+            `over-skilly` **12 skillů** · `kontrola-driftu` **12 souborů, 1 známý rozdíl** ·
+      HANDOFF.md               :2352  skillů         tvrdí 12     zdroj 12           | oddíl: ## 17. Ověření práce AKČNÍ session — PLÁNOVACÍ sessi
+            | diakritika (brána) | **34 803 znaků** (44 souborů, **12 skillů**) | `exit 0` |
+      HANDOFF.md               :2357  skillů         tvrdí 12     zdroj 12           | oddíl: ## 17. Ověření práce AKČNÍ session — PLÁNOVACÍ sessi
+            | `over-skilly` | **12 skillů** | `exit 0` |
+      HANDOFF.md               :2372  skillů         tvrdí 12     zdroj 12           | slova minulosti na řádku
+            na disku je **12 skillů**, ale v seznamu brány bylo **5** — chyběl i
+      HANDOFF.md               :2385  skillů         tvrdí 7      zdroj 12           | oddíl: ## 17. Ověření práce AKČNÍ session — PLÁNOVACÍ sessi
+            Po editaci `kontrola-diakritiky.py` (přidání 7 skillů) jsem **musel inventář
+      HANDOFF.md               :3365  skillů         tvrdí 12     zdroj 12           | slova minulosti na řádku
+            **B) `orchestra\tools\kontrola-diakritiky.py` — skilly projitím `~\.dsh\skills\*\SKILL.md`.** Ru
+      HANDOFF.md               :3372  skillů         tvrdí 12     zdroj 12           | oddíl: ## 21. Provedeno 2. 10. 2026 (16:1x–19:0x UTC) — AKČ
+            | **H15** | **Brána diakritiky neviděla 7 z 12 skillů** (ruční seznam 5 cest) | `orchestra\tools
+      HANDOFF.md               :1813  bran           tvrdí 6      zdroj 30           | oddíl: ## 16. Provedeno 2. 10. 2026 (11:0x–12:0x UTC) — AKČ
+            | `node orchestra\tools\validate-all.mjs` | sekce A–L (L nově 6 bran) | **1 PROBLÉM** — jen `tes
+      HANDOFF.md               :2803  bran           tvrdí 29     zdroj 30           | oddíl: ## 18. Ověření práce AKČNÍ session — PLÁNOVACÍ sessi
+            `python _analyza\g3-brany.py` na konci session: **29 bran, s nenulovým exit 1** —
+      HANDOFF.md               :2994  bran           tvrdí 29     zdroj 30           | oddíl: ## 18. Ověření práce AKČNÍ session — PLÁNOVACÍ sessi
+            > neodhalil žádný z 29 bran — obě vypadaly jako **hotové měření**.
+      HANDOFF.md               :3295  bran           tvrdí 29     zdroj 30           | oddíl: ## 21. Provedeno 2. 10. 2026 (16:1x–19:0x UTC) — AKČ
+            | `g3-brany.py` → „**29 bran, 1 nenulový exit**" (§1.3) | **29 bran, 2 nenulové exity** — navíc 
+      HANDOFF.md               :3295  bran           tvrdí 29     zdroj 30           | oddíl: ## 21. Provedeno 2. 10. 2026 (16:1x–19:0x UTC) — AKČ
+            | `g3-brany.py` → „**29 bran, 1 nenulový exit**" (§1.3) | **29 bran, 2 nenulové exity** — navíc 
+      HANDOFF.md               :3423  bran           tvrdí 29     zdroj 30           | oddíl: ## 21. Provedeno 2. 10. 2026 (16:1x–19:0x UTC) — AKČ
+            `python _analyza\g3-brany.py` → **29 bran, 2 nenulové exity**:
+      HANDOFF.md               :3463  bran           tvrdí 29     zdroj 30           | oddíl: ## 21. Provedeno 2. 10. 2026 (16:1x–19:0x UTC) — AKČ
+            | **1. OVĚŘIT** | `python _analyza\g3-brany.py` — **29 bran, 2 nenulové exity** (oba vysvětlené:
+      HANDOFF.md               :3630  bran           tvrdí 29     zdroj 30           | oddíl: ## 22. Ověření práce §21 — PLÁNOVACÍ session 2. 10. 
+            `python _analyza\g3-brany.py` → **29 bran, 2 nenulové exity** (shodné s §21.6):
+      HANDOFF.md               :3651  bran           tvrdí 29     zdroj 30           | oddíl: ## 22. Ověření práce §21 — PLÁNOVACÍ session 2. 10. 
+            > dalo u `validate-all` **`exit 0`** (29 bran, **1** nenulový exit — a to je
+      HANDOFF.md               :3789  bran           tvrdí 29     zdroj 30           | oddíl: ## 23. Provedeno 2. 10. 2026 (18:1x–19:0x) — AKČNÍ s
+            **Baseline se tedy posunul, ale ne regresí:** 29 bran → **30** (přidán
+      HANDOFF.md               :3804  bran           tvrdí 30     zdroj 30           | oddíl: ## 23. Provedeno 2. 10. 2026 (18:1x–19:0x) — AKČNÍ s
+            | `g3-brany.py` | **30 bran, 1 nenulový exit** | `ag-mutace (autorita)` → **`2 / 2`** (otevřela 
+      HANDOFF.md               :3912  bran           tvrdí 30     zdroj 30           | oddíl: ## 24. Ověření práce §23 — PLÁNOVACÍ (ověřovací) ses
+            | **7** | všechny brány otevřely, co měly; **30 bran, 1 nenulový exit** | `g3-brany.py` → **30 b
+      HANDOFF.md               :3912  bran           tvrdí 30     zdroj 30           | oddíl: ## 24. Ověření práce §23 — PLÁNOVACÍ (ověřovací) ses
+            | **7** | všechny brány otevřely, co měly; **30 bran, 1 nenulový exit** | `g3-brany.py` → **30 b
+      HANDOFF.md               :3938  bran           tvrdí 30     zdroj 30           | oddíl: ## 24. Ověření práce §23 — PLÁNOVACÍ (ověřovací) ses
+            | **11** | opravit vzor v `ag-mutace.py` + přidat do `g3` | ✅ **HOTOVO** | Úkol 2 (§23) | kotva 
+      HANDOFF.md               :3939  bran           tvrdí 9      zdroj 30           | oddíl: ## 24. Ověření práce §23 — PLÁNOVACÍ (ověřovací) ses
+            | **12** | doplnit mutační testy 9 branám bez důkazu | ❌ **NENÍ** | **session D** | `audit6-bran
+      HANDOFF.md               :4035  bran           tvrdí 30     zdroj 30           | oddíl: ## 24. Ověření práce §23 — PLÁNOVACÍ (ověřovací) ses
+            `g3-brany.py` naměřeno: **30 bran, 2 nenulové exity**:
+      HANDOFF.md               :134   sloupců        tvrdí 32     zdroj 40           | slova minulosti na řádku
+            | **N9** | **`AGENTS.md` tvrdil „32 sloupců", správně je 39** | **Chybné od zápisu**, ne zestara
+      HANDOFF.md               :274   sloupců        tvrdí 40     zdroj 40           | oddíl: ## 3b. Jazyk v kódu — měření a poučení (bývalá §10, 
+            | Sloupce D1 (`schema.sql`) | 5 tabulek, **40 sloupců**, českých **0** | serverová vrstva čistá 
+      HANDOFF.md               :565   sloupců        tvrdí 32     zdroj 40           | slova minulosti na řádku
+            | **13** | **`eb127abd`** | `AGENTS.md` tvrdí 32 sloupců → našel jsem chybu v autoritě | **Bylo 
+      HANDOFF.md               :588   sloupců        tvrdí 39     zdroj 40           | slova minulosti na řádku
+            | **20** | Mutace `AGENTS.md` přes `python -c "…'39 sloupců'…"` proběhne | **Neproběhla** — Powe
+      HANDOFF.md               :635   sloupců        tvrdí 32     zdroj 40           | CITACE (uvozovky / kódové rozpětí)
+            | **38** | „9 výskytů `.has(`" ze zadání je měření | **Je jich 10** (`scripts/*.gd`) a **18** v 
+      HANDOFF.md               :734   sloupců        tvrdí 32     zdroj 40           | slova minulosti na řádku
+            | **88** | **Značka času se mi přilepila od SOUSEDNÍHO tvrzení** | má funkce `ma_znacku_casu()` 
+      … a dalších 212
+      (PLNÝ výpis: `python _analyza/audit2b-cisla-proti-zdroji.py --vsechny-zaznamy`)
+
+  ROZCHODY PO VELIČINÁCH (a čím se která veličina měřila):
+      kontrol            3
+      omylů              3
+      dokumentů          2
+      bran               1
+      skillů             0   ← u téhle veličiny NIC
+      sloupců            0   ← u téhle veličiny NIC
+      tabul              0   ← u téhle veličiny NIC
+      granulí            0   ← u téhle veličiny NIC
+      klíčových bodů     0   ← u téhle veličiny NIC
+
+====================================================================================================
+  ROZCHODŮ: 9   |   ZÁZNAMŮ A CITACÍ: 252

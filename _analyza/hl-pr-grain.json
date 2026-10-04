@@ -1,0 +1,226 @@
+{
+ "11": [
+  {
+   "pr": 15,
+   "merged_at": "2026-09-30T13:49:10Z",
+   "title": "Forge #11: Počítadlo FPS",
+   "state": "closed"
+  }
+ ],
+ "14": [
+  {
+   "pr": 17,
+   "merged_at": "2026-09-30T14:01:50Z",
+   "title": "Forge #14: Bliknutí hráče při zásahu",
+   "state": "closed"
+  }
+ ],
+ "40": [
+  {
+   "pr": 16,
+   "merged_at": "2026-09-30T13:50:03Z",
+   "title": "Forge #40: Čištění scény při přechodu",
+   "state": "closed"
+  }
+ ],
+ "44": [
+  {
+   "pr": 18,
+   "merged_at": "2026-09-30T14:04:20Z",
+   "title": "Forge #44: Plynulý přechod mezi úrovněmi",
+   "state": "closed"
+  }
+ ],
+ "71": [
+  {
+   "pr": 1,
+   "merged_at": null,
+   "title": "Forge #71: Izometrické vykreslení dlaždic",
+   "state": "closed"
+  }
+ ],
+ "72": [
+  {
+   "pr": 2,
+   "merged_at": "2026-09-29T13:02:14Z",
+   "title": "Forge #72: Dovednosti rostoucí používáním",
+   "state": "closed"
+  }
+ ],
+ "74": [
+  {
+   "pr": 3,
+   "merged_at": "2026-09-29T13:26:53Z",
+   "title": "Forge #74: Tavení rudy na ingot",
+   "state": "closed"
+  }
+ ],
+ "76": [
+  {
+   "pr": 4,
+   "merged_at": "2026-09-29T13:39:20Z",
+   "title": "Forge #76: Trvanlivost a oprava zbraně",
+   "state": "closed"
+  }
+ ],
+ "77": [
+  {
+   "pr": 5,
+   "merged_at": "2026-09-29T13:55:26Z",
+   "title": "Forge #77: NPC obchodník",
+   "state": "closed"
+  }
+ ],
+ "78": [
+  {
+   "pr": 6,
+   "merged_at": "2026-09-29T13:59:49Z",
+   "title": "Forge #78: Denní cyklus",
+   "state": "closed"
+  }
+ ],
+ "79": [
+  {
+   "pr": 7,
+   "merged_at": "2026-09-29T14:17:17Z",
+   "title": "Forge #79: Předměty mají hodnotu",
+   "state": "closed"
+  }
+ ],
+ "80": [
+  {
+   "pr": 8,
+   "merged_at": "2026-09-29T15:15:36Z",
+   "title": "Forge #80: Uložení dovedností a surovin",
+   "state": "closed"
+  }
+ ],
+ "81": [
+  {
+   "pr": 9,
+   "merged_at": "2026-09-29T15:20:43Z",
+   "title": "Forge #81: Nápověda kláves v HUD",
+   "state": "closed"
+  }
+ ],
+ "82": [
+  {
+   "pr": 10,
+   "merged_at": null,
+   "title": "Forge #82: Izometrické vykreslení dlaždic",
+   "state": "closed"
+  }
+ ],
+ "83": [
+  {
+   "pr": 11,
+   "merged_at": "2026-09-29T15:47:04Z",
+   "title": "Forge #83: Pohyb hráče po izometrických osách",
+   "state": "closed"
+  }
+ ],
+ "84": [
+  {
+   "pr": 12,
+   "merged_at": "2026-09-29T16:00:15Z",
+   "title": "Forge #84: Obsah — data (materiály, skilly, recepty, příšery, předměty)",
+   "state": "closed"
+  }
+ ],
+ "87": [
+  {
+   "pr": 13,
+   "merged_at": "2026-09-29T16:02:36Z",
+   "title": "Forge #87: Úroveň — načtení mapy z JSON",
+   "state": "closed"
+  }
+ ],
+ "90": [
+  {
+   "pr": 14,
+   "merged_at": "2026-09-29T18:22:12Z",
+   "title": "Forge #90: Obsah — data (materiály, skilly, recepty, příšery, předměty)",
+   "state": "closed"
+  }
+ ],
+ "123": [
+  {
+   "pr": 19,
+   "merged_at": "2026-09-30T15:50:49Z",
+   "title": "Forge #123: Atributy — Str/Dex/Int a odvozené staty",
+   "state": "closed"
+  }
+ ],
+ "126": [
+  {
+   "pr": 20,
+   "merged_at": "2026-09-30T15:51:45Z",
+   "title": "Forge #126: Předmět — definice, trvanlivost, materiál",
+   "state": "closed"
+  }
+ ],
+ "129": [
+  {
+   "pr": 21,
+   "merged_at": "2026-09-30T16:19:32Z",
+   "title": "Forge #129: Svět — izo projekce, uzly surovin, respawn",
+   "state": "closed"
+  }
+ ],
+ "130": [
+  {
+   "pr": 22,
+   "merged_at": "2026-09-30T16:20:16Z",
+   "title": "Forge #130: Ekonomika — zlato, ceny, obchod",
+   "state": "closed"
+  }
+ ],
+ "133": [
+  {
+   "pr": 24,
+   "merged_at": "2026-09-30T22:41:01Z",
+   "title": "Forge #133: Dovednosti — model 0–100 rostoucí používáním",
+   "state": "closed"
+  }
+ ],
+ "134": [
+  {
+   "pr": 25,
+   "merged_at": "2026-10-01T04:24:41Z",
+   "title": "Forge #134: Hráč — pohyb, inventář, smrt (mrtvola)",
+   "state": "closed"
+  }
+ ],
+ "135": [
+  {
+   "pr": 26,
+   "merged_at": "2026-10-01T10:08:51Z",
+   "title": "Forge #135: Boj — rozřešení zásahu a poškození",
+   "state": "closed"
+  }
+ ],
+ "138": [
+  {
+   "pr": 27,
+   "merged_at": "2026-10-01T10:09:45Z",
+   "title": "Forge #138: Asistence — reaktivní pravidla (spoušť → akce)",
+   "state": "closed"
+  }
+ ],
+ "139": [
+  {
+   "pr": 28,
+   "merged_at": null,
+   "title": "Forge #139: Ukládání — stav postavy a světa",
+   "state": "open"
+  }
+ ],
+ "140": [
+  {
+   "pr": 29,
+   "merged_at": null,
+   "title": "Forge #140: HUD — zobrazení stavu",
+   "state": "open"
+  }
+ ]
+}

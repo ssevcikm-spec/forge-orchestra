@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 r"""Kontraktní test: `.gitignore`, který orchestra vnucuje hrám, chrání tajemství.
 
 PROČ TENHLE TEST EXISTUJE
@@ -35,7 +40,7 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WS = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
+WS = pathlib.Path(STANICE)
 GENERATOR = WS / "orchestra" / "install-into-repo.ps1"
 HRA = WS / "games" / "uo-shadows"
 

@@ -1,0 +1,153 @@
+====================================================================================================
+  NADPISY BLOKŮ OMYLŮ V HANDOFF.md (v pořadí v dokumentu)
+====================================================================================================
+  ř.539    ##  ## 8. Vlastní omyly (všech session — tabulka je společná)
+  ř.568    ### ### 8b. Omyly ověřovací session (2. 10. 2026, podle `PROMPT-NOVA-SESSION.md`)
+  ř.594    ### ### 8c. Omyly session 2. 10. 2026 (11:3x–12:0x UTC) — push, granule, N1/N3
+  ř.616    ### ### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 (10:1x–10:3x UTC) — ověření 11 tvrzení
+  ř.638    ### ### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:0x–12:0x UTC) — Úkoly A–D a B1
+  ř.676    ### ### 8f. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (11:4x–12:4x UTC)
+  ř.717    ### ### 8j. Omyly AKČNÍ session 2. 10. 2026 (dokončení auditu dokumentace) — **87–96**
+  ř.751    ### ### 8k. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (16:4x–17:1x UTC) — **97–101**
+  ř.2431   ### ### 8g. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (12:2x–13:3x UTC)
+  ř.2470   ### ### 8h. Omyly AKČNÍ session 2. 10. 2026 (16:1x–18:0x UTC) — granule `tests.harness` a projití složky
+  ř.2490   ### ### 8i. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (14:5x–15:0x UTC) — ověření práce §21
+
+====================================================================================================
+  CO JE V KTERÉM BLOKU
+====================================================================================================
+  ## 8. Vlastní omyly (všech session — tabulka je společná)                řádků:  70
+      id 1–101
+  ### 8b. Omyly ověřovací session (2. 10. 2026, podle `PROMPT-NOVA-SESSION řádků:  10
+      id 14–23
+  ### 8c. Omyly session 2. 10. 2026 (11:3x–12:0x UTC) — push, granule, N1/ řádků:   5
+      id 29–33
+  ### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 (10:1x–10:3x UTC) — ověření  řádků:   6
+      id 34–39
+  ### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:0x–12:0x UTC) — Úkoly A–D a  řádků:  11
+      id 40–50
+  ### 8f. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (11:4x–12:4x UTC řádků:  10
+      id 51–60
+  ### 8j. Omyly AKČNÍ session 2. 10. 2026 (dokončení auditu dokumentace) — řádků:  10
+      id 87–96
+  ### 8k. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (16:4x–17:1x UTC řádků:   5
+      id 97–101
+  ### 8g. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (12:2x–13:3x UTC řádků:  11
+      id 61–71
+  ### 8h. Omyly AKČNÍ session 2. 10. 2026 (16:1x–18:0x UTC) — granule `tes řádků:   9
+      id 72–80
+  ### 8i. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (14:5x–15:0x UTC řádků:   6
+      id 81–86
+
+====================================================================================================
+  TŘI ČÍSLA, TŘI OTÁZKY (`overovani` §9.3)
+====================================================================================================
+  (a) řádků tabulek omylů celkem:      153
+  (b) unikátních id celkem:            96
+      z toho id ve VÍC blokách:        57  [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101]
+         id 14: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 15: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 16: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 17: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 18: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 19: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 20: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 21: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 22: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 23: ['## 8. Vlastní omyly (všech session — tabulka', '### 8b. Omyly ověřovací session (2. 10. 2026']
+         id 29: ['## 8. Vlastní omyly (všech session — tabulka', '### 8c. Omyly session 2. 10. 2026 (11:3x–12:']
+         id 30: ['## 8. Vlastní omyly (všech session — tabulka', '### 8c. Omyly session 2. 10. 2026 (11:3x–12:']
+         id 31: ['## 8. Vlastní omyly (všech session — tabulka', '### 8c. Omyly session 2. 10. 2026 (11:3x–12:']
+         id 32: ['## 8. Vlastní omyly (všech session — tabulka', '### 8c. Omyly session 2. 10. 2026 (11:3x–12:']
+         id 33: ['## 8. Vlastní omyly (všech session — tabulka', '### 8c. Omyly session 2. 10. 2026 (11:3x–12:']
+         id 34: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 35: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 36: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 37: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 38: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 39: ['## 8. Vlastní omyly (všech session — tabulka', '### 8d. Omyly PLÁNOVACÍ session 2. 10. 2026 ']
+         id 40: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 41: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 42: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 43: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 44: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 45: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 46: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 47: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 48: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 49: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 50: ['## 8. Vlastní omyly (všech session — tabulka', '### 8e. Omyly AKČNÍ session 2. 10. 2026 (11:']
+         id 51: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 52: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 53: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 54: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 55: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 56: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 57: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 58: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 59: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 60: ['## 8. Vlastní omyly (všech session — tabulka', '### 8f. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 87: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 88: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 89: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 90: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 91: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 92: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 93: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 94: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 95: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 96: ['## 8. Vlastní omyly (všech session — tabulka', '### 8j. Omyly AKČNÍ session 2. 10. 2026 (dok']
+         id 97: ['## 8. Vlastní omyly (všech session — tabulka', '### 8k. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 98: ['## 8. Vlastní omyly (všech session — tabulka', '### 8k. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 99: ['## 8. Vlastní omyly (všech session — tabulka', '### 8k. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 100: ['## 8. Vlastní omyly (všech session — tabulka', '### 8k. Omyly PLÁNOVACÍ (ověřovací) session ']
+         id 101: ['## 8. Vlastní omyly (všech session — tabulka', '### 8k. Omyly PLÁNOVACÍ (ověřovací) session ']
+
+  (c) co vidí brána dnes (8 kotev):
+      ## 8. Vlastní omyly                       70
+      ### 8b. Omyly ověřovací session           10
+      ### 8c. Omyly session 2. 10. 2026          5
+      ### 8d. Omyly PLÁNOVACÍ session            6
+      ### 8e. Omyly AKČNÍ session               11
+      ### 8f. Omyly PLÁNOVACÍ                   10
+      ### 8g. Omyly PLÁNOVACÍ                   11
+      ### 8h. Omyly AKČNÍ session                9
+      CELKEM (co vidí brána)                   132
+
+  MIMO seznam brány:
+      ### 8j. Omyly AKČNÍ session 2. 10. 2026 (dokončení auditu dokumentace) — **87–96**
+      ### 8k. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (16:4x–17:1x UTC) — **97–101**
+      ### 8i. Omyly PLÁNOVACÍ (ověřovací) session 2. 10. 2026 (14:5x–15:0x UTC) — ověření práce §21
+
+====================================================================================================
+  KDE VŠUDE JE V DOKUMENTECH ČÍSLO O OMYLECH
+====================================================================================================
+  KRONIKA-PROJEKTU.md    :102   | **H16** | **Mutační test kroniky neměl fixturu s tabulkou NÁLEZŮ** — testoval jen živý dokument, a ten ten tvar v době testu neměl → vada (54 omylů 
+  KRONIKA-PROJEKTU.md    :324   | **L17** | **Mutační test bez fixtury ve TVARU, který vadu způsobil, je slepý** | naměřeno 2. 10. 2026 (nález **H16**): `h17-kronika-mutace.py` testo
+  KRONIKA-PROJEKTU.md    :363   | **NA15** | **Nahradit ruční seznam v `kronika-kontrola.py` / `kontrola-diakritiky.py` za projití složky** a **zavést pro ně mutační test s fixturou,
+  KRONIKA-PROJEKTU.md    :365   | **NA17** | **Každé měřidlo, které tvrdí „celkem N", musí vypsat, KTERÉ zdroje do toho N zahrnulo** (seznam bloků/souborů) — a brána kroniky má přejí
+  KRONIKA-PROJEKTU.md    :365   | **NA17** | **Každé měřidlo, které tvrdí „celkem N", musí vypsat, KTERÉ zdroje do toho N zahrnulo** (seznam bloků/souborů) — a brána kroniky má přejí
+  HANDOFF.md             :28    > | **16** | **PROVEDENO AKČNÍ SESSION** (2. 10. 2026, 11:0x–11:2x UTC) — Úkoly A–D, **B1 nasazen**, §16.7 co se nepovedlo, **§16.8 omyly**, §16.10 co
+  HANDOFF.md             :1685  * `tools/test-cooldown.py` — **oprava vady FIXTURE** (viz §16.8 omyl 43)
+  HANDOFF.md             :1898  **Nejdřív to, kvůli čemu je celý §16.8 omyl 50 — jsou změny v KLONU?**
+  HANDOFF.md             :2447  | **67** | **„Přepočet omylů z `HANDOFF.md` je hotový"** — a pak jsem **třikrát** opravoval totéž měřidlo, pokaždé jinak špatně | **Tři různé vady v j
+  HANDOFF.md             :2447  | **67** | **„Přepočet omylů z `HANDOFF.md` je hotový"** — a pak jsem **třikrát** opravoval totéž měřidlo, pokaždé jinak špatně | **Tři různé vady v j
+  HANDOFF.md             :2456  lže o 50 omylů").
+  HANDOFF.md             :2461  „opravě" hlásí **0 omylů** — což je nemožné, a je to vidět.
+  HANDOFF.md             :2506  | **82** | **„Brána kroniky nehlásí chybějící řádek v kronice"** — můj test to vypsal jako `ROZCHOD SE NEHLÁSÍ` | **Brána to hlásila SPRÁVNĚ** (`CHYBA
+  HANDOFF.md             :2508  | **84** | **„V `HANDOFF.md` je 117 omylů, ne 75"** — můj nezávislý skript to vypsal a označil 60 id za duplicity | **75 v 8 blocích.** Můj skript uko
+  HANDOFF.md             :2815  | `kronika-kontrola.py` | 55 omylů | `exit 0` |
+  HANDOFF.md             :2867  u bloku **8f** hlásit **54 omylů místo 10** a celkem **105 místo 55**.
+  HANDOFF.md             :2880  | 2 | Přidal jsem filtr `radek.count("\|") != 4` („tabulka omylů má 4 oddělovače") | **Vyhodil VŠECHNY řádky** → brána hlásila **0 omylů** a **7 ROZCH
+  HANDOFF.md             :3287  | `kronika-kontrola.py` → „musí vyjít exit 0 (**62 omylů**)" (§1.3) | `exit 0`, ale **66 omylů** (13+10+5+6+11+10+11) | **číslo v zadání je zastaralé*
+  HANDOFF.md             :3287  | `kronika-kontrola.py` → „musí vyjít exit 0 (**62 omylů**)" (§1.3) | `exit 0`, ale **66 omylů** (13+10+5+6+11+10+11) | **číslo v zadání je zastaralé*
+  HANDOFF.md             :3378  **Co chybělo:** `h17-kronika-mutace.py` testoval bránu **jen na ŽIVÉ kronice** — a ta v době testu neměla tvar, na kterém brána selhala (tabulka **nál
+  HANDOFF.md             :3384  | **A** | zdravá fixtura (66 omylů) | `exit 0` | **`exit 0`** |
+  HANDOFF.md             :3386  | **M2** | doplněný **konec** nadpisu 8d | **projde** (kotva je prefix, 6 omylů) | **`exit 0`** |
+  HANDOFF.md             :3425  | `kronika úplnost` | **66 omylů** | `exit 0` |
+  HANDOFF.md             :3505  **Postup:** `python _analyza\zadani-kontrola.py` → `exit 0` · `python _analyza\kronika-kontrola.py` → `exit 0` (**75 omylů, 17 nálezů, 17 sessions, 15
+  HANDOFF.md             :3516  | §1.3: `kronika-kontrola.py` → „**75 omylů**, NE 66" | **75** | **OK** |
+  HANDOFF.md             :3573  | **1.5** | brána kroniky **spadne na ŽIVÉM dokumentu** | vlastní sonda `python _analyza\v3-kronika-stavy.py`: v **kopii** kroniky `8h` → `99` ⇒ **`ex
+  HANDOFF.md             :3581  | `C3` | v kopii kroniky **smazán řádek bloku `8h`** | `exit 1`, `CHYBA blok 8h je v HANDOFF.md (9 omylů), ale v tabulce kroniky §3 řádek NEMÁ` — **dr
+  HANDOFF.md             :3633  | `kronika úplnost` | **75 omylů v 8 blocích** | `exit 0` — **a nevidí §13.2 (H18)** |
+  HANDOFF.md             :3793  | `kronika-kontrola.py` | **`exit 0`** | 75 omylů, 23 nálezů, 18 sessions, 15 odkazů |

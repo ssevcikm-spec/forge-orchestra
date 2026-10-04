@@ -1,0 +1,7 @@
+; Minimální Godot projekt — jen tolik, aby šly načíst skripty z PR a změřit,
+; co SKUTEČNĚ dělají. Není to hra; je to měřidlo.
+config_version=5
+
+[application]
+
+config/name="gdcheck"

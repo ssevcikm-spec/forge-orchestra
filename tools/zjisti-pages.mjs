@@ -1,3 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Zjistí PRAVDU o herních repech a GitHub Pages – místo dohadů z dokumentace.
 //
 // PROČ: v `release.yml` je odkaz na `https://ssevcikm-spec.github.io/forge-quest/`,
@@ -10,7 +17,7 @@
 
 import { readFileSync } from 'node:fs';
 
-const PAT_CESTA = 'C:/Users/Ssevc/Local-Deepseek/orchestra/.secrets/github_pat.txt';
+const PAT_CESTA = join(PARENT, '.secrets', 'github_pat.txt');
 let PAT = '';
 try {
   PAT = readFileSync(PAT_CESTA, 'utf8').trim();

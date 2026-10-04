@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Opraví kódování PowerShell skriptu: UTF-8 BOM + JEDNOTNÉ konce řádků.
 
 PROČ TO EXISTUJE — dvě chyby, které dokážou rozbít .ps1 tak, že to vypadá jako
@@ -30,8 +35,8 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 SOUBORY = [
-    pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\tools\test-local.ps1"),
-    pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\install-into-repo.ps1"),
+    pathlib.Path(_PARENT / 'tools' / 'test-local.ps1'),
+    pathlib.Path(_PARENT / 'install-into-repo.ps1'),
 ]
 
 BOM = b"\xef\xbb\xbf"

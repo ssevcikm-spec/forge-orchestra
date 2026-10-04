@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Stav DAG: co je hotové, co je připravené, co blokují závislosti a model.
 
 Odpovídá na otázku „dá se zlepšit úspěšnost" tím, že ukáže, kde přesně práce
@@ -8,9 +13,9 @@ import json
 import pathlib
 
 ROADMAP = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.forge\roadmap.json")
+    _PARENT / 'uo-shadows' / '.forge' / 'roadmap.json')
 PROVIDERS = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\orchestra\repo\.forge\providers.json")
+    _PARENT / 'repo' / '.forge' / 'providers.json')
 
 grains = json.loads(ROADMAP.read_text(encoding="utf-8"))["grains"]
 prov = json.loads(PROVIDERS.read_text(encoding="utf-8"))["providers"]

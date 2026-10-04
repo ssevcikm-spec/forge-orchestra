@@ -1,0 +1,178 @@
+[
+ {
+  "run": 247,
+  "concl": "success",
+  "name": "Forge #140 [bd7020c8-f01d-4071",
+  "agent_s": 63,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(1s)",
+   "Spusť agenta=success(63s)",
+   "Kontrola parsování (rychlá brána)=success(0s)",
+   "Testy hry (Godot headless)=success(1s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 9
+ },
+ {
+  "run": 246,
+  "concl": "success",
+  "name": "Forge #139 [316acb97-e3db-4446",
+  "agent_s": 12,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(1s)",
+   "Spusť agenta=success(12s)",
+   "Kontrola parsování (rychlá brána)=success(1s)",
+   "Testy hry (Godot headless)=success(2s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 10
+ },
+ {
+  "run": 245,
+  "concl": "failure",
+  "name": "Forge #141 [0cf5422e-460b-41f4",
+  "agent_s": 183,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(3s)",
+   "Spusť agenta=success(183s)",
+   "Kontrola parsování (rychlá brána)=success(1s)",
+   "Testy hry (Godot headless)=failure(1s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 31
+ },
+ {
+  "run": 244,
+  "concl": "failure",
+  "name": "Forge #137 [a0a25419-0246-4119",
+  "agent_s": 64,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(7s)",
+   "Spusť agenta=success(64s)",
+   "Kontrola parsování (rychlá brána)=failure(0s)",
+   "Testy hry (Godot headless)=skipped(0s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 13
+ },
+ {
+  "run": 243,
+  "concl": "failure",
+  "name": "Forge #136 [4605436c-5114-41cd",
+  "agent_s": 12,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(8s)",
+   "Spusť agenta=success(12s)",
+   "Kontrola parsování (rychlá brána)=failure(0s)",
+   "Testy hry (Godot headless)=skipped(0s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 6
+ },
+ {
+  "run": 242,
+  "concl": "failure",
+  "name": "Forge #132 [887c8b9a-a43e-4d2b",
+  "agent_s": 8,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(1s)",
+   "Spusť agenta=success(8s)",
+   "Kontrola parsování (rychlá brána)=failure(1s)",
+   "Testy hry (Godot headless)=skipped(0s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 7
+ },
+ {
+  "run": 241,
+  "concl": "failure",
+  "name": "Forge #140 [da59176a-cb67-49da",
+  "agent_s": 9,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(1s)",
+   "Spusť agenta=success(9s)",
+   "Kontrola parsování (rychlá brána)=failure(0s)",
+   "Testy hry (Godot headless)=skipped(0s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 6
+ },
+ {
+  "run": 240,
+  "concl": "failure",
+  "name": "Forge #139 [fd92b264-eebb-4226",
+  "agent_s": 16,
+  "kroky": [
+   "Vyber bezplatného poskytovatele LLM=success(1s)",
+   "Spusť agenta=success(16s)",
+   "Kontrola parsování (rychlá brána)=failure(0s)",
+   "Testy hry (Godot headless)=skipped(0s)",
+   "Verdikt a vytvoření patche=success(0s)"
+  ],
+  "modely": [],
+  "providery": [],
+  "litellm": [],
+  "tokeny": {
+   "sent": 0,
+   "recv": 0
+  },
+  "tokeny_vyskytu": 0,
+  "rate_limit_radku": 8
+ }
+]

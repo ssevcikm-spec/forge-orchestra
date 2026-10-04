@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Sjednotí šablonu orchestra s herními vylepšeními (idempotentně).
 
 Co se doplňuje a proč:
@@ -19,7 +24,7 @@ import sys
 import yaml
 
 SABLONA = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\orchestra\repo\.github\workflows\agent.yml")
+    _PARENT / 'repo' / '.github' / 'workflows' / 'agent.yml')
 
 # --- 1) kvótní guard ------------------------------------------------------
 STARY_GUARD = """          if ! zmenil_neco; then

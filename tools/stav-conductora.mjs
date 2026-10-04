@@ -1,7 +1,14 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Rychly pohled na conductor: health, roadmap (fronta), failed.
 import { readFileSync } from 'node:fs';
 
-const env = readFileSync('C:/Users/Ssevc/Local-Deepseek/orchestra/.env', 'utf8').replace(/^\uFEFF/, '');
+const env = readFileSync(join(PARENT, '.env'), 'utf8').replace(/^\uFEFF/, '');
 // POZOR 2: soubor začíná UTF-8 BOM (ef bb bf) – bez jeho odstranění první
 // řádek nikdy nezačíná na 'FORGE_URL=' a URL zůstane prázdná.
 const get = (k) => {

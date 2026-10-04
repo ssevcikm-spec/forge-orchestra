@@ -1,0 +1,2090 @@
+[
+ {
+  "run": 247,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 63,
+  "kroky_fail": []
+ },
+ {
+  "run": 246,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 12,
+  "kroky_fail": []
+ },
+ {
+  "run": 245,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 183,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 244,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 64,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 243,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 242,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 241,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 240,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 16,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 239,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 7,
+  "kroky_fail": []
+ },
+ {
+  "run": 238,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 41,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 237,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 5,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 236,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 6,
+  "kroky_fail": []
+ },
+ {
+  "run": 235,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 85,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 234,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 5,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 233,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 232,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 16,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 231,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 26,
+  "kroky_fail": []
+ },
+ {
+  "run": 230,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 5,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 229,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 5,
+  "kroky_fail": []
+ },
+ {
+  "run": 228,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 6,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 227,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 226,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 225,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 6,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 224,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 223,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 222,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 6,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 221,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 220,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 8,
+  "kroky_fail": []
+ },
+ {
+  "run": 219,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 9,
+  "kroky_fail": []
+ },
+ {
+  "run": 218,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 217,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 216,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 215,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 214,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 213,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 212,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 211,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 210,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 209,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 208,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 207,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 206,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 205,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 204,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 203,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 202,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 201,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 200,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 199,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 198,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 197,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 15,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 196,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 12,
+  "kroky_fail": []
+ },
+ {
+  "run": 195,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 194,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 193,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 15,
+  "kroky_fail": []
+ },
+ {
+  "run": 192,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 191,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 190,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 189,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 188,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 187,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 186,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 185,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 184,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 183,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 182,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 181,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 180,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 78,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 179,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 178,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 177,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 23,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 176,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 74,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 175,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 174,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 173,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 172,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 171,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 170,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 169,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 79,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 168,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 86,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 167,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 79,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 166,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 111,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 165,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 80,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 164,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 163,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 94,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 162,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 161,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 160,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 16,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 159,
+  "concl": "failure",
+  "krok": "Kontrola parsování (rychlá brána)",
+  "agent_s": 21,
+  "kroky_fail": [
+   "Kontrola parsování (rychlá brána)"
+  ]
+ },
+ {
+  "run": 158,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 157,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 7,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 156,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 258,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 155,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 154,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 153,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 80,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 152,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 84,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 151,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 150,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 149,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 148,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 147,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 146,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 145,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 144,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 143,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 80,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 142,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 79,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 141,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 140,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 74,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 139,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 138,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 137,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 136,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 135,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 134,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 81,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 133,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 132,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 91,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 131,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 130,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 129,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 128,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 127,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 126,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 80,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 125,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 75,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 124,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 35,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 123,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 122,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 121,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 74,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 120,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 119,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 76,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 118,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 117,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 9,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 116,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 73,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 115,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 114,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 74,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 113,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 90,
+  "kroky_fail": []
+ },
+ {
+  "run": 112,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 87,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 111,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 23,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 110,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 219,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 109,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 361,
+  "kroky_fail": []
+ },
+ {
+  "run": 108,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 18,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 107,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 631,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 106,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 16,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 105,
+  "concl": "cancelled",
+  "krok": "jiny: cancelled",
+  "agent_s": 875,
+  "kroky_fail": []
+ },
+ {
+  "run": 104,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 80,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 103,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 297,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 102,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 17,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 101,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 19,
+  "kroky_fail": []
+ },
+ {
+  "run": 100,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 29,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 99,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 27,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 98,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 205,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 97,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 95,
+  "kroky_fail": []
+ },
+ {
+  "run": 96,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 66,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 95,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 94,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 25,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 93,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 92,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 17,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 91,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 65,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 90,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 66,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 89,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 18,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 88,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 18,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 87,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 86,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 18,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 85,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 84,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 83,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 23,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 82,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 17,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 81,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 80,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 79,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 78,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 77,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 25,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 76,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 17,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 75,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 22,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 74,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 14,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 73,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 13,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 72,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 64,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 71,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 12,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 70,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 11,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 69,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 8,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 68,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 133,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 67,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 26,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 66,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 89,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 65,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 145,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 64,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 139,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 63,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 142,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 62,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 143,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 61,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 159,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 60,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 154,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 59,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 168,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 58,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 107,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 57,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 167,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 56,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 9,
+  "kroky_fail": []
+ },
+ {
+  "run": 55,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 158,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 54,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 150,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 53,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 142,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 52,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 146,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 51,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 141,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 50,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 175,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 49,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 158,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 48,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 160,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 47,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 233,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 46,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 96,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 45,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 282,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 44,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 143,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 41,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 329,
+  "kroky_fail": []
+ },
+ {
+  "run": 35,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 101,
+  "kroky_fail": []
+ },
+ {
+  "run": 34,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 82,
+  "kroky_fail": []
+ },
+ {
+  "run": 33,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 10,
+  "kroky_fail": []
+ },
+ {
+  "run": 32,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 109,
+  "kroky_fail": []
+ },
+ {
+  "run": 31,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 1684,
+  "kroky_fail": []
+ },
+ {
+  "run": 30,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 137,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 29,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 1217,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 28,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 328,
+  "kroky_fail": []
+ },
+ {
+  "run": 27,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 199,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 26,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 131,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 25,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 80,
+  "kroky_fail": []
+ },
+ {
+  "run": 24,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 38,
+  "kroky_fail": []
+ },
+ {
+  "run": 23,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 632,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 22,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 76,
+  "kroky_fail": []
+ },
+ {
+  "run": 21,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 95,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 20,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 10,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 19,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 77,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 18,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 104,
+  "kroky_fail": []
+ },
+ {
+  "run": 17,
+  "concl": "failure",
+  "krok": "Agent nic nezměnil → hlásíme neúspěch",
+  "agent_s": 676,
+  "kroky_fail": [
+   "Agent nic nezměnil → hlásíme neúspěch"
+  ]
+ },
+ {
+  "run": 16,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 140,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 15,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 50,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 14,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 75,
+  "kroky_fail": []
+ },
+ {
+  "run": 13,
+  "concl": "success",
+  "krok": "USPECH (zadny krok neselhal)",
+  "agent_s": 145,
+  "kroky_fail": []
+ },
+ {
+  "run": 12,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 57,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 11,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 56,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 10,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 687,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 9,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 20,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 8,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 80,
+  "kroky_fail": []
+ },
+ {
+  "run": 7,
+  "concl": "failure",
+  "krok": "Testy hry (Godot headless)",
+  "agent_s": 74,
+  "kroky_fail": [
+   "Testy hry (Godot headless)"
+  ]
+ },
+ {
+  "run": 6,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 8,
+  "kroky_fail": []
+ },
+ {
+  "run": 5,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 8,
+  "kroky_fail": []
+ },
+ {
+  "run": 4,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 47,
+  "kroky_fail": []
+ },
+ {
+  "run": 3,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 7,
+  "kroky_fail": []
+ },
+ {
+  "run": 2,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 9,
+  "kroky_fail": []
+ },
+ {
+  "run": 1,
+  "concl": "failure",
+  "krok": "jiny: failure",
+  "agent_s": 31,
+  "kroky_fail": []
+ }
+]

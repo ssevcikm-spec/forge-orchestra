@@ -1,0 +1,6 @@
+
+> **Co tenhle dokument JE:** záznam o provedení. Hlavičku „Co tenhle dokument JE“
+> doplnila session 2. 10. 2026 (opatření 7, Úkol 5a zadání
+> `ZADANI-OPRAVA-MERIDEL.md`) — do té doby ji dokument neměl a musel se
+> jeho druh hádat z názvu (nález **NA21**).
+| **69** | **„Filtr `?head_sha=<krátký sha>` mi řekne, jestli běh existuje"** — poslal jsem `c40bdd5` a dostal **`total_count: 0`**; vypadalo to, že běh **ještě nezačal**, a já **26 minut** čekal na workflow, který **už dávno skončil** (`completed/success`). Druhý omyl téhož kroku: `node -e` s `require()` **a** top-level `await` spadl na `ERR_AMBIGUOUS_MODULE_SYNTAX` | **Běhy tam byly** — se **plným** sha (`c40bdd556b67f9ac95a82b6c1c8798f926f431fd`) filtr vrátí **2**, oba `success` (`#102 CI`, `#69 release`). A skutečný důkaz nasazení přišel odjinud: `last-modified` **13:18:06 UTC**, push byl **13:16:50** | **GitHub krátký sha v `head_sha` NEODFILTRUJE — vrátí prázdno bez chyby.** A **prázdný výsledek filtru vypadá jako „ještě nic"**, přitom je to **naměřená nula s jiným důvodem** — tatáž past, před kterou varuje `overovani` §1. Zachytil to až **`last-modified`**, ne můj čekací skript. **Pravidlo: na `head_sha` posílej PLNÝ sha** (a `node -e` nepoužívej na nic, kde je `require` i `await`) |

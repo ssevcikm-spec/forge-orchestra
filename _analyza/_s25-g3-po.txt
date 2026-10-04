@@ -1,0 +1,39 @@
+==============================================================================
+VŠECHNY BRÁNY — a co která otevřela
+==============================================================================
+  OK       testy hry (Godot)            otevřela: 65 / 0
+  OK       mutace A (5 běhů)            otevřela: 59 / 0
+  exit=1   mutace A: pres-level         otevřela: 61 / 1
+  OK       mutace B (combat)            otevřela: 2 / 2
+  OK       C1: a3-kontrola              otevřela: 50 / 17
+  OK       C1: důkaz selhání            otevřela: —
+  OK       C2: mutace N1 (5 běhů)       otevřela: —
+  OK       C2: sebekontrola diakritiky  otevřela: 104
+  OK       diakritika (brána)           otevřela: 10977
+  OK       handoff úplnost              otevřela: 83
+  OK       kronika úplnost              otevřela: 99
+  OK       kronika mutace (6 případů)   otevřela: 6
+  OK       diakritika nových souborů    otevřela: 517
+  OK       zadání kontrola              otevřela: 268
+  OK       over-dokumentaci             otevřela: 63
+  OK       over-skilly                  otevřela: 12
+  OK       lint-roadmapa                otevřela: 13 / 22
+  OK       check-schema (hra)           otevřela: Schéma je v souladu
+  OK       test-cooldown                otevřela: 10 / 0
+  OK       f2 over cooldown             otevřela: 10 / 0
+  OK       deploy B1                    otevřela: 146
+  OK       ag-over-cisla                otevřela: 0
+  OK       ag-mutace (autorita)         otevřela: 2 / 2
+  OK       a1-a2-over                   otevřela: 23
+  OK       a3-over                      otevřela: 1
+  OK       n8-zastarala                 otevřela: 5 / 7
+  OK       b5-over-tvrzeni              otevřela: 13 / 18
+  OK       n1-over-inventar             otevřela: 0
+  OK       tsc (conductor)              otevřela: — (brána nemá čítač)
+  exit=1   validate-all (CELEK)         otevřela: — (brána nemá čítač)
+
+plný výstup: g3-brany-vystup.txt (155965 znaků)
+
+brán celkem: 30, s nenulovým exit: 2
+   CHYBA mutace A: pres-level → exit=1
+   CHYBA validate-all (CELEK) → exit=1

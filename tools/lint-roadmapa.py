@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Statický lint roadmapy: najde nekonzistence, které by zdržely nebo zablokovaly DAG.
 
 Proč: orchestra odhaluje vady plánu až za běhu – a každé zjištění stojí kvótu
@@ -22,7 +27,7 @@ import json
 import pathlib
 import sys
 
-ROOT = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\games\uo-shadows")
+ROOT = pathlib.Path(_PARENT / 'uo-shadows')
 ROADMAP = ROOT / ".forge" / "roadmap.json"
 
 

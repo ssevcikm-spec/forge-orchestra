@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Zapíše dokumentační změny ze session: README orchestra + skill game-developer.
 
 Texty jsou odsouhlasené uživatelem (viz SKILLY-AKTUALIZACE.md). Skript je
@@ -11,7 +16,7 @@ přestal být čitelný.
 import pathlib
 import sys
 
-README = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\README.md")
+README = pathlib.Path(_PARENT / 'README.md')
 GAMEDEV = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills\game-developer\SKILL.md")
 
 # ---------------------------------------------------------------- README ----

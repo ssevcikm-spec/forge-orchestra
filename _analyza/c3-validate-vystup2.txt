@@ -1,0 +1,429 @@
+════ A. CONDUCTOR (runtime) ════
+  OK   conductor odpovídá
+  OK   cron běží (čas)  — 2026-10-02T11:02:51.656Z
+  OK   je registrovaná hra  — games=1
+  OK   žádná úloha nevisí  — running=0
+
+════ B. REGISTR HER ════
+  OK   uo-shadows je registrovaná
+  OK   je aktivní  — active=1
+  OK   míří na správné repo  — ssevcikm-spec/uo-shadows
+  OK   roadmap_file je správný  — .forge/roadmap.json
+
+════ C. SOULAD CACHE × SOUBOR ════
+  OK   cache neobsahuje osiřelé řádky  — osiřelé=0
+  OK   cache není větší než soubor  — cache=16, soubor=21
+  OK   počet hotových granulí je znám  — 11/21 hotových
+
+════ D. KONFIGURACE CONDUCTORA ════
+  OK   MAX_ATTEMPTS nastaven  — MAX_ATTEMPTS = "5"
+  OK   RETRY_HOURS nastaven  — RETRY_HOURS = "3"
+  OK   cron každou minutu
+
+════ E. KÓD CONDUCTORA × DEPLOY ════
+  OK   lokální kód = repo  — 74153 B vs 72683 B (shoda po odečtení konců řádků)
+  OK   existuje úspěšný deploy conductora  — be419647 (2026-10-02 09:23)
+  OK   deploy obsahuje poslední změnu conductora  — poslední změna conductor/ = be419647, nasazeno z = be419647
+
+════ F. HRA: WORKFLOW A BRÁNY ════
+  OK   brána na parsování je ve workflow
+  OK   brána je PŘED testy
+  OK   workflow používá providers.json orchestra
+  OK   konvence mají FileAccess
+  OK   konvence mají rezervovaná jména
+  OK   konvence mají JSON.parse_string
+
+════ G. WORKFLOW HRY JE ZAPNUTÝ ════
+  OK   agent.yml je active  — active
+
+════ H. MODELOVÝ ŘETĚZEC ════
+  OK   řetězec má 5 poskytovatelů  — mistral, cerebras, gemini, groq, openrouter
+  OK   gemini je označený skromny
+  OK   silné modely definované  — mistral, cerebras, groq
+  OK   živý providers.json = lokální
+
+════ I. LOKÁLNÍ PROSTŘEDÍ ════
+  OK   git.cmd existuje
+  OK   Godot pro worker existuje
+  OK   .secrets má PAT
+
+════ J. ASSETY: REGISTR A LICENČNÍ BRÁNA ════
+  OK   registr assetů jde přečíst  — 4 zdrojů, 2 assetů
+  OK   povolené licence jsou definované  — cc0, cc-by, ofl, mit, public-domain
+  OK   cc-by-sa NENÍ povolená  — vynucuje stejnou licenci na celou hru
+  OK   každý asset má známý zdroj  — všechny OK
+  OK   každý asset má povolenou licenci  — kenney/interface-sounds:cc0, polyhaven/coast_sand_rocks_02:cc0
+  OK   stahované assety mají hash  — kenney/interface-sounds:hash OK, polyhaven/coast_sand_rocks_02:hash OK
+  OK   stahované assety jsou ověřené  — kenney/interface-sounds:ověřeno, polyhaven/coast_sand_rocks_02:ověřeno
+registr: C:\Users\Ssevc\Local-Deepseek\orchestra\assets\asset-registry.json
+zdrojů: 4, assetů: 2, vybráno: 2
+
+  kenney/interface-sounds
+    Kenney Interface Sounds — balik, cc0, OVĚŘENO, 815 kB
+    extract je ZÁMĚRNĚ prázdný: bez --extract se nevybaluje nic, jen se vypíše obsah balíčku. Vybírej jednotlivé soubory (např. --extract "Audio/click_001.ogg") – 100 souborů v repu nikdo nechce a hra je stejně nenačte.
+  polyhaven/coast_sand_rocks_02
+    coast_sand_rocks_02 (difuzní mapa) — textura, cc0, OVĚŘENO, 820 kB
+    Zkušební asset pro ověření cesty (P1). Pro hru se vybírá podle potřeby, ne tenhle.
+
+zdroje:
+  polyhaven      cc0            strojově: ano  https://polyhaven.com
+  kenney         cc0            strojově: ano  https://kenney.nl
+  google-fonts   ofl            strojově: ano  https://fonts.google.com
+  rucni          ruzne          strojově: NE  
+  OK   fetch assetů jde spustit
+  OK   bez locku → projde s poznámkou
+        exit=0 (čekáno 0, poznámka o chybějícím locku)
+  OK   v pořádku → projde
+        exit=0: licence a původ assetů: v pořádku
+  OK   soubor bez záznamu → odmitne
+        exit=1 (čekáno 1 a jméno souboru)
+  OK   zakázaná licence cc-by-sa → odmitne
+        exit=1 (čekáno 1, zmínka o cc-by-sa)
+  OK   cc-by bez autora → odmitne
+        exit=1 (čekáno 1, zmínka o autorovi)
+  OK   přepsaný soubor (hash) → odmitne
+        exit=1 (čekáno 1, neshoda hashe)
+  OK   změněný CREDITS.md → odmitne
+        exit=1 (čekáno 1, neshoda CREDITS)
+  OK   živý P1 fixture → projde
+        SKIP – živý fixture z P1 tu není (spusť nejdřív asset-fetch.mjs)
+  OK   skutečný klon hry → beze změny chování
+        exit=0 (čekáno 0 – hra lock nemá, brána se nesmí ozvat)
+
+všech 9 scénářů prošlo
+  OK   brána na licence: 9 scénářů  — exit=0
+  poznámka: assets/asset-lock.json není – hra zatím žádné stažené assety nemá (brána se aktivuje prvním).
+licence a původ assetů: v pořádku
+  OK   brána projde na skutečném klonu hry
+
+════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════
+Kontrola schématu: C:\Users\Ssevc\Local-Deepseek\orchestra\..\games\uo-shadows
+  spec.json deklaruje: projekce=izometricka, dlaždice=[96, 48], viewport=[960, 540]
+  mapa main.json      cell=96  viewport=[960, 540]  mřížka=[30, 16]
+  level.gd: výchozí buňka=96×48px, fallback=nezměřeno (v kódu není)
+  tiles/manifest.json: tile_size=[96, 48]
+  sprity: zkontrolováno 8, nesedí 0
+  poznámka: level.gd nemá fallback buňky (`get("cell", N)`) – kontrola fallbacku tedy nemá co měřit (výchozí buňka změřená je)
+  poznámka: scripts/world.gd neexistuje – na jeho větve se NEDOSTANE (kontrola druhé logiky mřížky i izometrie v něm je mrtvá, ne splněná)
+
+Schéma je v souladu: deklarace, mapy, vykreslení i dlaždice říkají totéž.
+  OK   kontrola schématu se spustí (0 = soulad, 1 = rozpory, 2 = chybí spec)  — exit=0
+  OK   kontrola schématu je i v šabloně a v herním repu
+=== test-check-schema.py – offline testy (check-schema.py) ===
+  nástroj: C:\Users\Ssevc\Local-Deepseek\orchestra\repo\.forge\check-schema.py
+  sha256:  531ae859f67031f8
+  OK   šablona a herní repo mají SHODNÝ check-schema.py
+  OK   správná izometrie: žádné vady
+  OK   správná izometrie: výchozí buňka se PŘEČTE jako 96×48
+  OK   správná izometrie: fallback se čte jako nezměřený (v kódu není)
+  OK   špatná šířka (95 vs 96) se POJMENUJE
+  OK   špatná výška (47 vs 48) se POJMENUJE
+  OK   starý `var cell := 16` se POJMENUJE jako vada
+  OK   starý tvar: číslo se změří (ne prázdný seznam)
+  OK   fallback `get("cell", 96)` se PŘEČTE
+  OK   fallback se hlásí jako změřený
+  OK   nečitelný tvar: kontrola HLÁSÍ, že neproběhla (vada)
+  OK   nečitelný tvar: šířka se netváří jako změřená
+  OK   CLI vypíše nezměřený fallback jako „nezměřeno“
+  OK   CLI na správném repu končí exit 0
+  OK   CLI na chybném repu končí exit 1
+  OK   při obou tvarech platí POSLEDNÍ deklarace (96×48)
+  OK   chybějící world.gd se hlásí jako mrtvá kontrola
+
+Testů OK: 17, chyb: 0
+VŠE OK
+  OK   check-schema.py: offline testy (známá správná i chybná hodnota)  — exit=0
+=== generátor: C:\Users\Ssevc\Local-Deepseek\orchestra\install-into-repo.ps1 ===
+=== skutečnost: C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.gitignore ===
+
+--- 1) generátor obsahuje povinná pravidla ---
+  OK    generátor: '.env'  (tajemství – `install-into-repo.ps1` ho do hry kopíruje s FORGE_SECRET)
+  OK    generátor: '.forge/node/.env'  (tajemství – konkrétní cesta, kterou kopírování používá)
+  OK    generátor: '__pycache__/'  (Python cache po lokálním spuštění bran)
+  OK    generátor: '*.pyc'  (Python cache (jednotlivé soubory))
+  OK    generátor: '.forge/provider.env'  (volba poskytovatele pro shell (nese klíč))
+
+--- 2) herní .gitignore obsahuje totéž ---
+  OK    hra: '.env'
+  OK    hra: '.forge/node/.env'
+  OK    hra: '__pycache__/'
+  OK    hra: '*.pyc'
+  OK    hra: '.forge/provider.env'
+
+--- 3) KONTRAKT: obě kopie se shodují v bezpečnostních pravidlech ---
+  OK    co generátor vnucuje, to hra má (a naopak)
+
+--- 4) pravidla SKUTEČNĚ platí (ne jen že jsou napsaná) ---
+  OK    git check-ignore '.forge/node/.env' (tajemství)
+  OK    git check-ignore '.env' (tajemství)
+  OK    git check-ignore '.forge/provider.env' (klíč poskytovatele)
+
+--- 5) negativní kontrola: běžný soubor ignorovaný NENÍ ---
+  OK    'scripts/player.gd' ignorovaný NENÍ (test umí i opak)
+
+VÝSLEDEK: 15 kontrol, 0 chyb
+  OK   .gitignore hry chrání tajemství (kontrakt generátor ↔ hra)  — exit=0
+?     agent.yml:328  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."
+?     agent.yml:643  ($( v echo – obvykle záměr, zkontroluj)
+        echo "!! velká změna ($((add + del)) řádků, limit ${{ inputs.max_lines }})"; ok=0
+?     release.yml:92  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Automatický build ze commitu \`${GITHUB_SHA:0:7}\` ($(date -u '+%Y-%m-%d %H:%M UTC'))."
+?     agent.yml:338  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."
+?     agent.yml:643  ($( v echo – obvykle záměr, zkontroluj)
+        echo "!! velká změna ($((add + del)) řádků, limit ${{ inputs.max_lines }})"; ok=0
+?     release.yml:79  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Automatický build ze commitu \`${GITHUB_SHA:0:7}\` ($(date -u '+%Y-%m-%d %H:%M UTC'))."
+
+VÝSLEDEK: 0 vad, 6 echo s $( k posouzení (obvykle záměr)
+  OK   workflowy: žádné neescapované apostrofy v echo (bash by je spustil)  — exit=0
+=== vision.mjs – offline testy (mock API) ===
+  OK   proběhne celý tok (exit 0)
+  OK   projekce ze spec.json je ctvercova
+  OK   dlaždice ze spec.json jsou 24×24 (ne napevno 96×48)
+  OK   self-consistency proběhla (shoda=true)
+  OK   poslal právě 1 obrázek
+  OK   prompt obsahuje spočítaný obsah z mapy (6× floor, 2× wall)
+  OK   prompt nese styl hry z profilu
+  OK   prompt nese zákaz z profilu
+  OK   prompt neobsahuje jiná čísla dlaždic (žádné 96×48)
+  OK   profil s `popis_stylu` (nové jméno) styl NESMÍ ztratit
+  OK   profil bez stylu nespadne a prompt pošle (styl ze spec, nebo prázdný)
+  OK   neshoda dvou běhů je detekována (shoda=false)
+  OK   neshoda NEZHODÍ běh (exit 0) – je to signál, ne chyba
+  OK   neshoda je pojmenovaná v poznámce
+  OK   druhý běh je ve výstupu k dohledání
+  OK   shoda se pozná i při jiném pořadí položek
+  OK   diff proběhl (exit 0)
+  OK   diff poslal 2 obrázky
+  OK   diff prompt mluví o změnách a regresích
+  OK   vypnutá self-consistency = 1 volání
+  OK   shoda není vyplněná, když se neporovnává
+  OK   bez klíče hlásí chybějící klíč (exit 1)
+  OK   v chybě je jméno proměnné
+  OK   chybějící obrázek hlásí nenalezeno (exit 1)
+  OK   hláška obsahuje cestu
+  OK   diff s jedním obrázkem hlásí chybu (exit 2)
+  OK   ne-JSON odpověď se přijme a porovná volně (exit 0)
+  OK   baseline.py init proběhl (rozhraní pro cache funguje)
+  OK   schválený obrázek: model se NEVOLÁ (0 promptů)
+  OK   schválený obrázek: výstup to řekne (z_cache)
+  OK   schválený obrázek: exit 0
+  OK   schválený obrázek: důvod je pojmenovaný
+  OK   --force cache obejde a model se zavolá
+  OK   nedostupné API = exit 1
+  OK   i při selhání je ve výstupu JSON s pokusy
+  OK   bez profilu se řetěz bere z prostředí a chyba je srozumitelná
+
+Testů OK: 36, chyb: 0
+VŠE OK
+  OK   vision.mjs: offline testy (mock API) projdou  — exit=0
+  OK   profil vision existuje a je platný JSON  — hra=uo-shadows, režim očekávání=z_mapy
+  OK   profil NEobsahuje schéma hry (to patří do spec.json)  — _popis, verze, hra, ocekavany_obsah, mapa, styl_popis, zakazy_v_promptu, poskytovatele, self_consistency, _self_consistency, cache, stropy
+  OK   profil má zakázané soudy v promptu
+
+=== uo-shadows ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+=== repo (šablona) ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+Testů OK: 36, chyb: 0
+VŠE OK
+  OK   CI workflow: struktura a pořadí kroků  — exit=0
+=== 1. Extrakce guardu ze zdrojáku conductora ===
+  zdroj: C:\Users\Ssevc\Local-Deepseek\orchestra\conductor\src\index.ts
+  vytaženo: 7 řádků SQL
+  OK   SQL guardu se podařilo vytáhnout ze zdrojáku  — 7 řádků
+  OK   SQL obsahuje NOT EXISTS (guard blokuje, ne že by jen třídil)
+  OK   SQL čte tabulku roadmap
+  OK   SQL má bind parametr pro retry hours
+  OK   SQL NEFILTRUJE podle rm.status (invariant 13 — jinak se cooldown neuplatní)
+
+=== 2. Chování guardu (skutečný SQL z conductora) ===
+  scénář                                                čekáno  naměřeno  výsledek
+  ------------------------------------------------------------------------------------
+  NOVÁ granule (vznikla teď, neselhal)                    True     False  VADA (známá, opraví B1)
+  CHYBA scénář: NOVÁ granule (vznikla teď, neselhal)  — čekáno=True, naměřeno=False
+  selhalo před 10 min (v cooldownu)                      False     False  OK
+  OK   scénář: selhalo před 10 min (v cooldownu)  — čekáno=False, naměřeno=False
+  selhalo před 4 h (cooldown vypršel)                     True      True  OK
+  OK   scénář: selhalo před 4 h (cooldown vypršel)  — čekáno=True, naměřeno=True
+  řádek 'done' + nový ready úkol                          True      True  OK
+  OK   scénář: řádek 'done' + nový ready úkol  — čekáno=True, naměřeno=True
+  selhalo před 2 min, 'failed' (poslední pokus)          False     False  OK
+  OK   scénář: selhalo před 2 min, 'failed' (poslední pokus)  — čekáno=False, naměřeno=False
+
+ZNÁMÉ VADY (nejsou to vady testu — měří skutečný kód):
+  * NOVÁ granule (vznikla teď, neselhal): má se vydat=True, vydá se=False
+  → opravuje krok B1 plánu (`naposledy_selhalo` místo `updated_at`).
+    Po B1 test zčervená v OPAČNÉM směru a donutí scénář přepsat.
+
+VÝSLEDEK: 10 kontrol, 1 chyb
+NALEZENY CHYBY (viz výše — jde o naměřené vady kódu, ne testu)
+  CHYBA cooldown guard: SQL ze zdrojáku + chování (dnes nachází vadu S12 → B1)  — exit=1
+=== baseline.py – offline testy ===
+  OK   prázdná baseline = všechny sledované soubory jsou nové
+  OK   soubor s podtržítkem na začátku jména se needviduje
+  OK   evidují se i vrstvy z Blenderu
+  OK   po init je vše schválené
+  OK   schválený a nezměněný obrázek je v cache
+  OK   cache nese, kdo schválil
+  OK   vizuálně změněný obrázek NENÍ v cache
+  OK   důvod změny je pojmenovaný
+  OK   změna se objeví ve stavu jako ZMENA
+  OK   přeuložené PNG zůstane v cache (phash i barva jsou stejné)
+  OK   zamítnutý obrázek NENÍ v cache
+  OK   důvod je v historii zamítnutých
+  OK   obrázek mimo repo hry = není v cache (bez výjimky)
+  OK   historie verdiktů má 2 záznamy
+  OK   záznam verdiktu má čas
+  OK   baseline.json s BOM se načte
+  OK   jednolité barvě se phash nevěří (vrací None)
+  OK   změna jednolitého obrázku se POZNÁ (přes sha256)
+  OK   změna strukturovaného obrázku se pozná přes phash
+  OK   phash je na barvu SLEPÝ (doklad mezery: stejný hash pro jinou barvu)
+  OK   přebarvení se PŘESTO pozná (barevný podpis)
+  OK   důvod pojmenovává barvu
+  OK   CLI `kontrola` vrací JSON s v_cache
+  OK   CLI `kontrola` končí s exit 0
+
+Testů OK: 24, chyb: 0
+VŠE OK
+  OK   baseline.py: offline testy (včetně mezer phash) projdou  — exit=0
+  OK   baseline.py je v šabloně i v herním repu
+Baseline: C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.forge\vision\baseline.json
+  schváleno 2026-09-30T23:07:32+00:00, položek 272
+  dnes: schválených 272, změněných 0, nových 0
+  OK   baseline hry jde přečíst (0 = schváleno, 1 = čeká na LGTM)  — exit=0
+
+════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ════
+Kontrol: 23
+VŠE OK — A1 rozhoduje podle `ok && merged` a A2 ověřuje `owns` proti origin/main.
+  OK   A1/A2: `done` jen při ok && merged, `owns` proti origin/main, cache s TTL  — a1-a2-over.py → exit=0
+šablona  job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+hra      job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+
+OK: obě kopie mají 'exit 1' na konci kroku 'Když pravidla neprošla'.
+  OK   A3: krok „Když pravidla neprošla" končí `exit 1` v OBOU kopiích agent.yml  — a3-over.py → exit=0
+==============================================================================
+N8 — JE ANALÝZA JEŠTĚ PLATNÁ? (porovnání s kódem, ne s dokumentem)
+==============================================================================
+  analyzovaný dokument: ANALYZA-HLOUBKOVA-ORCHESTRA-2.md  (34076 znaků)
+
+  ⚠ ZASTARALÉ: §3.1/⑪: `tasks.status='done'` není ukotveno — rozhoduje `run.conclusion`
+     → A1: `done` teď závisí na `ok && merged` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §3.2: `auto-merge` při neúspěchu skončí zeleně (`exit 0` + komentář)
+     → A3: za krokem je `exit 1` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §⑪/2: `roadmap.status='done'` se neověřuje proti `origin/main`
+     → A2: ověřuje se proti stromu `origin/main` → tvrzení NEPLATÍ. POZOR: ptáme se na DEKLARACI I VOLÁNÍ — dokud se hledalo jen jméno, prošlo i přejmenování funkce, po kterém kód volá neexistující funkci
+  ⚠ ZASTARALÉ: §⑪/15: „PR sloučen" se bere z `conclusion` (S33 — mrtvá hodnota `merged`)
+     → A1/S33: do D1 se zapisuje stav `awaiting_human` → tvrzení NEPLATÍ. POZOR: ptáme se na ZAPSANÝ STAV (procházejí se VŠECHNY zápisy), ne na slovo v kódu — pouhá zmínka nestačí
+  ⚠ ZASTARALÉ: §3.2: gate — `size_lines` chybí u 13/18 a lint to nehlásí
+     → A4a: lint to hlásí → tvrzení NEPLATÍ
+  OK (aktuální): §⑪/4: `done_note` je mrtvé pole (0 čtenářů v kódu)
+  OK (aktuální): §⑪/9: `runs.artifacts` je mrtvý sloupec (zapisuje se, nikdo nečte)
+
+  zastaralých tvrzení: 5 z 7
+
+ZÁVĚR: analýza je SNAPSHOT k 2. 10. 2026 06:10 UTC a v některých
+tvrzeních se rozešla s kódem. Kdo ji čte jako POPIS SOUČASNOSTI,
+čte jiný stav, než jaký je. Proto má u sebe datum a odkaz na to,
+co z ní bylo provedeno (A1-A4 = IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md).
+  OK   stárnutí analýzy: porovnává její tvrzení s KÓDEM (ne s dokumentem)  — n8-zastarala-analyza.py → exit=0
+=== BOD 5: pět zastaralých tvrzení, ověřeno přímo v kódu ===
+
+  1) `tasks.status='done'` neni ukotveno — rozhoduje `run.conclusion`
+      -> NEPLATÍ (zastaralé)
+      dukaz: rozhodnuti je na `ok && merged`: 'if (ok && merged) {       await env.DB.prepare("UPDATE tasks SET statu'
+
+  2) `auto-merge` pri neuspechu skonci zelene (`exit 0` + komentar)
+      -> NEPLATÍ (zastaralé)
+      dukaz: posledni radek `run:` bloku kroku je 'exit 1'
+
+  3) `roadmap.status='done'` se neoveruje proti `origin/main`
+      -> NEPLATÍ (zastaralé)
+      dukaz: funkce `filesInOriginMain` v kodu: True, volani: 2x
+
+  4) „PR sloucen" se bere z `conclusion` (mrtva hodnota `merged`)
+      -> NEPLATÍ (zastaralé)
+      dukaz: `awaiting_human` v kodu: True; prvni zapis stavu do D1: 'done'
+
+  5) gate — `size_lines` chybi u 13/18 a lint to nehlasi
+      -> NEPLATÍ (zastaralé)
+      dukaz: lint obsahuje hlasku o chybejicim `size_lines`: True
+
+======================================================================
+  zastaralých (nezávisle): 5 z 5 -> [1, 2, 3, 4, 5]
+  `n8-zastarala-analyza.py` tvrdí: 5 z 7 (5 zastaralých + 2 kontrolní vzorky)
+
+VYSLEDEK: ČÍSLO SEDÍ — 5 zastaralých, ověřeno nezávisle na tom skriptu.
+  OK   týchž 5 tvrzení ověřených NEZÁVISLE na n8-* (jiné měřidlo, s úryvky kódu)  — b5-over-tvrzeni.py → exit=0
+════════════════════════════════════════════════════════════════════════════════
+INVENTÁŘ: _inventar.json  (stáří 0.00 h, 645181 B)
+════════════════════════════════════════════════════════════════════════════════
+
+CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚŘENÝ
+  otisk VSTUPŮ se rozešel — kód se od vzniku inventáře změnil:
+       v inventáři: 687858bd8585083f  (772 souborů)
+       teď:         506902fd25c85ee6  (772 souborů)
+
+  Slovy zadání: „nula a nezměřeno nejsou úspěch“. Nad tímhle
+  inventářem se NEDÁ tvrdit „0 vrácených“ — chybí mu právě ty
+  soubory, které se od jeho vzniku změnily.
+
+  Obnov inventář a spusť to znovu:
+    python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
+node : Traceback (most recent call last):
+At line:1 char:194
++ ... NG='utf-8'; node orchestra\tools\validate-all.mjs > _analyza\c3-valid ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\Ssevc\Local-Deepseek\_analyza\hl-rizika-jazyka.py", line 211, in <module>
+    print(f"    python _analyza\\{Path(__file__).name}")
+                                  ^^^^
+NameError: name 'Path' is not defined
+  CHYBA N1: inventář se hlásí stářím a otiskem vstupů; zastaralý SHODÍ nástroj  — hl-rizika-jazyka.py → exit=1
+  CHYBA c2-mutace.py: NEBYL spuštěn — zdroj obsahuje zápis  — nástroj, který přepisuje soubory, do validátoru nepatří
+
+════════════════════════════════════════════════════════════
+✗ NALEZENO 3 PROBLÉMŮ

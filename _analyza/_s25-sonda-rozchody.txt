@@ -1,0 +1,133 @@
+====================================================================================================
+  OKOLÍ 30 ROZCHODŮ (ze výpisu `_s25-audit2b-pred.txt`)
+====================================================================================================
+
+----------------------------------------------------------------------------------------------------
+  AGENTS.md:471   veličina=kontrol  tvrdí 23  zdroj 65
+    oddíl: ## Kam pro co
+    řádek: | `_analyza\test-neanglicky-skener.py` | **mutační test** toho skeneru (23 kontrol). Bez něj „0 nálezů" nic neznamená |
+
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:628   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **38** | „9 výskytů `.has(`" ze zadání je měření | **Je jich 10** (`scripts/*.gd`) a **18** v celém herním repu. Zadání vypisuje 2 vady + 6 Dictionary/Array + 2 komentáře = **10**, ale sou
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:743   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **95** | **Dokumentovat vadu v `AGENTS.md` ROZBILO mutační test, který tu vadu vrací** | přidal jsem do `AGENTS.md` odstavec, který vadu R1 **popisuje** — a v něm je `„32 sloupců"` **citov
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:743   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **95** | **Dokumentovat vadu v `AGENTS.md` ROZBILO mutační test, který tu vadu vrací** | přidal jsem do `AGENTS.md` odstavec, který vadu R1 **popisuje** — a v něm je `„32 sloupců"` **citov
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:582   veličina=dokumentů  tvrdí 35  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **21** | „35 souborů" v bráně diakritiky = 35 dokumentů | **Dva z těch 35 jsou vnořené soubory projektu** (`.forge\check-schema.py`, `.forge\vision-profile.json`) → **33 dokumentů + 2 soub
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:582   veličina=dokumentů  tvrdí 33  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **21** | „35 souborů" v bráně diakritiky = 35 dokumentů | **Dva z těch 35 jsou vnořené soubory projektu** (`.forge\check-schema.py`, `.forge\vision-profile.json`) → **33 dokumentů + 2 soub
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:583   veličina=dokumentů  tvrdí 8  zdroj 40
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **22** | `Get-Content` přečte UTF-8 dokument správně | **Ne** — načetl ho jako **cp1252**, rozbil diakritiku, vzor nenašel a **tabulka mi vyšla jako 0 řádků** | Vypadalo to jako nález („do
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:75   veličina=kontrol  tvrdí 19  zdroj 65
+    oddíl: ## 1. Co je HOTOVÉ (doloženo spuštěním, ne čtením)
+    řádek: | **A1** `done` jen při `ok && merged` + stav `awaiting_human` | ✅ | `_analyza\a1-a2-over.py` — **19 kontrol**, **3 mutace chyceny** |
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:99   veličina=kontrol  tvrdí 19  zdroj 65
+    oddíl: ## 1. Co je HOTOVÉ (doloženo spuštěním, ne čtením)
+    řádek: skener jazyka (23/23) · hl-rizika-jazyka (0/11/0) · A1/A2 (19 kontrol, 3 mutace)
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:102   veličina=kontrol  tvrdí 38  zdroj 65
+    oddíl: ## 1. Co je HOTOVÉ (doloženo spuštěním, ne čtením)
+    řádek: tsc --noEmit · testy hry (38 kontrol, 0 selhání) · parser témat (--test)
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:348   veličina=kontrol  tvrdí 19  zdroj 65
+    oddíl: ## 6. Jak ověřit, že to funguje (spustitelné)
+    řádek: | `python _analyza\a1-a2-over.py` | **19 kontrol**, `exit 0` |
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:354   veličina=kontrol  tvrdí 23  zdroj 65
+    oddíl: ## 6. Jak ověřit, že to funguje (spustitelné)
+    řádek: | `python _analyza\test-neanglicky-skener.py` | **23 kontrol, 0 chyb** |
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:356   veličina=kontrol  tvrdí 63  zdroj 65
+    oddíl: ## 6. Jak ověřit, že to funguje (spustitelné)
+    řádek: | `python orchestra\tools\over-dokumentaci.py` | **63 kontrol, 0 chyb** |
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:470   veličina=kontrol  tvrdí 63  zdroj 65
+    oddíl: ## 7. PICK UP HERE
+    řádek: `over-dokumentaci` → **63 kontrol**; `over-skilly` → **12 skillů**;
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:649   veličina=kontrol  tvrdí 60  zdroj 65
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **42** | „`move()` přes úroveň test nechytí" (podezření na slepou bránu) | **Chytí** — a **starý test taky** (`60 kontrol, 1 selhání`). Rozdíl je v tom, že starý hledá **text**, nový **cho
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:653   veličina=kontrol  tvrdí 57  zdroj 65
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **46** | „V `_analyza\a-ukol-scratch` dám stejné testy jako v hlavním klonu" | **`57 kontrol, 3 selhání`** — v čerstvém `git worktree` **chybí `.godot/`** (je v `.gitignore`), takže se nen
+----------------------------------------------------------------------------------------------------
+  HANDOFF.md:658   veličina=kontrol  tvrdí 60  zdroj 65
+    oddíl: ## 8. Vlastní omyly (všech session — tabulka je společná)
+    řádek: | **50** | „**Úkol B je hotový** — test `resolve()` volá, doloženo mutací 2/2" | **Úkol B nebyl v repu.** Blok s `combat.resolve()` jsem aplikoval **jen do pracovního stromu** `_analyza\a-uk
+
+----------------------------------------------------------------------------------------------------
+  PREDAVANI-SESSION.md:193   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 3. Hlavička zadání: kontrolní údaj proti zastaralosti
+    řádek: naměřeno u „32 sloupců" v `AGENTS.md`, nález **N9**).
+
+----------------------------------------------------------------------------------------------------
+  KRONIKA-PROJEKTU.md:118   veličina=kontrol  tvrdí 2  zdroj 65
+    oddíl: ## 2. Evidence nálezů (N, H, S, V, P) — kde jsou a co s nimi
+    řádek: | **H21** | **Tři čísla v dokladu §21 a v `NA15` se nedají zopakovat:** (a) §21.6 „`mutace A (5 běhů)` → **61**" — ta brána spouští **JEDEN** mód a dává **59/0** (popisek „5 běhů" je nepřesn
+----------------------------------------------------------------------------------------------------
+  KRONIKA-PROJEKTU.md:312   veličina=kontrol  tvrdí 39  zdroj 65
+    oddíl: ## 5. Poučení (lessons learned) — průběžně, s odkazem na zdroj
+    řádek: | **L4** | **Brána, která se ptá na PŘÍTOMNOST, neměří CHOVÁNÍ** | 3 PR prošla zeleným CI (39 kontrol, 0 selhání) a `save()` uložil 35 B | `AGENTS.md` |
+----------------------------------------------------------------------------------------------------
+  KRONIKA-PROJEKTU.md:313   veličina=kontrol  tvrdí 0  zdroj 65
+    oddíl: ## 5. Poučení (lessons learned) — průběžně, s odkazem na zdroj
+    řádek: | **L5** | **Brána, která NEPROBĚHLA, není červená — je NEZMĚŘENÁ** | `test-check-schema.py` 0 kontrol v sandboxu, **17/0** mimo | `overovani` §7.13 |
+
+----------------------------------------------------------------------------------------------------
+  PLAN-DALSI-KROK.md:135   veličina=bran  tvrdí 10  zdroj 30
+    oddíl: ## 2. Pořadí kroků (a proč právě takhle)
+    řádek: ### KROK 4 — 3 z 10 bran bez mutačního testu 🟡 STŘEDNÍ
+----------------------------------------------------------------------------------------------------
+  PLAN-DALSI-KROK.md:71   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 2. Pořadí kroků (a proč právě takhle)
+    řádek: | `sloupců` | **4** | **4** | všechny jsou **citace** `„32 sloupců"` |
+----------------------------------------------------------------------------------------------------
+  PLAN-DALSI-KROK.md:77   veličina=sloupců  tvrdí 32  zdroj 40
+    oddíl: ## 2. Pořadí kroků (a proč právě takhle)
+    řádek: zní *„naměřeno u „32 sloupců" v `AGENTS.md`, nález **N9**"* — tedy **citace**.
+----------------------------------------------------------------------------------------------------
+  PLAN-DALSI-KROK.md:175   veličina=dokumentů  tvrdí 57  zdroj 40
+    oddíl: ## 2. Pořadí kroků (a proč právě takhle)
+    řádek: `kontrola-diakritiky.py` **pořád obsahuje ruční seznam 57 dokumentů** a ten
+
+----------------------------------------------------------------------------------------------------
+  NEXT-SESSION-INSTRUKCE.md:16   veličina=omylů  tvrdí 6  zdroj 75
+    oddíl: 
+    řádek: > u léku na M3 něco, co **není pravda** (§22.3) — a **ona sama udělala 6 omylů,
+----------------------------------------------------------------------------------------------------
+  NEXT-SESSION-INSTRUKCE.md:92   veličina=omylů  tvrdí 6  zdroj 75
+    oddíl: ## 2. Co je naměřené (s příkazem a výstupem — ne s odkazem)
+    řádek: a znalostí všech pravidel se **5 z 6 omylů tváří jako cizí vina**.
+----------------------------------------------------------------------------------------------------
+  NEXT-SESSION-INSTRUKCE.md:81   veličina=kontrol  tvrdí 2  zdroj 65
+    oddíl: ## 2. Co je naměřené (s příkazem a výstupem — ne s odkazem)
+    řádek: | **H21** | Tři čísla v dokladu §21 se nedají zopakovat: „`mutace A (5 běhů)` → **61**" (ta brána spouští **JEDEN** mód a dává **59/0**), „**2 kontrolní**" (jsou **3**), „**1 205** řádků" (j
+----------------------------------------------------------------------------------------------------
+  NEXT-SESSION-INSTRUKCE.md:153   veličina=kontrol  tvrdí 2  zdroj 65
+    oddíl: ## 3. Úkoly (pořadí je závazné)
+    řádek: **59/0** (ne 61); (b) „2 kontrolní" → **3**; (c) „1 205 řádků" → **1 204**
+
+----------------------------------------------------------------------------------------------------
+  OTEVRENA-TEMATA.md:128   veličina=kontrol  tvrdí 40  zdroj 65
+    oddíl: ## Uzavřené
+    řádek: - [x] **Tarifní logika indikátoru + test** — 40 kontrol, 4 mutační, sabotáž ověřena
+
+====================================================================================================
+  SHRNUTÍ: rozchodů=30

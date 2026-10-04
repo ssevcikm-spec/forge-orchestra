@@ -1,3 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Ověří dostupnost poskytovatelů a změní, jak velký výstup zvládnou.
 //
 // Odpovídá na otázku „nemají velké modely problém s dávkou tokenů?" přímo:
@@ -5,7 +12,7 @@
 // dodrží formát SEARCH/REPLACE.
 import { readFileSync } from 'node:fs';
 
-const SECRETS = 'C:/Users/Ssevc/Local-Deepseek/orchestra/.secrets';
+const SECRETS = join(PARENT, '.secrets');
 const klic = (soubor) => {
   try { return readFileSync(`${SECRETS}/${soubor}`, 'utf8').replace(/^\uFEFF/, '').trim(); }
   catch { return ''; }

@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Doplní do šablony orchestra vstup `attempt` (spouští se jednou, je to nástroj).
 
 PowerShell cestu jsem zkoušel a přepisoval diakritiku (Get-Content -Raw +
@@ -10,7 +15,7 @@ import sys
 import yaml
 
 SABLONA = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\orchestra\repo\.github\workflows\agent.yml")
+    _PARENT / 'repo' / '.github' / 'workflows' / 'agent.yml')
 
 STARY_VSTUP = """      grain:
         description: 'ID granule v roadmapě (např. core.skills) – podle něj se bere owns, tedy soubory k editaci'

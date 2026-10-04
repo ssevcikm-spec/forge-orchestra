@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 r"""Najde v `run:` blocích workflowů echo, které bash NEBEZPEČNĚ vyhodnotí.
 
 PROČ TO EXISTUJE
@@ -54,8 +59,8 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 WF = [
-    pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\repo\.github\workflows"),
-    pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.github\workflows"),
+    pathlib.Path(_PARENT / 'repo' / '.github' / 'workflows'),
+    pathlib.Path(_PARENT / 'uo-shadows' / '.github' / 'workflows'),
 ]
 
 # Neescapovaný zpětný apostrof: není před ním liché množství zpětných lomítek.

@@ -1,9 +1,16 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Analyza posledniho behu kazdeho tasku: kdo odpovidal, kolik tokenu, zmenil neco,
 // prosla brana na parsovani, ktere testy padly.
 // Pouziti: node orchestra\tools\analyza-posledni.mjs [pocet_tasku]
 import { readFileSync } from 'node:fs';
 
-const ORCH = 'C:/Users/Ssevc/Local-Deepseek/orchestra';
+const ORCH = join(PARENT);
 const REPO = 'ssevcikm-spec/uo-shadows';
 const PAT = readFileSync(`${ORCH}/.secrets/github_pat.txt`, 'utf8').trim();
 const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'analyza' };

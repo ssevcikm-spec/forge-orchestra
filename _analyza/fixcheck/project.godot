@@ -1,0 +1,7 @@
+; Minimální Godot projekt pro měření OPRAVENÝCH save.gd a hud.gd.
+; Není to hra — je to měřidlo (kostra s registrem + stuby komponent).
+config_version=5
+
+[application]
+
+config/name="fixcheck"

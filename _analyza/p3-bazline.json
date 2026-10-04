@@ -1,0 +1,27 @@
+{
+  "orchestra": {
+    "cesta": "C:\\Users\\Ssevc\\Local-Deepseek\\orchestra",
+    "existuje": true,
+    "souboru": 5452,
+    "bajtu": 1233560017,
+    "MB": 1176.4
+  },
+  "hra": {
+    "cesta": "C:\\Users\\Ssevc\\Local-Deepseek\\games\\uo-shadows",
+    "existuje": true,
+    "souboru": 1787,
+    "bajtu": 16844988,
+    "MB": 16.1
+  },
+  "godot": {
+    "cesta": "C:\\Users\\Ssevc\\Local-Deepseek\\orchestra\\tools\\godot",
+    "existuje": true,
+    "souboru": 2,
+    "bajtu": 181057040,
+    "MB": 172.7
+  },
+  "orchestra_bez_godotu": {
+    "souboru": 5450,
+    "MB": 1003.7
+  }
+}

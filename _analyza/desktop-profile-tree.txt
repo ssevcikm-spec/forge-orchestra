@@ -1,0 +1,7 @@
+﻿DeepSeek Harness.exe : error: profile "desktop" is managed exclusively by the Electron application
+At line:1 char:297
++ ... lib\bin.js'; & $exe $bin --profile desktop --dump-config 2>&1 | Out-F ...
++                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: profile ...ron application:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

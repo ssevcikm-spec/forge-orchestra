@@ -4,6 +4,11 @@ Samostatný orchestr, který **vyvíjí hry** — plánuje, zadává úkoly bezp
 modelům v GitHub Actions, testuje a bezpečné změny sloučuje. Hra je pro něj jen
 **herní dokument** (DESIGN.md + roadmapa), ne součást orchestra.
 
+> **Pravidla pro agenty (trvalá, napříč session):** AGENTS.md — obsahuje
+> **projektová** pravidla orchestra (cesty po přesunu na E:, brány, jazyk,
+> jak dokumentovat). **Obecná pravidla stanice** (prostředí, ověřování) jsou
+> v DSH_HOME\AGENTS.md a načítají se v každé session samy.
+> **AGENTS.md popisuje pravidla, HANDOFF.md stav** — nepleť si je.
 **Je to jeden projekt, který se přepíná mezi vyvíjenými hrami.** Nemá žádnou
 vlastní hru — hry se registrují do registru her (`games` v D1) a kdykoli se dá
 přepnout na jinou. Aktuálně jede na `uo-shadows`.

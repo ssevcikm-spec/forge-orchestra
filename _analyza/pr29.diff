@@ -1,0 +1,89 @@
+diff --git a/scripts/hud.gd b/scripts/hud.gd
+new file mode 100644
+index 0000000..04b5ce4
+--- /dev/null
++++ b/scripts/hud.gd
+@@ -0,0 +1,76 @@
++extends CanvasLayer
++
++var _label: Label
++var _player: Node
++var _attributes: Node
++var _skills: Node
++var _economy: Node
++
++func _ready() -> void:
++    # Obtain references to needed singletons / grouped nodes
++    _player = get_tree().get_first_node_in_group("player")
++    _attributes = get_tree().get_first_node_in_group("attributes")
++    _skills = get_tree().get_first_node_in_group("skills")
++    _economy = get_tree().get_first_node_in_group("economy")
++
++    # Create a label for the HUD and place it in the top‑left corner
++    _label = Label.new()
++    _label.name = "HUDLabel"
++    _label.anchor_right = 0.0
++    _label.anchor_bottom = 0.0
++    _label.margin_left = 10
++    _label.margin_top = 10
++    add_child(_label)
++
++    update()
++
++func update() -> void:
++    # HP – assume player has a public getter `hp` or method `get_hp()`
++    var hp: int = 0
++    if _player != null:
++        if _player.has_method("get_hp"):
++            hp = _player.get_hp()
++        elif _player.has_property("hp"):
++            hp = _player.hp
++
++    # Attributes – use public getter `get(attr: String) -> int`
++    var str_val: int = 0
++    var dex_val: int = 0
++    var int_val: int = 0
++    if _attributes != null and _attributes.has_method("get"):
++        str_val = _attributes.get("Str")
++        dex_val = _attributes.get("Dex")
++        int_val = _attributes.get("Int")
++
++    # Skills – use public getter `hodnota(skill: String) -> int`
++    var tezba: int = 0
++    var drevorubectvi: int = 0
++    var kovarstvi: int = 0
++    var boj_na_blizko: int = 0
++    if _skills != null and _skills.has_method("hodnota"):
++        tezba = _skills.hodnota("tezba")
++        drevorubectvi = _skills.hodnota("drevorubectvi")
++        kovarstvi = _skills.hodnota("kovarstvi")
++        boj_na_blizko = _skills.hodnota("boj_na_blizko")
++
++    # Gold – economy provides a getter `gold(player: Node) -> int`
++    var gold: int = 0
++    if _economy != null and _economy.has_method("gold"):
++        gold = _economy.gold(_player)
++
++    # Equipped weapon / armor – assume player has a getter `equipped` or method `get_equipped()`
++    var equipped: String = ""
++    if _player != null:
++        if _player.has_method("get_equipped"):
++            equipped = _player.get_equipped()
++        elif _player.has_property("equipped"):
++            equipped = str(_player.equipped)
++
++    # Build the HUD text
++    _label.text = (
++        "HP: %d\n" % hp +
++        "Str: %d  Dex: %d  Int: %d\n" % [str_val, dex_val, int_val] +
++        "Skills – tezba: %d, drevorubectvi: %d, kovarstvi: %d, boj_na_blizko: %d\n" % [tezba, drevorubectvi, kovarstvi, boj_na_blizko] +
++        "Gold: %d\n" % gold +
++        "Equipped: %s" % equipped
++    )
+diff --git a/scripts/hud.gd.uid b/scripts/hud.gd.uid
+new file mode 100644
+index 0000000..f6a7c45
+--- /dev/null
++++ b/scripts/hud.gd.uid
+@@ -0,0 +1 @@
++uid://brlsjqlxdt1qb

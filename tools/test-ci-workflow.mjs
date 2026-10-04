@@ -1,3 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Ověří CI workflow bez GitHubu: YAML je platný, kroky sedí, odkazy na soubory
 // existují a pořadí kroků odpovídá tomu, co je potřeba.
 //
@@ -30,8 +37,8 @@ function test(nazev, podminka, detail = '') {
 }
 
 const CILE = [
-  ['uo-shadows', 'C:/Users/Ssevc/Local-Deepseek/games/uo-shadows'],
-  ['repo (šablona)', 'C:/Users/Ssevc/Local-Deepseek/orchestra/repo'],
+  ['uo-shadows', join(PARENT, 'uo-shadows')],
+  ['repo (šablona)', join(PARENT, 'repo')],
 ];
 
 for (const [nazev, koren] of CILE) {

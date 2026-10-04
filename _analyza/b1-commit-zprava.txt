@@ -1,0 +1,28 @@
+B1: naposledy_selhalo misto updated_at (vada S12) + oprava test-cooldown fixture
+
+Cooldown guard se ptal na `roadmap.updated_at`, coz je ale i cas VZNIKU
+radku (`INSERT ... status='queued', updated_at=datetime('now')`). Nova
+granule proto vypadala jako "prave selhala" a RETRY_HOURS se na ni vztahl
+- 3 h se nevydala. Namereno `tools/test-cooldown.py`.
+
+Zmeny:
+- conductor/schema.sql: novy sloupec roadmap.naposledy_selhalo (+ komentar
+  s migracnim ALTER pro stare tabulky)
+- conductor/src/index.ts:
+  * self-migrace prida sloupec do zive D1 (idempotentne, jako updated_at)
+  * OBĚ mista, kde se do roadmapy zapisuje selhani, plni naposledy_selhalo
+    (pollRuns i /report - /report ho plni i u opakovatelneho selhani,
+    ne jen u posledniho pokusu)
+  * OBĚ cooldown guardy ctou naposledy_selhalo: roadmapTick (`r.rfail`)
+    i dispatch smycka (`rm.naposledy_selhalo`)
+  * zaroven se tim rusi S12 u #145 a #146, ktere drzel v cooldownu
+- tools/test-cooldown.py: oprava VADY FIXTURE - `vloz()` plnil
+  naposledy_selhalo pres `datetime('now', ?)`, kde je `?` argumentem
+  FUNKCE, ne hodnotou sloupce; SQLite ulozil doslovny retezec
+  '-10 minutes', ktery se v porovnani `>` chova jako 0. Cas se proto
+  pocita v Pythonu (`_cas_pred`). Ocekavani scenaru se otocilo: vsech
+  5 scenaru je nyni OK (drive "NOVA granule" vychazela jako VADA).
+- tools/validate-all.mjs: sekce L vi o hl-rizika-jazyka.py (N1: stari
+  inventare + otisk vstupu) a o tom, proc c2-mutace.py do ni nepatri.
+
+Overeno: tsc --noEmit exit 0; test-cooldown.py 10 kontrol, 0 chyb, exit 0.

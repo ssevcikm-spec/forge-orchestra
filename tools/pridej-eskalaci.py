@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Doplní do conductora eskalaci: po N neúspěších POŠLI NOTIFIKACI (nic nevypínej).
 
 Zadání uživatele: „přepni to jen na notifikaci na telegram" — tedy žádné
@@ -23,9 +28,9 @@ import pathlib
 import sys
 
 CONDUCTOR = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\orchestra\conductor\src\index.ts")
+    _PARENT / 'conductor' / 'src' / 'index.ts')
 WRANGLER = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\orchestra\conductor\wrangler.toml")
+    _PARENT / 'conductor' / 'wrangler.toml')
 
 # Kotva, za kterou se funkce vloží (za notify, aby byla po ruce).
 KOTVA = """// ------------------------------------------------------- polling běhů ----"""

@@ -1,0 +1,43 @@
+Oprava slepých bran a odvození odkazu z názvu repa (fáze A + D1)
+
+Fáze A plánu (PLAN-ROZVOJ-ORCHESTRA.md §3.5) a krok D1. Každá změna je
+doložená spuštěním, ne odhadem.
+
+A1 tools/validate-all.mjs
+  - volal `tools/kontrola-schematu.py`, tedy SLEPOU kopii pravidla; správný
+    zdroj je `repo/.forge/check-schema.py` (tentýž soubor dostane hra).
+  - skončil vždy exit 0, i když vypsal "NALEZENO 3 PROBLEMU" -> brána, která
+    nemá jak selhat. Nyní `process.exitCode = chyb === 0 ? 0 : 1`.
+  - doplněn offline test cooldown-guardu (viz A3).
+  Naměřeno: `node tools/validate-all.mjs` -> "NALEZENO 4 PROBLEMU", exit 1.
+
+A2 tools/kontrola-schematu.py SMAZAN (305 řádků)
+  - druhá kopie téhož pravidla, která po migraci na izometrii nenašla žádné
+    vzory a hlásila ZELENOU tam, kde správná kopie v `.forge/` měří 96x48 px
+    a pojmenuje mrtvou větev. Dvě kopie jednoho pravidla = slepé místo.
+
+A3 tools/test-cooldown.py
+  - SQL si OPSAL (vlastní kopie podmínky, včetně STARÉ děravé varianty
+    s `rm.status='failed'`), takže změna v conductoru ho minula.
+    Nyní se SQL vytahuje ZE ZDROJÁKU conductora a pouští v SQLite.
+  - neměl `assert` ani `sys.exit` -> vypsal CHYBA a skončil exit 0.
+    Nyní má obojí a nenulový exit kód.
+  Naměřeno: "10 kontrol, 1 chyb", exit 1 - a ta 1 chyba JE vada S12
+  (nová granule se 3 h nevydá). Červená je správná odpověď; opraví ji B1.
+
+D1 repo/.github/workflows/release.yml
+  - odkaz na web se ODVOZUJE z `${{ github.repository }}`. Dřív tu byl natvrdo
+    `forge-quest` (JINÁ živá hra), pak zástupný text `NAZEV-REPA`, který se
+    nikde nenahrazuje (instalátor kopíruje `.github` bez substitucí).
+  Naměřeno: v pracovním stromě 0x `NAZEV-REPA`, v HEAD 3x.
+
+Navíc:
+  - repo/.forge/check-schema.py: obecnost šablony - 12 zmínek o `uo-shadows`
+    na 0. Konkrétní důkaz patří hře, ne šabloně (test: "platí to i pro hru,
+    která ještě neexistuje?"). Obě kopie brány zůstávají BAJTOVĚ SHODNÉ.
+  - tools/kontrola-diakritiky.py: pevný seznam 22 souborů, takže nový dokument
+    procházel zeleně, aniž ho kontrola otevřela (S27). Doplněny 4 dokumenty.
+  - README.md: "stav obálky" přepsán na skutečný stav (F0 uzavřeno) a zůstává
+    pojmenovaná jediná mrtvá cesta v obálce (`FORGE_CMD` ve worker.mjs).
+
+Nic z toho není pushnuté.

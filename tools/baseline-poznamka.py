@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Doplní do baseline.json poctivou poznámku: stav PŘEVZAT, čeká na kontrolu.
 
 PROČ: `baseline.py init` zapíše `schvalil: clovek`, protože předpokládá, že ho
@@ -17,7 +22,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 CESTA = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.forge\vision\baseline.json")
+    _PARENT / 'uo-shadows' / '.forge' / 'vision' / 'baseline.json')
 
 POZNAMKA = ("PŘEVZATO AGENTEM 30. 9. 2026 – čeká na lidskou kontrolu. "
             "Sprity jsou ze schváleného milníku 1 (`assets/spec.json`, `_stav`), "

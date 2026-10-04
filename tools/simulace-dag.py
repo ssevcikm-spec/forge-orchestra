@@ -1,3 +1,8 @@
+import pathlib as _pl
+
+# P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
+# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+_PARENT = _pl.Path(__file__).resolve().parents[1]
 """Simulace DAG: co odblokuje dokončení které granule.
 
 Odpovídá na „dá se zlepšit úspěšnost" z pohledu plánu: ukáže, jaké je pořadí
@@ -10,7 +15,7 @@ import pathlib
 import sys
 
 ROADMAP = pathlib.Path(
-    r"C:\Users\Ssevc\Local-Deepseek\games\uo-shadows\.forge\roadmap.json")
+    _PARENT / 'uo-shadows' / '.forge' / 'roadmap.json')
 
 # Hotovo podle conductora (D1) – granule, jejichž PR se sloučil.
 HOTOVE_V_D1 = {"core.attributes", "entity.item", "sim.economy", "world.map"}

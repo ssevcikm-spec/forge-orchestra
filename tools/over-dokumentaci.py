@@ -17,7 +17,8 @@ SKILLS = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
 # OD 4. 10. 2026 sem patří obecné části trvalých pravidel — projektové AGENTS.md
 # je už nenese, aby se nezdvojovaly (viz PLAN-SEPARACE-WORKSPACE.md).
 OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
-README = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek\orchestra\README.md")
+REPO = pathlib.Path(__file__).resolve().parents[1]
+STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")  # P8 (presun na E:): dokumenty, ktere zustaly stanici (D6)
 
 # Typické znaky dvojitého kódování (UTF-8 přečtené jako Windows-1250)
 ROZBITE = ["Ã", "Ä", "Å", "Å¡", "Ä›", "Ã¡", "Ã­", "Ã©"]
@@ -75,7 +76,7 @@ def zkontroluj(cesta: pathlib.Path, pozadovane: list[str], popis: str) -> None:
 
 
 print("=== orchestra/README.md ===")
-zkontroluj(README, [
+zkontroluj(REPO / "README.md", [
     "Jak agent dostane soubory",
     "Opakované pokusy: každý zkusí jiný model",
     "Nástroje pro analýzu",
@@ -90,6 +91,18 @@ zkontroluj(README, [
     "tenhle postup je v dnešním kódu NEBEZPEČNÝ",
     "Stav obálky k 1. 10. 2026",
 ], "README")
+
+print("=== README.md (STANICE) — vztahy k ostatnim repum ===")
+# P8 (presun na E:, 4. 10. 2026): ctyri texty niz popisuji STANICI
+# (orchestra vs. ostatni repozitare), ne projekt — a README stanice
+# zustal na C: (D6). Puvodne je brana hledala v README repa, coz po
+# presunu hlasilo chybu u spravneho souboru.
+zkontroluj(STANICE / "README.md", [
+    "AGENTS.md",
+    "jsou ŽIVÉ",
+    "odvozuje z názvu repa",
+    "zjisti-pages.mjs",
+], "README stanice")
 
 print("=== orchestra/SKILL.md ===")
 zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
@@ -177,8 +190,7 @@ zkontroluj(SKILLS / "game-assets" / "SKILL.md", [
 ], "game-assets slepé místo")
 
 print("=== workspace: MOZNOSTI-AGENTA.md + FORGE-ORCHESTRA-MOZNOSTI.md ===")
-WS = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
-zkontroluj(WS / "MOZNOSTI-AGENTA.md", [
+zkontroluj(STANICE / "MOZNOSTI-AGENTA.md", [
     "read_image",
     "Blender 5.2.1 LTS",
     "gameforge\\tools\\venv\\Scripts\\python.exe` **neexistuje**",
@@ -186,7 +198,7 @@ zkontroluj(WS / "MOZNOSTI-AGENTA.md", [
     # 30. 9. 2026: brána je slepá na soubory, které neleží tam, kam čeká.
     "brána se na to nedívá",
 ], "MOZNOSTI-AGENTA")
-zkontroluj(WS / "FORGE-ORCHESTRA-MOZNOSTI.md", [
+zkontroluj(REPO / "FORGE-ORCHESTRA-MOZNOSTI.md", [
     "vision.mjs",
     '"target": "lan"',
     "kontaktni-arch.py",
@@ -196,7 +208,7 @@ zkontroluj(WS / "FORGE-ORCHESTRA-MOZNOSTI.md", [
 ], "FORGE-ORCHESTRA-MOZNOSTI")
 
 print("=== PLAN-VISION-ORCHESTRA.md ===")
-zkontroluj(WS / "PLAN-VISION-ORCHESTRA.md", [
+zkontroluj(REPO / "PLAN-VISION-ORCHESTRA.md", [
     # metoda volání – jádro plánu
     "neposílat hodnocení, posílat očekávání",
     "self-consistency",
@@ -313,7 +325,7 @@ zkontroluj(OBECNA, [
 ], "AGENTS.md obecná (DSH_HOME)")
 
 print("=== workspace: AGENTS.md (PRAVIDLA PROJEKTU) ===")
-zkontroluj(WS / "AGENTS.md", [
+zkontroluj(REPO / "AGENTS.md", [
     # Musí být jasné, čím se liší od HANDOFF.md.
     "trvalá pravidla",
     "HANDOFF.md",
@@ -347,14 +359,10 @@ zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
 ], "orchestra nález brány")
 
 print("=== workspace: README + FORGE-ORCHESTRA-MOZNOSTI ===")
-zkontroluj(WS / "README.md", [
-    "AGENTS.md",
+zkontroluj(REPO / "README.md", [
     # forge-quest je ŽIVÁ hra, ne mrtvá minulost.
-    "jsou ŽIVÉ",
-    "odvozuje z názvu repa",
-    "zjisti-pages.mjs",
 ], "workspace README")
-zkontroluj(WS / "FORGE-ORCHESTRA-MOZNOSTI.md", [
+zkontroluj(REPO / "FORGE-ORCHESTRA-MOZNOSTI.md", [
     # Nález 11: brána po migraci tiše přestala měřit.
     "TIŠE PŘESTALA MĚŘIT",
     "prázdným seznamem",
@@ -365,7 +373,7 @@ zkontroluj(WS / "FORGE-ORCHESTRA-MOZNOSTI.md", [
 ], "FORGE-ORCHESTRA-MOZNOSTI nález 11")
 
 print("=== PLAN-VISION-ORCHESTRA: past 4 + počty testů ===")
-zkontroluj(WS / "PLAN-VISION-ORCHESTRA.md", [
+zkontroluj(REPO / "PLAN-VISION-ORCHESTRA.md", [
     "Čtyři pasti, které se při migraci našly",
     "TIŠE PŘESTALA MĚŘIT",
     "test-check-schema.py",
@@ -375,7 +383,7 @@ zkontroluj(WS / "PLAN-VISION-ORCHESTRA.md", [
 ], "PLAN-VISION past 4")
 
 print("=== SKILLY-AKTUALIZACE: pátá vlna ===")
-zkontroluj(WS / "SKILLY-AKTUALIZACE.md", [
+zkontroluj(REPO / "SKILLY-AKTUALIZACE.md", [
     "pátá vlna",
     "dsh-prostredi",
     # Čtyři chyby v regexu, které odhalily až testy.

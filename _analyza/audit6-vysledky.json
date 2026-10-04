@@ -1,0 +1,101 @@
+{
+  "vysledky": [
+    {
+      "brana": "handoff úplnost",
+      "test": "handoff-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 3.0,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "zadání kontrola",
+      "test": "zadani-mutace.py",
+      "exit": 1,
+      "chyceno": "—",
+      "sekundy": 13.3,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "over-dokumentaci",
+      "test": "over-dokumentaci-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 2.9,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "lint-roadmapa",
+      "test": "h17-mutace-a.py",
+      "exit": 1,
+      "chyceno": "—",
+      "sekundy": 0.5,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "test-cooldown",
+      "test": "mutace-testu.py",
+      "exit": 1,
+      "chyceno": "—",
+      "sekundy": 1.0,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "ag-over-cisla",
+      "test": "ag-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 9.6,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "a1-a2-over",
+      "test": "a1-a2-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 6.0,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "a3-over",
+      "test": "a3-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 3.2,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "n8-zastarala",
+      "test": "n8-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 7.3,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "b5-over-tvrzeni",
+      "test": "b5-mutace.py",
+      "exit": 0,
+      "chyceno": "—",
+      "sekundy": 2.9,
+      "zmena_repu": {}
+    },
+    {
+      "brana": "(inventář auditu)",
+      "test": "audit1-mutace.py",
+      "exit": 0,
+      "chyceno": "3",
+      "sekundy": 19.5,
+      "zmena_repu": {}
+    }
+  ],
+  "brany_bez_testu": [
+    "C1: a3-kontrola",
+    "C1: důkaz selhání",
+    "over-skilly",
+    "f2 over cooldown",
+    "deploy B1",
+    "tsc (conductor)",
+    "validate-all (CELEK)"
+  ]
+}

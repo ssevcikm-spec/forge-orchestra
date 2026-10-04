@@ -1,0 +1,83 @@
+====================================================================================================
+AUDIT 6 — UMÍ KAŽDÁ BRÁNA SPADNOUT?
+====================================================================================================
+
+  brána                          mutační test             v g3?    co doložil
+  ----------------------------------------------------------------------------------------------
+  testy hry (Godot)              a-mutace-run.py          ANO      5 módů mutace nad testy hry
+  mutace A (5 běhů)              a-mutace-run.py          ANO      je sám mutační běh
+  mutace A: pres-level           a-mutace-run.py          ANO      je sám mutační běh
+  mutace B (combat)              b-mutace.py              ANO      2 vady, 2 chyceny
+  C1: a3-kontrola                — ŽÁDNÝ —                ne       —
+  C1: důkaz selhání              — ŽÁDNÝ —                ne       —
+  C2: mutace N1 (5 běhů)         c2-mutace.py             ANO      5 běhů
+  C2: sebekontrola diakritiky    g1-mutace-diakritika.py  ANO      75 náhradních znaků
+  diakritika (brána)             g1-mutace-diakritika.py  ANO      viz výš
+  handoff úplnost                handoff-mutace.py        ne       1 kotva smazána → 82/83 (Úkol 4)
+  kronika úplnost                t3-kronika-mutace.py     ANO      6 případů
+  kronika mutace (6 případů)     t3-kronika-mutace.py     ANO      je sám mutační test
+  diakritika nových souborů      g1-mutace-diakritika.py  ANO      viz výš
+  zadání kontrola                zadani-mutace.py         ne       mimo g3
+  over-dokumentaci               over-dokumentaci-mutace. ne       rozříznutý výraz → exit 1 (Úkol 4)
+  over-skilly                    — ŽÁDNÝ —                ne       —
+  lint-roadmapa                  h17-mutace-a.py          ne       mimo g3 (h17-*)
+  check-schema (hra)             test-check-schema.py     ne       17 kontrol, mimo g3
+  test-cooldown                  mutace-testu.py          ne       mimo g3
+  f2 over cooldown               — ŽÁDNÝ —                ne       —
+  deploy B1                      — ŽÁDNÝ —                ne       —
+  ag-over-cisla                  ag-mutace.py             ne       5/5 mutací
+  a1-a2-over                     a1-a2-mutace.py          ne       4/4 na živém index.ts
+  a3-over                        a3-mutace.py             ne       vada v herní kopii
+  n8-zastarala                   n8-mutace.py             ne       3/3
+  b5-over-tvrzeni                b5-mutace.py             ne       přejmenovaný identifikátor → 4 z 5 (Úkol 4)
+  n1-over-inventar               c2-mutace.py             ANO      kryto C2
+  tsc (conductor)                — ŽÁDNÝ —                ne       kompilátor — mutace nedává smysl
+  validate-all (CELEK)           — ŽÁDNÝ —                ne       —
+  (inventář auditu)              audit1-mutace.py         ne       3/3 — vlastní test
+
+  Brány BEZ mutačního testu: 7 z 30
+      C1: a3-kontrola
+      C1: důkaz selhání
+      over-skilly
+      f2 over cooldown
+      deploy B1
+      tsc (conductor)
+      validate-all (CELEK)
+
+====================================================================================================
+  SPOUŠTÍM MUTAČNÍ TESTY, KTERÉ `g3-brany.py` NEBĚŽÍ: 11
+====================================================================================================
+
+  čistota repů PŘED: {'orchestra': 1, 'uo-shadows': 0}
+
+  handoff úplnost                    handoff-mutace.py        exit=0    chyceno: —          0.3 s
+  zadání kontrola                    zadani-mutace.py         exit=0    chyceno: —          1.2 s
+  over-dokumentaci                   over-dokumentaci-mutace.py exit=0    chyceno: —          0.3 s
+  lint-roadmapa                      h17-mutace-a.py          exit=1    chyceno: —          0.1 s
+  test-cooldown                      mutace-testu.py          exit=1    chyceno: —          0.1 s
+  ag-over-cisla                      ag-mutace.py             exit=0    chyceno: —          3.3 s
+  a1-a2-over                         a1-a2-mutace.py          exit=0    chyceno: —          0.5 s
+  a3-over                            a3-mutace.py             exit=0    chyceno: —          0.5 s
+  n8-zastarala                       n8-mutace.py             exit=0    chyceno: —          2.9 s
+  b5-over-tvrzeni                    b5-mutace.py             exit=0    chyceno: —          0.3 s
+  (inventář auditu)                  audit1-mutace.py         exit=0    chyceno: 3          6.2 s
+
+  čistota repů PO:   {'orchestra': 1, 'uo-shadows': 0}
+
+====================================================================================================
+  SOUHRN
+====================================================================================================
+  spuštěno mutačních testů mimo g3 : 11
+  z toho v pořádku (exit 0, uklizeno): 9
+
+  ⚠ PROBLÉMY:
+      h17-mutace-a.py                exit=1  změny v repech: —
+      mutace-testu.py                exit=1  změny v repech: —
+
+  Brány s doloženým mutačním testem : 23 z 30
+  Brány BEZ jakéhokoli důkazu       : 7
+
+  ⚠ CO TENHLE SKRIPT NEDOKAZUJE: že mutační test je SILNÝ.
+    Dokazuje jen, že existuje a že po vrácení vady brána spadne.
+    U bran bez testu platí `overovani`: „nemáš zelenou — máš jen ticho.“
+  JSON: _analyza\audit6-vysledky.json

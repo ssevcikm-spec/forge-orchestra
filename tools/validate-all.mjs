@@ -1,9 +1,16 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Kompletni validace infrastruktury orchestra.
 import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const ORCH = 'C:/Users/Ssevc/Local-Deepseek/orchestra';
-const GAME = 'C:/Users/Ssevc/Local-Deepseek/games/uo-shadows';
+const ORCH = join(PARENT);
+const GAME = join(PARENT, 'uo-shadows');
 const GAMEREPO = 'ssevcikm-spec/uo-shadows';
 const ORCHREPO = 'ssevcikm-spec/forge-orchestra';
 const PAT = readFileSync(`${ORCH}/.secrets/github_pat.txt`, 'utf8').trim();

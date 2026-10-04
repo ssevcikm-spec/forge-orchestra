@@ -1,0 +1,238 @@
+{
+  "wall_time_celkem_s": 42.17,
+  "soucet_bran_s": 42.15,
+  "bran": [
+    {
+      "poradi": 1,
+      "brana": "testy hry (Godot)",
+      "prikaz": "C:\\Users\\Ssevc\\Local-Deepseek\\orchestra\\tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path C:\\Users\\Ssevc\\Local-Deepseek\\games\\uo-shadows --script res://tests/run_tests.gd",
+      "sekundy": 0.5,
+      "exit": "OK",
+      "otevrela": "65 / 0"
+    },
+    {
+      "poradi": 2,
+      "brana": "mutace A (5 běhů)",
+      "prikaz": "python _analyza/a-mutace-run.py pred-opravou",
+      "sekundy": 0.56,
+      "exit": "OK",
+      "otevrela": "59 / 0"
+    },
+    {
+      "poradi": 3,
+      "brana": "mutace A: pres-level",
+      "prikaz": "python _analyza/a-mutace-run.py pres-level",
+      "sekundy": 0.75,
+      "exit": "exit=1",
+      "otevrela": "61 / 1"
+    },
+    {
+      "poradi": 4,
+      "brana": "mutace B (combat)",
+      "prikaz": "python _analyza/b-mutace.py _analyza/a-ukol-scratch",
+      "sekundy": 1.61,
+      "exit": "OK",
+      "otevrela": "2 / 2"
+    },
+    {
+      "poradi": 5,
+      "brana": "C1: a3-kontrola",
+      "prikaz": "node _analyza/a3-kontrola.mjs",
+      "sekundy": 2.0,
+      "exit": "OK",
+      "otevrela": "50 / 16"
+    },
+    {
+      "poradi": 6,
+      "brana": "C1: důkaz selhání",
+      "prikaz": "python _analyza/c1-dukaz-selhani.py",
+      "sekundy": 3.99,
+      "exit": "OK",
+      "otevrela": "—"
+    },
+    {
+      "poradi": 7,
+      "brana": "C2: mutace N1 (5 běhů)",
+      "prikaz": "python _analyza/c2-mutace.py",
+      "sekundy": 5.28,
+      "exit": "OK",
+      "otevrela": "—"
+    },
+    {
+      "poradi": 8,
+      "brana": "C2: sebekontrola diakritiky",
+      "prikaz": "python _analyza/g1-mutace-diakritika.py",
+      "sekundy": 0.39,
+      "exit": "OK",
+      "otevrela": "75"
+    },
+    {
+      "poradi": 9,
+      "brana": "diakritika (brána)",
+      "prikaz": "python orchestra/tools/kontrola-diakritiky.py",
+      "sekundy": 0.16,
+      "exit": "OK",
+      "otevrela": "36299"
+    },
+    {
+      "poradi": 10,
+      "brana": "handoff úplnost",
+      "prikaz": "python _analyza/handoff-kontrola-uplnost.py",
+      "sekundy": 0.07,
+      "exit": "OK",
+      "otevrela": "83"
+    },
+    {
+      "poradi": 11,
+      "brana": "kronika úplnost",
+      "prikaz": "python _analyza/kronika-kontrola.py",
+      "sekundy": 9.66,
+      "exit": "OK",
+      "otevrela": "75"
+    },
+    {
+      "poradi": 12,
+      "brana": "kronika mutace (6 případů)",
+      "prikaz": "python _analyza/t3-kronika-mutace.py",
+      "sekundy": 0.53,
+      "exit": "OK",
+      "otevrela": "6"
+    },
+    {
+      "poradi": 13,
+      "brana": "diakritika nových souborů",
+      "prikaz": "python _analyza/g1-diakritika-novych.py",
+      "sekundy": 0.34,
+      "exit": "OK",
+      "otevrela": "428"
+    },
+    {
+      "poradi": 14,
+      "brana": "zadání kontrola",
+      "prikaz": "python _analyza/zadani-kontrola.py",
+      "sekundy": 0.63,
+      "exit": "OK",
+      "otevrela": "268"
+    },
+    {
+      "poradi": 15,
+      "brana": "over-dokumentaci",
+      "prikaz": "python orchestra/tools/over-dokumentaci.py",
+      "sekundy": 0.07,
+      "exit": "OK",
+      "otevrela": "10"
+    },
+    {
+      "poradi": 16,
+      "brana": "over-skilly",
+      "prikaz": "python orchestra/tools/over-skilly.py",
+      "sekundy": 0.11,
+      "exit": "OK",
+      "otevrela": "12"
+    },
+    {
+      "poradi": 17,
+      "brana": "lint-roadmapa",
+      "prikaz": "python orchestra/tools/lint-roadmapa.py games/uo-shadows",
+      "sekundy": 0.08,
+      "exit": "OK",
+      "otevrela": "13 / 22"
+    },
+    {
+      "poradi": 18,
+      "brana": "check-schema (hra)",
+      "prikaz": "python orchestra/repo/.forge/check-schema.py games/uo-shadows",
+      "sekundy": 0.15,
+      "exit": "OK",
+      "otevrela": "Schéma je v souladu"
+    },
+    {
+      "poradi": 19,
+      "brana": "test-cooldown",
+      "prikaz": "python orchestra/tools/test-cooldown.py",
+      "sekundy": 0.07,
+      "exit": "OK",
+      "otevrela": "10 / 0"
+    },
+    {
+      "poradi": 20,
+      "brana": "f2 over cooldown",
+      "prikaz": "python _analyza/f2-over-cooldown.py",
+      "sekundy": 0.15,
+      "exit": "OK",
+      "otevrela": "10 / 0"
+    },
+    {
+      "poradi": 21,
+      "brana": "deploy B1",
+      "prikaz": "node _analyza/f3-over-deploy.mjs 7c11b2d",
+      "sekundy": 1.95,
+      "exit": "OK",
+      "otevrela": "50"
+    },
+    {
+      "poradi": 22,
+      "brana": "ag-over-cisla",
+      "prikaz": "python _analyza/ag-over-cisla.py",
+      "sekundy": 0.8,
+      "exit": "OK",
+      "otevrela": "36299"
+    },
+    {
+      "poradi": 23,
+      "brana": "a1-a2-over",
+      "prikaz": "python _analyza/a1-a2-over.py",
+      "sekundy": 0.07,
+      "exit": "OK",
+      "otevrela": "23"
+    },
+    {
+      "poradi": 24,
+      "brana": "a3-over",
+      "prikaz": "python _analyza/a3-over.py",
+      "sekundy": 0.17,
+      "exit": "OK",
+      "otevrela": "1"
+    },
+    {
+      "poradi": 25,
+      "brana": "n8-zastarala",
+      "prikaz": "python _analyza/n8-zastarala-analyza.py",
+      "sekundy": 0.56,
+      "exit": "OK",
+      "otevrela": "5 / 7"
+    },
+    {
+      "poradi": 26,
+      "brana": "b5-over-tvrzeni",
+      "prikaz": "python _analyza/b5-over-tvrzeni.py",
+      "sekundy": 0.07,
+      "exit": "OK",
+      "otevrela": "13 / 18"
+    },
+    {
+      "poradi": 27,
+      "brana": "n1-over-inventar",
+      "prikaz": "python _analyza/n1-over-inventar.py",
+      "sekundy": 2.95,
+      "exit": "OK",
+      "otevrela": "1"
+    },
+    {
+      "poradi": 28,
+      "brana": "tsc (conductor)",
+      "prikaz": "node orchestra/conductor/node_modules/typescript/bin/tsc --noEmit --project orchestra/conductor/tsconfig.json",
+      "sekundy": 0.93,
+      "exit": "OK",
+      "otevrela": "—"
+    },
+    {
+      "poradi": 29,
+      "brana": "validate-all (CELEK)",
+      "prikaz": "node orchestra/tools/validate-all.mjs",
+      "sekundy": 7.55,
+      "exit": "exit=1",
+      "otevrela": "3"
+    }
+  ]
+}

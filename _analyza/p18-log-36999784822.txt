@@ -1,0 +1,1237 @@
+﻿2026-10-02T11:13:12.2700754Z Current runner version: '2.337.0'
+2026-10-02T11:13:12.2726595Z ##[group]Runner Image Provisioner
+2026-10-02T11:13:12.2727530Z Hosted Compute Agent
+2026-10-02T11:13:12.2728623Z Version: 20260901.588
+2026-10-02T11:13:12.2729375Z Commit: f88ec8081b781fac6c440065ac7ff9e710ce3d0b
+2026-10-02T11:13:12.2730242Z Build Date: 2026-09-01T19:56:44Z
+2026-10-02T11:13:12.2731033Z Worker ID: {6b1c2465-5223-4f1e-8dd5-8b26ba9467ab}
+2026-10-02T11:13:12.2731793Z Azure Region: westus2
+2026-10-02T11:13:12.2732515Z ##[endgroup]
+2026-10-02T11:13:12.2734437Z ##[group]Operating System
+2026-10-02T11:13:12.2735281Z Ubuntu
+2026-10-02T11:13:12.2735860Z 24.04.5
+2026-10-02T11:13:12.2736507Z LTS
+2026-10-02T11:13:12.2737139Z ##[endgroup]
+2026-10-02T11:13:12.2737784Z ##[group]Runner Image
+2026-10-02T11:13:12.2738733Z Image: ubuntu-24.04
+2026-10-02T11:13:12.2739359Z Version: 20260927.320.1
+2026-10-02T11:13:12.2740855Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260927.320/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-02T11:13:12.2742600Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260927.320
+2026-10-02T11:13:12.2743649Z ##[endgroup]
+2026-10-02T11:13:12.2744872Z ##[group]GITHUB_TOKEN Permissions
+2026-10-02T11:13:12.2747057Z Contents: read
+2026-10-02T11:13:12.2747910Z Metadata: read
+2026-10-02T11:13:12.2748815Z ##[endgroup]
+2026-10-02T11:13:12.2750984Z Secret source: Actions
+2026-10-02T11:13:12.2752087Z Cache mode: write
+2026-10-02T11:13:12.2753270Z Prepare workflow directory
+2026-10-02T11:13:12.3091999Z Prepare all required actions
+2026-10-02T11:13:12.3142407Z Getting action download info
+2026-10-02T11:13:12.7234662Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-02T11:13:12.8425452Z Download action repository 'actions/cache@v4' (SHA:0057852bfaa89a56745cba8c7296529d2fc39830)
+2026-10-02T11:13:12.9863735Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-10-02T11:13:13.1024583Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-02T11:13:13.3332697Z Complete job name: Agent (free LLM)
+2026-10-02T11:13:13.4232278Z ##[group]Run actions/checkout@v4
+2026-10-02T11:13:13.4233295Z with:
+2026-10-02T11:13:13.4233782Z   fetch-depth: 0
+2026-10-02T11:13:13.4234342Z   repository: ssevcikm-spec/uo-shadows
+2026-10-02T11:13:13.4239561Z   token: ***
+2026-10-02T11:13:13.4240070Z   ssh-strict: true
+2026-10-02T11:13:13.4240597Z   ssh-user: git
+2026-10-02T11:13:13.4241113Z   persist-credentials: true
+2026-10-02T11:13:13.4241707Z   clean: true
+2026-10-02T11:13:13.4242224Z   sparse-checkout-cone-mode: true
+2026-10-02T11:13:13.4242872Z   fetch-tags: false
+2026-10-02T11:13:13.4243385Z   show-progress: true
+2026-10-02T11:13:13.4243921Z   lfs: false
+2026-10-02T11:13:13.4244407Z   submodules: false
+2026-10-02T11:13:13.4244945Z   set-safe-directory: true
+2026-10-02T11:13:13.4245551Z   allow-unsafe-pr-checkout: false
+2026-10-02T11:13:13.4246457Z ##[endgroup]
+2026-10-02T11:13:13.5347195Z Syncing repository: ssevcikm-spec/uo-shadows
+2026-10-02T11:13:13.5349867Z ##[group]Getting Git version info
+2026-10-02T11:13:13.5351224Z Working directory is '/home/runner/work/uo-shadows/uo-shadows'
+2026-10-02T11:13:13.5352579Z [command]/usr/bin/git version
+2026-10-02T11:13:13.5369314Z git version 2.55.0
+2026-10-02T11:13:13.5393523Z ##[endgroup]
+2026-10-02T11:13:13.5412178Z Temporarily overriding HOME='/home/runner/work/_temp/05f9d8bc-9caa-4cae-abff-42d0fde9605a' before making global git config changes
+2026-10-02T11:13:13.5415548Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-02T11:13:13.5418827Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/uo-shadows/uo-shadows
+2026-10-02T11:13:13.5478922Z Deleting the contents of '/home/runner/work/uo-shadows/uo-shadows'
+2026-10-02T11:13:13.5483464Z ##[group]Initializing the repository
+2026-10-02T11:13:13.5489131Z [command]/usr/bin/git init /home/runner/work/uo-shadows/uo-shadows
+2026-10-02T11:13:13.5626863Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-02T11:13:13.5629017Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-02T11:13:13.5630339Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-02T11:13:13.5631310Z hint: call:
+2026-10-02T11:13:13.5632065Z hint:
+2026-10-02T11:13:13.5632693Z hint: 	git config --global init.defaultBranch <name>
+2026-10-02T11:13:13.5633478Z hint:
+2026-10-02T11:13:13.5634215Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-02T11:13:13.5635474Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-02T11:13:13.5636450Z hint:
+2026-10-02T11:13:13.5636931Z hint: 	git branch -m <name>
+2026-10-02T11:13:13.5637520Z hint:
+2026-10-02T11:13:13.5638596Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-02T11:13:13.5645076Z Initialized empty Git repository in /home/runner/work/uo-shadows/uo-shadows/.git/
+2026-10-02T11:13:13.5656843Z [command]/usr/bin/git remote add origin https://github.com/ssevcikm-spec/uo-shadows
+2026-10-02T11:13:13.5728577Z ##[endgroup]
+2026-10-02T11:13:13.5729816Z ##[group]Disabling automatic garbage collection
+2026-10-02T11:13:13.5735226Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-02T11:13:13.5773257Z ##[endgroup]
+2026-10-02T11:13:13.5774346Z ##[group]Setting up auth
+2026-10-02T11:13:13.5782076Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-02T11:13:13.5819723Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-02T11:13:13.6235735Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-02T11:13:13.6275440Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-02T11:13:13.6499384Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-02T11:13:13.6536880Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-02T11:13:13.6764673Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-02T11:13:13.6805726Z ##[endgroup]
+2026-10-02T11:13:13.6806798Z ##[group]Fetching the repository
+2026-10-02T11:13:13.6816497Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+2026-10-02T11:13:14.2094239Z From https://github.com/ssevcikm-spec/uo-shadows
+2026-10-02T11:13:14.2096222Z  * [new branch]      forge/task-134        -> origin/forge/task-134
+2026-10-02T11:13:14.2098636Z  * [new branch]      forge/task-136        -> origin/forge/task-136
+2026-10-02T11:13:14.2100926Z  * [new branch]      forge/task-139        -> origin/forge/task-139
+2026-10-02T11:13:14.2103078Z  * [new branch]      forge/task-140        -> origin/forge/task-140
+2026-10-02T11:13:14.2105179Z  * [new branch]      forge/task-82         -> origin/forge/task-82
+2026-10-02T11:13:14.2107151Z  * [new branch]      main                  -> origin/main
+2026-10-02T11:13:14.2109823Z  * [new branch]      oprava/mining-registr -> origin/oprava/mining-registr
+2026-10-02T11:13:14.2111396Z  * [new tag]         latest                -> latest
+2026-10-02T11:13:14.2114292Z [command]/usr/bin/git branch --list --remote origin/main
+2026-10-02T11:13:14.2138585Z   origin/main
+2026-10-02T11:13:14.2149672Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-10-02T11:13:14.2173985Z 194735d9ba128490ef0b4d9cc139ed32fea4637d
+2026-10-02T11:13:14.2180017Z ##[endgroup]
+2026-10-02T11:13:14.2182714Z ##[group]Determining the checkout info
+2026-10-02T11:13:14.2186131Z ##[endgroup]
+2026-10-02T11:13:14.2188696Z [command]/usr/bin/git sparse-checkout disable
+2026-10-02T11:13:14.2246438Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-02T11:13:14.2281218Z ##[group]Checking out the ref
+2026-10-02T11:13:14.2284455Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-02T11:13:14.2774164Z Switched to a new branch 'main'
+2026-10-02T11:13:14.2779492Z branch 'main' set up to track 'origin/main'.
+2026-10-02T11:13:14.2832312Z ##[endgroup]
+2026-10-02T11:13:14.2836208Z [command]/usr/bin/git log -1 --format=%H
+2026-10-02T11:13:14.2864449Z 194735d9ba128490ef0b4d9cc139ed32fea4637d
+2026-10-02T11:13:14.3195765Z ##[group]Run actions/cache@v4
+2026-10-02T11:13:14.3196945Z with:
+2026-10-02T11:13:14.3197858Z   path: ~/.cache/forge
+2026-10-02T11:13:14.3199110Z   key: forge-godot-4.7.2
+2026-10-02T11:13:14.3200259Z   enableCrossOsArchive: false
+2026-10-02T11:13:14.3201440Z   fail-on-cache-miss: false
+2026-10-02T11:13:14.3202592Z   lookup-only: false
+2026-10-02T11:13:14.3203621Z   save-always: false
+2026-10-02T11:13:14.3204639Z ##[endgroup]
+2026-10-02T11:13:14.4316161Z (node:2309) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-02T11:13:14.4320262Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-02T11:13:14.7109472Z Cache hit for: forge-godot-4.7.2
+2026-10-02T11:13:14.7254365Z (node:2309) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-02T11:13:16.0134158Z Received 4194304 of 1338968635 (0.3%), 4.0 MBs/sec
+2026-10-02T11:13:17.0159613Z Received 117440512 of 1338968635 (8.8%), 56.0 MBs/sec
+2026-10-02T11:13:18.0134290Z Received 260046848 of 1338968635 (19.4%), 82.7 MBs/sec
+2026-10-02T11:13:19.0139572Z Received 402653184 of 1338968635 (30.1%), 96.0 MBs/sec
+2026-10-02T11:13:20.0198406Z Received 541065216 of 1338968635 (40.4%), 103.1 MBs/sec
+2026-10-02T11:13:21.0200001Z Received 696254464 of 1338968635 (52.0%), 110.6 MBs/sec
+2026-10-02T11:13:22.0204229Z Received 864026624 of 1338968635 (64.5%), 117.6 MBs/sec
+2026-10-02T11:13:23.0213293Z Received 1023410176 of 1338968635 (76.4%), 121.9 MBs/sec
+2026-10-02T11:13:24.0361081Z Received 1073741824 of 1338968635 (80.2%), 113.5 MBs/sec
+2026-10-02T11:13:25.0351547Z Received 1203765248 of 1338968635 (89.9%), 114.6 MBs/sec
+2026-10-02T11:13:26.0357473Z Received 1334774331 of 1338968635 (99.7%), 115.5 MBs/sec
+2026-10-02T11:13:26.2648713Z Received 1338968635 of 1338968635 (100.0%), 113.5 MBs/sec
+2026-10-02T11:13:26.2651661Z Cache Size: ~1277 MB (1338968635 B)
+2026-10-02T11:13:26.2695947Z [command]/usr/bin/tar -xf /home/runner/work/_temp/1c6a1bb6-8bcb-481a-9154-292e318712e5/cache.tzst -P -C /home/runner/work/uo-shadows/uo-shadows --use-compress-program unzstd
+2026-10-02T11:13:29.8499542Z Cache restored successfully
+2026-10-02T11:13:30.2485921Z Cache restored from key: forge-godot-4.7.2
+2026-10-02T11:13:30.2659252Z ##[group]Run bash .forge/install-godot.sh
+2026-10-02T11:13:30.2659696Z [36;1mbash .forge/install-godot.sh[0m
+2026-10-02T11:13:30.5586614Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:13:30.5587004Z ##[endgroup]
+2026-10-02T11:13:30.5724053Z Godot už je v cache.
+2026-10-02T11:13:30.5736235Z Exportní šablony už jsou v cache (4.7.2.stable).
+2026-10-02T11:13:30.6583378Z 4.7.2.stable.official.ed1daf0bf
+2026-10-02T11:13:30.6617723Z Godot připraven: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:13:30.6731781Z ##[group]Run actions/setup-python@v5
+2026-10-02T11:13:30.6732100Z with:
+2026-10-02T11:13:30.6732323Z   python-version: 3.12
+2026-10-02T11:13:30.6732581Z   check-latest: false
+2026-10-02T11:13:30.6734993Z   token: ***
+2026-10-02T11:13:30.6735252Z   update-environment: true
+2026-10-02T11:13:30.6735554Z   allow-prereleases: false
+2026-10-02T11:13:30.6736056Z   freethreaded: false
+2026-10-02T11:13:30.6736288Z env:
+2026-10-02T11:13:30.6736635Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:13:30.6737080Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:13:30.6737387Z ##[endgroup]
+2026-10-02T11:13:30.8057562Z ##[group]Installed versions
+2026-10-02T11:13:30.8150944Z (node:2336) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-02T11:13:30.8151783Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-02T11:13:30.8152697Z Successfully set up CPython (3.12.14)
+2026-10-02T11:13:30.8153578Z ##[endgroup]
+2026-10-02T11:13:30.8324978Z ##[group]Run python -m pip install --upgrade pip
+2026-10-02T11:13:30.8325690Z [36;1mpython -m pip install --upgrade pip[0m
+2026-10-02T11:13:30.8326351Z [36;1mpython -m pip install aider-chat[0m
+2026-10-02T11:13:30.8432651Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:13:30.8433105Z env:
+2026-10-02T11:13:30.8433704Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:13:30.8434471Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:13:30.8467102Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:13:30.8468227Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:13:30.8469095Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:13:30.8469912Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:13:30.8470716Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:13:30.8471591Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:13:30.8472409Z ##[endgroup]
+2026-10-02T11:13:32.3380306Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.14/x64/lib/python3.12/site-packages (26.2.1)
+2026-10-02T11:13:33.0271372Z Collecting aider-chat
+2026-10-02T11:13:33.0939424Z   Downloading aider_chat-0.86.2-py3-none-any.whl.metadata (26 kB)
+2026-10-02T11:13:33.1358535Z Collecting aiohappyeyeballs==2.6.1 (from aider-chat)
+2026-10-02T11:13:33.1431836Z   Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl.metadata (5.9 kB)
+2026-10-02T11:13:33.6611458Z Collecting aiohttp==3.13.3 (from aider-chat)
+2026-10-02T11:13:33.6685474Z   Downloading aiohttp-3.13.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.1 kB)
+2026-10-02T11:13:33.6837988Z Collecting aiosignal==1.4.0 (from aider-chat)
+2026-10-02T11:13:33.6907435Z   Downloading aiosignal-1.4.0-py3-none-any.whl.metadata (3.7 kB)
+2026-10-02T11:13:33.7042419Z Collecting annotated-doc==0.0.4 (from aider-chat)
+2026-10-02T11:13:33.7111368Z   Downloading annotated_doc-0.0.4-py3-none-any.whl.metadata (6.6 kB)
+2026-10-02T11:13:33.7270995Z Collecting annotated-types==0.7.0 (from aider-chat)
+2026-10-02T11:13:33.7339876Z   Downloading annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)
+2026-10-02T11:13:33.7532612Z Collecting anyio==4.12.1 (from aider-chat)
+2026-10-02T11:13:33.7601347Z   Downloading anyio-4.12.1-py3-none-any.whl.metadata (4.3 kB)
+2026-10-02T11:13:33.7786654Z Collecting asgiref==3.11.1 (from aider-chat)
+2026-10-02T11:13:33.7856037Z   Downloading asgiref-3.11.1-py3-none-any.whl.metadata (9.3 kB)
+2026-10-02T11:13:33.8023731Z Collecting attrs==25.4.0 (from aider-chat)
+2026-10-02T11:13:33.8093433Z   Downloading attrs-25.4.0-py3-none-any.whl.metadata (10 kB)
+2026-10-02T11:13:33.8251442Z Collecting backoff==2.2.1 (from aider-chat)
+2026-10-02T11:13:33.8319805Z   Downloading backoff-2.2.1-py3-none-any.whl.metadata (14 kB)
+2026-10-02T11:13:33.8504932Z Collecting beautifulsoup4==4.14.3 (from aider-chat)
+2026-10-02T11:13:33.8575132Z   Downloading beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
+2026-10-02T11:13:33.8775156Z Collecting certifi==2026.1.4 (from aider-chat)
+2026-10-02T11:13:33.8844728Z   Downloading certifi-2026.1.4-py3-none-any.whl.metadata (2.5 kB)
+2026-10-02T11:13:33.9871224Z Collecting cffi==2.0.0 (from aider-chat)
+2026-10-02T11:13:33.9948639Z   Downloading cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.6 kB)
+2026-10-02T11:13:34.1291353Z Collecting charset-normalizer==3.4.4 (from aider-chat)
+2026-10-02T11:13:34.1370687Z   Downloading charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (37 kB)
+2026-10-02T11:13:34.1582855Z Collecting click==8.3.1 (from aider-chat)
+2026-10-02T11:13:34.1653169Z   Downloading click-8.3.1-py3-none-any.whl.metadata (2.6 kB)
+2026-10-02T11:13:34.1808432Z Collecting configargparse==1.7.1 (from aider-chat)
+2026-10-02T11:13:34.1879461Z   Downloading configargparse-1.7.1-py3-none-any.whl.metadata (24 kB)
+2026-10-02T11:13:34.2038048Z Collecting diff-match-patch==20241021 (from aider-chat)
+2026-10-02T11:13:34.2115628Z   Downloading diff_match_patch-20241021-py3-none-any.whl.metadata (5.5 kB)
+2026-10-02T11:13:34.2307559Z Collecting diskcache==5.6.3 (from aider-chat)
+2026-10-02T11:13:34.2380140Z   Downloading diskcache-5.6.3-py3-none-any.whl.metadata (20 kB)
+2026-10-02T11:13:34.2532508Z Collecting distro==1.9.0 (from aider-chat)
+2026-10-02T11:13:34.2602563Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+2026-10-02T11:13:34.2983696Z Collecting fastapi==0.128.8 (from aider-chat)
+2026-10-02T11:13:34.3054741Z   Downloading fastapi-0.128.8-py3-none-any.whl.metadata (30 kB)
+2026-10-02T11:13:34.3403751Z Collecting fastuuid==0.14.0 (from aider-chat)
+2026-10-02T11:13:34.3475941Z   Downloading fastuuid-0.14.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (1.1 kB)
+2026-10-02T11:13:34.3692349Z Collecting filelock==3.20.3 (from aider-chat)
+2026-10-02T11:13:34.3764098Z   Downloading filelock-3.20.3-py3-none-any.whl.metadata (2.1 kB)
+2026-10-02T11:13:34.3971565Z Collecting flake8==7.3.0 (from aider-chat)
+2026-10-02T11:13:34.4045545Z   Downloading flake8-7.3.0-py2.py3-none-any.whl.metadata (3.8 kB)
+2026-10-02T11:13:34.4664118Z Collecting frozenlist==1.8.0 (from aider-chat)
+2026-10-02T11:13:34.4738808Z   Downloading frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (20 kB)
+2026-10-02T11:13:34.4970638Z Collecting fsspec==2026.2.0 (from aider-chat)
+2026-10-02T11:13:34.5038870Z   Downloading fsspec-2026.2.0-py3-none-any.whl.metadata (10 kB)
+2026-10-02T11:13:34.5341270Z Collecting gitdb==4.0.12 (from aider-chat)
+2026-10-02T11:13:34.5412942Z   Downloading gitdb-4.0.12-py3-none-any.whl.metadata (1.2 kB)
+2026-10-02T11:13:34.5626486Z Collecting gitpython==3.1.46 (from aider-chat)
+2026-10-02T11:13:34.5696978Z   Downloading gitpython-3.1.46-py3-none-any.whl.metadata (13 kB)
+2026-10-02T11:13:34.6512694Z Collecting grep-ast==0.9.0 (from aider-chat)
+2026-10-02T11:13:34.6586758Z   Downloading grep_ast-0.9.0-py3-none-any.whl.metadata (2.8 kB)
+2026-10-02T11:13:34.6719691Z Collecting h11==0.16.0 (from aider-chat)
+2026-10-02T11:13:34.6789061Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-10-02T11:13:34.7201954Z Collecting hf-xet==1.2.0 (from aider-chat)
+2026-10-02T11:13:34.7274837Z   Downloading hf_xet-1.2.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+2026-10-02T11:13:34.7462326Z Collecting httpcore==1.0.9 (from aider-chat)
+2026-10-02T11:13:34.7531321Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-10-02T11:13:34.7743656Z Collecting httpx==0.28.1 (from aider-chat)
+2026-10-02T11:13:34.7814035Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-10-02T11:13:34.8238032Z Collecting huggingface-hub==1.4.1 (from aider-chat)
+2026-10-02T11:13:34.8307469Z   Downloading huggingface_hub-1.4.1-py3-none-any.whl.metadata (13 kB)
+2026-10-02T11:13:34.8572521Z Collecting idna==3.11 (from aider-chat)
+2026-10-02T11:13:34.8640817Z   Downloading idna-3.11-py3-none-any.whl.metadata (8.4 kB)
+2026-10-02T11:13:34.8890643Z Collecting importlib-metadata==7.2.1 (from aider-chat)
+2026-10-02T11:13:34.8960254Z   Downloading importlib_metadata-7.2.1-py3-none-any.whl.metadata (4.6 kB)
+2026-10-02T11:13:34.9173655Z Collecting importlib-resources==6.5.2 (from aider-chat)
+2026-10-02T11:13:34.9244238Z   Downloading importlib_resources-6.5.2-py3-none-any.whl.metadata (3.9 kB)
+2026-10-02T11:13:34.9418250Z Collecting jinja2==3.1.6 (from aider-chat)
+2026-10-02T11:13:34.9488330Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-10-02T11:13:35.0367878Z Collecting jiter==0.13.0 (from aider-chat)
+2026-10-02T11:13:35.0440148Z   Downloading jiter-0.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+2026-10-02T11:13:35.0627645Z Collecting json5==0.13.0 (from aider-chat)
+2026-10-02T11:13:35.0704395Z   Downloading json5-0.13.0-py3-none-any.whl.metadata (36 kB)
+2026-10-02T11:13:35.0968394Z Collecting jsonschema==4.26.0 (from aider-chat)
+2026-10-02T11:13:35.1038413Z   Downloading jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+2026-10-02T11:13:35.1215436Z Collecting jsonschema-specifications==2025.9.1 (from aider-chat)
+2026-10-02T11:13:35.1286800Z   Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+2026-10-02T11:13:35.2748659Z Collecting litellm==1.81.10 (from aider-chat)
+2026-10-02T11:13:35.2828533Z   Downloading litellm-1.81.10-py3-none-any.whl.metadata (30 kB)
+2026-10-02T11:13:35.3072352Z Collecting markdown-it-py==4.0.0 (from aider-chat)
+2026-10-02T11:13:35.3148623Z   Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
+2026-10-02T11:13:35.3660421Z Collecting markupsafe==3.0.3 (from aider-chat)
+2026-10-02T11:13:35.3734392Z   Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-10-02T11:13:35.3871694Z Collecting mccabe==0.7.0 (from aider-chat)
+2026-10-02T11:13:35.3940392Z   Downloading mccabe-0.7.0-py2.py3-none-any.whl.metadata (5.0 kB)
+2026-10-02T11:13:35.4071559Z Collecting mdurl==0.1.2 (from aider-chat)
+2026-10-02T11:13:35.4140670Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+2026-10-02T11:13:35.4290526Z Collecting mixpanel==5.0.0 (from aider-chat)
+2026-10-02T11:13:35.4378403Z   Downloading mixpanel-5.0.0-py3-none-any.whl.metadata (3.3 kB)
+2026-10-02T11:13:35.4534159Z Collecting mslex==1.3.0 (from aider-chat)
+2026-10-02T11:13:35.4618027Z   Downloading mslex-1.3.0-py3-none-any.whl.metadata (4.2 kB)
+2026-10-02T11:13:35.7039980Z Collecting multidict==6.7.1 (from aider-chat)
+2026-10-02T11:13:35.7115187Z   Downloading multidict-6.7.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (5.3 kB)
+2026-10-02T11:13:36.6388850Z Collecting networkx==3.4.2 (from aider-chat)
+2026-10-02T11:13:36.6461826Z   Downloading networkx-3.4.2-py3-none-any.whl.metadata (6.3 kB)
+2026-10-02T11:13:36.8301048Z Collecting numpy==1.26.4 (from aider-chat)
+2026-10-02T11:13:36.8379006Z   Downloading numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+2026-10-02T11:13:36.8934280Z Collecting openai==2.20.0 (from aider-chat)
+2026-10-02T11:13:36.9015141Z   Downloading openai-2.20.0-py3-none-any.whl.metadata (29 kB)
+2026-10-02T11:13:37.1582775Z Collecting orjson==3.11.7 (from aider-chat)
+2026-10-02T11:13:37.1676395Z   Downloading orjson-3.11.7-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (41 kB)
+2026-10-02T11:13:37.1848276Z Collecting oslex==0.1.3 (from aider-chat)
+2026-10-02T11:13:37.1921308Z   Downloading oslex-0.1.3-py3-none-any.whl.metadata (1.7 kB)
+2026-10-02T11:13:37.2089978Z Collecting packaging==26.0 (from aider-chat)
+2026-10-02T11:13:37.2157686Z   Downloading packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+2026-10-02T11:13:37.2307124Z Collecting pathspec==1.0.4 (from aider-chat)
+2026-10-02T11:13:37.2375981Z   Downloading pathspec-1.0.4-py3-none-any.whl.metadata (13 kB)
+2026-10-02T11:13:37.2526980Z Collecting pexpect==4.9.0 (from aider-chat)
+2026-10-02T11:13:37.2598122Z   Downloading pexpect-4.9.0-py2.py3-none-any.whl.metadata (2.5 kB)
+2026-10-02T11:13:37.4132192Z Collecting pillow==12.1.1 (from aider-chat)
+2026-10-02T11:13:37.4207254Z   Downloading pillow-12.1.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+2026-10-02T11:13:37.4605324Z Collecting posthog==7.8.6 (from aider-chat)
+2026-10-02T11:13:37.4681238Z   Downloading posthog-7.8.6-py3-none-any.whl.metadata (6.4 kB)
+2026-10-02T11:13:37.4954318Z Collecting prompt-toolkit==3.0.52 (from aider-chat)
+2026-10-02T11:13:37.5023950Z   Downloading prompt_toolkit-3.0.52-py3-none-any.whl.metadata (6.4 kB)
+2026-10-02T11:13:37.5691508Z Collecting propcache==0.4.1 (from aider-chat)
+2026-10-02T11:13:37.5766579Z   Downloading propcache-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (13 kB)
+2026-10-02T11:13:37.6409703Z Collecting psutil==7.2.2 (from aider-chat)
+2026-10-02T11:13:37.6483283Z   Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl.metadata (22 kB)
+2026-10-02T11:13:37.6653204Z Collecting ptyprocess==0.7.0 (from aider-chat)
+2026-10-02T11:13:37.6724689Z   Downloading ptyprocess-0.7.0-py2.py3-none-any.whl.metadata (1.3 kB)
+2026-10-02T11:13:37.6900300Z Collecting pycodestyle==2.14.0 (from aider-chat)
+2026-10-02T11:13:37.6969917Z   Downloading pycodestyle-2.14.0-py2.py3-none-any.whl.metadata (4.5 kB)
+2026-10-02T11:13:37.7103377Z Collecting pycparser==3.0 (from aider-chat)
+2026-10-02T11:13:37.7175706Z   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-10-02T11:13:37.8512681Z Collecting pydantic==2.12.5 (from aider-chat)
+2026-10-02T11:13:37.8585887Z   Downloading pydantic-2.12.5-py3-none-any.whl.metadata (90 kB)
+2026-10-02T11:13:38.4672312Z Collecting pydantic-core==2.41.5 (from aider-chat)
+2026-10-02T11:13:38.4750123Z   Downloading pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+2026-10-02T11:13:38.5341765Z Collecting pydub==0.25.1 (from aider-chat)
+2026-10-02T11:13:38.5415992Z   Downloading pydub-0.25.1-py2.py3-none-any.whl.metadata (1.4 kB)
+2026-10-02T11:13:38.5568812Z Collecting pyflakes==3.4.0 (from aider-chat)
+2026-10-02T11:13:38.5638243Z   Downloading pyflakes-3.4.0-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-10-02T11:13:38.5827543Z Collecting pygments==2.19.2 (from aider-chat)
+2026-10-02T11:13:38.5896438Z   Downloading pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+2026-10-02T11:13:38.6063894Z Collecting pypandoc==1.16.2 (from aider-chat)
+2026-10-02T11:13:38.6145571Z   Downloading pypandoc-1.16.2-py3-none-any.whl.metadata (16 kB)
+2026-10-02T11:13:38.6301212Z Collecting pyperclip==1.11.0 (from aider-chat)
+2026-10-02T11:13:38.6369498Z   Downloading pyperclip-1.11.0-py3-none-any.whl.metadata (2.4 kB)
+2026-10-02T11:13:38.6516584Z Collecting python-dateutil==2.9.0.post0 (from aider-chat)
+2026-10-02T11:13:38.6586751Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-10-02T11:13:38.6778250Z Collecting python-dotenv==1.2.1 (from aider-chat)
+2026-10-02T11:13:38.6847799Z   Downloading python_dotenv-1.2.1-py3-none-any.whl.metadata (25 kB)
+2026-10-02T11:13:38.7229846Z Collecting pyyaml==6.0.3 (from aider-chat)
+2026-10-02T11:13:38.7302712Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-10-02T11:13:38.7511239Z Collecting referencing==0.37.0 (from aider-chat)
+2026-10-02T11:13:38.7582964Z   Downloading referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+2026-10-02T11:13:39.1108858Z Collecting regex==2026.1.15 (from aider-chat)
+2026-10-02T11:13:39.1195440Z   Downloading regex-2026.1.15-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+2026-10-02T11:13:39.1444379Z Collecting requests==2.32.5 (from aider-chat)
+2026-10-02T11:13:39.1515848Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+2026-10-02T11:13:39.1812340Z Collecting rich==14.3.2 (from aider-chat)
+2026-10-02T11:13:39.1900184Z   Downloading rich-14.3.2-py3-none-any.whl.metadata (18 kB)
+2026-10-02T11:13:39.4858300Z Collecting rpds-py==0.30.0 (from aider-chat)
+2026-10-02T11:13:39.4931586Z   Downloading rpds_py-0.30.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+2026-10-02T11:13:39.6139298Z Collecting scipy==1.15.3 (from aider-chat)
+2026-10-02T11:13:39.6212774Z   Downloading scipy-1.15.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (61 kB)
+2026-10-02T11:13:39.6490631Z Collecting shellingham==1.5.4 (from aider-chat)
+2026-10-02T11:13:39.6563009Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-10-02T11:13:39.6779460Z Collecting shtab==1.8.0 (from aider-chat)
+2026-10-02T11:13:39.6862023Z   Downloading shtab-1.8.0-py3-none-any.whl.metadata (7.3 kB)
+2026-10-02T11:13:39.7020458Z Collecting six==1.17.0 (from aider-chat)
+2026-10-02T11:13:39.7092305Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-10-02T11:13:39.7225689Z Collecting smmap==5.0.2 (from aider-chat)
+2026-10-02T11:13:39.7296071Z   Downloading smmap-5.0.2-py3-none-any.whl.metadata (4.3 kB)
+2026-10-02T11:13:39.7430241Z Collecting sniffio==1.3.1 (from aider-chat)
+2026-10-02T11:13:39.7499329Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+2026-10-02T11:13:39.7625834Z Collecting socksio==1.0.0 (from aider-chat)
+2026-10-02T11:13:39.7695166Z   Downloading socksio-1.0.0-py3-none-any.whl.metadata (6.1 kB)
+2026-10-02T11:13:39.7927451Z Collecting sounddevice==0.5.5 (from aider-chat)
+2026-10-02T11:13:39.7998553Z   Downloading sounddevice-0.5.5-py3-none-any.whl.metadata (1.4 kB)
+2026-10-02T11:13:39.8162018Z Collecting soundfile==0.13.1 (from aider-chat)
+2026-10-02T11:13:39.8240509Z   Downloading soundfile-0.13.1-py2.py3-none-manylinux_2_28_x86_64.whl.metadata (16 kB)
+2026-10-02T11:13:39.8414622Z Collecting soupsieve==2.8.3 (from aider-chat)
+2026-10-02T11:13:39.8484994Z   Downloading soupsieve-2.8.3-py3-none-any.whl.metadata (4.6 kB)
+2026-10-02T11:13:39.8733760Z Collecting starlette==0.52.1 (from aider-chat)
+2026-10-02T11:13:39.8806723Z   Downloading starlette-0.52.1-py3-none-any.whl.metadata (6.3 kB)
+2026-10-02T11:13:39.9213991Z Collecting tiktoken==0.12.0 (from aider-chat)
+2026-10-02T11:13:39.9300109Z   Downloading tiktoken-0.12.0-cp312-cp312-manylinux_2_28_x86_64.whl.metadata (6.7 kB)
+2026-10-02T11:13:40.0604781Z Collecting tokenizers==0.22.2 (from aider-chat)
+2026-10-02T11:13:40.0680121Z   Downloading tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.3 kB)
+2026-10-02T11:13:40.0952698Z Collecting tqdm==4.67.3 (from aider-chat)
+2026-10-02T11:13:40.1024813Z   Downloading tqdm-4.67.3-py3-none-any.whl.metadata (57 kB)
+2026-10-02T11:13:40.1241097Z Collecting tree-sitter-c-sharp==0.23.1 (from aider-chat)
+2026-10-02T11:13:40.1325939Z   Downloading tree_sitter_c_sharp-0.23.1-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.7 kB)
+2026-10-02T11:13:40.1484164Z Collecting tree-sitter-embedded-template==0.25.0 (from aider-chat)
+2026-10-02T11:13:40.1568261Z   Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (2.3 kB)
+2026-10-02T11:13:40.1888956Z Collecting tree-sitter-language-pack==0.13.0 (from aider-chat)
+2026-10-02T11:13:40.1973166Z   Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-manylinux2014_x86_64.whl.metadata (19 kB)
+2026-10-02T11:13:40.2131566Z Collecting tree-sitter-yaml==0.7.2 (from aider-chat)
+2026-10-02T11:13:40.2200154Z   Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (1.8 kB)
+2026-10-02T11:13:40.2406788Z Collecting typer==0.23.0 (from aider-chat)
+2026-10-02T11:13:40.2479814Z   Downloading typer-0.23.0-py3-none-any.whl.metadata (16 kB)
+2026-10-02T11:13:40.2648708Z Collecting typer-slim==0.23.0 (from aider-chat)
+2026-10-02T11:13:40.2723511Z   Downloading typer_slim-0.23.0-py3-none-any.whl.metadata (4.2 kB)
+2026-10-02T11:13:40.2901117Z Collecting typing-extensions==4.15.0 (from aider-chat)
+2026-10-02T11:13:40.2971677Z   Downloading typing_extensions-4.15.0-py3-none-any.whl.metadata (3.3 kB)
+2026-10-02T11:13:40.3101997Z Collecting typing-inspection==0.4.2 (from aider-chat)
+2026-10-02T11:13:40.3171545Z   Downloading typing_inspection-0.4.2-py3-none-any.whl.metadata (2.6 kB)
+2026-10-02T11:13:40.3389716Z Collecting urllib3==2.6.3 (from aider-chat)
+2026-10-02T11:13:40.3458066Z   Downloading urllib3-2.6.3-py3-none-any.whl.metadata (6.9 kB)
+2026-10-02T11:13:40.4188661Z Collecting watchfiles==1.1.1 (from aider-chat)
+2026-10-02T11:13:40.4262794Z   Downloading watchfiles-1.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+2026-10-02T11:13:40.4470104Z Collecting wcwidth==0.6.0 (from aider-chat)
+2026-10-02T11:13:40.4540210Z   Downloading wcwidth-0.6.0-py3-none-any.whl.metadata (30 kB)
+2026-10-02T11:13:40.7567500Z Collecting yarl==1.22.0 (from aider-chat)
+2026-10-02T11:13:40.7641106Z   Downloading yarl-1.22.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (75 kB)
+2026-10-02T11:13:40.7869638Z Collecting zipp==3.23.0 (from aider-chat)
+2026-10-02T11:13:40.7940155Z   Downloading zipp-3.23.0-py3-none-any.whl.metadata (3.6 kB)
+2026-10-02T11:13:40.8358865Z Collecting tree-sitter==0.25.2 (from aider-chat)
+2026-10-02T11:13:40.8431314Z   Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10.0 kB)
+2026-10-02T11:13:41.0276716Z Downloading aider_chat-0.86.2-py3-none-any.whl (377 kB)
+2026-10-02T11:13:41.0473270Z Downloading aiohappyeyeballs-2.6.1-py3-none-any.whl (15 kB)
+2026-10-02T11:13:41.0560186Z Downloading aiohttp-3.13.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.8 MB)
+2026-10-02T11:13:41.0781486Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 77.8 MB/s  0:00:00
+2026-10-02T11:13:41.0854625Z Downloading multidict-6.7.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (256 kB)
+2026-10-02T11:13:41.0945261Z Downloading yarl-1.22.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (377 kB)
+2026-10-02T11:13:41.1038415Z Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+2026-10-02T11:13:41.1142040Z Downloading annotated_doc-0.0.4-py3-none-any.whl (5.3 kB)
+2026-10-02T11:13:41.1231581Z Downloading annotated_types-0.7.0-py3-none-any.whl (13 kB)
+2026-10-02T11:13:41.1316941Z Downloading anyio-4.12.1-py3-none-any.whl (113 kB)
+2026-10-02T11:13:41.1404434Z Downloading asgiref-3.11.1-py3-none-any.whl (24 kB)
+2026-10-02T11:13:41.1488744Z Downloading attrs-25.4.0-py3-none-any.whl (67 kB)
+2026-10-02T11:13:41.1575202Z Downloading backoff-2.2.1-py3-none-any.whl (15 kB)
+2026-10-02T11:13:41.1659516Z Downloading beautifulsoup4-4.14.3-py3-none-any.whl (107 kB)
+2026-10-02T11:13:41.1750474Z Downloading certifi-2026.1.4-py3-none-any.whl (152 kB)
+2026-10-02T11:13:41.1843023Z Downloading cffi-2.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (219 kB)
+2026-10-02T11:13:41.1937295Z Downloading charset_normalizer-3.4.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (153 kB)
+2026-10-02T11:13:41.2027545Z Downloading click-8.3.1-py3-none-any.whl (108 kB)
+2026-10-02T11:13:41.2117746Z Downloading configargparse-1.7.1-py3-none-any.whl (25 kB)
+2026-10-02T11:13:41.2205844Z Downloading diff_match_patch-20241021-py3-none-any.whl (43 kB)
+2026-10-02T11:13:41.2296165Z Downloading diskcache-5.6.3-py3-none-any.whl (45 kB)
+2026-10-02T11:13:41.2383851Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+2026-10-02T11:13:41.2469019Z Downloading fastapi-0.128.8-py3-none-any.whl (103 kB)
+2026-10-02T11:13:41.2556123Z Downloading starlette-0.52.1-py3-none-any.whl (74 kB)
+2026-10-02T11:13:41.2645581Z Downloading fastuuid-0.14.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (278 kB)
+2026-10-02T11:13:41.2738229Z Downloading filelock-3.20.3-py3-none-any.whl (16 kB)
+2026-10-02T11:13:41.2825195Z Downloading flake8-7.3.0-py2.py3-none-any.whl (57 kB)
+2026-10-02T11:13:41.2915107Z Downloading mccabe-0.7.0-py2.py3-none-any.whl (7.3 kB)
+2026-10-02T11:13:41.2999913Z Downloading pycodestyle-2.14.0-py2.py3-none-any.whl (31 kB)
+2026-10-02T11:13:41.3086034Z Downloading pyflakes-3.4.0-py2.py3-none-any.whl (63 kB)
+2026-10-02T11:13:41.3174974Z Downloading frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (242 kB)
+2026-10-02T11:13:41.3265453Z Downloading fsspec-2026.2.0-py3-none-any.whl (202 kB)
+2026-10-02T11:13:41.3356931Z Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+2026-10-02T11:13:41.3445482Z Downloading smmap-5.0.2-py3-none-any.whl (24 kB)
+2026-10-02T11:13:41.3532091Z Downloading gitpython-3.1.46-py3-none-any.whl (208 kB)
+2026-10-02T11:13:41.3626994Z Downloading grep_ast-0.9.0-py3-none-any.whl (13 kB)
+2026-10-02T11:13:41.3714481Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-10-02T11:13:41.3800766Z Downloading hf_xet-1.2.0-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+2026-10-02T11:13:41.3971558Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 210.1 MB/s  0:00:00
+2026-10-02T11:13:41.4040781Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-10-02T11:13:41.4130122Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-10-02T11:13:41.4225043Z Downloading huggingface_hub-1.4.1-py3-none-any.whl (553 kB)
+2026-10-02T11:13:41.4279705Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 553.3/553.3 kB 110.4 MB/s  0:00:00
+2026-10-02T11:13:41.4352919Z Downloading idna-3.11-py3-none-any.whl (71 kB)
+2026-10-02T11:13:41.4443293Z Downloading importlib_metadata-7.2.1-py3-none-any.whl (25 kB)
+2026-10-02T11:13:41.4534071Z Downloading importlib_resources-6.5.2-py3-none-any.whl (37 kB)
+2026-10-02T11:13:41.4621709Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-10-02T11:13:41.4715755Z Downloading jiter-0.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (360 kB)
+2026-10-02T11:13:41.4833115Z Downloading json5-0.13.0-py3-none-any.whl (36 kB)
+2026-10-02T11:13:41.4922726Z Downloading jsonschema-4.26.0-py3-none-any.whl (90 kB)
+2026-10-02T11:13:41.5009292Z Downloading jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+2026-10-02T11:13:41.5103602Z Downloading litellm-1.81.10-py3-none-any.whl (14.5 MB)
+2026-10-02T11:13:41.5574611Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.5/14.5 MB 317.2 MB/s  0:00:00
+2026-10-02T11:13:41.5648422Z Downloading pydantic-2.12.5-py3-none-any.whl (463 kB)
+2026-10-02T11:13:41.5746321Z Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
+2026-10-02T11:13:41.5837473Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+2026-10-02T11:13:41.5924925Z Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-10-02T11:13:41.6011837Z Downloading mixpanel-5.0.0-py3-none-any.whl (23 kB)
+2026-10-02T11:13:41.6097447Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+2026-10-02T11:13:41.6187924Z Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+2026-10-02T11:13:41.6277523Z Downloading mslex-1.3.0-py3-none-any.whl (7.8 kB)
+2026-10-02T11:13:41.6370904Z Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)
+2026-10-02T11:13:41.6446212Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 295.4 MB/s  0:00:00
+2026-10-02T11:13:41.6516121Z Downloading numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (18.0 MB)
+2026-10-02T11:13:41.7023473Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 18.0/18.0 MB 368.9 MB/s  0:00:00
+2026-10-02T11:13:41.7121378Z Downloading openai-2.20.0-py3-none-any.whl (1.1 MB)
+2026-10-02T11:13:41.7184300Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 209.5 MB/s  0:00:00
+2026-10-02T11:13:41.7255111Z Downloading typing_extensions-4.15.0-py3-none-any.whl (44 kB)
+2026-10-02T11:13:41.7346969Z Downloading orjson-3.11.7-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (133 kB)
+2026-10-02T11:13:41.7442916Z Downloading oslex-0.1.3-py3-none-any.whl (3.5 kB)
+2026-10-02T11:13:41.7529948Z Downloading packaging-26.0-py3-none-any.whl (74 kB)
+2026-10-02T11:13:41.7617186Z Downloading pathspec-1.0.4-py3-none-any.whl (55 kB)
+2026-10-02T11:13:41.7707360Z Downloading pexpect-4.9.0-py2.py3-none-any.whl (63 kB)
+2026-10-02T11:13:41.7798551Z Downloading pillow-12.1.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+2026-10-02T11:13:41.8114229Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 241.4 MB/s  0:00:00
+2026-10-02T11:13:41.8197349Z Downloading posthog-7.8.6-py3-none-any.whl (194 kB)
+2026-10-02T11:13:41.8294926Z Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+2026-10-02T11:13:41.8390767Z Downloading propcache-0.4.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (221 kB)
+2026-10-02T11:13:41.8483741Z Downloading psutil-7.2.2-cp36-abi3-manylinux2010_x86_64.manylinux_2_12_x86_64.manylinux_2_28_x86_64.whl (155 kB)
+2026-10-02T11:13:41.8573132Z Downloading ptyprocess-0.7.0-py2.py3-none-any.whl (13 kB)
+2026-10-02T11:13:41.8661182Z Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+2026-10-02T11:13:41.8755797Z Downloading pydantic_core-2.41.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2026-10-02T11:13:41.8846834Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 297.5 MB/s  0:00:00
+2026-10-02T11:13:41.8922287Z Downloading pydub-0.25.1-py2.py3-none-any.whl (32 kB)
+2026-10-02T11:13:41.9010367Z Downloading pygments-2.19.2-py3-none-any.whl (1.2 MB)
+2026-10-02T11:13:41.9077133Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 228.4 MB/s  0:00:00
+2026-10-02T11:13:41.9147952Z Downloading pypandoc-1.16.2-py3-none-any.whl (19 kB)
+2026-10-02T11:13:41.9235840Z Downloading pyperclip-1.11.0-py3-none-any.whl (11 kB)
+2026-10-02T11:13:41.9322340Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-10-02T11:13:41.9414277Z Downloading python_dotenv-1.2.1-py3-none-any.whl (21 kB)
+2026-10-02T11:13:41.9507441Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+2026-10-02T11:13:41.9562523Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 158.1 MB/s  0:00:00
+2026-10-02T11:13:41.9631186Z Downloading referencing-0.37.0-py3-none-any.whl (26 kB)
+2026-10-02T11:13:41.9748081Z Downloading regex-2026.1.15-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (803 kB)
+2026-10-02T11:13:41.9798644Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 803.6/803.6 kB 182.0 MB/s  0:00:00
+2026-10-02T11:13:41.9867274Z Downloading rich-14.3.2-py3-none-any.whl (309 kB)
+2026-10-02T11:13:41.9977819Z Downloading rpds_py-0.30.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (394 kB)
+2026-10-02T11:13:42.0080767Z Downloading scipy-1.15.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (37.3 MB)
+2026-10-02T11:13:42.1514711Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 37.3/37.3 MB 263.7 MB/s  0:00:00
+2026-10-02T11:13:42.1585686Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+2026-10-02T11:13:42.1674131Z Downloading shtab-1.8.0-py3-none-any.whl (14 kB)
+2026-10-02T11:13:42.1763729Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-10-02T11:13:42.1849009Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+2026-10-02T11:13:42.1933516Z Downloading socksio-1.0.0-py3-none-any.whl (12 kB)
+2026-10-02T11:13:42.2023313Z Downloading sounddevice-0.5.5-py3-none-any.whl (32 kB)
+2026-10-02T11:13:42.2131492Z Downloading soundfile-0.13.1-py2.py3-none-manylinux_2_28_x86_64.whl (1.3 MB)
+2026-10-02T11:13:42.2204288Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 219.2 MB/s  0:00:00
+2026-10-02T11:13:42.2273409Z Downloading soupsieve-2.8.3-py3-none-any.whl (37 kB)
+2026-10-02T11:13:42.2363568Z Downloading tiktoken-0.12.0-cp312-cp312-manylinux_2_28_x86_64.whl (1.2 MB)
+2026-10-02T11:13:42.2423785Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 226.6 MB/s  0:00:00
+2026-10-02T11:13:42.2496476Z Downloading tokenizers-0.22.2-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.3 MB)
+2026-10-02T11:13:42.2607782Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 351.9 MB/s  0:00:00
+2026-10-02T11:13:42.2677273Z Downloading tqdm-4.67.3-py3-none-any.whl (78 kB)
+2026-10-02T11:13:42.2769025Z Downloading tree_sitter-0.25.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (635 kB)
+2026-10-02T11:13:42.2817520Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 635.4/635.4 kB 135.7 MB/s  0:00:00
+2026-10-02T11:13:42.2899885Z Downloading tree_sitter_c_sharp-0.23.1-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (358 kB)
+2026-10-02T11:13:42.3004254Z Downloading tree_sitter_embedded_template-0.25.0-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (18 kB)
+2026-10-02T11:13:42.3102244Z Downloading tree_sitter_language_pack-0.13.0-cp310-abi3-manylinux2014_x86_64.whl (20.0 MB)
+2026-10-02T11:13:42.3863557Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.0/20.0 MB 268.6 MB/s  0:00:00
+2026-10-02T11:13:42.3935519Z Downloading tree_sitter_yaml-0.7.2-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (91 kB)
+2026-10-02T11:13:42.4024969Z Downloading typer-0.23.0-py3-none-any.whl (56 kB)
+2026-10-02T11:13:42.4118176Z Downloading typer_slim-0.23.0-py3-none-any.whl (3.4 kB)
+2026-10-02T11:13:42.4205535Z Downloading typing_inspection-0.4.2-py3-none-any.whl (14 kB)
+2026-10-02T11:13:42.4293206Z Downloading watchfiles-1.1.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (456 kB)
+2026-10-02T11:13:42.4389613Z Downloading wcwidth-0.6.0-py3-none-any.whl (94 kB)
+2026-10-02T11:13:42.4477148Z Downloading zipp-3.23.0-py3-none-any.whl (10 kB)
+2026-10-02T11:13:43.0944729Z Installing collected packages: pyperclip, pydub, ptyprocess, zipp, wcwidth, urllib3, typing-extensions, tree-sitter-yaml, tree-sitter-embedded-template, tree-sitter-c-sharp, tree-sitter, tqdm, soupsieve, socksio, sniffio, smmap, six, shtab, shellingham, rpds-py, regex, pyyaml, python-dotenv, pypandoc, pygments, pyflakes, pycparser, pycodestyle, psutil, propcache, pillow, pexpect, pathspec, packaging, orjson, numpy, networkx, multidict, mslex, mdurl, mccabe, markupsafe, json5, jiter, importlib-resources, idna, hf-xet, h11, fsspec, frozenlist, filelock, fastuuid, distro, diskcache, diff-match-patch, configargparse, click, charset-normalizer, certifi, backoff, attrs, asgiref, annotated-types, annotated-doc, aiohappyeyeballs, yarl, typing-inspection, tree-sitter-language-pack, scipy, requests, referencing, python-dateutil, pydantic-core, prompt-toolkit, oslex, markdown-it-py, jinja2, importlib-metadata, httpcore, gitdb, flake8, cffi, beautifulsoup4, anyio, aiosignal, watchfiles, tiktoken, starlette, soundfile, sounddevice, rich, pydantic, posthog, jsonschema-specifications, httpx, grep-ast, gitpython, aiohttp, typer, openai, mixpanel, jsonschema, fastapi, typer-slim, huggingface-hub, tokenizers, litellm, aider-chat
+2026-10-02T11:14:00.2102389Z 
+2026-10-02T11:14:00.2186181Z Successfully installed aider-chat-0.86.2 aiohappyeyeballs-2.6.1 aiohttp-3.13.3 aiosignal-1.4.0 annotated-doc-0.0.4 annotated-types-0.7.0 anyio-4.12.1 asgiref-3.11.1 attrs-25.4.0 backoff-2.2.1 beautifulsoup4-4.14.3 certifi-2026.1.4 cffi-2.0.0 charset-normalizer-3.4.4 click-8.3.1 configargparse-1.7.1 diff-match-patch-20241021 diskcache-5.6.3 distro-1.9.0 fastapi-0.128.8 fastuuid-0.14.0 filelock-3.20.3 flake8-7.3.0 frozenlist-1.8.0 fsspec-2026.2.0 gitdb-4.0.12 gitpython-3.1.46 grep-ast-0.9.0 h11-0.16.0 hf-xet-1.2.0 httpcore-1.0.9 httpx-0.28.1 huggingface-hub-1.4.1 idna-3.11 importlib-metadata-7.2.1 importlib-resources-6.5.2 jinja2-3.1.6 jiter-0.13.0 json5-0.13.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 litellm-1.81.10 markdown-it-py-4.0.0 markupsafe-3.0.3 mccabe-0.7.0 mdurl-0.1.2 mixpanel-5.0.0 mslex-1.3.0 multidict-6.7.1 networkx-3.4.2 numpy-1.26.4 openai-2.20.0 orjson-3.11.7 oslex-0.1.3 packaging-26.0 pathspec-1.0.4 pexpect-4.9.0 pillow-12.1.1 posthog-7.8.6 prompt-toolkit-3.0.52 propcache-0.4.1 psutil-7.2.2 ptyprocess-0.7.0 pycodestyle-2.14.0 pycparser-3.0 pydantic-2.12.5 pydantic-core-2.41.5 pydub-0.25.1 pyflakes-3.4.0 pygments-2.19.2 pypandoc-1.16.2 pyperclip-1.11.0 python-dateutil-2.9.0.post0 python-dotenv-1.2.1 pyyaml-6.0.3 referencing-0.37.0 regex-2026.1.15 requests-2.32.5 rich-14.3.2 rpds-py-0.30.0 scipy-1.15.3 shellingham-1.5.4 shtab-1.8.0 six-1.17.0 smmap-5.0.2 sniffio-1.3.1 socksio-1.0.0 sounddevice-0.5.5 soundfile-0.13.1 soupsieve-2.8.3 starlette-0.52.1 tiktoken-0.12.0 tokenizers-0.22.2 tqdm-4.67.3 tree-sitter-0.25.2 tree-sitter-c-sharp-0.23.1 tree-sitter-embedded-template-0.25.0 tree-sitter-language-pack-0.13.0 tree-sitter-yaml-0.7.2 typer-0.23.0 typer-slim-0.23.0 typing-extensions-4.15.0 typing-inspection-0.4.2 urllib3-2.6.3 watchfiles-1.1.1 wcwidth-0.6.0 yarl-1.22.0 zipp-3.23.0
+2026-10-02T11:14:00.5301988Z ##[group]Run node .forge/pick-provider.mjs
+2026-10-02T11:14:00.5302394Z [36;1mnode .forge/pick-provider.mjs[0m
+2026-10-02T11:14:00.5365798Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:14:00.5366117Z env:
+2026-10-02T11:14:00.5366477Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:14:00.5366938Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:14:00.5367335Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:00.5367801Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:14:00.5368512Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:00.5368916Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:00.5369326Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:00.5369732Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:14:00.5370235Z   GEMINI_API_KEY: ***
+2026-10-02T11:14:00.5370563Z   MISTRAL_API_KEY: ***
+2026-10-02T11:14:00.5370940Z   CEREBRAS_API_KEY: ***
+2026-10-02T11:14:00.5371317Z   GROQ_API_KEY: ***
+2026-10-02T11:14:00.5371757Z   OPENROUTER_API_KEY: ***
+2026-10-02T11:14:00.5372059Z   FORGE_RUN_KEY: a3c27581-37a8-4fec-ba30-a86491be38b6
+2026-10-02T11:14:00.5372384Z   FORGE_MIN_STRONG: strong
+2026-10-02T11:14:00.5372630Z ##[endgroup]
+2026-10-02T11:14:01.0034673Z providers.json: orchestra + routing z lokální kopie (5/5)
+2026-10-02T11:14:01.0036543Z granule vyžaduje silný model – zužuji na: mistral, cerebras, groq
+2026-10-02T11:14:01.0041482Z pořadí silných modelů posunuto podle run_key (a3c27581…): groq → mistral → cerebras
+2026-10-02T11:14:01.0042569Z zkouším v pořadí: groq → mistral → cerebras
+2026-10-02T11:14:01.2989682Z ✓ groq / openai/gpt-oss-120b odpovídá – použiji tento model
+2026-10-02T11:14:01.3054837Z 
+2026-10-02T11:14:01.3055272Z Vybráno: groq → openai/gpt-oss-120b
+2026-10-02T11:14:01.3166810Z ##[group]Run set -o pipefail
+2026-10-02T11:14:01.3167229Z [36;1mset -o pipefail[0m
+2026-10-02T11:14:01.3167506Z [36;1mnacti_poskytovatele() {[0m
+2026-10-02T11:14:01.3168239Z [36;1m  # GITHUB_ENV platí až pro DALŠÍ krok, proto si pick-provider.mjs[0m
+2026-10-02T11:14:01.3168821Z [36;1m  # píše i .forge/provider.env, který jde načíst hned tady.[0m
+2026-10-02T11:14:01.3169210Z [36;1m  set -a[0m
+2026-10-02T11:14:01.3169462Z [36;1m  . .forge/provider.env[0m
+2026-10-02T11:14:01.3169735Z [36;1m  set +a[0m
+2026-10-02T11:14:01.3169959Z [36;1m}[0m
+2026-10-02T11:14:01.3170283Z [36;1m# SOUBORY K EDITACI – ROOT CAUSE 0% ÚSPĚŠNOSTI (30. 9. 2026).[0m
+2026-10-02T11:14:01.3170862Z [36;1m#[0m
+2026-10-02T11:14:01.3171211Z [36;1m# Dřív se pouštěl aider jen s `--read CONVENTIONS.md`. Soubory granule[0m
+2026-10-02T11:14:01.3171716Z [36;1m# se tím dostaly do repo-mapy (READ-ONLY), ale NE do chatu jako[0m
+2026-10-02T11:14:01.3172270Z [36;1m# editovatelné. Aider má v promptu pravidlo „Only create SEARCH/REPLACE[0m
+2026-10-02T11:14:01.3172808Z [36;1m# blocks for files that the user has added to the chat!" – takže model[0m
+2026-10-02T11:14:01.3173338Z [36;1m# SPRÁVNĚ odmítl editovat a odpověděl „Please add the file's content to[0m
+2026-10-02T11:14:01.3173846Z [36;1m# the chat". Udělaly to VŠECHNY modely (mistral 17–36 tokenů,[0m
+2026-10-02T11:14:01.3174310Z [36;1m# cerebras 179–204) a běh skončil jako „agent nic nezměnil".[0m
+2026-10-02T11:14:01.3174681Z [36;1m#[0m
+2026-10-02T11:14:01.3175012Z [36;1m# Vysvětluje to i vzorec úspěch/neúspěch: granule, které soubor jen[0m
+2026-10-02T11:14:01.3175521Z [36;1m# VYTVÁŘELY (attributes.gd, item.gd), prošly – na nový soubor není[0m
+2026-10-02T11:14:01.3176049Z [36;1m# potřeba SEARCH blok. Granule, které existující soubor UPRAVOVALY[0m
+2026-10-02T11:14:01.3176558Z [36;1m# (skills.gd, world.gd, economy.gd), selhaly VŽDY, bez ohledu na model.[0m
+2026-10-02T11:14:01.3176950Z [36;1m#[0m
+2026-10-02T11:14:01.3177280Z [36;1m# `owns` granule je přesně seznam souborů, které granule vlastní[0m
+2026-10-02T11:14:01.3177770Z [36;1m# (conductor podle něj zamyká souběh) – proto se bere odtud.[0m
+2026-10-02T11:14:01.3178703Z [36;1mDO_EDITACE=$(node .forge/files-to-edit.mjs --grain "$FORGE_GRAIN" --prompt "$FORGE_PROMPT" || true)[0m
+2026-10-02T11:14:01.3179238Z [36;1mARG_SOUBORY=""[0m
+2026-10-02T11:14:01.3179506Z [36;1mif [ -n "$DO_EDITACE" ]; then[0m
+2026-10-02T11:14:01.3179911Z [36;1m  echo "Soubory k editaci (dostane je jako --file, ne jen --read):"[0m
+2026-10-02T11:14:01.3180340Z [36;1m  echo "$DO_EDITACE" | sed 's/^/  /'[0m
+2026-10-02T11:14:01.3180657Z [36;1m  while IFS= read -r f; do[0m
+2026-10-02T11:14:01.3180962Z [36;1m    [ -n "$f" ] || continue[0m
+2026-10-02T11:14:01.3181245Z [36;1m    if [ ! -e "$f" ]; then[0m
+2026-10-02T11:14:01.3181627Z [36;1m      # Soubor granule ještě neexistuje → ZALOŽÍ SE PRÁZDNÝ a předá[0m
+2026-10-02T11:14:01.3182111Z [36;1m      # se aideru jako `--file`. Naměřeno 30. 9. 2026 (běh #129):[0m
+2026-10-02T11:14:01.3182580Z [36;1m      # bez toho soubor v chatu nebyl, a i když ho měl model teprve[0m
+2026-10-02T11:14:01.3183052Z [36;1m      # VYTVOŘIT, odpověděl „add the file to the chat". Aiderův[0m
+2026-10-02T11:14:01.3183548Z [36;1m      # prompt sice pro nový soubor chce prázdnou SEARCH sekci, jenže[0m
+2026-10-02T11:14:01.3184009Z [36;1m      # model bez souboru v chatu odmítne navrhnout cokoli.[0m
+2026-10-02T11:14:01.3184485Z [36;1m      # Prázdný soubor je jen zámek pro chat – když do něj model nic[0m
+2026-10-02T11:14:01.3184963Z [36;1m      # nenapíše, běh se uklidí ve „Verdikt a vytvoření patche"[0m
+2026-10-02T11:14:01.3185407Z [36;1m      # (git add -A) a testy ho stejně shodí jako nefunkční.[0m
+2026-10-02T11:14:01.3185784Z [36;1m      : > "$f"[0m
+2026-10-02T11:14:01.3186087Z [36;1m      echo "  (založen prázdný, ať je v chatu: $f)"[0m
+2026-10-02T11:14:01.3186418Z [36;1m    fi[0m
+2026-10-02T11:14:01.3186675Z [36;1m    ARG_SOUBORY="$ARG_SOUBORY --file $f"[0m
+2026-10-02T11:14:01.3187199Z [36;1m  done <<< "$DO_EDITACE"[0m
+2026-10-02T11:14:01.3187486Z [36;1melse[0m
+2026-10-02T11:14:01.3187847Z [36;1m  echo "::warning::granule neurčuje žádný soubor – agent dostane jen zadání"[0m
+2026-10-02T11:14:01.3188557Z [36;1mfi[0m
+2026-10-02T11:14:01.3188776Z [36;1m[0m
+2026-10-02T11:14:01.3189036Z [36;1m# SOUBORY ZÁVISLÝCH GRANULÍ – JEN KE ČTENÍ.[0m
+2026-10-02T11:14:01.3189358Z [36;1m#[0m
+2026-10-02T11:14:01.3189685Z [36;1m# Naměřeno 30. 9. 2026 (běh #131, granule entity.npc): model pojmenoval[0m
+2026-10-02T11:14:01.3190204Z [36;1m# typ podle závislé granule (`Economy`), ale její soubor nikdy neviděl[0m
+2026-10-02T11:14:01.3190879Z [36;1m# → `Parse Error: Could not find type "Economy"`. Smlouvy závislostí[0m
+2026-10-02T11:14:01.3191370Z [36;1m# má model dostat – jen je nesmí měnit, a to zajistí `--read`.[0m
+2026-10-02T11:14:01.3191745Z [36;1mARG_CTENI=""[0m
+2026-10-02T11:14:01.3192213Z [36;1mCIT_DEPS=$(node .forge/files-to-edit.mjs --grain "$FORGE_GRAIN" --read-deps 2>/dev/null || true)[0m
+2026-10-02T11:14:01.3192724Z [36;1mif [ -n "$CIT_DEPS" ]; then[0m
+2026-10-02T11:14:01.3193076Z [36;1m  echo "Soubory závislých granulí (jen ke čtení):"[0m
+2026-10-02T11:14:01.3193450Z [36;1m  echo "$CIT_DEPS" | sed 's/^/  /'[0m
+2026-10-02T11:14:01.3193841Z [36;1m  while IFS= read -r f; do[0m
+2026-10-02T11:14:01.3194147Z [36;1m    [ -n "$f" ] || continue[0m
+2026-10-02T11:14:01.3194450Z [36;1m    ARG_CTENI="$ARG_CTENI --read $f"[0m
+2026-10-02T11:14:01.3194765Z [36;1m  done <<< "$CIT_DEPS"[0m
+2026-10-02T11:14:01.3195020Z [36;1mfi[0m
+2026-10-02T11:14:01.3195241Z [36;1m[0m
+2026-10-02T11:14:01.3195460Z [36;1mspust_agenta() {[0m
+2026-10-02T11:14:01.3195744Z [36;1m  # shellcheck disable=SC2086[0m
+2026-10-02T11:14:01.3196036Z [36;1m  aider \[0m
+2026-10-02T11:14:01.3196305Z [36;1m    --model "openai/${FORGE_MODEL}" \[0m
+2026-10-02T11:14:01.3196628Z [36;1m    --read CONVENTIONS.md \[0m
+2026-10-02T11:14:01.3196909Z [36;1m    $ARG_CTENI \[0m
+2026-10-02T11:14:01.3197173Z [36;1m    $ARG_SOUBORY \[0m
+2026-10-02T11:14:01.3197441Z [36;1m    --map-tokens 0 \[0m
+2026-10-02T11:14:01.3197712Z [36;1m    --edit-format diff \[0m
+2026-10-02T11:14:01.3198360Z [36;1m    --message "$FORGE_PROMPT" \[0m
+2026-10-02T11:14:01.3198749Z [36;1m    --yes --no-auto-commits --no-stream --no-check-update \[0m
+2026-10-02T11:14:01.3199223Z [36;1m    2>&1 | tee -a agent.log || echo "aider skoncil s chybou"[0m
+2026-10-02T11:14:01.3199573Z [36;1m}[0m
+2026-10-02T11:14:01.3199786Z [36;1mzmenil_neco() {[0m
+2026-10-02T11:14:01.3200127Z [36;1m  # .uid/.import generuje Godot sám a provider.env je naše – do[0m
+2026-10-02T11:14:01.3200603Z [36;1m  # „změnil agent něco?" nepatří (jinak by se nezměněný běh hlásil[0m
+2026-10-02T11:14:01.3201075Z [36;1m  # jako úspěch a do PR by šel jen náš pomocný soubor).[0m
+2026-10-02T11:14:01.3201437Z [36;1m  git status --porcelain \[0m
+2026-10-02T11:14:01.3201838Z [36;1m    | grep -Ev '\.(uid|import)$|^agent\.log$|^\.forge/provider\.(env|json)$' \[0m
+2026-10-02T11:14:01.3202249Z [36;1m    | grep -q .[0m
+2026-10-02T11:14:01.3202483Z [36;1m}[0m
+2026-10-02T11:14:01.3202692Z [36;1mspust_agenta[0m
+2026-10-02T11:14:01.3202933Z [36;1mif ! zmenil_neco; then[0m
+2026-10-02T11:14:01.3203286Z [36;1m  # KVÓTA vs. SCHOPNOST (od 30. 9. 2026). Druhý pokus s jiným[0m
+2026-10-02T11:14:01.3203768Z [36;1m  # poskytovatelem má smysl jen tehdy, když je co zkoušet — tedy když[0m
+2026-10-02T11:14:01.3204256Z [36;1m  # model odpověděl, ale kód nezměnil (jiný model to může trefit).[0m
+2026-10-02T11:14:01.3204743Z [36;1m  # Když ale běh spadl na vyčerpané kvótě (rate-limit / denní strop),[0m
+2026-10-02T11:14:01.3205235Z [36;1m  # druhý pokus je jen další spálený pokus: naměřeno 30. 9. — 9 z 13[0m
+2026-10-02T11:14:01.3205710Z [36;1m  # běhů skončilo na rate-limitu a 11 z 13 zkoušelo druhého[0m
+2026-10-02T11:14:01.3206178Z [36;1m  # poskytovatele — žádný z nich neuspěl. Kvóta je vzácnější než čas.[0m
+2026-10-02T11:14:01.3206928Z [36;1m  if grep -qE 'RateLimitError|rate limit reached|exceeded your current quota' agent.log; then[0m
+2026-10-02T11:14:01.3207644Z [36;1m    echo "::warning::první pokus spadl na vyčerpané kvótě – druhý poskytovatel se nezkouší (šetřím kvótu)"[0m
+2026-10-02T11:14:01.3208398Z [36;1m  else[0m
+2026-10-02T11:14:01.3208792Z [36;1m    echo "::notice::model nezměnil žádný kód – zkouším jiného bezplatného poskytovatele"[0m
+2026-10-02T11:14:01.3209315Z [36;1m    if node .forge/pick-provider.mjs --next; then[0m
+2026-10-02T11:14:01.3209668Z [36;1m      nacti_poskytovatele[0m
+2026-10-02T11:14:01.3209945Z [36;1m      spust_agenta[0m
+2026-10-02T11:14:01.3210194Z [36;1m    fi[0m
+2026-10-02T11:14:01.3210559Z [36;1m  fi[0m
+2026-10-02T11:14:01.3210769Z [36;1mfi[0m
+2026-10-02T11:14:01.3274502Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:14:01.3274779Z env:
+2026-10-02T11:14:01.3275137Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:14:01.3275623Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:14:01.3276017Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:01.3276482Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:14:01.3276939Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:01.3277344Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:01.3277748Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:14:01.3278506Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:14:01.3278932Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:14:01.3279670Z   OPENAI_API_KEY: ***
+2026-10-02T11:14:01.3279957Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:14:01.3280256Z   FORGE_PROVIDER: groq
+2026-10-02T11:14:01.3284693Z   FORGE_PROMPT: Rozšiř scripts/player.gd (dnes umí jen pohyb klávesami přes _physics_process + _step a flash()). DOPLŇ PŘESNĚ TOHLE — jiné komponenty to už volají, nic víc: (1) move(dir: Vector2) -> void — posun o dir; izometrické osy ber z levelu, ne z vlastní konstanty (get_tree().get_first_node_in_group("level") a jeho is_walkable_at; vzor je v _physics_process). (2) Stav: hp: int, max_hp: int, mana: int, max_mana: int, target (uzel nebo null) — čte je scripts/assist.gd. (3) Inventář: inventory: Array, add_item(item) -> void, remove_item(item) -> void a equipped (vybavená zbraň/zbroj) — volá je scripts/economy.gd (add_item/remove_item) a čte scripts/hud.gd (equipped). (4) die() -> void — vytvoří mrtvolu (Area2D se jménem Corpse ve skupině corpse) s předměty z těla, hráč zahodí výbavu a inventář, přijde o všechno na těle a přesune se na spawn (level.spawn_cell přes cell_center). (5) ZACHOVEJ beze změny: _step(target: Vector2) -> Vector2, _physics_process, flash(), signál collected a add_to_group("player") v _ready() — testy je volají přímo. Struktura: začni `extends Area2D` (tak to je dnes), _init() bez povinného argumentu (CONVENTIONS.md §1f/§1g). Služby (atributy, skilly, předměty) ber z registru rodiče: get_parent().component(id) — vzor je v scripts/mining.gd; nikdy ne z /root/ (žádný autoload v projektu není). Neměň tests/, .forge/ ani project.godot.
+2026-10-02T11:14:01.3289615Z   FORGE_TITLE: Hráč — stav (hp/mana/cíl), move() a inventář (co už volají jiné komponenty)
+2026-10-02T11:14:01.3290103Z   FORGE_RUN_KEY: a3c27581-37a8-4fec-ba30-a86491be38b6
+2026-10-02T11:14:01.3290433Z   FORGE_MIN_STRONG: strong
+2026-10-02T11:14:01.3290700Z   FORGE_GRAIN: entity.player.api
+2026-10-02T11:14:01.3290968Z   FORGE_ATTEMPT: 1
+2026-10-02T11:14:01.3291285Z   GEMINI_API_KEY: ***
+2026-10-02T11:14:01.3291578Z   MISTRAL_API_KEY: ***
+2026-10-02T11:14:01.3291938Z   CEREBRAS_API_KEY: ***
+2026-10-02T11:14:01.3292320Z   GROQ_API_KEY: ***
+2026-10-02T11:14:01.3292761Z   OPENROUTER_API_KEY: ***
+2026-10-02T11:14:01.3293009Z ##[endgroup]
+2026-10-02T11:14:01.3655360Z [files-to-edit] 1 soubor(ů) z owns granule entity.player.api v .forge/roadmap.json
+2026-10-02T11:14:01.3687599Z Soubory k editaci (dostane je jako --file, ne jen --read):
+2026-10-02T11:14:01.3703118Z   scripts/player.gd
+2026-10-02T11:14:01.4050142Z Soubory závislých granulí (jen ke čtení):
+2026-10-02T11:14:01.4065263Z   scripts/attributes.gd
+2026-10-02T11:14:01.4065741Z   scripts/skills.gd
+2026-10-02T11:14:01.4066155Z   scripts/item.gd
+2026-10-02T11:14:01.4066515Z   scripts/level.gd
+2026-10-02T11:14:02.6755868Z Warning: Input is not a terminal (fd=0).
+2026-10-02T11:14:02.6777113Z ────────────────────────────────────────────────────────────────────────────────
+2026-10-02T11:14:02.6844894Z Update git name with: git config user.name "Your Name"
+2026-10-02T11:14:02.6854044Z Update git email with: git config user.email "you@example.com"
+2026-10-02T11:14:05.0858671Z Warning for openai/openai/gpt-oss-120b: Unknown context window size and costs, 
+2026-10-02T11:14:05.0859483Z using sane defaults.
+2026-10-02T11:14:05.1022034Z Did you mean one of these?
+2026-10-02T11:14:05.1024893Z - novita/openai/gpt-oss-120b
+2026-10-02T11:14:05.1027785Z - openrouter/openai/gpt-oss-120b
+2026-10-02T11:14:05.1030913Z - sail/openai/gpt-oss-120b
+2026-10-02T11:14:05.1033960Z You can skip this check with --no-show-model-warnings
+2026-10-02T11:14:05.1035604Z 
+2026-10-02T11:14:05.1038453Z https://aider.chat/docs/llms/warnings.html
+2026-10-02T11:14:05.1041211Z 
+2026-10-02T11:14:05.1672616Z Aider v0.86.2
+2026-10-02T11:14:05.1675829Z Model: openai/openai/gpt-oss-120b with diff edit format
+2026-10-02T11:14:05.1678578Z Git repo: .git with 659 files
+2026-10-02T11:14:05.1681753Z Repo-map: disabled
+2026-10-02T11:14:05.1684571Z Added scripts/player.gd to the chat.
+2026-10-02T11:14:05.1687538Z Added scripts/level.gd to the chat (read-only).
+2026-10-02T11:14:05.1690684Z Added scripts/item.gd to the chat (read-only).
+2026-10-02T11:14:05.1693601Z Added scripts/attributes.gd to the chat (read-only).
+2026-10-02T11:14:05.1696656Z Added scripts/skills.gd to the chat (read-only).
+2026-10-02T11:14:05.1700080Z Added CONVENTIONS.md to the chat (read-only).
+2026-10-02T11:14:05.1701367Z 
+2026-10-02T11:14:05.1702815Z 
+2026-10-02T11:14:05.1705651Z https://aider.chat/HISTORY.html#release-notes
+2026-10-02T11:14:05.1711101Z 
+2026-10-02T11:14:05.1809621Z 
+2026-10-02T11:14:05.1812466Z project.godot
+2026-10-02T11:14:05.1816063Z 
+2026-10-02T11:14:05.1819673Z scripts/assist.gd
+2026-10-02T11:14:05.1823193Z 
+2026-10-02T11:14:05.1826046Z scripts/economy.gd
+2026-10-02T11:14:05.3182595Z 
+2026-10-02T11:14:05.3186564Z scripts/hud.gd
+2026-10-02T11:14:05.3203578Z 
+2026-10-02T11:14:05.3206928Z scripts/mining.gd
+2026-10-02T11:14:05.6235007Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:05.6236148Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:05.6237168Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:05.6238461Z 14398, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:05.6239449Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:05.6240422Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:05.6241830Z Retrying in 0.2 seconds...
+2026-10-02T11:14:05.9334478Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:05.9335543Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:05.9336474Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:05.9337392Z 14398, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:05.9338498Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:05.9341645Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:05.9342530Z Retrying in 0.5 seconds...
+2026-10-02T11:14:06.4907423Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:06.4909126Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:06.4910374Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:06.4911436Z 14110, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:06.4912367Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:06.4913265Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:06.4914018Z Retrying in 1.0 seconds...
+2026-10-02T11:14:07.5497073Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:07.5498196Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:07.5499804Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:07.5500510Z 14398, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:07.5501088Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:07.5501650Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:07.5502392Z Retrying in 2.0 seconds...
+2026-10-02T11:14:09.6113281Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:09.6114454Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:09.6115478Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:09.6116556Z 14398, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:09.6117527Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:09.6118473Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:09.6118910Z Retrying in 4.0 seconds...
+2026-10-02T11:14:13.6922952Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:13.6923872Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:13.6925007Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:13.6926021Z 14377, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:13.6926602Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:13.6927365Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:13.6928169Z Retrying in 8.0 seconds...
+2026-10-02T11:14:21.7759099Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:21.7760269Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:21.7761326Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:21.7762328Z 14377, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:21.7763251Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:21.7764239Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:21.7764968Z Retrying in 16.0 seconds...
+2026-10-02T11:14:37.8600864Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:14:37.8601751Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:14:37.8602808Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:14:37.8603771Z 14402, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:14:37.8604498Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:14:37.8605210Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:14:37.8606066Z Retrying in 32.0 seconds...
+2026-10-02T11:15:09.9478892Z litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for 
+2026-10-02T11:15:09.9480584Z model `openai/gpt-oss-120b` in organization `org_01m3petjm5e54rj202mjs4n0r9` 
+2026-10-02T11:15:09.9481752Z service tier `on_demand` on tokens per minute (TPM): Limit 8000, Requested 
+2026-10-02T11:15:09.9482741Z 14402, please reduce your message size and try again. Need more tokens? Upgrade 
+2026-10-02T11:15:09.9483615Z to Dev Tier today at https://console.groq.com/settings/billing
+2026-10-02T11:15:09.9484452Z The API provider has rate limited you. Try again later or check your quotas.
+2026-10-02T11:15:09.9484992Z 
+2026-10-02T11:15:09.9485565Z https://console.groq.com/settings/billing
+2026-10-02T11:15:10.0413050Z 
+2026-10-02T11:15:10.5199530Z ##[warning]první pokus spadl na vyčerpané kvótě – druhý poskytovatel se nezkouší (šetřím kvótu)
+2026-10-02T11:15:10.5245968Z ##[group]Run ZMENENE=$(git status --porcelain \
+2026-10-02T11:15:10.5246459Z [36;1mZMENENE=$(git status --porcelain \[0m
+2026-10-02T11:15:10.5246944Z [36;1m  | grep -Ev '\.(uid|import)$|^.. (smoke|agent)\.log$|^.. \.forge/provider\.(env|json)$' \[0m
+2026-10-02T11:15:10.5247450Z [36;1m  | awk '{print $NF}' | grep '\.gd$' || true)[0m
+2026-10-02T11:15:10.5247766Z [36;1m[0m
+2026-10-02T11:15:10.5248322Z [36;1mif [ -z "$ZMENENE" ]; then[0m
+2026-10-02T11:15:10.5248759Z [36;1m  echo "Agent nezměnil žádný .gd soubor – není co kontrolovat."[0m
+2026-10-02T11:15:10.5249156Z [36;1m  exit 0[0m
+2026-10-02T11:15:10.5249381Z [36;1mfi[0m
+2026-10-02T11:15:10.5249587Z [36;1m[0m
+2026-10-02T11:15:10.5249843Z [36;1mecho "Kontroluji parsování těchto souborů:"[0m
+2026-10-02T11:15:10.5250186Z [36;1mecho "$ZMENENE" | sed 's/^/  /'[0m
+2026-10-02T11:15:10.5250498Z [36;1mecho ""[0m
+2026-10-02T11:15:10.5250723Z [36;1m[0m
+2026-10-02T11:15:10.5250930Z [36;1mCHYBY=0[0m
+2026-10-02T11:15:10.5251208Z [36;1mfor f in $ZMENENE; do[0m
+2026-10-02T11:15:10.5251689Z [36;1m  VYSTUP=$("$FORGE_GODOT" --headless --path . --check-only --script "res://$f" 2>&1 || true)[0m
+2026-10-02T11:15:10.5252277Z [36;1m  if echo "$VYSTUP" | grep -q 'SCRIPT ERROR: Parse Error'; then[0m
+2026-10-02T11:15:10.5252664Z [36;1m    CHYBY=$((CHYBY + 1))[0m
+2026-10-02T11:15:10.5253011Z [36;1m    echo "::error file=$f::Skript se neparsuje – $f"[0m
+2026-10-02T11:15:10.5253480Z [36;1m    # Vypisují se VŠECHNY chyby souboru, ne jen první (dřív `head -12`[0m
+2026-10-02T11:15:10.5253983Z [36;1m    # ukázal jednu a zbytek se zahodil). Model jich často udělá víc[0m
+2026-10-02T11:15:10.5254475Z [36;1m    # najednou a při opakování pak opraví jednu a spadne na další.[0m
+2026-10-02T11:15:10.5254944Z [36;1m    # Naměřeno 30. 9. 2026 (běh #131, scripts/npc.gd): čtyři různé[0m
+2026-10-02T11:15:10.5255390Z [36;1m    # chyby v jednom souboru – `Member "position" redefined`,[0m
+2026-10-02T11:15:10.5255909Z [36;1m    # `Cannot infer the type of "item"` a `Identifier "GameItem" not[0m
+2026-10-02T11:15:10.5256399Z [36;1m    # declared` (poslední je jen NÁSLEDEK předchozích).[0m
+2026-10-02T11:15:10.5256855Z [36;1m    echo "$VYSTUP" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40[0m
+2026-10-02T11:15:10.5257227Z [36;1m    echo ""[0m
+2026-10-02T11:15:10.5257457Z [36;1m  else[0m
+2026-10-02T11:15:10.5257677Z [36;1m    echo "  OK  $f"[0m
+2026-10-02T11:15:10.5257916Z [36;1m  fi[0m
+2026-10-02T11:15:10.5258252Z [36;1mdone[0m
+2026-10-02T11:15:10.5258460Z [36;1m[0m
+2026-10-02T11:15:10.5258671Z [36;1mif [ "$CHYBY" -gt 0 ]; then[0m
+2026-10-02T11:15:10.5259074Z [36;1m  echo "::error::$CHYBY souborů se neparsuje – testy nemá cenu pouštět"[0m
+2026-10-02T11:15:10.5259583Z [36;1m  # POZOR: v TIP echách NESMÍ být zpětné apostrofy ani $( ). Bash je[0m
+2026-10-02T11:15:10.5260086Z [36;1m  # uvnitř dvojitých uvozovek bere jako substituci, takže se text[0m
+2026-10-02T11:15:10.5260571Z [36;1m  # POKUSÍ SPUSTIT – a do logu se místo chyby modelu vysypou[0m
+2026-10-02T11:15:10.5261243Z [36;1m  # 'var: command not found' a 'syntax error near unexpected token'.[0m
+2026-10-02T11:15:10.5261709Z [36;1m  # Naměřeno 1. 10. 2026 (běh #241): skutečná příčina selhání[0m
+2026-10-02T11:15:10.5262175Z [36;1m  # (ALIGN_LEFT neexistuje v Godotu 4) se v tom šumu ztratila.[0m
+2026-10-02T11:15:10.5262668Z [36;1m  # Kódové ukázky proto BEZ apostrofů – jen slovy a v uvozovkách.[0m
+2026-10-02T11:15:10.5263184Z [36;1m  echo "TIP: nejčastější příčiny jsou v CONVENTIONS.md §1c (File/json místo"[0m
+2026-10-02T11:15:10.5263717Z [36;1m  echo "     FileAccess/JSON), §1d (§1e) – kolize jmen s enginem, např."[0m
+2026-10-02T11:15:10.5264213Z [36;1m  echo "     class_name Item, funkce get(), property name – a §1f:"[0m
+2026-10-02T11:15:10.5264715Z [36;1m  echo "     NIKDY nedeklaruj promenne position/scale/rotation/visible/name"[0m
+2026-10-02T11:15:10.5265264Z [36;1m  echo "     (jsou to členové Area2D/Node2D → 'Member redefined'),"[0m
+2026-10-02T11:15:10.5265945Z [36;1m  echo "     a prirazeni z load(...) nebo z uzlu potrebuje VYJADRENY typ"[0m
+2026-10-02T11:15:10.5266440Z [36;1m  echo "     ('var x: Node = ...'), jinak 'Cannot infer type'."[0m
+2026-10-02T11:15:10.5266909Z [36;1m  echo "     Pozor: chyba 'Identifier X not declared' bývá jen NÁSLEDEK"[0m
+2026-10-02T11:15:10.5267406Z [36;1m  echo "     předchozích chyb v témž souboru – oprav první z nich."[0m
+2026-10-02T11:15:10.5267892Z [36;1m  echo "     A konstanty z Godotu 3 NEEXISTUJÍ (CONVENTIONS.md §1h):"[0m
+2026-10-02T11:15:10.5268509Z [36;1m  echo "     ALIGN_LEFT -> HORIZONTAL_ALIGNMENT_LEFT, VALIGN_TOP ->"[0m
+2026-10-02T11:15:10.5268992Z [36;1m  echo "     VERTICAL_ALIGNMENT_TOP (naměřeno 1. 10. 2026, běh #241)."[0m
+2026-10-02T11:15:10.5269373Z [36;1m  exit 1[0m
+2026-10-02T11:15:10.5269597Z [36;1mfi[0m
+2026-10-02T11:15:10.5269915Z [36;1mecho "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."[0m
+2026-10-02T11:15:10.5270295Z [36;1m[0m
+2026-10-02T11:15:10.5270644Z [36;1m# DRUHÁ KONTROLA: Godot sám tuhle vadu NEPOZNÁ (naměřeno 30. 9. 2026).[0m
+2026-10-02T11:15:10.5271034Z [36;1m#[0m
+2026-10-02T11:15:10.5271347Z [36;1m# Když soubor deklaruje `class_name GameItem` a ZÁROVEŇ definuje[0m
+2026-10-02T11:15:10.5271853Z [36;1m# `class GameItem extends …`, vnořená třída přebije tu globální. `new()`[0m
+2026-10-02T11:15:10.5272351Z [36;1m# pak vrátí vnořenou třídu – ta nemá smluvní metody, a když není[0m
+2026-10-02T11:15:10.5272840Z [36;1m# potomkem Node, spadne i `free()` v testech. Testy pak hlásí jen[0m
+2026-10-02T11:15:10.5273317Z [36;1m# „překročen tvrdý limit 90 s" a příčina je neviditelná.[0m
+2026-10-02T11:15:10.5273674Z [36;1m#[0m
+2026-10-02T11:15:10.5274007Z [36;1m# Ověřeno na běhu #122 (granule entity.item): model napsal přesně tenhle[0m
+2026-10-02T11:15:10.5274497Z [36;1m# tvar, `--check-only` vrátil exit 0 a bez chyby, a testy spadly.[0m
+2026-10-02T11:15:10.5274983Z [36;1m# Kontroluje se zdrojový text, protože na to Godot nemá nástroj.[0m
+2026-10-02T11:15:10.5275387Z [36;1mecho ""[0m
+2026-10-02T11:15:10.5275729Z [36;1mecho "Kontroluji stínění class_name (staticky, Godot to nepozná):"[0m
+2026-10-02T11:15:10.5276122Z [36;1mCHYBY_STIN=0[0m
+2026-10-02T11:15:10.5276376Z [36;1mfor f in $ZMENENE; do[0m
+2026-10-02T11:15:10.5276841Z [36;1m  PRVNI=$(grep -m1 -oE '^class_name[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' "$f" | awk '{print $2}' || true)[0m
+2026-10-02T11:15:10.5277330Z [36;1m  if [ -z "$PRVNI" ]; then[0m
+2026-10-02T11:15:10.5277608Z [36;1m    continue[0m
+2026-10-02T11:15:10.5277839Z [36;1m  fi[0m
+2026-10-02T11:15:10.5278258Z [36;1m  if grep -qE "^class[[:space:]]+$PRVNI([[:space:]]|:|$)" "$f"; then[0m
+2026-10-02T11:15:10.5278974Z [36;1m    echo "::error file=$f::$f deklaruje class_name $PRVNI a zároveň definuje vnořenou class $PRVNI – vnořená třída přebije globální jméno"[0m
+2026-10-02T11:15:10.5279618Z [36;1m    CHYBY_STIN=$((CHYBY_STIN + 1))[0m
+2026-10-02T11:15:10.5279910Z [36;1m  else[0m
+2026-10-02T11:15:10.5280307Z [36;1m    echo "  OK  $f (class_name $PRVNI)"[0m
+2026-10-02T11:15:10.5280610Z [36;1m  fi[0m
+2026-10-02T11:15:10.5280821Z [36;1mdone[0m
+2026-10-02T11:15:10.5281046Z [36;1mif [ "$CHYBY_STIN" -gt 0 ]; then[0m
+2026-10-02T11:15:10.5281623Z [36;1m  echo "::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')"[0m
+2026-10-02T11:15:10.5282178Z [36;1m  exit 1[0m
+2026-10-02T11:15:10.5282394Z [36;1mfi[0m
+2026-10-02T11:15:10.5344833Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:15:10.5345107Z env:
+2026-10-02T11:15:10.5345469Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:10.5345939Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:10.5346334Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5346791Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:10.5347244Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5347821Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5348390Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5348787Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:10.5349183Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:10.5349716Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:10.5349973Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:10.5350249Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:10.5350485Z ##[endgroup]
+2026-10-02T11:15:10.5490909Z Agent nezměnil žádný .gd soubor – není co kontrolovat.
+2026-10-02T11:15:10.5582184Z ##[group]Run "$FORGE_GODOT" --headless --path . --import 2>&1 | tail -3
+2026-10-02T11:15:10.5582743Z [36;1m"$FORGE_GODOT" --headless --path . --import 2>&1 | tail -3[0m
+2026-10-02T11:15:10.5644508Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:15:10.5644788Z env:
+2026-10-02T11:15:10.5645150Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:10.5645645Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:10.5646044Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5646510Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:10.5646987Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5647420Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5647836Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:10.5648667Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:10.5649174Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:10.5649968Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:10.5650245Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:10.5650545Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:10.5650790Z ##[endgroup]
+2026-10-02T11:15:15.5637079Z [  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+2026-10-02T11:15:15.5637926Z [92m[ DONE ][39m [1mloading_editor_layout[22m
+2026-10-02T11:15:15.5638729Z [0m
+2026-10-02T11:15:15.5686806Z ##[group]Run set -o pipefail
+2026-10-02T11:15:15.5687444Z [36;1mset -o pipefail[0m
+2026-10-02T11:15:15.5687896Z [36;1m[0m
+2026-10-02T11:15:15.5688523Z [36;1mspust_testy() {[0m
+2026-10-02T11:15:15.5689085Z [36;1m  timeout 150 "$FORGE_GODOT" --headless --path . \[0m
+2026-10-02T11:15:15.5689842Z [36;1m    --script res://tests/run_tests.gd 2>&1 | tee -a agent.log[0m
+2026-10-02T11:15:15.5690488Z [36;1m}[0m
+2026-10-02T11:15:15.5690858Z [36;1m[0m
+2026-10-02T11:15:15.5691257Z [36;1mif ! spust_testy; then[0m
+2026-10-02T11:15:15.5691999Z [36;1m  # MECHANICKÁ OPRAVA TYPOVÉ CHYBY. Slabé modely opakovaně napíšou[0m
+2026-10-02T11:15:15.5692879Z [36;1m  # `var x := <výraz z neotypovaného uzlu>` a Godot ohlásí[0m
+2026-10-02T11:15:15.5693693Z [36;1m  # „Cannot infer the type of x" – hra se pak vůbec nenačte.[0m
+2026-10-02T11:15:15.5694548Z [36;1m  # Zamýšleli přitom `var x = …` (Variant). Je to bezpečná, cílená[0m
+2026-10-02T11:15:15.5695789Z [36;1m  # oprava podle konkrétní hlášky, ne hádání – a ušetří celý pokus.[0m
+2026-10-02T11:15:15.5696533Z [36;1m  python3 - <<'PY'[0m
+2026-10-02T11:15:15.5697053Z [36;1mimport pathlib, re, subprocess[0m
+2026-10-02T11:15:15.5697758Z [36;1mlog = pathlib.Path("agent.log").read_text(errors="replace")[0m
+2026-10-02T11:15:15.5699081Z [36;1mjmena = sorted(set(re.findall(r'Cannot infer the type of "([A-Za-z_][A-Za-z0-9_]*)"', log)))[0m
+2026-10-02T11:15:15.5699958Z [36;1mif not jmena:[0m
+2026-10-02T11:15:15.5700558Z [36;1m    print("typová chyba v logu není – opravovat není co")[0m
+2026-10-02T11:15:15.5701219Z [36;1m    raise SystemExit(0)[0m
+2026-10-02T11:15:15.5701796Z [36;1mprint("typová chyba u:", ", ".join(jmena))[0m
+2026-10-02T11:15:15.5702622Z [36;1mzmenene = subprocess.run(["git", "diff", "--name-only"], capture_output=True,[0m
+2026-10-02T11:15:15.5703466Z [36;1m                         text=True).stdout.split()[0m
+2026-10-02T11:15:15.5704085Z [36;1mfor f in zmenene:[0m
+2026-10-02T11:15:15.5704582Z [36;1m    if not f.endswith(".gd"):[0m
+2026-10-02T11:15:15.5705153Z [36;1m        continue[0m
+2026-10-02T11:15:15.5705624Z [36;1m    p = pathlib.Path(f)[0m
+2026-10-02T11:15:15.5706181Z [36;1m    t = p.read_text(encoding="utf-8")[0m
+2026-10-02T11:15:15.5706764Z [36;1m    for j in jmena:[0m
+2026-10-02T11:15:15.5707414Z [36;1m        novy, n = re.subn(rf'(?m)^(\s*var\s+{re.escape(j)})\s*:=', r'\1 =', t)[0m
+2026-10-02T11:15:15.5707816Z [36;1m        if n:[0m
+2026-10-02T11:15:15.5708438Z [36;1m            print(f"  {f}: var {j} := -> =")[0m
+2026-10-02T11:15:15.5708772Z [36;1m            t = novy[0m
+2026-10-02T11:15:15.5709056Z [36;1m    p.write_text(t, encoding="utf-8")[0m
+2026-10-02T11:15:15.5709358Z [36;1mPY[0m
+2026-10-02T11:15:15.5709586Z [36;1m  if ! spust_testy; then[0m
+2026-10-02T11:15:15.5709947Z [36;1m    echo "::error::testy selhaly i po mechanické opravě typů"[0m
+2026-10-02T11:15:15.5710331Z [36;1m    exit 1[0m
+2026-10-02T11:15:15.5710561Z [36;1m  fi[0m
+2026-10-02T11:15:15.5710895Z [36;1m  echo "::notice::testy prošly po mechanické opravě typové chyby"[0m
+2026-10-02T11:15:15.5711271Z [36;1mfi[0m
+2026-10-02T11:15:15.5711479Z [36;1m[0m
+2026-10-02T11:15:15.5711800Z [36;1m# Hra se musí spustit bez chyby ve skriptu. Exit kód to neřekne –[0m
+2026-10-02T11:15:15.5712312Z [36;1m# naměřeno: hra s chybou skončí s exit=0 (PR #9 takhle přišel o všechny[0m
+2026-10-02T11:15:15.5712845Z [36;1m# nepřátele a testy i CI hlásily úspěch). Kontroluje se proto výstup.[0m
+2026-10-02T11:15:15.5713378Z [36;1m# Log patří MIMO repo (RUNNER_TEMP): když se psal do pracovní složky,[0m
+2026-10-02T11:15:15.5713889Z [36;1m# dostal se přes `git add -A` do patche a do pull requestu (stalo se[0m
+2026-10-02T11:15:15.5714376Z [36;1m# u PR #10 – v PR pak nebylo nic než tenhle log a vygenerovaný .uid).[0m
+2026-10-02T11:15:15.5714795Z [36;1mSMOKE="${RUNNER_TEMP:-/tmp}/smoke.log"[0m
+2026-10-02T11:15:15.5715301Z [36;1mtimeout 60 "$FORGE_GODOT" --headless --path . --quit-after 120 > "$SMOKE" 2>&1 || true[0m
+2026-10-02T11:15:15.5716032Z [36;1mif grep -q "SCRIPT ERROR" "$SMOKE"; then[0m
+2026-10-02T11:15:15.5716484Z [36;1m  echo "::error::Patch se sice načte, ale hra běží s chybou ve skriptu"[0m
+2026-10-02T11:15:15.5716927Z [36;1m  grep -n "SCRIPT ERROR" "$SMOKE" | head -5[0m
+2026-10-02T11:15:15.5717245Z [36;1m  exit 1[0m
+2026-10-02T11:15:15.5717460Z [36;1mfi[0m
+2026-10-02T11:15:15.5780750Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:15:15.5781200Z env:
+2026-10-02T11:15:15.5781784Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:15.5782482Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:15.5782876Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:15.5783356Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:15.5783820Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:15.5784464Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:15.5784871Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:15.5785281Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:15.5785689Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:15.5786301Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:15.5786560Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:15.5786838Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:15.5787070Z ##[endgroup]
+2026-10-02T11:15:15.6075397Z Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+2026-10-02T11:15:15.6345667Z 
+2026-10-02T11:15:15.7401798Z [test] OK   main.tscn jde načíst
+2026-10-02T11:15:15.7508630Z [level] main: 30×16 políček, izometricka 96×48 px, dlaždic: 480, značek: 4
+2026-10-02T11:15:15.7509474Z ERROR: Required object "rp_target" is null.
+2026-10-02T11:15:15.7510110Z    at: tween_property (scene/animation/tween.cpp:101)
+2026-10-02T11:15:15.7510816Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7511489Z        [0] _add_level (res://scripts/game.gd:181)
+2026-10-02T11:15:15.7512080Z        [1] _ready (res://scripts/game.gd:33)
+2026-10-02T11:15:15.7512637Z        [2] _run (res://tests/run_tests.gd:65)
+2026-10-02T11:15:15.7618565Z [game] připraveno: hráč + 2 mincí, zvuků načteno: 0, dlaždice: ano, úroveň: main 30×16
+2026-10-02T11:15:15.7628778Z [test] OK   skript hry jde načíst (žádná chyba v kódu)
+2026-10-02T11:15:15.7629568Z [test] OK   scéna vytvořila uzel Player
+2026-10-02T11:15:15.7630357Z [test] OK   počet mincí odpovídá očekávání (2, nalezeno 2)
+2026-10-02T11:15:15.7630808Z [test] OK   HUD s výsledkem existuje
+2026-10-02T11:15:15.7631270Z [test] OK   HUD ukazuje počáteční skóre: 'Skóre: 0 / 2 HODNOTA: 25'
+2026-10-02T11:15:15.7698059Z [test] OK   sebrání mince zvýší skóre (0 -> 1)
+2026-10-02T11:15:15.7737311Z [test] OK   všechny assety jdou načíst (19 OK, 0 chybí)
+2026-10-02T11:15:15.7738268Z [test] OK   úroveň main.json je v projektu
+2026-10-02T11:15:15.7738997Z [test] OK   mapa je postavená ve scéně
+2026-10-02T11:15:15.7739712Z [test] OK   spawn je na průchozím políčku (17, 7)
+2026-10-02T11:15:15.7745921Z [test] OK   z každého políčka se dá dojít na spawn (109 z 109)
+2026-10-02T11:15:15.7746812Z [test] OK   mapa má dlaždici pro každé políčko (480)
+2026-10-02T11:15:15.7747657Z [test] OK   mapa se kreslí nad pozadím (mapa -1, pozadí -3)
+2026-10-02T11:15:15.7748727Z [test] OK   hráč se kreslí nad mapou (hráč 5, zeď 0)
+2026-10-02T11:15:15.7749513Z [test] OK   všechny značky leží na průchozích políčkách
+2026-10-02T11:15:15.7750302Z [test] OK   hráč startuje na průchozím políčku (480.0, 270.0)
+2026-10-02T11:15:15.7751023Z [test] OK   našla se zeď sousedící s chodbou
+2026-10-02T11:15:15.7751748Z [test] OK   hráč se nedostane do zdi (6, 2) (skončil v (7, 2))
+2026-10-02T11:15:15.7752591Z [test] OK   i po nárazu do zdi zůstane hráč na průchozím políčku
+2026-10-02T11:15:15.7753352Z [test] OK   dlaždicové pozadí je ve scéně
+2026-10-02T11:15:15.7769612Z [test] OK   pozadí má nenulovou velikost ((960.0, 540.0))
+2026-10-02T11:15:15.7770745Z [test] OK   úroveň main.json jde načíst
+2026-10-02T11:15:15.7771561Z [test] OK   úroveň main.json je celá průchodná (109 z 109)
+2026-10-02T11:15:15.7772357Z [test] OK   atributy začínají na 10 (10/10/10)
+2026-10-02T11:15:15.7773238Z [test] OK   derived() vrací damage, hit_chance, attack_speed, mana i carry
+2026-10-02T11:15:15.7780510Z [test]      skilly: get() nevrátil hodnoty pro 'tezba'/'kovarstvi' – kontrola začátků na 0 se přeskakuje
+2026-10-02T11:15:15.7781504Z [test] OK   level.gd se hlásí jako izometrický (podle assets/spec.json)
+2026-10-02T11:15:15.7782871Z [test] OK   izo projekce 2:1 – krok (1,0) je (48.0, 24.0) (dx=48.0, dy=24.0)
+2026-10-02T11:15:15.7783773Z [test] OK   cell_at je zpětný převod cell_center pro (1,0) ((1, 0))
+2026-10-02T11:15:15.7784392Z [test] OK   cell_at je zpětný převod cell_center pro (0,1) ((0, 1))
+2026-10-02T11:15:15.7792941Z [test] OK   item.gd poskytuje use/repair/broken
+2026-10-02T11:15:15.7802981Z [test] OK   use() snižuje trvanlivost (20 → 19)
+2026-10-02T11:15:15.7803656Z [test] OK   repair() obnoví předmět
+2026-10-02T11:15:15.7804413Z [test]      boj: res://scripts/combat.gd nevrací potomka Node, ale RefCounted – půjde zavřít
+2026-10-02T11:15:15.7805196Z [test]      → pravděpodobně vnořená `class` stíní `class_name`, nebo soubor nezačíná `extends Node`
+2026-10-02T11:15:15.7805733Z [test] OK   combat.gd poskytuje resolve(att, def)
+2026-10-02T11:15:15.7817168Z [test] OK   mining.gd jde načíst (dřív se nenačtený přeskočil)
+2026-10-02T11:15:15.7818194Z [test] OK   mining.gather() vrátí 1+(55-5)/10 = 6 (naměřeno: 6)
+2026-10-02T11:15:15.7818991Z [test] OK   mining.gather() zvedne dovednost o 1 (55 → 56)
+2026-10-02T11:15:15.7819769Z [test] OK   mining.gather() oznámí světu gather(cell) (volání: 1)
+2026-10-02T11:15:15.7820397Z [test] OK   dřevo jde na dovednost drevorubectvi
+2026-10-02T11:15:15.7821310Z ERROR: mining.gd: komponenta Skills není v registru – nevím, jaký je skill
+2026-10-02T11:15:15.7822149Z    at: push_error (core/variant/variant_utility.cpp:1023)
+2026-10-02T11:15:15.7822638Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7823037Z        [0] gather (res://scripts/mining.gd:52)
+2026-10-02T11:15:15.7823464Z        [1] _run (res://tests/run_tests.gd:664)
+2026-10-02T11:15:15.7824031Z [test] OK   mining.gather() bez registru vrátí 0 a ohlásí to (žádná tichá nula)
+2026-10-02T11:15:15.7824705Z ERROR: Attempt to open script 'res://scripts/crafting.gd' resulted in error 'File not found'.
+2026-10-02T11:15:15.7825315Z    at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+2026-10-02T11:15:15.7825749Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7826119Z        [0] _run (res://tests/run_tests.gd:671)
+2026-10-02T11:15:15.7826538Z ERROR: Failed loading resource: res://scripts/crafting.gd.
+2026-10-02T11:15:15.7826963Z    at: _load (core/io/resource_loader.cpp:317)
+2026-10-02T11:15:15.7827336Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7827713Z        [0] _run (res://tests/run_tests.gd:671)
+2026-10-02T11:15:15.7833233Z [test] OK   economy.gd poskytuje price/buy/sell
+2026-10-02T11:15:15.7835159Z ERROR: Attempt to open script 'res://scripts/npc.gd' resulted in error 'File not found'.
+2026-10-02T11:15:15.7835730Z    at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+2026-10-02T11:15:15.7836127Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7836560Z        [0] _run (res://tests/run_tests.gd:685)
+2026-10-02T11:15:15.7837068Z ERROR: Failed loading resource: res://scripts/npc.gd.
+2026-10-02T11:15:15.7837436Z    at: _load (core/io/resource_loader.cpp:317)
+2026-10-02T11:15:15.7837783Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7838530Z        [0] _run (res://tests/run_tests.gd:685)
+2026-10-02T11:15:15.7839407Z ERROR: Attempt to open script 'res://scripts/enemy.gd' resulted in error 'File not found'.
+2026-10-02T11:15:15.7840060Z    at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+2026-10-02T11:15:15.7840450Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7840953Z        [0] _run (res://tests/run_tests.gd:691)
+2026-10-02T11:15:15.7841353Z ERROR: Failed loading resource: res://scripts/enemy.gd.
+2026-10-02T11:15:15.7841727Z    at: _load (core/io/resource_loader.cpp:317)
+2026-10-02T11:15:15.7842062Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7842382Z        [0] _run (res://tests/run_tests.gd:691)
+2026-10-02T11:15:15.7842842Z ERROR: Attempt to open script 'res://scripts/offline.gd' resulted in error 'File not found'.
+2026-10-02T11:15:15.7843360Z    at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+2026-10-02T11:15:15.7843725Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7844048Z        [0] _run (res://tests/run_tests.gd:698)
+2026-10-02T11:15:15.7844411Z ERROR: Failed loading resource: res://scripts/offline.gd.
+2026-10-02T11:15:15.7844776Z    at: _load (core/io/resource_loader.cpp:317)
+2026-10-02T11:15:15.7845232Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7845565Z        [0] _run (res://tests/run_tests.gd:698)
+2026-10-02T11:15:15.7849408Z [test] OK   assist.gd poskytuje add_rule/evaluate
+2026-10-02T11:15:15.7873549Z [test] OK   save.gd jde načíst (dřív se nenačtený přeskočil)
+2026-10-02T11:15:15.7890461Z [test] OK   hud.gd jde načíst (dřív se nenačtený přeskočil)
+2026-10-02T11:15:15.7892637Z [test] OK   save() uloží stav a vrátí true
+2026-10-02T11:15:15.7893306Z [test] OK   save.cfg jde načíst
+2026-10-02T11:15:15.7893712Z [test] OK   save() uloží atributy (Str=13)
+2026-10-02T11:15:15.7894117Z [test] OK   save() uloží zlato (42)
+2026-10-02T11:15:15.7894724Z [test] OK   save() uloží dovednosti
+2026-10-02T11:15:15.7895299Z [test] OK   save() uloží pozici hráče
+2026-10-02T11:15:15.7895852Z [test] OK   load() vrátí true
+2026-10-02T11:15:15.7896269Z [test] OK   load() vrátí uložený stav (Str=13, zlato=42, tezba=7)
+2026-10-02T11:15:15.7899358Z ERROR: save.gd: nad sebou nemám kostru s component(id) – neuložil jsem nic
+2026-10-02T11:15:15.7899886Z    at: push_error (core/variant/variant_utility.cpp:1023)
+2026-10-02T11:15:15.7900275Z    GDScript backtrace (most recent call first):
+2026-10-02T11:15:15.7900623Z        [0] save (res://scripts/save.gd:32)
+2026-10-02T11:15:15.7900950Z        [1] _run (res://tests/run_tests.gd:779)
+2026-10-02T11:15:15.7901478Z [test] OK   save() bez registru komponent vrátí false (dřív vracel true nad prázdnem)
+2026-10-02T11:15:15.7902001Z [test] OK   hud.gd přidá label do scény (dětí: 1)
+2026-10-02T11:15:15.7902347Z [test] OK   HUD ukazuje atributy z registru
+2026-10-02T11:15:15.7902658Z [test] OK   HUD ukazuje zlato z registru
+2026-10-02T11:15:15.7902988Z [test] OK   HUD ukazuje dovednosti z registru
+2026-10-02T11:15:15.7908906Z [test] OK   skills.json je pole s dovednostmi
+2026-10-02T11:15:15.7909627Z [test] OK   dovednosti jsou sjednocené: ["tezba", "drevorubectvi", "kovarstvi", "boj_na_blizko"]
+2026-10-02T11:15:15.7910009Z 
+2026-10-02T11:15:15.7910174Z [test] 59 kontrol, 0 selhání
+2026-10-02T11:15:15.8222600Z WARNING: 3 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+2026-10-02T11:15:15.8223210Z    at: cleanup (core/object/object.cpp:2536)
+2026-10-02T11:15:16.8424876Z ##[group]Run git add -A
+2026-10-02T11:15:16.8425221Z [36;1mgit add -A[0m
+2026-10-02T11:15:16.8425526Z [36;1mgit diff --cached --binary > agent.patch || true[0m
+2026-10-02T11:15:16.8425890Z [36;1mecho "--- zmeny ---"[0m
+2026-10-02T11:15:16.8426198Z [36;1mgit diff --cached --stat | tail -20[0m
+2026-10-02T11:15:16.8426672Z [36;1m# „Změnil agent něco?" se NESMÍ ptát jen na neprázdný patch: Godot sám[0m
+2026-10-02T11:15:16.8427221Z [36;1m# generuje .uid/.import a náš běh mohl zanechat log, takže patch není[0m
+2026-10-02T11:15:16.8427710Z [36;1m# prázdný, i když agent neudělal nic (naměřeno u PR #10).[0m
+2026-10-02T11:15:16.8428781Z [36;1mZMENA=$(git diff --cached --name-only | grep -Ev '\.(uid|import)$|^smoke\.log$|^agent\.log$|^\.forge/provider\.(env|json)$' | head -5)[0m
+2026-10-02T11:15:16.8429426Z [36;1mecho "skutecne zmeny: ${ZMENA:-zadne}"[0m
+2026-10-02T11:15:16.8429758Z [36;1mif [ "success" != "success" ]; then[0m
+2026-10-02T11:15:16.8430131Z [36;1m  echo "status=failed" >> "$GITHUB_OUTPUT"[0m
+2026-10-02T11:15:16.8430456Z [36;1melif [ -n "$ZMENA" ]; then[0m
+2026-10-02T11:15:16.8430772Z [36;1m  echo "status=success" >> "$GITHUB_OUTPUT"[0m
+2026-10-02T11:15:16.8431079Z [36;1melse[0m
+2026-10-02T11:15:16.8431416Z [36;1m  # Agent nezměnil ani řádek (u slabších modelů se to stane). Není to[0m
+2026-10-02T11:15:16.8431915Z [36;1m  # „hotovo" – je to neúspěch pokusu. Bez tohohle rozlišení padal[0m
+2026-10-02T11:15:16.8432433Z [36;1m  # další krok na „No valid patches in input", což vypadalo jako[0m
+2026-10-02T11:15:16.8432922Z [36;1m  # rozbitá pipeline, i když šlo jen o to, že model nic neudělal.[0m
+2026-10-02T11:15:16.8433349Z [36;1m  echo "status=nochange" >> "$GITHUB_OUTPUT"[0m
+2026-10-02T11:15:16.8433667Z [36;1mfi[0m
+2026-10-02T11:15:16.8496686Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:15:16.8496965Z env:
+2026-10-02T11:15:16.8497318Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:16.8497806Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:16.8498335Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8498788Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:16.8499228Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8499623Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8500032Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8500436Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:16.8500858Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:16.8501391Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:16.8501650Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:16.8501938Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:16.8502169Z ##[endgroup]
+2026-10-02T11:15:16.8679755Z --- zmeny ---
+2026-10-02T11:15:16.8731135Z skutecne zmeny: zadne
+2026-10-02T11:15:16.8778729Z ##[group]Run echo "::error::Agent nezměnil žádný kód. Zkusí se to znovu (u jiného pokusu to vyjde)."
+2026-10-02T11:15:16.8779500Z [36;1mecho "::error::Agent nezměnil žádný kód. Zkusí se to znovu (u jiného pokusu to vyjde)."[0m
+2026-10-02T11:15:16.8779954Z [36;1mexit 1[0m
+2026-10-02T11:15:16.8838649Z shell: /usr/bin/bash -e {0}
+2026-10-02T11:15:16.8839030Z env:
+2026-10-02T11:15:16.8839384Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:16.8839835Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:16.8840212Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8840667Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:16.8841117Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8841535Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8841956Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8842354Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:16.8842761Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:16.8843283Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:16.8843547Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:16.8843826Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:16.8844062Z ##[endgroup]
+2026-10-02T11:15:16.8923932Z ##[error]Agent nezměnil žádný kód. Zkusí se to znovu (u jiného pokusu to vyjde).
+2026-10-02T11:15:16.8926424Z ##[error]Process completed with exit code 1.
+2026-10-02T11:15:16.8993545Z ##[group]Run actions/upload-artifact@v4
+2026-10-02T11:15:16.8993862Z with:
+2026-10-02T11:15:16.8994148Z   name: agent-patch-a3c27581-37a8-4fec-ba30-a86491be38b6
+2026-10-02T11:15:16.8994518Z   path: agent.patch
+agent.log
+
+2026-10-02T11:15:16.8994801Z   retention-days: 7
+2026-10-02T11:15:16.8995030Z   if-no-files-found: warn
+2026-10-02T11:15:16.8995283Z   compression-level: 6
+2026-10-02T11:15:16.8995516Z   overwrite: false
+2026-10-02T11:15:16.8995752Z   include-hidden-files: false
+2026-10-02T11:15:16.8996002Z env:
+2026-10-02T11:15:16.8996343Z   FORGE_GODOT: /home/runner/.cache/forge/godot/Godot_v4.7.2-stable_linux.x86_64
+2026-10-02T11:15:16.8996785Z   XDG_DATA_HOME: /home/runner/.cache/forge/data
+2026-10-02T11:15:16.8997170Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8997634Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib/pkgconfig
+2026-10-02T11:15:16.8998417Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8998863Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8999267Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.14/x64
+2026-10-02T11:15:16.8999685Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.14/x64/lib
+2026-10-02T11:15:16.9000266Z   OPENAI_API_BASE: https://api.groq.com/openai/v1
+2026-10-02T11:15:16.9000801Z   OPENAI_API_KEY: ***
+2026-10-02T11:15:16.9001050Z   FORGE_MODEL: openai/gpt-oss-120b
+2026-10-02T11:15:16.9001328Z   FORGE_PROVIDER: groq
+2026-10-02T11:15:16.9001564Z ##[endgroup]
+2026-10-02T11:15:17.0662009Z (node:2539) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-02T11:15:17.0663276Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-02T11:15:17.0722346Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-02T11:15:17.0726228Z The least common ancestor is /home/runner/work/uo-shadows/uo-shadows. This will be the root directory of the artifact
+2026-10-02T11:15:17.0727854Z With the provided path, there will be 2 files uploaded
+2026-10-02T11:15:17.0730900Z Artifact name is valid!
+2026-10-02T11:15:17.0732163Z Root directory input is valid!
+2026-10-02T11:15:17.4620191Z Beginning upload of artifact content to blob storage
+2026-10-02T11:15:17.4831035Z (node:2539) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-02T11:15:17.7503570Z Uploaded bytes 3318
+2026-10-02T11:15:17.8263717Z Finished uploading artifact content to blob storage!
+2026-10-02T11:15:17.8265413Z SHA256 digest of uploaded artifact zip is 61ef0e7058505c9ec30d1b2f699528f0313e4da0a5b4f37550660e9c4c8d915f
+2026-10-02T11:15:17.8267139Z Finalizing artifact upload
+2026-10-02T11:15:18.0777155Z Artifact agent-patch-a3c27581-37a8-4fec-ba30-a86491be38b6.zip successfully finalized. Artifact ID 11222983506
+2026-10-02T11:15:18.0779050Z Artifact agent-patch-a3c27581-37a8-4fec-ba30-a86491be38b6 has been successfully uploaded! Final size is 3318 bytes. Artifact ID is 11222983506
+2026-10-02T11:15:18.0783995Z Artifact download URL: https://github.com/ssevcikm-spec/uo-shadows/actions/runs/36999784822/artifacts/11222983506
+2026-10-02T11:15:18.0977590Z Post job cleanup.
+2026-10-02T11:15:18.1854225Z [command]/usr/bin/git version
+2026-10-02T11:15:18.1897311Z git version 2.55.0
+2026-10-02T11:15:18.1935227Z Temporarily overriding HOME='/home/runner/work/_temp/a97c1a2a-690d-4a36-b2de-0cd8818feb89' before making global git config changes
+2026-10-02T11:15:18.1936684Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-02T11:15:18.1941189Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/uo-shadows/uo-shadows
+2026-10-02T11:15:18.1980094Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-02T11:15:18.2024378Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-02T11:15:18.2289173Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-02T11:15:18.2317693Z http.https://github.com/.extraheader
+2026-10-02T11:15:18.2330585Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-02T11:15:18.2375117Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-02T11:15:18.2640547Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-02T11:15:18.2682934Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-02T11:15:18.3095522Z Evaluate and set job outputs
+2026-10-02T11:15:18.3100843Z Set output 'status'
+2026-10-02T11:15:18.3103235Z Cleaning up orphan processes
+2026-10-02T11:15:18.3380793Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/cache@v4, actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

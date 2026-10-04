@@ -41,8 +41,13 @@ import { fileURLToPath } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 
 const TADY = dirname(fileURLToPath(import.meta.url));
-const KOREN_ORCHESTRY = resolve(TADY, '..', '..');
-const REGISTR = join(KOREN_ORCHESTRY, 'orchestra', 'assets', 'asset-registry.json');
+// P8l (presun na E:, 4. 10. 2026): `TADY` je <repo>/tools, takze koren
+// repa je o jednu uroven vys a sourozenec (koren her) jeste o jednu.
+const KOREN_ORCHESTRY = resolve(TADY, '..');      // root repa orchestra
+const KOREN_HER = resolve(TADY, '..', '..');      // E:\\Workspaces
+const _HRA_JMENO = process.env.FORGE_HRA || 'uo-shadows';
+const _HRA = join(KOREN_HER, _HRA_JMENO);
+const REGISTR = join(KOREN_ORCHESTRY, 'assets', 'asset-registry.json');
 
 const args = process.argv.slice(2);
 const hodnota = (n, vychozi = '') => {
@@ -119,7 +124,7 @@ const cestaLocku = (projekt) => join(projekt, 'assets', 'asset-lock.json');
 function najdiProjekt() {
   const zadany = hodnota('--projekt');
   if (zadany) return resolve(zadany);
-  const koren = join(KOREN_ORCHESTRY, 'games');
+  const koren = KOREN_HER;
   if (!existsSync(koren)) chyba('chybí --projekt a není tu ani složka games/');
   const hry = readdirSync(koren, { withFileTypes: true })
     .filter((d) => d.isDirectory() && existsSync(join(koren, d.name, '.forge', 'roadmap.json')))

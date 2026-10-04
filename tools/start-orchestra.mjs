@@ -1,7 +1,14 @@
+import { fileURLToPath } from 'node:url';
+import { dirname } from 'node:path';
+// P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
+// skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
+// `tools/` je primo v koreni repa, takze PARENT = root repa.
+const __dir = dirname(fileURLToPath(import.meta.url));
+const PARENT = dirname(__dir);
 // Zapne workflow agent.yml v repu hry a aktivuje hru v orchestra.
 import { readFileSync } from 'node:fs';
 
-const PAT = readFileSync('C:/Users/Ssevc/Local-Deepseek/orchestra/.secrets/github_pat.txt', 'utf8').trim();
+const PAT = readFileSync(join(PARENT, '.secrets', 'github_pat.txt'), 'utf8').trim();
 const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'forge-setup', 'X-GitHub-Api-Version': '2022-11-28' };
 const REPO = 'ssevcikm-spec/uo-shadows';
 
@@ -27,7 +34,7 @@ console.log(`stav po: ${po.body.state}`);
 
 // 2) aktivuj hru v orchestra
 const env = Object.fromEntries(
-  readFileSync('C:/Users/Ssevc/Local-Deepseek/orchestra/.env', 'utf8')
+  readFileSync(join(PARENT, '.env'), 'utf8')
     .split('\n').filter((l) => l.includes('='))
     .map((l) => { const i = l.indexOf('='); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; })
 );

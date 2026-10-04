@@ -12,12 +12,18 @@ zasahuje po blocích.
 
 import hashlib
 import pathlib
+import os
 import shutil
 import sys
 
-ROOT = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
-SABLONA = ROOT / "orchestra/repo"
-HRA = ROOT / "games/uo-shadows"
+# P8l (presun na E:, 4. 10. 2026): hra je SOUROZENEC repa (D4).
+# Poradi: FORGE_HRA (env) > vychozi sourozenec `../uo-shadows`.
+_REPO = pathlib.Path(__file__).resolve().parents[1]
+_HRA_JMENO = os.environ.get("FORGE_HRA", "uo-shadows")
+_HRA = _REPO.parent / _HRA_JMENO
+REPO = _REPO
+SABLONA = _REPO / "repo"
+HRA = _HRA
 
 # (relativní cesta, směr)  směr: "do_hry" = šablona → hra, "do_sablony" = hra → šablona
 PRENOSY = [

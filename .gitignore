@@ -42,3 +42,41 @@ tools/godot/
 # nafoukl diff i PR. (Tatáž past je popsaná v .gitignore herního repa.)
 __pycache__/
 *.pyc
+
+# ── `_analyza/` — P8c (přesun na E:, 4. 10. 2026) ──────────────────────────
+# ROZHODNUTÍ D3: dokumenty a **živé nástroje** jdou do repa a COMMITNOU se;
+# **archiv se gitignoruje**. Repo je VEŘEJNÉ, takže do něj nesmí:
+#   - generovaný meziprodukt (`_inventar.json` — přegeneruje se po každé změně
+#     kódu; commitovat ho znamená, že brána hlásí „zastaralý" trvale)
+#   - zamrazené snapshoty dokumentace (`snapshot-*`, tisíce souborů)
+#   - stažené CI logy (`ci-rozbal*`, `*vystup.txt`)
+#   - záložní kopie před mutacemi (`_zaloha*`, `handoff-pred-*`)
+#   - scratch pracovní stromy (`*-scratch/`, včetně `a-ukol-scratch/.forge/**`)
+#   - Godot user data z běhů testů (`a-godot-user/` — shader cache, stovky
+#     binárních souborů)
+#   - pracovní logy a mezivýstupy opravy cest (`p8c-log-*`, `zaloha-p8*`,
+#     `P8C-BRANY-PO-OPRAVE.md`)
+#
+# Naměřeno, proč to sem patří: `a-ukol-scratch/.forge/vision/baseline.json`
+# má **272** šedesátičtyřznakových hashů, `_inventar.json` je generovaný
+# meziprodukt a `ci-rozbal2/ci-*` jsou stažené logy běhů.
+#
+# POZOR: `_archiv/` je záměrně ignorovaný CELÝ (D5 — archivované jednorázovky).
+# Do veřejného repa nepatří; leží tady jako cesta zpět.
+_analyza/_inventar.json
+_analyza/snapshot-*
+_analyza/ci-rozbal*
+_analyza/tmp-*
+_analyza/*-scratch/
+_analyza/_zaloha*
+_analyza/handoff-pred-*
+_analyza/*vystup.txt
+_analyza/_archiv/
+_analyza/a-godot-user/
+_analyza/p8c-log-*.txt
+_analyza/zaloha-p8*
+_analyza/merge-scratch/
+_analyza/P8C-BRANY-PO-OPRAVE.md
+_analyza/p5-presun-log.txt
+_analyza/p8-oprava-cest-log.txt
+_analyza/p8b-oprava-analyza-log.txt

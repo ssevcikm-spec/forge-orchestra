@@ -1,0 +1,68 @@
+# Overlay vygenerovaný z ŽIVÉHO profilu desktop — ověřuje přesně ten blok,
+# který je v cordis.patch.yml (config se u patche nahrazuje CELÝ).
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      google:
+        models:
+          - id: gemini-3.1-flash-lite-image
+            name: Nano Banana 2 Lite
+            contextWindow: 65536
+            maxTokens: 65536
+          - id: gemini-flash-latest
+            name: Gemini Flash Latest
+            contextWindow: 1048576
+            maxTokens: 65536
+          - id: gemini-3.1-pro-preview
+            name: Gemini 3.1 Pro Preview
+            contextWindow: 1048576
+            maxTokens: 65536
+        apiKeyEnv: GOOGLE_API_KEY
+      openrouter:
+        models:
+          - id: openrouter/free
+            name: Free Models Router
+            contextWindow: 200000
+            maxTokens: 4096
+            input:
+              - text
+              - image
+          - id: nvidia/nemotron-3-ultra-550b-a55b:free
+            name: "NVIDIA: Nemotron 3 Ultra (free)"
+            contextWindow: 1000000
+            maxTokens: 65536
+            input:
+              - text
+        apiKeyEnv: OPENROUTER_API_KEY
+      # Stealth model OpenRouteru — ověřeno headless během 4. 10. 2026
+      # (route openrouter-stealth, reasoningEffort high, SSE streaming).
+      # Je to VLASTNÍ route, ne další model v `openrouter` výš: katalog pi-ai
+      # ten model nezná a route `openrouter` míchá protokoly
+      # (anthropic-messages + openai-completions), takže by musela dostat
+      # api i baseURL — a to by změnilo i stávající modely. Takhle se nic nemění.
+      # Pozor: OpenRouter u modelu uvádí expiration_date 2026-10-05.
+      openrouter-stealth:
+        displayName: OpenRouter - Space Bunny (stealth)
+        apiKeyEnv: OPENROUTER_API_KEY
+        api: openai-completions
+        baseURL: https://openrouter.ai/api/v1
+        models:
+          - id: stealth/space-bunny-alpha
+            name: Space Bunny Alpha (stealth)
+            contextWindow: 1000000
+            maxTokens: 524288
+            input:
+              - text
+              - image
+            reasoningEfforts:
+              low: low
+              medium: medium
+              high: high
+              xhigh: xhigh
+              max: max
+- id: agent-default-model
+  config:
+    provider: openrouter-stealth
+    model: stealth/space-bunny-alpha
+    reasoningEffort: high

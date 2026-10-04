@@ -1,0 +1,250 @@
+[
+ {
+  "run": 244,
+  "model": "openai/gpt-oss-120b",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope. |           at: GDScript::reload (res://scripts/crafting.gd:25) | SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope.",
+   "SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope. |           at: GDScript::reload (res://scripts/crafting.gd:39) | SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope."
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/crafting.gd"
+  ],
+  "edituje": [
+   "scripts/crafting.gd"
+  ],
+  "readDeps": [
+   "assets/data/monsters.json",
+   "assets/data/materials.json",
+   "scripts/attributes.gd",
+   "scripts/item.gd",
+   "CONVENTIONS.md",
+   "assets/data/items.json",
+   "assets/data/skills.json",
+   "assets/data/recipes.json",
+   "scripts/skills.gd"
+  ],
+  "prompt": "V scripts/crafting.gd vytvoř smelt(recipe) -> GameItem (železná ruda → ingot), forge(recipe) -> GameItem (ingot+dřevo → meč; ingoty → zbroj) a repair(item) -> v"
+ },
+ {
+  "run": 243,
+  "model": "openai/gpt-oss-120b",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope. |           at: GDScript::reload (res://scripts/mining.gd:26) | SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope.",
+   "SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope. |           at: GDScript::reload (res://scripts/mining.gd:37) | SCRIPT ERROR: Parse Error: Identifier \"World\" not declared in the current scope."
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/mining.gd"
+  ],
+  "edituje": [
+   "scripts/mining.gd"
+  ],
+  "readDeps": [
+   "CONVENTIONS.md",
+   "assets/data/items.json",
+   "assets/data/skills.json",
+   "scripts/skills.gd",
+   "assets/data/recipes.json",
+   "assets/data/monsters.json",
+   "assets/data/materials.json"
+  ],
+  "prompt": "V scripts/mining.gd vytvoř gather(node) -> int: výtěžek = 1 + (skill_těžby_or_dřevorubectví - obtížnost suroviny)/10, nejmíň 0. Při těžbě zvyš add(skill, 1) pro"
+ },
+ {
+  "run": 242,
+  "model": "codestral-latest",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Member \"position\" redefined (original in native class 'Area2D') |           at: GDScript::reload (res://scripts/npc.gd:5) | SCRIPT ERROR: Parse Error: Could not find type \"Economy\" in the current scope.",
+   "SCRIPT ERROR: Parse Error: Could not find type \"Economy\" in the current scope. |           at: GDScript::reload (res://scripts/npc.gd:11) | SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope."
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/npc.gd"
+  ],
+  "edituje": [
+   "scripts/npc.gd"
+  ],
+  "readDeps": [
+   "scripts/item.gd",
+   "scripts/economy.gd",
+   "CONVENTIONS.md"
+  ],
+  "prompt": "V scripts/npc.gd vytvoř obchodníka (Area2D): při dotyku hráče otevře obchod — buy/sell přes economy.gd. Vystav trade(player) -> void, které volá economy.buy/sel"
+ },
+ {
+  "run": 241,
+  "model": "codestral-latest",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Cannot find member \"ALIGN_LEFT\" in base \"Label\". |           at: GDScript::reload (res://scripts/hud.gd:8) | SCRIPT ERROR: Parse Error: Cannot find member \"VALIGN_TOP\" in base \"Label\".",
+   "SCRIPT ERROR: Parse Error: Cannot find member \"VALIGN_TOP\" in base \"Label\". |           at: GDScript::reload (res://scripts/hud.gd:9) | "
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/hud.gd"
+  ],
+  "edituje": [
+   "scripts/hud.gd"
+  ],
+  "readDeps": [
+   "scripts/skills.gd",
+   "CONVENTIONS.md",
+   "scripts/economy.gd",
+   "scripts/player.gd",
+   "scripts/attributes.gd"
+  ],
+  "prompt": "V scripts/hud.gd vytvoř update() -> void, které zobrazí: HP, atributy (Str/Dex/Int), dovednosti (tezba/drevorubectvi/kovarstvi/boj_na_blizko), zlato a vybavenou"
+ },
+ {
+  "run": 240,
+  "model": "codestral-latest",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: The variable type is being inferred from a Variant value, so it will be typed as Variant. (Warning treated as error.) |           at: GDScript::reload (res://scripts/save.gd:70) | SCRIPT ERROR: Parse Error: The va",
+   "SCRIPT ERROR: Parse Error: The variable type is being inferred from a Variant value, so it will be typed as Variant. (Warning treated as error.) |           at: GDScript::reload (res://scripts/save.gd:87) | "
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/save.gd"
+  ],
+  "edituje": [
+   "scripts/save.gd"
+  ],
+  "readDeps": [
+   "CONVENTIONS.md",
+   "scripts/economy.gd",
+   "scripts/skills.gd",
+   "scripts/player.gd",
+   "scripts/attributes.gd"
+  ],
+  "prompt": "V scripts/save.gd vytvoř save() a load() přes ConfigFile do user://save.cfg: atributy, skilly, inventář, zlato, pozici hráče a stav uzlů světa (které jsou vytěž"
+ },
+ {
+  "run": 238,
+  "model": "openai/gpt-oss-120b",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope. |           at: GDScript::reload (res://scripts/crafting.gd:16) | SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope.",
+   "SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope. |           at: GDScript::reload (res://scripts/crafting.gd:24) | SCRIPT ERROR: Parse Error: Could not find type \"GameItem\" in the current scope."
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/crafting.gd"
+  ],
+  "edituje": [
+   "scripts/crafting.gd"
+  ],
+  "readDeps": [
+   "scripts/skills.gd",
+   "assets/data/items.json",
+   "scripts/attributes.gd",
+   "assets/data/recipes.json",
+   "assets/data/materials.json",
+   "CONVENTIONS.md",
+   "assets/data/monsters.json",
+   "scripts/item.gd",
+   "assets/data/skills.json"
+  ],
+  "prompt": "V scripts/crafting.gd vytvoř smelt(recipe) -> GameItem (železná ruda → ingot), forge(recipe) -> GameItem (ingot+dřevo → meč; ingoty → zbroj) a repair(item) -> v"
+ },
+ {
+  "run": 237,
+  "model": "gpt-oss-120b",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope. |           at: GDScript::reload (res://scripts/mining.gd:28) | SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope.",
+   "SCRIPT ERROR: Parse Error: Identifier \"Skills\" not declared in the current scope. |           at: GDScript::reload (res://scripts/mining.gd:35) | SCRIPT ERROR: Parse Error: Identifier \"World\" not declared in the current scope."
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/mining.gd"
+  ],
+  "edituje": [
+   "scripts/mining.gd"
+  ],
+  "readDeps": [
+   "assets/data/recipes.json",
+   "assets/data/monsters.json",
+   "assets/data/items.json",
+   "assets/data/skills.json",
+   "CONVENTIONS.md",
+   "scripts/skills.gd",
+   "assets/data/materials.json"
+  ],
+  "prompt": "V scripts/mining.gd vytvoř gather(node) -> int: výtěžek = 1 + (skill_těžby_or_dřevorubectví - obtížnost suroviny)/10, nejmíň 0. Při těžbě zvyš add(skill, 1) pro"
+ },
+ {
+  "run": 235,
+  "model": "openai/gpt-oss-120b",
+  "chyby": [
+   "\u001b[36;1m  if echo \"$VYSTUP\" | grep -q 'SCRIPT ERROR: Parse Error'; then | \u001b[36;1m    CHYBY=$((CHYBY + 1)) | \u001b[36;1m    echo \"::error file=$f::Skript se neparsuje – $f\"",
+   "\u001b[36;1m    echo \"$VYSTUP\" | grep -A1 'SCRIPT ERROR: Parse Error' | head -40 | \u001b[36;1m    echo \"\" | \u001b[36;1m  else",
+   "SCRIPT ERROR: Parse Error: Could not find type \"Economy\" in the current scope. |           at: GDScript::reload (res://scripts/npc.gd:5) | SCRIPT ERROR: Parse Error: Invalid argument for \"connect()\" function: argument 2 should be \"Callable\"",
+   "SCRIPT ERROR: Parse Error: Invalid argument for \"connect()\" function: argument 2 should be \"Callable\" but is \"Merchant\". |           at: GDScript::reload (res://scripts/npc.gd:17) | SCRIPT ERROR: Parse Error: Cannot pass a value of type \"St"
+  ],
+  "stineni": [
+   "\u001b[36;1m  echo \"::error::vnořená třída stíní class_name – smaž vnořenou 'class $PRVNI' (soubor sám je ta třída; začni 'extends Node')\" | \u001b[36;1m  exit 1"
+  ],
+  "chybySoub": [
+   "$f"
+  ],
+  "zmeneneSoubory": [
+   "scripts/npc.gd"
+  ],
+  "edituje": [
+   "scripts/npc.gd"
+  ],
+  "readDeps": [
+   "scripts/economy.gd",
+   "CONVENTIONS.md",
+   "scripts/item.gd"
+  ],
+  "prompt": "V scripts/npc.gd vytvoř obchodníka (Area2D): při dotyku hráče otevře obchod — buy/sell přes economy.gd. Vystav trade(player) -> void, které volá economy.buy/sel"
+ }
+]

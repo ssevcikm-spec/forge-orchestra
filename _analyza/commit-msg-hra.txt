@@ -1,0 +1,25 @@
+Srovnání roadmapy se stavem D1, obecnost brány a mrtvé odkazy
+
+Jeden commit schválně: drift test hlídá SHODNÝ HASH obou kopií
+`check-schema.py` (šablona v orchestra a hra), takže rozdělení by nechalo
+repo v rozporu samo se sebou.
+
+.forge/check-schema.py
+  - 12 zmínek o `uo-shadows` odstraněno (obecnost šablony). Konkrétní důkaz,
+    která vrstva tvrdila co, patří hře, ne šabloně, která se kopíruje do každé
+    nové hry. Obě kopie (orchestra/repo/.forge a games/uo-shadows/.forge)
+    zůstávají bajtově shodné: 24 039 B, LF, bez BOM.
+
+.forge/roadmap.json
+  - 8 granul dostalo `done: true` + `done_note` s číslem PR, aby soubor
+    neříkal něco jiného než D1 (dřív 2 vs. 10 hotových).
+  - U granul `persist.save` a `ui.hud` je v `done_note` VÝHRADA: "v D1 hotovo
+    (task 139/140), ale PR NENÍ sloučené - práce není v main". To je vada S29
+    a záměrně se nezakrývá: `scripts/save.gd` ani `scripts/hud.gd` v main
+    nejsou, PR #28 a #29 leží otevřené.
+
+scripts/level.gd
+  - 2 mrtvé odkazy na smazaný `orchestra/tools/kontrola-schematu.py` nahrazeny
+    odkazem na bránu `.forge/check-schema.py`, která skutečně běží v CI.
+
+Nic z toho není pushnuté. Dva otevřené PR (#28, #29) čekají na ruční sloučení.
