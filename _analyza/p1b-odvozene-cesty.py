@@ -2,6 +2,8 @@
 #   REPO    = root repa (_analyza/.. )
 #   STANICE = alias na REPO (HANDOFF, KRONIKA i _analyza se presunuly do repa)
 #   HRA     = sourozenec repa (byla `WS/games/uo-shadows`)
+from __future__ import annotations
+
 import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
@@ -25,8 +27,6 @@ odvozeni od RODICE je RIZIKO.
 
 Vystup: `_analyza\\P1B-ODVOZENE-CESTY.md` s verdiktem u kazdeho souboru.
 """
-from __future__ import annotations
-
 import re
 import sys
 from pathlib import Path

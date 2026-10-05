@@ -257,28 +257,6 @@ BRANY = [
      r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
     ("verify-setup seznam+čítač (H72/H73)", ["python", "<ANALYZA>/test-h72-h73.py"],
      r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
-    # ═══ PŘIDÁNO 5. 10. 2026 (AKČNÍ session P17, nález H85 / návrh NA32) ══════
-    # ŠEST ŽIVÝCH `.py` NEŠLO ZKOMPILOVAT (`from __future__ import annotations`
-    # až pod preludiem z P8b) — a žádná brána to neměřila. Soubor, který nejde
-    # zkompilovat, se nespustí, takže jeho vady (i runtime) zůstávají neviditelné.
-    # ⚠ Brána schválně používá `compile()`, ne `ast.parse()`: `ast.parse()`
-    # špatně umístěný `from __future__` PŘIJME (naměřeno: 0 chyb vs. 6 chyb).
-    # Čítač nese DVA údaje (soubory / nálezy) — jinak by se „zelená s 162
-    # soubory" nedala odlišit od „červená, ale 162 souborů" ve sloupci `otevřela:`.
-    ("kompilovatelnost živých .py (H85/NA32)",
-     ["python", "<ANALYZA>/n32-kompilovatelnost.py"],
-     r"ZMĚŘENO:\s*(\d+) souborů, (\d+) nekompilovatelných"),
-    # A rovnou důkaz, že brána N32 má jak selhat (mutační test si vadu vyrobí
-    # a VNÍTŘNÍM `finally` ji vrátí bajt na bajt). Bez něj by „0 nálezů"
-    # neznamenalo nic — jen by to mohla být brána, která se nikdy nepodívala.
-    ("kompilovatelnost — mutace (NA32)", ["python", "<ANALYZA>/test-n32-mutace.py"],
-     r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
-    # A ještě důkaz pro H87 (návrh NA33): klasifikátor „nezačala" musí
-    # rozhodovat podle CHOVÁNÍ, ne podle whitelistu 12 markerů. Fixtury jsou
-    # doklady P16 (`p16a2-brana-bezmarkeru.py` a spol.); test je nemění.
-    ("g3 klasifikátor podle chování (H87/NA33)",
-     ["python", "<ANALYZA>/test-h87-klasifikator.py"],
-     r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
 ]
 
 vse = []
@@ -302,10 +280,10 @@ nedosazene = []
 # KONKRÉTNÍHO interpretu a po dosazení PLNÉ cesty se změnil. Měří se proto to,
 # co mají všechny tři případy společné (`python`, `node`, shell): **chybějící soubor**.
 neotevrene = []
-# TŘETÍ STAV (H87): brány, které BĚŽELY (promluvily), ale nevykázaly ČÍTAČ.
-# Do opravy se tenhle stav sléval s „nezačala" — a právě proto fixtura bez
-# markeru vypadala jako brána, která vůbec neběžela.
-bez_citace = []
+
+
+def _radky(vystup: str) -> list[str]:
+    return [l for l in vystup.splitlines() if l.strip()]
 
 
 # ── KLASIFIKÁTOR „BRÁNA VŮBEC NEZAČALA" (P13c; OPRAVENO 5. 10. 2026 — H71) ───
@@ -322,21 +300,10 @@ bez_citace = []
 #     souboru** od interpretu, nebo s **jednořádkovým** výstupem bez hlášení.
 # Markery jsou záměrně **krátké a konkrétní** — obecné („Error", „chyba")
 # by spolkly i `can't open file`, a tím by klasifikátor osleply.
-# ⚠ NÁLEZ H87 (P16, 5. 10. 2026; OPRAVENO P17): do téhle opravy se „běžela"
-# poznalo podle **whitelistu 12 markerů** (`_VLASTNI_HLASENI`). Brána, která
-# skončila `exit=2` s KRÁTKÝM VLASTNÍM HLÁŠENÍM bez markeru (fixtura
-# `p16a2-brana-bezmarkeru.py`: `print('P16: hotovo, vse na svem miste')`),
-# propadla na `len(_radky) <= 1` a vykázala se jako **„VŮBEC NEZAČALA"** —
-# tedy FALEŠNÝ NÁLEZ O FUNKČNÍ BRÁNĚ. Táž třída jako H71.
-#
-# **Pravidlo (B2): rozhoduje CHOVÁNÍ, ne seznam slov.** Whitelist je pryč;
-# „nezačala" znamená jen to, co se skutečně stalo:
-#   * **výstup je PRÁZDNÝ** → interpret neřekl nic (nic neběželo),
-#   * **výstup nese podpis chybějícího souboru** → interpret řekl, že soubor nemá.
-# Cokoli jiného znamená, že brána **promluvila sama za sebe** → BĚŽELA.
-# (Past `overovani` §7.13: „neproběhlo" je TŘETÍ stav vedle zelené a červené.)
-# Slova jako „CHYBA" nebo „končím" v seznamu být NESMÍ — spolkla by i cizí
-# nástroje a **falešný nález o funkční bráně je dražší než slepé místo**.
+_VLASTNI_HLASENI = (
+    "končím", "koncim", "končí", "očekáváno", "ocekavano", "CHYBA", "chyba:",
+    "VÝSLEDEK", "VYSLEDEK", "ZMĚŘENO", "ZMERENO", "NELZE", "nelze",
+)
 _PODPIS_CHYBEJICIHO_SOUBORU = (
     "can't open file", "Cannot find module", "MODULE_NOT_FOUND",
     "No such file or directory", "no such file or directory",
@@ -347,18 +314,20 @@ _PODPIS_CHYBEJICIHO_SOUBORU = (
 def je_neotevrena(exit_kod: int, nalezeno: str, vystup: str) -> bool:
     """TŘETÍ STAV vedle zelené a červené (`overovani` §7.13): brána nezačala.
 
-    Rozhoduje **CHOVÁNÍ interpretu**, ne délka výstupu a ne seznam markerů
-    (H71 + H87). Volá se z `spust()` a je mutačně ověřená testy
-    `_analyza/test-h71-klasifikator.py` a `_analyza/test-h87-klasifikator.py`
-    (oba berou tenhle soubor jako ZDROJ a mění jen `BRANY`, takže se živý
-    soubor nemutuje).
+    Rozhoduje **OBSAH**, ne délka výstupu (H71). Volá se z `spust()` a je
+    mutačně ověřená testem `_analyza/test-h71-klasifikator.py` (ten bere tenhle
+    soubor jako ZDROJ a mění jen `BRANY`, takže se nemutuje živý soubor).
     """
     if exit_kod != 2 or not nalezeno.startswith("—"):
         return False
     text = vystup.strip()
     if not text:
-        return True                       # prázdný výstup = interpret neřekl nic
-    return any(z in text for z in _PODPIS_CHYBEJICIHO_SOUBORU)
+        return True                       # prázdný výstup = nic neběželo
+    if any(z in text for z in _VLASTNI_HLASENI):
+        return False                      # brána mluvila sama za sebe → běžela
+    if any(z in text for z in _PODPIS_CHYBEJICIHO_SOUBORU):
+        return True                       # interpret hlásí chybějící soubor
+    return len(_radky(text)) <= 1          # jednořádkový výstup bez hlášení
 
 
 def dosad(prikaz: list) -> list:
@@ -450,15 +419,10 @@ def spust(popis: str, prikaz: list, vzor) -> None:
     # Rozhoduje proto `je_neotevrena()` podle OBSAHU — délka z toho vypadla.
     # (Past `overovani` §7.13: „neproběhlo" je TŘETÍ stav vedle zelené a červené.)
     if je_neotevrena(r.returncode, nalezeno, v):
-        neotevrene.append((popis, "exit=2, žádný čítač a " + (
-            "PRÁZDNÝ výstup" if not v.strip() else "podpis chybějícího souboru")))
-    elif nalezeno == "—":
-        # TŘETÍ STAV (H87): brána BĚŽELA a promluvila, ale nevykázala ČÍTAČ.
-        bez_citace.append((popis, r.returncode,
-                           "běžela, ale vzor nic nenašel (%d B)" % len(v)))
+        neotevrene.append((popis, "exit=2, žádný čítač a výstup bez vlastního "
+                                  "hlášení (%d B)" % len(v)))
     print("  %-8s %-28s otevřela: %s" % (stav, popis, nalezeno))
-    vse.append((popis, r.returncode, nalezeno, je_neotevrena(r.returncode,
-                                                             nalezeno, v)))
+    vse.append((popis, r.returncode, nalezeno))
 
 
 print("=" * 78)
@@ -476,7 +440,8 @@ VYSTUP.write_bytes(("\n".join(radky_vypisu)).encode("utf-8"))
 print()
 print("plný výstup: %s (%d znaků)" % (VYSTUP.name, VYSTUP.stat().st_size))
 
-selhalo = [(p, k) for p, k, _, _ in vse if k not in (0,)]
+selhalo = [(p, k) for p, k, _ in vse if k not in (0,)]
+neotevrelo = [(p, k, v) for p, k, v in vse if k is not None and v == "—"]
 print()
 print("brán celkem: %d, s nenulovým exit: %d" % (len(vse), len(selhalo)))
 for p, k in selhalo:
@@ -505,14 +470,15 @@ if neotevrene:
 else:
     print("brány, které vůbec nezačaly: 0   (každá otevřela svůj soubor)")
 
-# 2) BRÁNY, KTERÉ DOBĚHLY, ALE NEVYKÁZALY ČÍTAČ. To je past S27:
-#    „zelená bez počtu kontrol je ticho, ne zelená".
-# ⚠ H87: sem patří JEN brány, které PROKAZATELNĚ BĚŽELY (nejsou v `neotevrene`)
-#    — do opravy tu byl každý `v == "—"` a stav „běžela, ale nic nezměřila" se
-#    sléval se stavem „vůbec nezačala".
-if bez_citace:
+# 2) BRÁNY, KTERÉ DOBĚHLY S `exit 0`, ALE NEVYKÁZALY ČÍTAČ. To je past S27:
+#    „zelená bez počtu kontrol je ticho, ne zelená“.
+if neotevrelo:
     print()
-    print("? BRÁNY, KTERÉ BĚŽELY, ALE NEVYKÁZALY ČÍTAČ (%d) — nevíme, CO změřily:"
-          % len(bez_citace))
-    for p, k, d in bez_citace:
-        print("   %s → exit=%s, %s" % (p, k, d))
+    # ⚠ H80 (5. 10. 2026, naměřeno v běhu P15): tady stálo „PROŠLY, ale nevíme,
+    # CO změřily" — a v seznamu byl i `C2: mutace N1` s **`exit=2`**. To je táž
+    # třída jako H71: **sdělení o bráně tvrdilo něco, co neplatilo**. Vypisuje se
+    # proto **exit kód** a nadpis už netvrdí „prošly".
+    print("? BRÁNY BEZ ČÍTAČE (%d) — nevykázaly POČET, takže nevíme, CO změřily:"
+          % len(neotevrelo))
+    for p, k, v in neotevrelo:
+        print("   %s → exit=%s, otevřela: %s" % (p, k, v))

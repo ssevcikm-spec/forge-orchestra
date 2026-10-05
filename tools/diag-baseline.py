@@ -1,16 +1,16 @@
+from __future__ import annotations
+
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
 # `tools/` je primo v koreni repa, takze _PARENT = root repa.
 _PARENT = _pl.Path(__file__).resolve().parents[1]
 """Diagnostika čtyř selhání v baseline testech – tiskne SKUTEČNÉ hodnoty."""
-from __future__ import annotations
-
 import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, _PARENT / 'repo' / '.forge')
+sys.path.insert(0, str(_PARENT / 'repo' / '.forge'))
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 

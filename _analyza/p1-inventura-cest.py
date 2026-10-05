@@ -2,6 +2,8 @@
 #   REPO    = root repa (_analyza/.. )
 #   STANICE = alias na REPO (HANDOFF, KRONIKA i _analyza se presunuly do repa)
 #   HRA     = sourozenec repa (byla `WS/games/uo-shadows`)
+from __future__ import annotations
+
 import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
@@ -33,8 +35,6 @@ ROZHODNUTI (D5, D6 — zavazna, plan §10.3b):
 
 Vystup: `_analyza\P1-INVENTURA-CEST.md` (kontrolni seznam) + souhrn na stdout.
 """
-from __future__ import annotations
-
 import re
 import sys
 import unicodedata

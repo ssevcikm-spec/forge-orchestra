@@ -1,0 +1,79 @@
+{
+  "kdy": "2026-10-05T21:41:12.321Z",
+  "repo": "ssevcikm-spec/uo-shadows",
+  "sha": "44dd45446ed1ce4a418902eb4e81c50a8c2d5694",
+  "push_utc": "2026-10-05T20:39:00Z",
+  "artefakt_novy": true,
+  "release_uspesny": true,
+  "job_nedostal_runner": false,
+  "actions_status": "degraded_performance",
+  "pages_status": "degraded_performance",
+  "nevyresene_incidenty": [
+    {
+      "nazev": "Incident with Actions",
+      "stav": "investigating",
+      "od": "2026-10-05T19:11:58.382Z"
+    }
+  ],
+  "behy_na_commitu": [
+    {
+      "cislo": 117,
+      "nazev": "CI (testy a build)",
+      "stav": "completed",
+      "vysledek": "success",
+      "pokus": 3,
+      "id": 37371135115
+    },
+    {
+      "cislo": 78,
+      "nazev": "Vydání hry (build + Release + web)",
+      "stav": "completed",
+      "vysledek": "success",
+      "pokus": 3,
+      "id": 37371135021
+    }
+  ],
+  "kontroly": [
+    {
+      "ok": true,
+      "popis": "artefakt odpovídá (HTTP 200) — to samo NIC nedokazuje",
+      "detail": ""
+    },
+    {
+      "ok": true,
+      "popis": "artefakt je NOVĚJŠÍ než push (krok 3)",
+      "detail": "Mon, 05 Oct 2026 21:38:16 GMT"
+    },
+    {
+      "ok": true,
+      "popis": "API běhů odpovídá",
+      "detail": "HTTP 200"
+    },
+    {
+      "ok": true,
+      "popis": "na commitu je běh `release.yml`",
+      "detail": "1"
+    },
+    {
+      "ok": true,
+      "popis": "release.yml na `44dd454` doběhl ÚSPĚŠNĚ",
+      "detail": "#78 completed/success"
+    },
+    {
+      "ok": true,
+      "popis": "check-runs pro commit odpovídají",
+      "detail": "HTTP 200"
+    },
+    {
+      "ok": true,
+      "popis": "log NENÍ k dispozici (nic se nespustilo)",
+      "detail": "HTTP 302"
+    },
+    {
+      "ok": true,
+      "popis": "stav Actions je čitelný",
+      "detail": "degraded_performance"
+    }
+  ],
+  "verdikt": "NASAZENO"
+}

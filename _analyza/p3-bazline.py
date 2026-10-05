@@ -2,6 +2,8 @@
 #   REPO    = root repa (_analyza/.. )
 #   STANICE = alias na REPO (HANDOFF, KRONIKA i _analyza se presunuly do repa)
 #   HRA     = sourozenec repa (byla `WS/games/uo-shadows`)
+from __future__ import annotations
+
 import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
@@ -15,8 +17,6 @@ rozbilo — a "po = pred" je jedine meritelne "Hotovo znamena" kroku P5.
 
 Vystup: JSON, aby se dal porovnat s merenim PO presunu programem.
 """
-from __future__ import annotations
-
 import json
 import sys
 from pathlib import Path
@@ -27,7 +27,7 @@ if hasattr(sys.stdout, "reconfigure"):
 WS = Path(_STANICE)
 STROMY = {
     "orchestra": WS,
-    "hra": HRA,
+    "hra": _HRA,
     "godot": WS / "tools" / "godot",
 }
 VYSTUP = WS / "_analyza" / "p3-bazline.json"

@@ -1,0 +1,72 @@
+P17: oprava nálezů H84–H89, dokončení nasazení hry a zpevnění bran
+
+Akční session P17 (NEXT-SESSION-INSTRUKCE.md z 5. 10. 2026, Úkoly A–D).
+Záznam: HANDOFF.md §35 + blok omylů §8w; KRONIKA řádek 31, §2.11, §6.
+
+A) NASAZENÍ HRY — DOKONČENO (VERDIKT: NASAZENO)
+   Mezi P16 a P17 se Actions posunul z major_outage na degraded_performance
+   a incident hlásil "new jobs are not delayed" -> oba běhy znovu spuštěny
+   (POST /rerun, HTTP 201). #117 i #78 na 44dd454 = completed/success
+   (attempt=3, runner="GitHub Actions 1000001168/69/70" — NENÍ prázdný).
+   index.png last-modified = 21:38:16 GMT (po pushi 20:39Z). Předchozí
+   selhání měla anotaci "job was not acquired by Runner of type hosted";
+   log dnes vrací HTTP 302, dřív 403/404 (běh tehdy neproběhl).
+
+B1) H85 — 6 ŽIVÝCH .py NEŠLO ZKOMPILOVAT -> 0
+   from __future__ import annotations stál až pod preludiem z P8b; přesunut
+   PŘED preludium (jediná legální pozice). Zápis v bajtech, ověřeno
+   multisetem řádků, compile() i SPUŠTĚNÍM v git worktree (6/6 traceback=0).
+   Spouštělo se v izolaci, protože oprav-ps1-kodovani.py přepisuje .ps1
+   a baseline-poznamka.py zapisuje do baseline.json hry; živý baseline.json
+   měl po celou dobu shodný SHA-256 (pojistka v p17b1-baseline-hash-pred.txt).
+
+   Oprava odhalila TŘI RUNTIME vady, které nekompilovatelnost maskovala
+   (nespustitelný soubor své vady skrývá):
+     H90 _analyza/p3-bazline.py používal HRA místo _HRA -> NameError
+     H91 tools/diag-baseline.py dával pathlib.Path do sys.path ->
+         ModuleNotFoundError (Path se v sys.path TICHE IGNORUJE)
+     H92 tools/baseline-poznamka.py měl starý tvar _PARENT/'uo-shadows'
+         (H61 opravil jen lint-roadmapa.py)
+
+   NOVÁ BRÁNA NA32: _analyza/n32-kompilovatelnost.py (v g3) — měří compile(),
+   NE ast.parse() (ten špatně umístěný from __future__ PŘIJME: 0 vs 6 chyb).
+   Čítač nese dvě čísla, _archiv se vypisuje jako poznámka, nula
+   zkontrolovaných souborů je exit 2. Mutační test 9/0 (návrat bajt na bajt).
+
+B2) H87 — KLASIFIKÁTOR g3 UŽ NEROZHODUJE PODLE SLOVNÍKU
+   Whitelist 12 markerů smazán (i mrtvá funkce _radky); rozhoduje CHOVÁNÍ:
+   prázdný výstup / podpis chybějícího souboru = "nezačala", cokoli jiného
+   = brána promluvila (běžela). Zaveden TŘETÍ STAV "běžela, ale nevykázala
+   čítač". test-h87-klasifikator.py 18/0 na fixturách P16;
+   test-h71-klasifikator.py 15/0 (nezchladl).
+
+B3) H86 — TVRZENÍ SKENU H79 NESE SVOU MEZ
+   _archiv se skenuje taky (5 SyntaxWarning jako POZNÁMKA, nemění exit —
+   dřív jediný soubor s BOM shazoval exit celého skenu na 1). Čítač:
+   "ZMĚŘENO: 0 neplatných ve SKENOVANÝCH 164 živých (mimo _archiv: 260
+   souborů, 5 sekvencí)". test-h79-escape.py 18/0.
+
+B4) NA31 — pravidlo o "stavu před X" do PREDAVANI-SESSION.md §3.1 (mimo repo)
+B5) H89 — past s ^ v git.cmd do skillu dsh-prostredi §5c (mimo repo),
+    naměřeno vlastním rev-parse: git.cmd 'ce49234^' -> ce49234 (sám sebe),
+    git.exe -> c620a06, 'ce49234~1' -> c620a06.
+
+C) ZÁZNAMY
+   HANDOFF.md §35 + §8w (omyly 169–172); KRONIKA řádek 31, nálezy H90–H92
+   do §2.11, blok 8w, rozhodnutí NA31–NA35 (všechna APLIKOVÁNO — žádné
+   NEOVĚŘENO nezůstalo); NEXT-SESSION-INSTRUKCE.md přepsáno pro P18.
+   UNTRACKNUTY dva generované soubory, které .gitignore deklaruje
+   (_tokeny-vstup.txt, c2-mutace-zaloha.json) — každý běh bran je zapíše,
+   takže git status nebyl NIKDY čistý (H88). Kód si je vytváří sám
+   (c2-mutace.py:59, hl-neanglicky-v-kodu.py:493) a git rm --cached je
+   NEMAZE z disku — ověřeno Test-Path po operaci.
+
+OVĚŘENO PO ZMĚNÁCH
+  g3-brany.py         -> 37 bran, 0 nenulových, 0 nezačatých, 0 nedosazených
+  validate-all.mjs    -> ✓ VŠE V POŘÁDKU (exit 0)
+  kronika-kontrola.py -> KRONIKA SEDÍ (167 omylů / 92 nálezů / 30 sessions)
+  handoff-uplnost     -> 83/83
+  zalohuj-archiv --jen-kontrola -> 347 souborů, SHA-256 shodný
+  inventář přegenerován (6269 nálezů)
+
+PUSH: NE — rozhodnutí je na uživateli. Hra (uo-shadows) zůstává čistá.

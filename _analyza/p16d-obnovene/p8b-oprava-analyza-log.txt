@@ -1,0 +1,43 @@
+  ✓ a1-a2-mutace.py: 1 nahrad, parser OK
+  ✓ a1-a2-over.py: 1 nahrad, parser OK
+  ✓ a3-mutace.py: 1 nahrad, parser OK
+  ✓ a3-over.py: 2 nahrad, parser OK
+  ✓ ag-mutace.py: 1 nahrad, parser OK
+  ✓ ag-over-cisla.py: 1 nahrad, parser OK
+  ✓ ag-presun-uplnost.py: 1 nahrad, parser OK
+  ✓ b5-over-tvrzeni.py: 1 nahrad, parser OK
+  ✓ handoff-kontrola-uplnost.py: 1 nahrad, parser OK
+  ✓ hl2-casova-osa.py: 1 nahrad, parser OK
+  ✓ hl2-kontrola.py: 1 nahrad, parser OK
+  ✓ hl2-kostra-kalibrace.py: 1 nahrad, parser OK
+  ✓ hl2-kostra-test.py: 1 nahrad, parser OK
+  ✓ hl2-mutace-kontrola.py: 1 nahrad, parser OK
+  ✓ hl2-nic-nezmizelo.py: 1 nahrad, parser OK
+  ~ hl2-rozbal-session2.mjs: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ hl2-rozbal-session2.mjs: 1 nahrad, parser OK
+  ~ hl2-soubeh.py: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ hl2-soubeh.py: 1 nahrad, parser OK
+  ✓ n1-over-inventar.py: 1 nahrad, parser OK
+  ✓ n8-mutace.py: 1 nahrad, parser OK
+  ✓ n8-zastarala-analyza.py: 1 nahrad, parser OK
+  ~ p1-inventura-cest.py: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ p1-inventura-cest.py: 1 nahrad, parser OK
+  ~ p1b-odvozene-cesty.py: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ p1b-odvozene-cesty.py: 1 nahrad, parser OK
+  ✓ p3-bazline.py: 1 nahrad, parser OK
+  ~ p8-oprava-cest.py: 5 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✗ p8-oprava-cest.py: VRÁCENO (podezřelá jména: ['r_', 'r_PARENT'])
+  ~ p8b-oprava-analyza.py: 2 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✗ p8b-oprava-analyza.py: VRÁCENO (podezřelá jména: ['r_'])
+  ✓ p9-presun-dokumentu.py: 1 nahrad, parser OK
+  ~ sken-cest-celek.py: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ sken-cest-celek.py: 1 nahrad, parser OK
+  ~ sken-vazeb.py: 1 nahrad, zbytek 'Local-Deepseek' (komentar?)
+  ✓ sken-vazeb.py: 1 nahrad, parser OK
+  ✓ skryte-vazby-na-hru.py: 1 nahrad, parser OK
+  ✓ z8-probe.py: 2 nahrad, parser OK
+  ✓ zadani-kontrola.py: 1 nahrad, parser OK
+
+změněno: 29, chyb: 2
+  CHYBA: p8-oprava-cest.py: podezřelá jména: ['r_', 'r_PARENT']
+  CHYBA: p8b-oprava-analyza.py: podezřelá jména: ['r_']

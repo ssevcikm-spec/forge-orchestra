@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
@@ -26,8 +28,6 @@ Vyřeší se to zápisem BAJTŮ: žádná tichá konverze konců řádků.
 
 Použití: python orchestra/tools/oprav-ps1-kodovani.py
 """
-from __future__ import annotations
-
 import pathlib
 import sys
 

@@ -1,0 +1,37 @@
+P16/B — 34 bran spuštěno samostatně
+nenulových exitů: 3
+
+exit=   0  testy hry (Godot)                              otevřela: 91 / 0                       stav: měří
+exit=   0  mutace B (combat)                              otevřela: 2 / 2                        stav: měří
+exit=   0  C1: a3-over (náhrada za a3-kontrola.mjs)       otevřela: 2                            stav: měří
+exit=   2  C2: mutace N1 (5 běhů)                         otevřela: —                            stav: exit 2 BEZ ČÍTAČE (ptej se, co změřila)
+exit=   0  C2: sebekontrola diakritiky                    otevřela: 127                          stav: měří
+exit=   0  diakritika (brána)                             otevřela: 10977                        stav: měří
+exit=   0  handoff úplnost                                otevřela: 83                           stav: měří
+exit=   0  kronika úplnost                                otevřela: 154                          stav: měří
+exit=   0  kronika mutace (6 případů)                     otevřela: 8                            stav: měří
+exit=   0  diakritika nových souborů                      otevřela: 322                          stav: měří
+exit=   0  zadání kontrola                                otevřela: 315                          stav: měří
+exit=   0  over-dokumentaci                               otevřela: 67                           stav: měří
+exit=   0  over-skilly                                    otevřela: 13                           stav: měří
+exit=   0  lint-roadmapa                                  otevřela: 8 / 22                       stav: měří
+exit=   0  check-schema (hra)                             otevřela: Schéma je v souladu          stav: měří
+exit=   0  test-cooldown                                  otevřela: 10 / 0                       stav: měří
+exit=   0  f2 over cooldown                               otevřela: 10 / 0                       stav: měří
+exit=   0  deploy B1                                      otevřela: 50                           stav: měří
+exit=   0  ag-over-cisla                                  otevřela: 2026                         stav: měří
+exit=   0  ag-mutace (autorita)                           otevřela: 2 / 2                        stav: měří
+exit=   0  a1-a2-over                                     otevřela: 23                           stav: měří
+exit=   0  a3-over                                        otevřela: 0                            stav: měří
+exit=   0  n8-zastarala                                   otevřela: 6 / 7                        stav: měří
+exit=   0  b5-over-tvrzeni                                otevřela: 13 / 18                      stav: měří
+exit=   2  n1-over-inventar                               otevřela: 0                            stav: měří
+exit=   0  tsc (conductor)                                otevřela: —                            stav: neměří (brána bez čítače — přiznáno)
+exit=   1  validate-all (CELEK)                           otevřela: —                            stav: neměří (brána bez čítače — přiznáno)
+exit=   0  verify-setup (struktura)                       otevřela: 74                           stav: měří
+exit=   0  chybějící importy (statická)                   otevřela: 68                           stav: měří
+exit=   0  CI workflow (šablona + hra)                    otevřela: 36                           stav: měří
+exit=   0  escape sekvence (H79, statická)                otevřela: 0                            stav: měří
+exit=   0  escape sekvence (H79, mutace)                  otevřela: 18 / 0                       stav: měří
+exit=   0  g3 klasifikátor nezačatých (H71)               otevřela: 15 / 0                       stav: měří
+exit=   0  verify-setup seznam+čítač (H72/H73)            otevřela: 38 / 0                       stav: měří

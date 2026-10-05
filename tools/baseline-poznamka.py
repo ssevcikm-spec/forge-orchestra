@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
@@ -12,8 +14,6 @@ v auditu vypadalo, že lidské schválení proběhlo, i když neproběhlo.
 
 Použití: python orchestra/tools/baseline-poznamka.py
 """
-from __future__ import annotations
-
 import json
 import pathlib
 import sys
@@ -22,7 +22,7 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 CESTA = pathlib.Path(
-    _PARENT / 'uo-shadows' / '.forge' / 'vision' / 'baseline.json')
+    _PARENT.parent / 'uo-shadows' / '.forge' / 'vision' / 'baseline.json')
 
 POZNAMKA = ("PŘEVZATO AGENTEM 30. 9. 2026 – čeká na lidskou kontrolu. "
             "Sprity jsou ze schváleného milníku 1 (`assets/spec.json`, `_stav`), "

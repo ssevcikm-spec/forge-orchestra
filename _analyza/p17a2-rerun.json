@@ -1,0 +1,22 @@
+{
+  "kdy": "2026-10-05T21:37:06.120Z",
+  "actions": "degraded_performance",
+  "zaznam": [
+    {
+      "cislo": 117,
+      "nazev": "CI (testy a build)",
+      "id": 37371135115,
+      "pred": "completed/failure",
+      "http": 201,
+      "zprava": null
+    },
+    {
+      "cislo": 78,
+      "nazev": "Vydání hry (build + Release + web)",
+      "id": 37371135021,
+      "pred": "completed/failure",
+      "http": 201,
+      "zprava": null
+    }
+  ]
+}

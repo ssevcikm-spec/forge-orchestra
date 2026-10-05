@@ -1,0 +1,32 @@
+﻿[
+    {
+        "skript":  "_analyza\\p1-inventura-cest.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    },
+    {
+        "skript":  "_analyza\\p1b-odvozene-cesty.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    },
+    {
+        "skript":  "_analyza\\p3-bazline.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    },
+    {
+        "skript":  "tools\\baseline-poznamka.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    },
+    {
+        "skript":  "tools\\diag-baseline.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    },
+    {
+        "skript":  "tools\\oprav-ps1-kodovani.py",
+        "traceback":  0,
+        "exit":  "EXIT=0"
+    }
+]

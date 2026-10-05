@@ -1,0 +1,2461 @@
+==============================================================================
+### testy hry (Godot)   (exit=0)
+==============================================================================
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[test] OK   main.tscn jde načíst
+[level] main: 30×16 políček, izometricka 96×48 px, dlaždic: 480, značek: 4
+[game] připraveno: hráč + 2 mincí, zvuků načteno: 0, dlaždice: ano, úroveň: main 30×16
+[test] OK   skript hry jde načíst (žádná chyba v kódu)
+[test] OK   scéna vytvořila uzel Player
+[test] OK   počet mincí odpovídá očekávání (2, nalezeno 2)
+[test] OK   HUD s výsledkem existuje
+[test] OK   HUD ukazuje počáteční skóre: 'Skóre: 0 / 2 HODNOTA: 25'
+[test] OK   sebrání mince zvýší skóre (0 -> 1)
+[test] OK   všechny assety jdou načíst (19 OK, 0 chybí)
+[test] OK   úroveň main.json je v projektu
+[test] OK   mapa je postavená ve scéně
+[test] OK   spawn je na průchozím políčku (17, 7)
+[test] OK   z každého políčka se dá dojít na spawn (109 z 109)
+[test] OK   mapa má dlaždici pro každé políčko (480)
+[test] OK   mapa se kreslí nad pozadím (mapa -1, pozadí -3)
+[test] OK   hráč se kreslí nad mapou (hráč 5, zeď 0)
+[test] OK   všechny značky leží na průchozích políčkách
+[test] OK   hráč startuje na průchozím políčku (480.0, 270.0)
+[test] OK   našla se zeď sousedící s chodbou
+[test] OK   hráč se nedostane do zdi (6, 2) (skončil v (7, 2))
+[test] OK   i po nárazu do zdi zůstane hráč na průchozím políčku
+[test] OK   dlaždicové pozadí je ve scéně
+[test] OK   pozadí má nenulovou velikost ((960.0, 540.0))
+[test] OK   úroveň main.json jde načíst
+[test] OK   úroveň main.json je celá průchodná (109 z 109)
+[test] OK   atributy začínají na 10 (10/10/10)
+[test] OK   derived() vrací damage, hit_chance, attack_speed, mana i carry
+[test]      skilly: get() nevrátil hodnoty pro 'tezba'/'kovarstvi' – kontrola začátků na 0 se přeskakuje
+[test] OK   level.gd se hlásí jako izometrický (podle assets/spec.json)
+[test] OK   izo projekce 2:1 – krok (1,0) je (48.0, 24.0) (dx=48.0, dy=24.0)
+[test] OK   cell_at je zpětný převod cell_center pro (1,0) ((1, 0))
+[test] OK   cell_at je zpětný převod cell_center pro (0,1) ((0, 1))
+[test] OK   item.gd poskytuje use/repair/broken
+[test] OK   use() snižuje trvanlivost (20 → 19)
+[test] OK   repair() obnoví předmět
+[test] OK   combat.resolve() umí zásah i minutí (zásah: { "hit": true, "damage": 4 }, minutí: { "hit": false, "damage": 0 })
+[test] OK   zásah: damage = 1 + Str/10 + zbraň − zbroj = 4 (naměřeno: 4)
+[test] OK   minutí: damage je 0, ne zásah naslepo (naměřeno: 0)
+[test] OK   combat.resolve() čte atributy větví hodnota(attr): atrapa v rozporu (hodnota 100 vs vlastnost 10) musí dát damage = 13, ne 4 (zásah: { "hit": true, "damage": 13 })
+[test] OK   atrapa potvrzuje, že resolve() volal hodnota(attr) (volání: 2)
+[test] OK   combat.resolve() snese i vlastnost `zbran` (vrací {hit, damage})
+[test] OK   mining.gd jde načíst (dřív se nenačtený přeskočil)
+[test] OK   mining.gather() vrátí 1+(55-5)/10 = 6 (naměřeno: 6)
+[test] OK   mining.gather() zvedne dovednost o 1 (55 → 56)
+[test] OK   mining.gather() oznámí světu gather(cell) (volání: 1)
+[test] OK   dřevo jde na dovednost drevorubectvi
+[test] OK   mining.gather() bez registru vrátí 0 a ohlásí to (žádná tichá nula)
+[test] OK   crafting.gd poskytuje smelt/forge/repair
+[test] OK   economy.gd poskytuje price/buy/sell
+[test] OK   offline.gd poskytuje resolve(char, job, hodiny)
+[test] OK   assist.gd poskytuje add_rule/evaluate
+[test] OK   save.gd jde načíst (dřív se nenačtený přeskočil)
+[test] OK   hud.gd jde načíst (dřív se nenačtený přeskočil)
+[test] OK   save() uloží stav a vrátí true
+[test] OK   save.cfg jde načíst
+[test] OK   save() uloží atributy (Str=13)
+[test] OK   save() uloží zlato (42)
+[test] OK   save() uloží dovednosti
+[test] OK   save() uloží pozici hráče
+[test] OK   load() vrátí true
+[test] OK   load() vrátí uložený stav (Str=13, zlato=42, tezba=7)
+[test] OK   save() bez registru komponent vrátí false (dřív vracel true nad prázdnem)
+[test] OK   hud.gd přidá label do scény (dětí: 1)
+[test] OK   HUD ukazuje atributy z registru
+[test] OK   HUD ukazuje zlato z registru
+[test] OK   HUD ukazuje dovednosti z registru
+[test] OK   skills.json je pole s dovednostmi
+[test] OK   dovednosti jsou sjednocené: ["tezba", "drevorubectvi", "kovarstvi", "boj_na_blizko"]
+[test] OK   player.gd jde načíst (dřív se nenačtený přeskočil)
+[test] OK   player.gd poskytuje smluvní move(dir) (dřív chyběl a kontrola se přeskočila)
+[test] OK   osa dlaždice v main.json je izometrie 2:1 (sklon 0.5000)
+[test] OK   player.move() ujde plný krok SPEED/60 = 2.1667 px aspoň v jednom směru (změřeno 4 ze 4: ["(1.0, 0.0) sklon 0.5000", "(-1.0, 0.0) sklon 0.5000", "(0.0, 1.0) sklon 0.5000", "(0.0, -1.0) sklon 0.5000"])
+[test] OK   player.move() jde po ose dlaždic ve všech měřených směrech (sklon dlaždice 0.5000, chyb 0: ["(1.0, 0.0) sklon 0.5000", "(-1.0, 0.0) sklon 0.5000", "(0.0, 1.0) sklon 0.5000", "(0.0, -1.0) sklon 0.5000"])
+[test] OK   _physics_process volá move() (smlouva je jedna cesta, ne dvě)
+[test] OK   player.gd má stav 'hp' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'max_hp' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'mana' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'max_mana' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'target' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'inventory' (čtou ho jiné komponenty)
+[test] OK   player.gd má stav 'equipped' (čtou ho jiné komponenty)
+[test] OK   player.gd poskytuje 'add_item' (volá ho economy.gd, resp. smlouva)
+[test] OK   player.gd poskytuje 'remove_item' (volá ho economy.gd, resp. smlouva)
+[test] OK   player.gd poskytuje 'die' (volá ho economy.gd, resp. smlouva)
+[test] OK   assist.gd jde načíst (dřív se nenačtený přeskočil)
+[test] OK   assist: při plném zdraví a maně a bez cíle se nic nespustí
+[test] OK   assist: nízké hp spustí pravidlo 'hp < X' (akce ["vypit lektvar"])
+[test] OK   assist: nízká mana spustí pravidlo 'mana < X' (akce ["seslat kouzlo"])
+[test] OK   assist: mrtvý cíl spustí pravidlo 'target dead' (akce ["prepnit cil"])
+[test] OK   player.add_item() vloží předmět do inventáře
+[test] OK   player.remove_item() předmět vyjme (inventář: 0)
+[test] OK   hud.gd jde načíst i mimo blok ukládání
+[test] OK   HUD zobrazuje skutečné HP hráče (text začíná 'HP: 77')
+
+[test] 91 kontrol, 0 selhání
+ERROR: Required object "rp_target" is null.
+   at: tween_property (scene/animation/tween.cpp:101)
+   GDScript backtrace (most recent call first):
+       [0] _add_level (res://scripts/game.gd:181)
+       [1] _ready (res://scripts/game.gd:33)
+       [2] _run (res://tests/run_tests.gd:65)
+ERROR: mining.gd: komponenta Skills není v registru – nevím, jaký je skill
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] gather (res://scripts/mining.gd:52)
+       [1] _run (res://tests/run_tests.gd:792)
+ERROR: Attempt to open script 'res://scripts/npc.gd' resulted in error 'File not found'.
+   at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/run_tests.gd:813)
+ERROR: Failed loading resource: res://scripts/npc.gd.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/run_tests.gd:813)
+ERROR: Attempt to open script 'res://scripts/enemy.gd' resulted in error 'File not found'.
+   at: load_source_code (modules/gdscript/gdscript.cpp:1139)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/run_tests.gd:819)
+ERROR: Failed loading resource: res://scripts/enemy.gd.
+   at: _load (core/io/resource_loader.cpp:317)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tests/run_tests.gd:819)
+ERROR: save.gd: nad sebou nemám kostru s component(id) – neuložil jsem nic
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] save (res://scripts/save.gd:32)
+       [1] _run (res://tests/run_tests.gd:907)
+WARNING: 5 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+
+==============================================================================
+### mutace B (combat)   (exit=0)
+==============================================================================
+ZDRAVÝ KÓD:        91 kontrol, 0 selhání  OK
+
+M1: zbroj: "armor_rating" in defender -> defender.has("armor_rating")
+   ověřeno na disku: vada je v combat.gd
+   VÝSLEDEK: 91 kontrol, 5 selhání
+   [test] FAIL combat.resolve() umí zásah i minutí (zásah: <null>, minutí: {  })
+   [test] FAIL zásah: damage = 1 + Str/10 + zbraň − zbroj = 4 (naměřeno: žádný zásah)
+   [test] FAIL minutí: damage je 0, ne zásah naslepo (naměřeno: -1)
+   [test] FAIL combat.resolve() čte atributy větví hodnota(attr): atrapa v rozporu (hodnota 100 vs vlastnost 10) musí dát damage = 13, ne 4 (zásah: <null>)
+   [test] FAIL combat.resolve() snese i vlastnost `zbran` (vrací {hit, damage})
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node2D (TestBojovnik)'.
+
+M2: zbraň: "damage" in zbran -> zbran.has("damage")
+   ověřeno na disku: vada je v combat.gd
+   VÝSLEDEK: 91 kontrol, 4 selhání
+   [test] FAIL combat.resolve() umí zásah i minutí (zásah: <null>, minutí: {  })
+   [test] FAIL zásah: damage = 1 + Str/10 + zbraň − zbroj = 4 (naměřeno: žádný zásah)
+   [test] FAIL minutí: damage je 0, ne zásah naslepo (naměřeno: -1)
+   [test] FAIL combat.resolve() čte atributy větví hodnota(attr): atrapa v rozporu (hodnota 100 vs vlastnost 10) musí dát damage = 13, ne 4 (zásah: <null>)
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+   SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Node (TestZbran)'.
+
+======================================================================
+  M1: 91 kontrol, 5 selhání  → CHYCENO
+  M2: 91 kontrol, 4 selhání  → CHYCENO
+  chyceno 2 z 2
+
+==============================================================================
+### C1: a3-over (náhrada za a3-kontrola.mjs)   (exit=0)
+==============================================================================
+šablona  job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+hra      job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+
+OK: obě kopie mají 'exit 1' na konci kroku 'Když pravidla neprošla'.
+ZMĚŘENO: 2 kontrol, 0 chyb
+
+==============================================================================
+### C2: mutace N1 (5 běhů)   (exit=0)
+==============================================================================
+============================================================================
+1) ZDRAVÝ INVENTÁŘ (musí projít, jinak další mutace nic nedokazují)
+============================================================================
+      INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1750723 B)
+      otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+      nálezů v inventáři:        5828
+      SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+      → exit=0
+
+============================================================================
+2) OTSK V INVENTÁŘI PŘEPSÁN (kód se od jeho vzniku změnil)
+============================================================================
+      INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1704711 B)
+      CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚŘENÝ
+      otisk VSTUPŮ se rozešel — kód se od vzniku inventáře změnil:
+      v inventáři: 0000000000000000  (1027 souborů)
+      Slovy zadání: „nula a nezměřeno nejsou úspěch“. Nad tímhle
+      inventářem se NEDÁ tvrdit „0 vrácených“ — chybí mu právě ty
+      Obnov inventář a spusť to znovu:
+      → exit=1
+
+============================================================================
+3) INVENTÁŘ BEZ OTISKU (starší formát — stáří se NEDÁ ověřit)
+============================================================================
+      INVENTÁŘ: _inventar.json  (stáří 0.00 h, otisk vstupů v něm NENÍ (starší formát), 1548335 B)
+      CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚŘENÝ
+      inventář neobsahuje otisk vstupů — NELZE ověřit, že sedí s kódem
+      Slovy zadání: „nula a nezměřeno nejsou úspěch“. Nad tímhle
+      inventářem se NEDÁ tvrdit „0 vrácených“ — chybí mu právě ty
+      Obnov inventář a spusť to znovu:
+      → exit=1
+
+============================================================================
+4) INVENTÁŘ SMAZÁN (nástroj ho má obnovit sám, bez zápisu ve svém zdroji)
+============================================================================
+      (inventář _inventar.json chybí — generuji ho, může to chvíli trvat…)
+      INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1750723 B)
+      otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+      nálezů v inventáři:        5828
+      SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+      → exit=0
+
+============================================================================
+5) NÁVRAT DO ZDRAVÉHO STAVU
+============================================================================
+      INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1750723 B)
+      otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+      nálezů v inventáři:        5828
+      SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+      → exit=0
+
+============================================================================
+  zdravý               exit=0  (očekáváno 0)  OK
+  přepsaný otisk       exit=1  (očekáváno 1)  OK
+  bez otisku           exit=1  (očekáváno 1)  OK
+  smazaný inventář     exit=0  (očekáváno 0)  OK
+  návrat               exit=0  (očekáváno 0)  OK
+============================================================================
+VÝSLEDEK: brána měří — zastaralý i nezměřený inventář SHODÍ nástroj
+
+==============================================================================
+### C2: sebekontrola diakritiky   (exit=0)
+==============================================================================
+==========================================================================
+1) ZDRAVÝ STAV — brána musí projít
+==========================================================================
+   OK   kontrola-diakritiky.py               23673 znaků  rozbito: ne (sebekontrola: 5 českých slov, 0 náhradních znaků)
+   exit=0 OK
+
+==========================================================================
+2) MUTACE — rozbij české slovo v TEXTU souboru (ne v seznamu)
+==========================================================================
+   české písmeno 'ř' bylo v souboru 127× a rozbito VŠUDE
+   ověřeno na disku: soubor je jiný (23673 → 23673 znaků)
+   CHYBA kontrola-diakritiky.py               23673 znaků  rozbito: 127× náhradní znak
+   NALEZENY CHYBY (1)
+   exit=1
+   soubor vrácen bajt na bajt
+
+==========================================================================
+VÝSLEDEK: CHYCENO — sebekontrola brány umí spadnout
+==========================================================================
+
+==============================================================================
+### diakritika (brána)   (exit=0)
+==============================================================================
+  PROJITÍ SLOŽKY: přidáno 102 souborů (kořen + _analyza), celkem ke kontrole 213
+  VYLOUČENO jako záloha/snapshot: 10 (_zaloha-HANDOFF-pred-mutaci.md, _zaloha-HANDOFF-pred-s24.md, _zaloha-HANDOFF-pred-s24zapis.md, _zaloha-PREDAVANI-pred-mutaci.md, handoff-pred-s18.md, handoff-pred-s21.md …)
+  OK   .dsh\AGENTS.md                       16418 znaků  rozbito: ne
+  OK   forge-orchestra\AGENTS.md            17338 znaků  rozbito: ne
+  OK   forge-orchestra\ARCHITEKTURA-ANALYZA-ZADANI.md   12098 znaků  rozbito: ne
+  OK   forge-orchestra\HANDOFF.md          469596 znaků  rozbito: ne
+  OK   forge-orchestra\SKILLY-AKTUALIZACE.md   46622 znaků  rozbito: ne
+  OK   Local-Deepseek\MOZNOSTI-AGENTA.md    11569 znaků  rozbito: ne
+  OK   forge-orchestra\FORGE-ORCHESTRA-MOZNOSTI.md   25256 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-VISION-ORCHESTRA.md   44433 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-ARCHITEKTURY-ORCHESTRA.md   77336 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-PODKLADY-CONDUCTOR-A-NASTROJE.md   22370 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-ROZVOJ-ORCHESTRA.md   41149 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-HLOUBKOVA-ORCHESTRA.md  106356 znaků  rozbito: ne
+  OK   _analyza\HLOUBKOVA-MERENI.md         23923 znaků  rozbito: ne
+  OK   _analyza\HLOUBKOVA-MERENI-2.md        8437 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-HLOUBKOVA-2-ZADANI.md   10711 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-HLOUBKOVA-ORCHESTRA-2.md   34323 znaků  rozbito: ne
+  OK   _analyza\HLOUBKOVA-MERENI-3.md       21396 znaků  rozbito: ne
+  OK   forge-orchestra\IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md   12823 znaků  rozbito: ne
+  OK   forge-orchestra\IMPLEMENTACE-HRANICE-JAZYKA.md   14976 znaků  rozbito: ne
+  OK   forge-orchestra\IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md   20559 znaků  rozbito: ne
+  OK   forge-orchestra\PROMPT-NOVA-SESSION.md   10647 znaků  rozbito: ne
+  OK   forge-orchestra\SOUBEH-SESSION-NALEZY.md    8289 znaků  rozbito: ne
+  OK   Local-Deepseek\DEPLOY-VYLEPSENI.md    7470 znaků  rozbito: ne
+  OK   Local-Deepseek\OTEVRENA-TEMATA.md    36360 znaků  rozbito: ne
+  OK   forge-orchestra\JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md   14537 znaků  rozbito: ne
+  OK   forge-orchestra\NEXT-SESSION-INSTRUKCE.md   15615 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-SEPARACE-WORKSPACE.md   70231 znaků  rozbito: ne
+  OK   _analyza\C-PODKLAD-SMLOUVY.md        34730 znaků  rozbito: ne
+  OK   _analyza\a3-brany-novych-granuli.md    1711 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-DALSI-KROK.md   12496 znaků  rozbito: ne
+  OK   _analyza\A-UKOL-ZAZNAM.md             5660 znaků  rozbito: ne
+  OK   Local-Deepseek\PREDAVANI-SESSION.md   21442 znaků  rozbito: ne
+  OK   .forge\check-schema.py               23132 znaků  rozbito: ne
+  OK   .forge\vision-profile.json            4139 znaků  rozbito: ne
+  OK   .forge\baseline.py                   28656 znaků  rozbito: ne
+  OK   tools\test-check-schema.py           10227 znaků  rozbito: ne
+  OK   kontrola-diakritiky.py               23673 znaků  rozbito: ne (sebekontrola: 5 českých slov, 0 náhradních znaků)
+  OK   _analyza\s17-novy-oddil.md           26755 znaků  rozbito: ne
+  OK   _analyza\s8f-novy-oddil.md            6362 znaků  rozbito: ne
+  OK   _analyza\s17b-doplneni.md             7656 znaků  rozbito: ne
+  OK   forge-orchestra\KRONIKA-PROJEKTU.md  114402 znaků  rozbito: ne
+  OK   _analyza\s18-novy-oddil.md           20379 znaků  rozbito: ne
+  OK   _analyza\s8g-novy-oddil.md            6541 znaků  rozbito: ne
+  OK   _analyza\s18b-doplneni.md             3279 znaků  rozbito: ne
+  OK   _analyza\s18c-omyl68-radek.md          908 znaků  rozbito: ne
+  OK   _analyza\s18c-doplneni.md             1735 znaků  rozbito: ne
+  OK   _analyza\s18e-l13-radek.md             936 znaků  rozbito: ne
+  OK   _analyza\s19-oddil-groq.md            4522 znaků  rozbito: ne
+  OK   _analyza\s19-push-oddil.md            4431 znaků  rozbito: ne
+  OK   _analyza\s19-omyl69-radek.md          1264 znaků  rozbito: ne
+  OK   _analyza\s19c-radek16.md               677 znaků  rozbito: ne
+  OK   _analyza\s19c-h13.md                   561 znaků  rozbito: ne
+  OK   _analyza\s19c-l14.md                   793 znaků  rozbito: ne
+  OK   _analyza\s19g-oddil-deploy.md         2942 znaků  rozbito: ne
+  OK   _analyza\s19g-omyl70-radek.md         1080 znaků  rozbito: ne
+  OK   _analyza\s19k-oddil-granule.md        3767 znaků  rozbito: ne
+  OK   _analyza\s19k-omyl71-radek.md         1006 znaků  rozbito: ne
+  OK   _analyza\s20-plan-31.md               3445 znaků  rozbito: ne
+  OK   _analyza\s20-oddil-odlozeno.md        2899 znaků  rozbito: ne
+  OK   _analyza\s20-na16-radek.md             819 znaků  rozbito: ne
+  OK   workflows\ci.yml                      8339 znaků  rozbito: ne
+  OK   forge-orchestra\README.md            18898 znaků  rozbito: ne
+  OK   forge-orchestra\README.md            18898 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-DOKONCENI-AUDITU.md   15749 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-PO-AUDITU.md   10295 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-OPRAVA-MERIDEL.md   14156 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-DODELAT-MERIDLA.md   11191 znaků  rozbito: ne
+  OK   forge-orchestra\ANALYZA-HLOUBKOVA-ZADANI.md   22840 znaků  rozbito: ne
+  OK   forge-orchestra\ASSETY-PLAN.md        8052 znaků  rozbito: ne
+  OK   forge-orchestra\ASSETY.md             6663 znaků  rozbito: ne
+  OK   forge-orchestra\NAVRH-ORCHESTRA-NG.md   83139 znaků  rozbito: ne
+  OK   forge-orchestra\ORCHESTRA-STAV-A-ANALYZA.md   13630 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-ORCHESTRA-AI-AGENTI.md   43028 znaků  rozbito: ne
+  OK   forge-orchestra\PLAN-ORCHESTRA-NG.md   30564 znaků  rozbito: ne
+  OK   forge-orchestra\POUCENI-A-VZORY.md   59471 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-A-KONEC-MERIDEL.md   14007 znaků  rozbito: ne
+  OK   forge-orchestra\ZADANI-B-DALSI-SESSION.md    9705 znaků  rozbito: ne
+  OK   _analyza\AUDIT-DOKUMENTACE.md        33283 znaků  rozbito: ne
+  OK   _analyza\o10-novy-oddil-overovani.md    9185 znaků  rozbito: ne
+  OK   _analyza\P1-INVENTURA-CEST.md        18685 znaků  rozbito: ne
+  OK   _analyza\P1B-ODVOZENE-CESTY.md       16063 znaků  rozbito: ne
+  OK   _analyza\P8C-BRANY-PO-OPRAVE.md       1601 znaků  rozbito: ne
+  OK   _analyza\pr-mining-body.md            2642 znaků  rozbito: ne
+  OK   _analyza\PROMPT-DOKONCENI-AUDITU.md    4169 znaků  rozbito: ne
+  OK   _analyza\s16-novy-oddil.md           24302 znaků  rozbito: ne
+  OK   _analyza\s21-oddil.md                12789 znaků  rozbito: ne
+  OK   _analyza\s21b-oddil-8h.md             7555 znaků  rozbito: ne
+  OK   _analyza\s23-oddil.md                12037 znaků  rozbito: ne
+  OK   _analyza\s24-oddil-8k.md              3776 znaků  rozbito: ne
+  OK   _analyza\s24-oddil.md                17546 znaků  rozbito: ne
+  OK   _analyza\s8e-novy-oddil.md            5009 znaků  rozbito: ne
+  OK   _analyza\s8f-omyl60.md                 992 znaků  rozbito: ne
+  OK   _analyza\s8j-oddil.md                 4954 znaků  rozbito: ne
+  OK   _analyza\_p13c-archivuj-p8.py         4141 znaků  rozbito: ne
+  OK   _analyza\_p13c-dopln-importy.py       5634 znaků  rozbito: ne
+  OK   _analyza\_p13c-handoff-dopln.py       7821 znaků  rozbito: ne
+  OK   _analyza\_p13c-handoff-dopln2.py      4872 znaků  rozbito: ne
+  OK   _analyza\_p13c-handoff-omyly.py       4130 znaků  rozbito: ne
+  OK   _analyza\_p13c-kronika-8s.py          1337 znaků  rozbito: ne
+  OK   _analyza\_p13c-kronika-nalezy.py      7106 znaků  rozbito: ne
+  OK   _analyza\_p13c-kronika-radek.py       2872 znaků  rozbito: ne
+  OK   _analyza\_p13c-kronika-radek27.py     2557 znaků  rozbito: ne
+  OK   _analyza\_p13c-oprav-cesty.py         7082 znaků  rozbito: ne
+  OK   _analyza\_p13c-oprav-diakritiku.py    2249 znaků  rozbito: ne
+  OK   _analyza\_p13c-sonda-h52.py           1481 znaků  rozbito: ne
+  OK   _analyza\_p13c-sonda-py.py            1176 znaků  rozbito: ne
+  OK   _analyza\_p13c-sonda-vzor.py          1015 znaků  rozbito: ne
+  OK   _analyza\_p13c-vzor-a3.py             1359 znaků  rozbito: ne
+  OK   _analyza\_registr-bran.py             7375 znaků  rozbito: ne
+  OK   _analyza\_sonda-identifikatory.py     1616 znaků  rozbito: ne
+  OK   _analyza\_sonda-importy.py            1298 znaků  rozbito: ne
+  OK   _analyza\a-mutace-run.py              8367 znaků  rozbito: ne
+  OK   _analyza\a-oprav-test.py              4460 znaků  rozbito: ne
+  OK   _analyza\a1-a2-mutace.py              5654 znaků  rozbito: ne
+  OK   _analyza\a1-a2-over.py                8532 znaků  rozbito: ne
+  OK   _analyza\a3-mutace.py                 3606 znaků  rozbito: ne
+  OK   _analyza\a3-over.py                   3213 znaků  rozbito: ne
+  OK   _analyza\ag-mutace.py                 8207 znaků  rozbito: ne
+  OK   _analyza\ag-over-cisla.py            13524 znaků  rozbito: ne
+  OK   _analyza\audit-snapshot.py           11510 znaků  rozbito: ne
+  OK   _analyza\audit2a-mutace.py            7885 znaků  rozbito: ne
+  OK   _analyza\audit2b-over.py             29334 znaků  rozbito: ne
+  OK   _analyza\audit3-hlavicky-over.py      4556 znaků  rozbito: ne
+  OK   _analyza\b-mutace.py                  8006 znaků  rozbito: ne
+  OK   _analyza\b-oprav-test.py              4982 znaků  rozbito: ne
+  OK   _analyza\b5-over-tvrzeni.py           5254 znaků  rozbito: ne
+  OK   _analyza\c1-dukaz-selhani.py          3233 znaků  rozbito: ne
+  OK   _analyza\c2-mutace.py                 5600 znaků  rozbito: ne
+  OK   _analyza\f2-over-cooldown.py          3389 znaků  rozbito: ne
+  OK   _analyza\g1-diakritika-novych.py     13259 znaků  rozbito: ne
+  OK   _analyza\g1-mutace-diakritika.py      4017 znaků  rozbito: ne
+  OK   _analyza\g3-brany.py                 25900 znaků  rozbito: ne
+  OK   _analyza\h79-escape-sken.py           3241 znaků  rozbito: ne
+  OK   _analyza\handoff-kontrola-uplnost.py    7607 znaků  rozbito: ne
+  OK   _analyza\hl-chybejici-importy.py      4064 znaků  rozbito: ne
+  OK   _analyza\hl-neanglicky-v-kodu.py     40233 znaků  rozbito: ne
+  OK   _analyza\hl-rizika-jazyka.py         18118 znaků  rozbito: ne
+  OK   _analyza\hl2-kontrola.py              6020 znaků  rozbito: ne
+  OK   _analyza\hl2-kostra-kalibrace.py      3776 znaků  rozbito: ne
+  OK   _analyza\hl2-kostra-test.py           4436 znaků  rozbito: ne
+  OK   _analyza\hl2-mutace-kontrola.py       4053 znaků  rozbito: ne
+  OK   _analyza\kronika-kontrola.py         23671 znaků  rozbito: ne
+  OK   _analyza\n1-over-inventar.py          5751 znaků  rozbito: ne
+  OK   _analyza\n8-mutace.py                 7615 znaků  rozbito: ne
+  OK   _analyza\n8-zastarala-analyza.py      7563 znaků  rozbito: ne
+  OK   _analyza\p1-inventura-cest.py         9322 znaků  rozbito: ne
+  OK   _analyza\p14a-g3-nezavisle.py        12635 znaků  rozbito: ne
+  OK   _analyza\p14b-exity.py               11308 znaků  rozbito: ne
+  OK   _analyza\p14c-mutace-oprav.py        15922 znaků  rozbito: ne
+  OK   _analyza\p14d-verify-setup-sonda.py   11941 znaků  rozbito: ne
+  OK   _analyza\p14e-inventar-analyza.py    12844 znaků  rozbito: ne
+  OK   _analyza\p14f-prepocet-kroniky.py     3209 znaků  rozbito: ne
+  OK   _analyza\p1b-odvozene-cesty.py        8579 znaků  rozbito: ne
+  OK   _analyza\p3-bazline.py                2749 znaků  rozbito: ne
+  OK   _analyza\p8-inventura-cest-v-kodu.py    2432 znaků  rozbito: ne
+  OK   _analyza\ps1-bom-crlf.py              2906 znaků  rozbito: ne
+  OK   _analyza\sken-vazeb.py                6558 znaků  rozbito: ne
+  OK   _analyza\t3-kronika-mutace.py        24992 znaků  rozbito: ne
+  OK   _analyza\test-h70-vetev.py            8415 znaků  rozbito: ne
+  OK   _analyza\test-h71-klasifikator.py     8082 znaků  rozbito: ne
+  OK   _analyza\test-h72-h73.py             14009 znaků  rozbito: ne
+  OK   _analyza\test-h79-escape.py           9406 znaků  rozbito: ne
+  OK   _analyza\test-neanglicky-skener.py    9495 znaků  rozbito: ne
+  OK   _analyza\test-p13c-oprav.py          15048 znaků  rozbito: ne
+  OK   _analyza\test-p14a-mutace.py          7154 znaků  rozbito: ne
+  OK   _analyza\test-zadani-kontrola.py      6382 znaků  rozbito: ne
+  OK   _analyza\z8-probe.py                  1382 znaků  rozbito: ne
+  OK   _analyza\zadani-kontrola.py          11562 znaků  rozbito: ne
+  OK   _analyza\zalohuj-archiv.py            6610 znaků  rozbito: ne
+  OK   dokumentace\SKILL.md                  8110 znaků  rozbito: ne
+  OK   dsh-prostredi\SKILL.md               31496 znaků  rozbito: ne
+  OK   dsh-usage\SKILL.md                    7905 znaků  rozbito: ne
+  OK   game-assets\SKILL.md                 12231 znaků  rozbito: ne
+  OK   game-developer\SKILL.md              30394 znaků  rozbito: ne
+  OK   hlouchkova-analyza\SKILL.md          13395 znaků  rozbito: ne
+  OK   imagegen\SKILL.md                     6199 znaků  rozbito: ne
+  OK   imagegen-local\SKILL.md               8912 znaků  rozbito: ne
+  OK   orchestra\SKILL.md                   36116 znaků  rozbito: ne
+  OK   otevrena-temata\SKILL.md              4416 znaků  rozbito: ne
+  OK   overovani\SKILL.md                   42076 znaků  rozbito: ne
+  OK   session-handoff\SKILL.md              9888 znaků  rozbito: ne
+  OK   vision\SKILL.md                      10977 znaků  rozbito: ne
+
+ARCHIVOVÁNO (D5) — neotevřeno, není to chyba: 44 souborů v `_analyza/_archiv/`
+    c2-sonda-uvozovky.py
+    p18-pr-a-behy.mjs
+    p18-prompt-tokeny.py
+    p18-sonda-tpm.py
+    p18-stahni-log.mjs
+    p18b-jmena-behu.mjs
+    … +38
+
+ZMĚŘENO: otevřeno 182 z 226 souborů v seznamu (archivováno 44, chyb 0)
+VŠE OK
+
+==============================================================================
+### handoff úplnost   (exit=0)
+==============================================================================
+==============================================================================
+KONTROLA ÚPLNOSTI HANDOFFu — nic nesmí zmizet
+==============================================================================
+  kontrolovaných klíčů: 83
+  nalezených:           83
+  CHYBÍ:                0
+
+  VŠE OK — všech 83 bodů je v novém handoffu.
+
+==============================================================================
+### kronika úplnost   (exit=0)
+==============================================================================
+==============================================================================
+KONTROLA KRONIKY — je úplná, nebo si to jen říká?
+==============================================================================
+
+A) POČTY OMYLŮ — kronika §3 vs. skutečné tabulky v HANDOFF.md
+------------------------------------------------------------------------------
+  1–13     skutečný počet omylů:  13
+  8b       skutečný počet omylů:  10
+  8c       skutečný počet omylů:   5
+  8d       skutečný počet omylů:   6
+  8e       skutečný počet omylů:  11
+  8f       skutečný počet omylů:  10
+  8j       skutečný počet omylů:  10
+  8k       skutečný počet omylů:   5
+  8q       skutečný počet omylů:   6
+  8r       skutečný počet omylů:   6
+  8s       skutečný počet omylů:   5
+  8t       skutečný počet omylů:   7
+  8u       skutečný počet omylů:   4
+  8g       skutečný počet omylů:  11
+  8h       skutečný počet omylů:   9
+  8i       skutečný počet omylů:   6
+  8l       skutečný počet omylů:   3
+  8m       skutečný počet omylů:   8
+  8n       skutečný počet omylů:  11
+  8o       skutečný počet omylů:   5
+  8p       skutečný počet omylů:   3
+
+  1–13     kronika tvrdí  13 · skutečnost  13   OK
+  8b       kronika tvrdí  10 · skutečnost  10   OK
+  8c       kronika tvrdí   5 · skutečnost   5   OK
+  8d       kronika tvrdí   6 · skutečnost   6   OK
+  8e       kronika tvrdí  11 · skutečnost  11   OK
+  8f       kronika tvrdí  10 · skutečnost  10   OK
+  8j       kronika tvrdí  10 · skutečnost  10   OK
+  8k       kronika tvrdí   5 · skutečnost   5   OK
+  8q       kronika tvrdí   6 · skutečnost   6   OK
+  8r       kronika tvrdí   6 · skutečnost   6   OK
+  8s       kronika tvrdí   5 · skutečnost   5   OK
+  8t       kronika tvrdí   7 · skutečnost   7   OK
+  8u       kronika tvrdí   4 · skutečnost   4   OK
+  8g       kronika tvrdí  11 · skutečnost  11   OK
+  8h       kronika tvrdí   9 · skutečnost   9   OK
+  8i       kronika tvrdí   6 · skutečnost   6   OK
+  8l       kronika tvrdí   3 · skutečnost   3   OK
+  8m       kronika tvrdí   8 · skutečnost   8   OK
+  8n       kronika tvrdí  11 · skutečnost  11   OK
+  8o       kronika tvrdí   5 · skutečnost   5   OK
+  8p       kronika tvrdí   3 · skutečnost   3   OK
+
+B) NÁLEZY H1–H7 — jsou zmíněné tam, kde vznikly?
+------------------------------------------------------------------------------
+  H1    v HANDOFF.md: ANO
+  H10   v HANDOFF.md: ANO
+  H11   v HANDOFF.md: ANO
+  H12   v HANDOFF.md: ANO
+  H13   v HANDOFF.md: ANO
+  H14   v HANDOFF.md: ANO
+  H15   v HANDOFF.md: ANO
+  H16   v HANDOFF.md: ANO
+  H17   v HANDOFF.md: ANO
+  H18   v HANDOFF.md: ANO
+  H19   v HANDOFF.md: ANO
+  H2    v HANDOFF.md: ANO
+  H20   v HANDOFF.md: ANO
+  H21   v HANDOFF.md: ANO
+  H22   v HANDOFF.md: ANO
+  H23   v HANDOFF.md: ANO
+  H24   v HANDOFF.md: ANO
+  H25   v HANDOFF.md: ANO
+  H26   v HANDOFF.md: ANO
+  H27   v HANDOFF.md: ANO
+  H28   v HANDOFF.md: ANO
+  H29   v HANDOFF.md: ANO
+  H3    v HANDOFF.md: ANO
+  H30   v HANDOFF.md: ANO
+  H31   v HANDOFF.md: ANO
+  H32   v HANDOFF.md: ANO
+  H33   v HANDOFF.md: ANO
+  H34   v HANDOFF.md: ANO
+  H35   v HANDOFF.md: ANO
+  H36   v HANDOFF.md: ANO
+  H37   v HANDOFF.md: ANO
+  H38   v HANDOFF.md: ANO
+  H39   v HANDOFF.md: ANO
+  H4    v HANDOFF.md: ANO
+  H40   v HANDOFF.md: ANO
+  H41   v HANDOFF.md: ANO
+  H42   v HANDOFF.md: ANO
+  H43   v HANDOFF.md: ANO
+  H44   v HANDOFF.md: ANO
+  H45   v HANDOFF.md: ANO
+  H46   v HANDOFF.md: ANO
+  H47   v HANDOFF.md: ANO
+  H48   v HANDOFF.md: ANO
+  H49   v HANDOFF.md: ANO
+  H5    v HANDOFF.md: ANO
+  H50   v HANDOFF.md: ANO
+  H51   v HANDOFF.md: ANO
+  H52   v HANDOFF.md: ANO
+  H53   v HANDOFF.md: ANO
+  H54   v HANDOFF.md: ANO
+  H55   v HANDOFF.md: ANO
+  H56   v HANDOFF.md: ANO
+  H57   v HANDOFF.md: ANO
+  H58   v HANDOFF.md: ANO
+  H59   v HANDOFF.md: ANO
+  H6    v HANDOFF.md: ANO
+  H60   v HANDOFF.md: ANO
+  H61   v HANDOFF.md: ANO
+  H62   v HANDOFF.md: ANO
+  H63   v HANDOFF.md: ANO
+  H64   v HANDOFF.md: ANO
+  H65   v HANDOFF.md: ANO
+  H66   v HANDOFF.md: ANO
+  H67   v HANDOFF.md: ANO
+  H68   v HANDOFF.md: ANO
+  H69   v HANDOFF.md: ANO
+  H7    v HANDOFF.md: ANO
+  H70   v HANDOFF.md: ANO
+  H71   v HANDOFF.md: ANO
+  H72   v HANDOFF.md: ANO
+  H73   v HANDOFF.md: ANO
+  H74   v HANDOFF.md: ANO
+  H75   v HANDOFF.md: ANO
+  H76   v HANDOFF.md: ANO
+  H77   v HANDOFF.md: ANO
+  H78   v HANDOFF.md: ANO
+  H79   v HANDOFF.md: ANO
+  H8    v HANDOFF.md: ANO
+  H80   v HANDOFF.md: ANO
+  H81   v HANDOFF.md: ANO
+  H82   v HANDOFF.md: ANO
+  H9    v HANDOFF.md: ANO
+  nálezů v kronice: 82
+
+C) TABULKA SESSIONS (§1) — má každá řádek s datem?
+------------------------------------------------------------------------------
+  řádků sessions: 28
+  bez data: 0
+  bez typu (akční/plánovací/ověřovací/analýza): 0
+
+D) ODKAZY NA ZDROJE — existují soubory, na které kronika odkazuje?
+------------------------------------------------------------------------------
+  různých .md odkazů: 21, z toho chybí: 0
+
+E) ŽIVÉ MĚŘENÍ — počet session (aby číslo nebylo vymyšlené)
+------------------------------------------------------------------------------
+  dsh-usage hlásí sessionů celkem: 171
+
+==============================================================================
+VYHODNOCENÍ
+==============================================================================
+  bloků omylů v tomto součtu: 21
+      1–13 (13), 8b (10), 8c (5), 8d (6), 8e (11), 8f (10), 8j (10), 8k (5), 8q (6), 8r (6), 8s (5), 8t (7), 8u (4), 8g (11), 8h (9), 8i (6), 8l (3), 8m (8), 8n (11), 8o (5), 8p (3)
+  omylů celkem (skutečnost): 154
+  nálezů H v kronice:        82
+  sessions v kronice:        28
+  odkazů na .md:             21
+
+KRONIKA SEDÍ — počty omylů odpovídají HANDOFF.md, nálezy i odkazy existují.
+
+==============================================================================
+### kronika mutace (6 případů)   (exit=0)
+==============================================================================
+==============================================================================
+MUTAČNÍ TEST `kronika-kontrola.py` NA FIXTUŘE (s tabulkou nálezů)
+==============================================================================
+
+------------------------------------------------------------------------------
+A) KONTROLNÍ PŘÍPAD — fixtura BEZ vady (musí projít)
+------------------------------------------------------------------------------
+   1–13     skutečný počet omylů:  13
+   8b       skutečný počet omylů:  10
+   8c       skutečný počet omylů:   5
+   8d       skutečný počet omylů:   6
+   8e       skutečný počet omylů:  11
+   8f       skutečný počet omylů:  10
+   8g       skutečný počet omylů:  11
+   8h       skutečný počet omylů:   8
+   8i       skutečný počet omylů:   6
+   8j       skutečný počet omylů:  10
+   8k       skutečný počet omylů:   5
+   8l       skutečný počet omylů:   3
+   8m       skutečný počet omylů:   8
+   omylů celkem (skutečnost): 106
+   exit=0 OK
+
+------------------------------------------------------------------------------
+M1 počet omylů 8g: 11 -> 7   [VADA]
+------------------------------------------------------------------------------
+   exit=1
+     CHYBA blok 8g: kronika tvrdí 7 omylů, v HANDOFF.md je 11
+
+------------------------------------------------------------------------------
+M2 doplněný konec nadpisu 8d (prefix kotvy to ustojí, 6 omylů)   [KONTROLNI]
+------------------------------------------------------------------------------
+   exit=0
+     (žádná CHYBA v části A/B — brána vadu neviděla)
+
+------------------------------------------------------------------------------
+M3 kritérium tvaru count('|') != 4 (vpraveno do brány)   [VADA-tvar]
+------------------------------------------------------------------------------
+   exit=1
+     CHYBA blok 1–13: kronika tvrdí 13 omylů, v HANDOFF.md je 0
+     CHYBA blok 8b: kronika tvrdí 10 omylů, v HANDOFF.md je 0
+     CHYBA blok 8c: kronika tvrdí 5 omylů, v HANDOFF.md je 0
+     CHYBA blok 8d: kronika tvrdí 6 omylů, v HANDOFF.md je 0
+     CHYBA blok 8e: kronika tvrdí 11 omylů, v HANDOFF.md je 0
+
+------------------------------------------------------------------------------
+M4 nález H2 -> H99 v HANDOFFu   [VADA]
+------------------------------------------------------------------------------
+   exit=1
+     CHYBA nález H2 je v kronice, ale v HANDOFF.md není
+
+------------------------------------------------------------------------------
+M5 dvě tabulky za blokem 8g (omylů 11 + nálezů 3, čekej 11)   [KONTROLNI]
+------------------------------------------------------------------------------
+   exit=0
+     (žádná CHYBA v části A/B — brána vadu neviděla)
+
+------------------------------------------------------------------------------
+M6 nový blok 8z v dokumentu bez řádku v kronice   [VADA]
+------------------------------------------------------------------------------
+   exit=1
+     CHYBA blok 8z je v HANDOFF.md (2 omylů), ale v tabulce kroniky §3 řádek NEMÁ — nepočítal by se
+
+------------------------------------------------------------------------------
+M7 řádek 8y v kronice bez bloku v dokumentu   [VADA]
+------------------------------------------------------------------------------
+   exit=1
+     CHYBA kronika §3 má řádek '8y', ale v HANDOFF.md pro něj NENÍ nadpis bloku omylů — číslo nejde dohledat
+
+  [úklid: dočasná složka _t3 smazána]
+
+==============================================================================
+VYHODNOCENÍ
+==============================================================================
+  A kontrolní případ (zdravá fixtura)                  exit=0   OK
+  M1 počet omylů 8g: 11 -> 7                           exit=1   OK
+  M2 doplněný konec nadpisu 8d (prefix kotvy to ustojí, 6 omylů) exit=0   OK
+  M3 kritérium tvaru count('|') != 4 (vpraveno do brány) exit=1   OK
+  M4 nález H2 -> H99 v HANDOFFu                        exit=1   OK
+  M5 dvě tabulky za blokem 8g (omylů 11 + nálezů 3, čekej 11) exit=0   OK
+  M6 nový blok 8z v dokumentu bez řádku v kronice      exit=1   OK
+  M7 řádek 8y v kronice bez bloku v dokumentu          exit=1   OK
+
+BRÁNA MĚŘÍ — projde na zdravé fixtuře (i na doplněném nadpisu bloku)
+a SPADNE na každé vrácené vadě; jejich počet je na řádku níž. Číslo se sem
+ZÁMĚRNĚ nepsalo — dřív tu stálo „3“, což po přidání M6/M7 zestaralo.
+Fixtura má i tabulku NÁLEZŮ — tvar, který živý dokument v době starého
+testu neměl, a proto ta vada prošla.
+PŘÍPADŮ CELKEM: 8 (kontrolních 3, vad 5)
+
+==============================================================================
+### diakritika nových souborů   (exit=0)
+==============================================================================
+==============================================================================
+DIAKRITIKA — PROJITÍM SLOŽKY (ne podle ručního seznamu)
+==============================================================================
+  procházím: forge-orchestra          vzory: *.md
+  procházím: _analyza                 vzory: *.md, *.py, *.mjs, *.json, *.gd, *.txt, *.ps1
+  procházím: tools                    vzory: *.py, *.mjs
+
+  soubor                                             znaků  rozbito
+  --------------------------------------------------------------------------
+  OK   AGENTS.md                                    17338  ne
+  OK   ANALYZA-ARCHITEKTURY-ORCHESTRA.md            77336  ne
+  OK   ANALYZA-HLOUBKOVA-2-ZADANI.md                10711  ne
+  OK   ANALYZA-HLOUBKOVA-ORCHESTRA-2.md             34323  ne
+  OK   ANALYZA-HLOUBKOVA-ORCHESTRA.md              106356  ne
+  OK   ANALYZA-HLOUBKOVA-ZADANI.md                  22840  ne
+  OK   ANALYZA-PODKLADY-CONDUCTOR-A-NASTROJE.md     22370  ne
+  OK   ARCHITEKTURA-ANALYZA-ZADANI.md               12098  ne
+  OK   ASSETY-PLAN.md                                8052  ne
+  OK   ASSETY.md                                     6663  ne
+  OK   FORGE-ORCHESTRA-MOZNOSTI.md                  25256  ne
+  OK   HANDOFF.md                                  469596  ne
+  OK   IMPLEMENTACE-HRANICE-JAZYKA.md               14976  ne
+  OK   IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md       20559  ne
+  OK   IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md        12823  ne
+  OK   JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md          14537  ne
+  OK   KRONIKA-PROJEKTU.md                         114402  ne
+  OK   NAVRH-ORCHESTRA-NG.md                        83139  ne
+  OK   NEXT-SESSION-INSTRUKCE.md                    15615  ne
+  OK   ORCHESTRA-STAV-A-ANALYZA.md                  13630  ne
+  OK   PLAN-DALSI-KROK.md                           12496  ne
+  OK   PLAN-ORCHESTRA-AI-AGENTI.md                  43028  ne
+  OK   PLAN-ORCHESTRA-NG.md                         30564  ne
+  OK   PLAN-ROZVOJ-ORCHESTRA.md                     41149  ne
+  OK   PLAN-SEPARACE-WORKSPACE.md                   70231  ne
+  OK   PLAN-VISION-ORCHESTRA.md                     44433  ne
+  OK   POUCENI-A-VZORY.md                           59471  ne
+  OK   PROMPT-NOVA-SESSION.md                       10647  ne
+  OK   README.md                                    18898  ne
+  OK   SKILLY-AKTUALIZACE.md                        46622  ne
+  OK   SOUBEH-SESSION-NALEZY.md                      8289  ne
+  OK   ZADANI-A-KONEC-MERIDEL.md                    14007  ne
+  OK   ZADANI-B-DALSI-SESSION.md                     9705  ne
+  OK   ZADANI-DODELAT-MERIDLA.md                    11191  ne
+  OK   ZADANI-DOKONCENI-AUDITU.md                   15749  ne
+  OK   ZADANI-OPRAVA-MERIDEL.md                     14156  ne
+  OK   ZADANI-PO-AUDITU.md                          10295  ne
+  OK   _analyza\A-UKOL-ZAZNAM.md                     5660  ne
+  OK   _analyza\a3-brany-novych-granuli.md           1711  ne
+  OK   _analyza\AUDIT-DOKUMENTACE.md                33283  ne
+  OK   _analyza\C-PODKLAD-SMLOUVY.md                34730  ne
+  OK   _analyza\HLOUBKOVA-MERENI-2.md                8437  ne
+  OK   _analyza\HLOUBKOVA-MERENI-3.md               21396  ne
+  OK   _analyza\HLOUBKOVA-MERENI.md                 23923  ne
+  OK   _analyza\o10-novy-oddil-overovani.md          9185  ne
+  OK   _analyza\P1-INVENTURA-CEST.md                18685  ne
+  OK   _analyza\P1B-ODVOZENE-CESTY.md               16063  ne
+  OK   _analyza\P8C-BRANY-PO-OPRAVE.md               1601  ne
+  OK   _analyza\pr-mining-body.md                    2642  ne
+  OK   _analyza\PROMPT-DOKONCENI-AUDITU.md           4169  ne
+  OK   _analyza\s16-handoff-zaloha.md               88777  ne
+  OK   _analyza\s16-novy-oddil.md                   24302  ne
+  OK   _analyza\s17-novy-oddil.md                   26755  ne
+  OK   _analyza\s17b-doplneni.md                     7656  ne
+  OK   _analyza\s18-novy-oddil.md                   20379  ne
+  OK   _analyza\s18b-doplneni.md                     3279  ne
+  OK   _analyza\s18c-doplneni.md                     1735  ne
+  OK   _analyza\s18c-omyl68-radek.md                  908  ne
+  OK   _analyza\s18e-l13-radek.md                     936  ne
+  OK   _analyza\s19-oddil-groq.md                    4522  ne
+  OK   _analyza\s19-omyl69-radek.md                  1264  ne
+  OK   _analyza\s19-push-oddil.md                    4431  ne
+  OK   _analyza\s19c-h13.md                           561  ne
+  OK   _analyza\s19c-l14.md                           793  ne
+  OK   _analyza\s19c-radek16.md                       677  ne
+  OK   _analyza\s19g-oddil-deploy.md                 2942  ne
+  OK   _analyza\s19g-omyl70-radek.md                 1080  ne
+  OK   _analyza\s19k-oddil-granule.md                3767  ne
+  OK   _analyza\s19k-omyl71-radek.md                 1006  ne
+  OK   _analyza\s20-na16-radek.md                     819  ne
+  OK   _analyza\s20-oddil-odlozeno.md                2899  ne
+  OK   _analyza\s20-plan-31.md                       3445  ne
+  OK   _analyza\s21-oddil.md                        12789  ne
+  OK   _analyza\s21b-oddil-8h.md                     7555  ne
+  OK   _analyza\s23-oddil.md                        12037  ne
+  OK   _analyza\s24-oddil-8k.md                      3776  ne
+  OK   _analyza\s24-oddil.md                        17546  ne
+  OK   _analyza\s8e-novy-oddil.md                    5009  ne
+  OK   _analyza\s8f-novy-oddil.md                    6362  ne
+  OK   _analyza\s8f-omyl60.md                         992  ne
+  OK   _analyza\s8g-novy-oddil.md                    6541  ne
+  OK   _analyza\s8j-oddil.md                         4954  ne
+  OK   _analyza\_p13c-archivuj-p8.py                 4141  ne
+  OK   _analyza\_p13c-dopln-importy.py               5634  ne
+  OK   _analyza\_p13c-handoff-dopln.py               7821  ne
+  OK   _analyza\_p13c-handoff-dopln2.py              4872  ne
+  OK   _analyza\_p13c-handoff-omyly.py               4130  ne
+  OK   _analyza\_p13c-kronika-8s.py                  1337  ne
+  OK   _analyza\_p13c-kronika-nalezy.py              7106  ne
+  OK   _analyza\_p13c-kronika-radek.py               2872  ne
+  OK   _analyza\_p13c-kronika-radek27.py             2557  ne
+  OK   _analyza\_p13c-oprav-cesty.py                 7082  ne
+  OK   _analyza\_p13c-oprav-diakritiku.py            2249  ne
+  OK   _analyza\_p13c-sonda-h52.py                   1481  ne
+  OK   _analyza\_p13c-sonda-py.py                    1176  ne
+  OK   _analyza\_p13c-sonda-vzor.py                  1015  ne
+  OK   _analyza\_p13c-vzor-a3.py                     1359  ne
+  OK   _analyza\_registr-bran.py                     7375  ne
+  OK   _analyza\_sonda-identifikatory.py             1616  ne
+  OK   _analyza\_sonda-importy.py                    1298  ne
+  OK   _analyza\a-mutace-run.py                      8367  ne
+  OK   _analyza\a-oprav-test.py                      4460  ne
+  OK   _analyza\a1-a2-mutace.py                      5654  ne
+  OK   _analyza\a1-a2-over.py                        8532  ne
+  OK   _analyza\a3-mutace.py                         3606  ne
+  OK   _analyza\a3-over.py                           3213  ne
+  OK   _analyza\ag-mutace.py                         8207  ne
+  OK   _analyza\ag-over-cisla.py                    13524  ne
+  OK   _analyza\audit-snapshot.py                   11510  ne
+  OK   _analyza\audit2a-mutace.py                    7885  ne
+  OK   _analyza\audit2b-over.py                     29334  ne
+  OK   _analyza\audit3-hlavicky-over.py              4556  ne
+  OK   _analyza\b-mutace.py                          8006  ne
+  OK   _analyza\b-oprav-test.py                      4982  ne
+  OK   _analyza\b5-over-tvrzeni.py                   5254  ne
+  OK   _analyza\c1-dukaz-selhani.py                  3233  ne
+  OK   _analyza\c2-mutace.py                         5600  ne
+  OK   _analyza\f2-over-cooldown.py                  3389  ne
+  OK   _analyza\g1-mutace-diakritika.py              4017  ne
+  OK   _analyza\g3-brany.py                         25900  ne
+  OK   _analyza\h79-escape-sken.py                   3241  ne
+  OK   _analyza\handoff-kontrola-uplnost.py          7607  ne
+  OK   _analyza\hl-chybejici-importy.py              4064  ne
+  OK   _analyza\hl-neanglicky-v-kodu.py             40233  ne
+  OK   _analyza\hl-rizika-jazyka.py                 18118  ne
+  OK   _analyza\hl2-kontrola.py                      6020  ne
+  OK   _analyza\hl2-kostra-kalibrace.py              3776  ne
+  OK   _analyza\hl2-kostra-test.py                   4436  ne
+  OK   _analyza\hl2-mutace-kontrola.py               4053  ne
+  OK   _analyza\kronika-kontrola.py                 23671  ne
+  OK   _analyza\n1-over-inventar.py                  5751  ne
+  OK   _analyza\n8-mutace.py                         7615  ne
+  OK   _analyza\n8-zastarala-analyza.py              7563  ne
+  OK   _analyza\p1-inventura-cest.py                 9322  ne
+  OK   _analyza\p14a-g3-nezavisle.py                12635  ne
+  OK   _analyza\p14b-exity.py                       11308  ne
+  OK   _analyza\p14c-mutace-oprav.py                15922  ne
+  OK   _analyza\p14d-verify-setup-sonda.py          11941  ne
+  OK   _analyza\p14e-inventar-analyza.py            12844  ne
+  OK   _analyza\p14f-prepocet-kroniky.py             3209  ne
+  OK   _analyza\p1b-odvozene-cesty.py                8579  ne
+  OK   _analyza\p3-bazline.py                        2749  ne
+  OK   _analyza\p8-inventura-cest-v-kodu.py          2432  ne
+  OK   _analyza\ps1-bom-crlf.py                      2906  ne
+  OK   _analyza\sken-vazeb.py                        6558  ne
+  OK   _analyza\t3-kronika-mutace.py                24992  ne
+  OK   _analyza\test-h70-vetev.py                    8415  ne
+  OK   _analyza\test-h71-klasifikator.py             8082  ne
+  OK   _analyza\test-h72-h73.py                     14009  ne
+  OK   _analyza\test-h79-escape.py                   9406  ne
+  OK   _analyza\test-neanglicky-skener.py            9495  ne
+  OK   _analyza\test-p13c-oprav.py                  15048  ne
+  OK   _analyza\test-p14a-mutace.py                  7154  ne
+  OK   _analyza\test-zadani-kontrola.py              6382  ne
+  OK   _analyza\z8-probe.py                          1382  ne
+  OK   _analyza\zadani-kontrola.py                  11562  ne
+  OK   _analyza\zalohuj-archiv.py                    6610  ne
+  OK   _analyza\dsh-session-prehled.mjs              5361  ne
+  OK   _analyza\f3-over-deploy.mjs                   6964  ne
+  OK   _analyza\js-tokeny.mjs                        8693  ne
+  OK   _analyza\over-okno.mjs                        3387  ne
+  OK   _analyza\_inventar.json                    1661562  ne
+  OK   _analyza\_nove-roadmap.json                  27336  ne
+  OK   _analyza\_registr-bran.json                   2413  ne
+  OK   _analyza\a-zaloha-roadmap.json               25537  ne
+  OK   _analyza\audit-inventar.json                 79323  ne
+  OK   _analyza\audit2-rozpory.json                535583  ne
+  OK   _analyza\audit5-cas.json                      5953  ne
+  OK   _analyza\audit6-vysledky.json                 1998  ne
+  OK   _analyza\c2-mutace-zaloha.json             1661562  ne
+  OK   _analyza\hl-chyby.json                       12229  ne
+  OK   _analyza\hl-modely.json                       3955  ne
+  OK   _analyza\hl-pr-grain.json                     4227  ne
+  OK   _analyza\hl-priciny.json                     38035  ne
+  OK   _analyza\hl-vytizeni.json                    60553  ne
+  OK   _analyza\hl2-d1-snapshot.json                19698  ne
+  OK   _analyza\hl2-git.json                         2444  ne
+  OK   _analyza\p14b-exity-vystup.json              11663  ne
+  OK   _analyza\p3-bazline.json                       578  ne
+  OK   _analyza\p8b-zive.json                        1731  ne
+  OK   _analyza\tmp-pr.json                        500551  ne
+  OK   _analyza\tmp-roadmap-d1.json                  2998  ne
+  OK   _analyza\zaloha-roadmap-pred-sync.json       15374  ne
+  OK   _analyza\a-nova-atrapa.gd                      508  ne
+  OK   _analyza\a-novy-blok.gd                       1685  ne
+  OK   _analyza\a-stary-blok.gd                       456  ne
+  OK   _analyza\a-zaloha-hud.gd                      3019  ne
+  OK   _analyza\a-zaloha-player.gd                   2291  ne
+  OK   _analyza\a-zaloha-run_tests.gd               48898  ne
+  OK   _analyza\b-nova-atrapa-zbran.gd                937  ne
+  OK   _analyza\b-novy-blok-boj.gd                   4918  ne
+  OK   _analyza\b-stary-blok-boj.gd                   219  ne
+  OK   _analyza\_p14-g3-vystup-p13c-zaloha.txt     122031  ne
+  OK   _analyza\_s24-a2b.txt                        16019  ne
+  OK   _analyza\_s24-a2b2.txt                       16019  ne
+  OK   _analyza\_s24-a2b3.txt                       16019  ne
+  OK   _analyza\_s25-audit2b-po.txt                 13685  ne
+  OK   _analyza\_s25-audit2b-pred.txt               16105  ne
+  OK   _analyza\_s25-audit6-po.txt                   5273  ne
+  OK   _analyza\_s25-g3-po.txt                       2047  ne
+  OK   _analyza\_s25-sonda-bloky.txt                15035  ne
+  OK   _analyza\_s25-sonda-rozchody.txt             11035  ne
+  OK   _analyza\_tokeny-vstup.txt                    3724  ne
+  OK   _analyza\audit1-vystup.txt                   21769  ne
+  OK   _analyza\audit2-vystup.txt                  143423  ne
+  OK   _analyza\audit2b-vystup.txt                  30825  ne
+  OK   _analyza\audit3-vystup.txt                    6172  ne
+  OK   _analyza\audit4-vystup.txt                    8419  ne
+  OK   _analyza\audit5-cas-vystup.txt              123586  ne
+  OK   _analyza\b1-commit-zprava.txt                 1554  ne
+  OK   _analyza\c3-validate-vystup.txt              20200  ne
+  OK   _analyza\c3-validate-vystup2.txt             21731  ne
+  OK   _analyza\commit-msg-hra.txt                   1207  ne
+  OK   _analyza\commit-msg-orchestra.txt             2260  ne
+  OK   _analyza\desktop-profile-tree.txt              425  ne
+  OK   _analyza\g3-brany-vystup.txt                129597  ne
+  OK   _analyza\g3-s24-vystup.txt                    2012  ne
+  OK   _analyza\h17-log-36999784822.txt            108821  ne
+  OK   _analyza\p14b-exity-vystup.txt              124918  ne
+  OK   _analyza\p18-log-36999784822.txt            108822  ne
+  OK   _analyza\p8-oprava-cest-log.txt               2682  ne
+  OK   _analyza\p8c-log-a3-mutace.py.txt               93  ne
+  OK   _analyza\p8c-log-ag-mutace.py.txt              689  ne
+  OK   _analyza\p8c-log-ag-over-cisla.py.txt           58  ne
+  OK   _analyza\p8c-log-b5-over-tvrzeni.py.txt        912  ne
+  OK   _analyza\p8c-log-kronika-kontrola.py.txt      4000  ne
+  OK   _analyza\p8c-log-n1-over-inventar.py.txt       469  ne
+  OK   _analyza\p8c-log-n8-mutace.py.txt              153  ne
+  OK   _analyza\p8c-log-n8-zastarala-analyza.py.txt        81  ne
+  OK   _analyza\p8c-log-skryte-vazby-na-hru.py.txt       235  ne
+  OK   _analyza\p8c-log-zadani-kontrola.py.txt        286  ne
+  OK   _analyza\tmp-log-243-parsov.txt              95019  ne
+  OK   _analyza\tmp-log-243.txt                     95019  ne
+  OK   tools\baseline-poznamka.py                    1984  ne
+  OK   tools\check-licence.py                       10219  ne
+  OK   tools\diag-baseline.py                        2321  ne
+  OK   tools\dopln-attempt.py                        2047  ne
+  OK   tools\inventura-vize.py                       2326  ne
+  OK   tools\kontaktni-arch.py                       5029  ne
+  OK   tools\kontrola-diakritiky.py                 23673  ne (sebekontrola: 5 českých slov, 0 náhradních znaků)
+  OK   tools\kontrola-echo-substituci.py             4526  ne
+  OK   tools\lint-roadmapa.py                        6751  ne
+  OK   tools\mer-sklon-hranice.py                    3932  ne
+  OK   tools\oprav-ps1-kodovani.py                   2916  ne (soubor se vzorkem: 1 řádků definuje vzorek, mimo ně 0)
+  OK   tools\over-dokumentaci.py                    14618  ne (soubor se vzorkem: 2 řádků definuje vzorek, mimo ně 0)
+  OK   tools\over-skilly.py                          1395  ne
+  OK   tools\pridej-eskalaci.py                      6300  ne
+  OK   tools\simulace-dag.py                         3097  ne
+  OK   tools\sjednot-sablonu.py                      6268  ne
+  OK   tools\stav-dag.py                             2423  ne
+  OK   tools\sync-sablona-hra.py                     2102  ne
+  OK   tools\test-check-schema.py                   10227  ne
+  OK   tools\test-cooldown.py                       10152  ne
+  OK   tools\test-eskalace.py                        4213  ne
+  OK   tools\test-gitignore-tajemstvi.py             6634  ne
+  OK   tools\test-licence.py                        10672  ne
+  OK   tools\test-zamek-owns.py                      7931  ne
+  OK   tools\verify-setup.py                        16682  ne
+  OK   tools\zapis-dokumentaci.py                    9617  ne
+  OK   tools\analyza-aider.mjs                       2261  ne
+  OK   tools\analyza-aktualni.mjs                    2425  ne
+  OK   tools\analyza-chyb.mjs                        4061  ne
+  OK   tools\analyza-logu.mjs                        2637  ne
+  OK   tools\analyza-modelu-pokusu.mjs               2820  ne
+  OK   tools\analyza-modelu.mjs                      3979  ne
+  OK   tools\analyza-posledni.mjs                    3505  ne
+  OK   tools\analyza-stavu.mjs                       3335  ne
+  OK   tools\analyza-testy.mjs                       1945  ne
+  OK   tools\analyza-verdikt.mjs                     2324  ne
+  OK   tools\analyza.mjs                             4427  ne
+  OK   tools\asset-fetch.mjs                        23519  ne
+  OK   tools\cancel-stale-runs.mjs                   2255  ne
+  OK   tools\compare-game.mjs                        3400  ne
+  OK   tools\detail-behu.mjs                         2379  ne
+  OK   tools\fronta.mjs                              1378  ne
+  OK   tools\kontrola-driftu.mjs                     9567  ne
+  OK   tools\log-usek.mjs                            1983  ne
+  OK   tools\mereni-chyb.mjs                         2258  ne
+  OK   tools\mereni-modelu.mjs                       4898  ne
+  OK   tools\mereni-pltvani.mjs                      3533  ne
+  OK   tools\mereni-poskytovatelu.mjs                4002  ne
+  OK   tools\mereni-pred-po.mjs                      2581  ne
+  OK   tools\mock-conductor.mjs                      5306  ne
+  OK   tools\overit-branu.mjs                        2325  ne
+  OK   tools\overit-razeni.mjs                       2215  ne
+  OK   tools\prehled-pokusu.mjs                      1781  ne
+  OK   tools\push-conductor.mjs                      2269  ne
+  OK   tools\repo-files.mjs                          1385  ne
+  OK   tools\reset-dry.mjs                           1170  ne
+  OK   tools\roadmap-reset.mjs                       1604  ne
+  OK   tools\stahni-patch.mjs                        1734  ne
+  OK   tools\start-orchestra.mjs                     2740  ne
+  OK   tools\status.mjs                              5669  ne
+  OK   tools\stav-conductora.mjs                     1597  ne
+  OK   tools\tasks.mjs                               1409  ne
+  OK   tools\telegram-chat-id.mjs                    2319  ne
+  OK   tools\test-ci-workflow.mjs                    5369  ne
+  OK   tools\validate-all.mjs                       23367  ne
+  OK   tools\zjisti-pages.mjs                        4267  ne
+
+  ZMĚŘENO: textových souborů=299, přeskočeno jako binární=7, přeskočeno jako ZÁLOHA=9, vad=0
+  VÝJIMKY DEKLAROVANÉ SOUBOREM (`VZOREK-V-CITACI`): 0 řádků
+  (zálohy `*-pred-*.md` se nekontrolují — jsou to snímky PŘED opravou;
+   hlásily by vadu, kterou právě dokládají. Nemažou se:)
+      _zaloha-HANDOFF-pred-mutaci.md
+      _zaloha-HANDOFF-pred-s24.md
+      _zaloha-HANDOFF-pred-s24zapis.md
+      _zaloha-PREDAVANI-pred-mutaci.md
+      handoff-pred-s18.md
+      handoff-pred-s21.md
+      handoff-pred-s25-zapisem.md
+      kronika-pred-k21.md
+      kronika-pred-k21b.md
+  (binární se nehlásí jako vada — nejsou text; výpis pro kontrolu:)
+      _g3-baseline-20261004.txt
+      _g3-po-oprave-20261005.txt
+      p13c-mutace-vystup.txt
+      pr-final2.txt
+      pr-stav-final.txt
+      pr-stav-po.txt
+      sesny-podklad.txt
+
+VŠE OK — 299 textových souborů, žádná rozbitá diakritika
+
+==============================================================================
+### zadání kontrola   (exit=0)
+==============================================================================
+==============================================================================
+KONTROLA ZADÁNÍ — je `NEXT-SESSION-INSTRUKCE.md` ještě použitelné?
+==============================================================================
+
+  soubor: NEXT-SESSION-INSTRUKCE.md  (272 řádků, 15615 znaků)
+  naposledy zapsán: 2026-10-05 22:19  (před 0.0 h)
+
+--- HLAVIČKA: co zadání tvrdí -------------------------------------
+  řádek se stavem repů: NALEZEN
+  tvrzené commity: {'forge-orchestra': 'c620a06', 'uo-shadows': '869dce8'}
+  různých sha v celém dokumentu:    4
+  tvrzených časů měření:            2
+
+--- ŽIVÝ STAV obou repů ------------------------------------------
+  forge-orchestra HEAD c620a06bb  origin/main..HEAD=8  změněných=114  poslední commit 2026-10-04T23:11:46+02:00
+  uo-shadows  HEAD 869dce862  origin/main..HEAD=1  změněných=0  poslední commit 2026-10-04T22:41:17+02:00
+
+--- SEDÍ ZADÁNÍ NA SKUTEČNOST? -----------------------------------
+  OK   forge-orchestra: tvrzený c620a06 = skutečný HEAD
+  OK   uo-shadows: tvrzený 869dce8 = skutečný HEAD
+
+--- ZNÁMKY STÁRÍ -------------------------------------------------
+  přeškrtnutých (už neplatných) pasáží: 0
+  výskytů „ještě ne“ / „čeká“:          3
+
+==============================================================================
+VÝSLEDEK: zadání je použitelné — tvrzené commity sedí na živý stav.
+  → Stejně ověř aspoň TŘI klíčová tvrzení spuštěním (shodný commit
+    neznamená, že tvrzení bylo správné už při zápisu — nález N9).
+
+==============================================================================
+### over-dokumentaci   (exit=0)
+==============================================================================
+=== orchestra/README.md ===
+  OK   README: diakritika v pořádku
+  OK   README: všech 10 hledaných textů na místě
+=== README.md (STANICE) — vztahy k ostatnim repum ===
+  OK   README stanice: diakritika v pořádku
+  OK   README stanice: všech 4 hledaných textů na místě
+=== orchestra/SKILL.md ===
+  OK   orchestra skill: diakritika v pořádku
+  OK   orchestra skill: všech 11 hledaných textů na místě
+  OK   orchestra skill: frontmatter (name=True, description=True)
+=== game-developer/SKILL.md ===
+  OK   game-developer skill: diakritika v pořádku
+  OK   game-developer skill: všech 5 hledaných textů na místě
+  OK   game-developer skill: frontmatter (name=True, description=True)
+=== vision/SKILL.md (nové možnosti) ===
+  OK   vision skill: diakritika v pořádku
+  OK   vision skill: všech 3 hledaných textů na místě
+  OK   vision skill: frontmatter (name=True, description=True)
+=== imagegen + imagegen-local (read_image) ===
+  OK   imagegen skill: diakritika v pořádku
+  OK   imagegen skill: všech 1 hledaných textů na místě
+  OK   imagegen skill: frontmatter (name=True, description=True)
+  OK   imagegen-local skill: diakritika v pořádku
+  OK   imagegen-local skill: všech 1 hledaných textů na místě
+  OK   imagegen-local skill: frontmatter (name=True, description=True)
+=== game-assets/SKILL.md (Blender, mrtvé cesty) ===
+  OK   game-assets skill: diakritika v pořádku
+  OK   game-assets skill: všech 4 hledaných textů na místě
+  OK   game-assets skill: frontmatter (name=True, description=True)
+=== orchestra/SKILL.md (assety a oči) ===
+  OK   orchestra skill assety: diakritika v pořádku
+  OK   orchestra skill assety: všech 10 hledaných textů na místě
+  OK   orchestra skill assety: frontmatter (name=True, description=True)
+=== game-assets: slepé místo brány ===
+  OK   game-assets slepé místo: diakritika v pořádku
+  OK   game-assets slepé místo: všech 1 hledaných textů na místě
+  OK   game-assets slepé místo: frontmatter (name=True, description=True)
+=== workspace: MOZNOSTI-AGENTA.md + FORGE-ORCHESTRA-MOZNOSTI.md ===
+  OK   MOZNOSTI-AGENTA: diakritika v pořádku
+  OK   MOZNOSTI-AGENTA: všech 5 hledaných textů na místě
+  OK   FORGE-ORCHESTRA-MOZNOSTI: diakritika v pořádku
+  OK   FORGE-ORCHESTRA-MOZNOSTI: všech 5 hledaných textů na místě
+=== PLAN-VISION-ORCHESTRA.md ===
+  OK   PLAN-VISION-ORCHESTRA: diakritika v pořádku
+  OK   PLAN-VISION-ORCHESTRA: všech 10 hledaných textů na místě
+=== dsh-prostredi/SKILL.md (NOVÝ, 1. 10. 2026) ===
+  OK   dsh-prostredi skill: diakritika v pořádku
+  OK   dsh-prostredi skill: všech 8 hledaných textů na místě
+  OK   dsh-prostredi skill: frontmatter (name=True, description=True)
+=== game-developer: brána, která neproběhne ===
+  OK   game-developer brány: diakritika v pořádku
+  OK   game-developer brány: všech 6 hledaných textů na místě
+  OK   game-developer brány: frontmatter (name=True, description=True)
+=== game-assets: hash, metrika, izodlaždice ===
+  OK   game-assets hash a dlaždice: diakritika v pořádku
+  OK   game-assets hash a dlaždice: všech 7 hledaných textů na místě
+  OK   game-assets hash a dlaždice: frontmatter (name=True, description=True)
+=== vision: režimy, self-consistency, cache ===
+  OK   vision režimy a cache: diakritika v pořádku
+  OK   vision režimy a cache: všech 8 hledaných textů na místě
+  OK   vision režimy a cache: frontmatter (name=True, description=True)
+=== DSH_HOME: AGENTS.md (OBECNÁ PRAVIDLA – platí v každé session) ===
+  OK   AGENTS.md obecná (DSH_HOME): diakritika v pořádku
+  OK   AGENTS.md obecná (DSH_HOME): všech 13 hledaných textů na místě
+=== workspace: AGENTS.md (PRAVIDLA PROJEKTU) ===
+  OK   AGENTS.md projekt: diakritika v pořádku
+  OK   AGENTS.md projekt: všech 4 hledaných textů na místě
+=== dsh-prostredi: zapis do tempu bez chyby ===
+  OK   dsh-prostredi temp: diakritika v pořádku
+  OK   dsh-prostredi temp: všech 2 hledaných textů na místě
+  OK   dsh-prostredi temp: frontmatter (name=True, description=True)
+=== orchestra: jak ověřit nasazení na Pages ===
+  OK   orchestra nasazení: diakritika v pořádku
+  OK   orchestra nasazení: všech 3 hledaných textů na místě
+  OK   orchestra nasazení: frontmatter (name=True, description=True)
+=== orchestra: brána, která přestala měřit ===
+  OK   orchestra nález brány: diakritika v pořádku
+  OK   orchestra nález brány: všech 3 hledaných textů na místě
+  OK   orchestra nález brány: frontmatter (name=True, description=True)
+=== workspace: README + FORGE-ORCHESTRA-MOZNOSTI ===
+  OK   workspace README: diakritika v pořádku
+  OK   workspace README: všech 0 hledaných textů na místě
+  OK   FORGE-ORCHESTRA-MOZNOSTI nález 11: diakritika v pořádku
+  OK   FORGE-ORCHESTRA-MOZNOSTI nález 11: všech 5 hledaných textů na místě
+=== PLAN-VISION-ORCHESTRA: past 4 + počty testů ===
+  OK   PLAN-VISION past 4: diakritika v pořádku
+  OK   PLAN-VISION past 4: všech 5 hledaných textů na místě
+=== SKILLY-AKTUALIZACE: pátá vlna ===
+  OK   SKILLY-AKTUALIZACE vlna 5: diakritika v pořádku
+  OK   SKILLY-AKTUALIZACE vlna 5: všech 4 hledaných textů na místě
+
+Kontrol: 67, chyb: 0
+VŠE OK
+
+==============================================================================
+### over-skilly   (exit=0)
+==============================================================================
+  OK   dokumentace      řádků= 131 description=382 znaků
+  OK   dsh-prostredi    řádků= 657 description=453 znaků
+  OK   dsh-usage        řádků= 149 description=190 znaků
+  OK   game-assets      řádků= 209 description=365 znaků
+  OK   game-developer   řádků= 595 description=474 znaků
+  OK   hlouchkova-analyza řádků= 244 description=280 znaků
+  OK   imagegen         řádků= 126 description=229 znaků
+  OK   imagegen-local   řádků= 177 description=280 znaků
+  OK   orchestra        řádků= 571 description=306 znaků
+  OK   otevrena-temata  řádků=  92 description=273 znaků
+  OK   overovani        řádků= 857 description=470 znaků
+  OK   session-handoff  řádků= 158 description=496 znaků
+  OK   vision           řádků= 218 description=268 znaků
+
+Skillů: 13, chyb: 0
+VŠE OK
+
+==============================================================================
+### lint-roadmapa   (exit=0)
+==============================================================================
+Granulí: 22 | hotových: 13 | strong: 9
+Nalezeno problémů: 16
+
+  [3] soubor 'scripts/world.gd' vlastní víc granulí: world.map, world.nodes (poběží sériově, ne paralelně)
+  [3] soubor 'scripts/player.gd' vlastní víc granulí: entity.player, entity.player.api (poběží sériově, ne paralelně)
+  [3] soubor 'scripts/save.gd' vlastní víc granulí: persist.save, persist.save.state (poběží sériově, ne paralelně)
+  [5] core.attributes je 'done: true' a čeká na ni 8 granulí (entity.player, sim.combat, sim.crafting, persist.save, ui.hud, engine.shell, entity.player.api, tests.harness) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] core.skills je 'done: true' a čeká na ni 10 granulí (entity.player, sim.combat, sim.mining, sim.crafting, sim.offline, persist.save, ui.hud, engine.shell, entity.player.api, tests.harness) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] data.content je 'done: true' a čeká na ni 6 granulí (entity.item, sim.mining, sim.crafting, sim.economy, engine.shell, world.nodes) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] entity.item je 'done: true' a čeká na ni 9 granulí (entity.player, sim.combat, sim.crafting, sim.economy, entity.npc, entity.enemy, sim.assist, engine.shell, entity.player.api) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] entity.player je 'done: true' a čeká na ni 4 granulí (sim.assist, persist.save, ui.hud, engine.shell) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] entity.player.api je 'done: true' a čeká na ni 2 granulí (engine.shell, persist.save.state) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] persist.save je 'done: true' a čeká na ni 2 granulí (engine.shell, persist.save.state) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] sim.assist je 'done: true' a čeká na ni 1 granulí (engine.shell) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] sim.combat je 'done: true' a čeká na ni 4 granulí (entity.enemy, sim.offline, engine.shell, tests.harness) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] sim.economy je 'done: true' a čeká na ni 4 granulí (entity.npc, persist.save, ui.hud, engine.shell) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] sim.mining je 'done: true' a čeká na ni 2 granulí (sim.offline, engine.shell) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] ui.hud je 'done: true' a čeká na ni 1 granulí (engine.shell) – musí mít řádek v D1, jinak závislosti zůstanou viset
+  [5] world.level je 'done: true' a čeká na ni 4 granulí (world.map, engine.shell, world.nodes, entity.player.api) – musí mít řádek v D1, jinak závislosti zůstanou viset
+
+=== SOUBORY Vlastněné VÍC GRANULEMI (brzdí paralelismus) ===
+  3 souborů
+
+=== GRANULE BEZ 'size_lines' (platí výchozích 60 řádků) ===
+  8 z 22: data.content, core.attributes, core.skills, world.map, entity.item, sim.economy, entity.npc, sim.assist
+  Není to vada u slabého modelu. U granule, jejíž změna je větší,
+  ale 'size_lines' chybí, gate auto-merge PR zamítne (pravidlo 60).
+ZMĚŘENO: 22 granulí zkontrolováno, 16 problémů, 3 kolizí souborů
+
+==============================================================================
+### check-schema (hra)   (exit=0)
+==============================================================================
+Kontrola schématu: E:\Workspaces\uo-shadows
+  spec.json deklaruje: projekce=izometricka, dlaždice=[96, 48], viewport=[960, 540]
+  mapa main.json      cell=96  viewport=[960, 540]  mřížka=[30, 16]
+  level.gd: výchozí buňka=96×48px, fallback=nezměřeno (v kódu není)
+  world.gd: cell=[], izometrie=ne
+  tiles/manifest.json: tile_size=[96, 48]
+  sprity: zkontrolováno 8, nesedí 0
+  poznámka: level.gd nemá fallback buňky (`get("cell", N)`) – kontrola fallbacku tedy nemá co měřit (výchozí buňka změřená je)
+  poznámka: scripts/world.gd existuje, ale jeho buňku se NEPODAŘILO přečíst – kontrola „dvě různé představy o mřížce“ NEPROBĚHLA
+
+Schéma je v souladu: deklarace, mapy, vykreslení i dlaždice říkají totéž.
+
+==============================================================================
+### test-cooldown   (exit=0)
+==============================================================================
+=== 1. Extrakce guardu ze zdrojáku conductora ===
+  zdroj: E:\Workspaces\forge-orchestra\conductor\src\index.ts
+  vytaženo: 7 řádků SQL
+  OK   SQL guardu se podařilo vytáhnout ze zdrojáku  — 7 řádků
+  OK   SQL obsahuje NOT EXISTS (guard blokuje, ne že by jen třídil)
+  OK   SQL čte tabulku roadmap
+  OK   SQL má bind parametr pro retry hours
+  OK   SQL NEFILTRUJE podle rm.status (invariant 13 — jinak se cooldown neuplatní)
+
+=== 2. Chování guardu (skutečný SQL z conductora) ===
+  scénář                                                čekáno  naměřeno  výsledek
+  ------------------------------------------------------------------------------------
+  NOVÁ granule (vznikla teď, neselhal)                    True      True  OK
+  OK   scénář: NOVÁ granule (vznikla teď, neselhal)  — čekáno=True, naměřeno=True
+  selhalo před 10 min (v cooldownu)                      False     False  OK
+  OK   scénář: selhalo před 10 min (v cooldownu)  — čekáno=False, naměřeno=False
+  selhalo před 4 h (cooldown vypršel)                     True      True  OK
+  OK   scénář: selhalo před 4 h (cooldown vypršel)  — čekáno=True, naměřeno=True
+  řádek 'done' + nový ready úkol                          True      True  OK
+  OK   scénář: řádek 'done' + nový ready úkol  — čekáno=True, naměřeno=True
+  selhalo před 2 min, 'failed' (poslední pokus)          False     False  OK
+  OK   scénář: selhalo před 2 min, 'failed' (poslední pokus)  — čekáno=False, naměřeno=False
+
+
+VÝSLEDEK: 10 kontrol, 0 chyb
+VŠE OK
+
+==============================================================================
+### f2 over cooldown   (exit=0)
+==============================================================================
+  OK   fixture nekrmí sloupec řetězcem '-10 minutes'
+  OK   starý INSERT s datetime('now', ?) je pryč
+  OK   pomocník _cas_pred je v souboru
+  OK   časy se počítají v Pythonu (datetime.fromtimestamp)
+  OK   nová granule se MÁ vydat (True, False)
+  OK   hlavička nelže: mluví o STAVU PO B1
+  OK   hlavička přiznává vadu fixture
+  OK   regresní poznámka u invariantu 13
+
+  běh testu: 10 kontrol, 0 chyb, exit=0
+
+VÝSLEDEK: oprava je zapsaná a test prochází 10/10
+
+==============================================================================
+### deploy B1   (exit=0)
+==============================================================================
+════ A. DEPLOY WORKFLOW ORCHESTRA ════
+  GitHub main = c2f730fc9  (kontrola diakritiky: projití složky i pro kořen workspace a )
+  poslední změna conductor/src/index.ts = 7c11b2d50
+  #32 completed/success head:7c11b2d50 2026-10-02T11:12:16Z
+  #31 completed/success head:be419647d 2026-10-02T09:23:48Z
+  #30 completed/success head:c0edbb0bc 2026-10-01T10:04:35Z
+  #29 completed/success head:8a0cbcc68 2026-09-30T19:06:41Z
+  #28 completed/success head:8577fcc40 2026-09-30T19:06:17Z
+  OK   kód conductora z main JE nasazený (deploy na poslední změně conductor/)  — #32 success head:7c11b2d50
+  OK   deploy běžel na zadaném commitu 7c11b2d  — #32 success
+
+════ B. ŽIVÝ CONDUCTOR (běží nasazený kód?) ════
+  OK   conductor odpovídá  — {"ok":true,"time":"2026-10-05T20:20:09.512Z","ready":1,"running":0,"games":1,"workers":[{"name":"oracle-frankfurt","kinds":"test,build,assets","last_seen":"2026
+  /queue 50 úloh, /roadmap 21 řádků
+  OK   /queue vrací seznam úloh  — 50
+  world.nodes          roadmap=done task_id=145 úloha (v /queue není)
+  entity.player.api    roadmap=done task_id=146 úloha (v /queue není)
+ZMĚŘENO: 50 úloh ve frontě, 21 řádků roadmapy, 0 problémů
+
+✓ VŠE V POŘÁDKU
+
+==============================================================================
+### ag-over-cisla   (exit=0)
+==============================================================================
+==============================================================================
+PŘEMĚŘENÍ ČÍSEL V TRVALÝCH PRAVIDLECH — pravidla jsou taky měřidlo
+==============================================================================
+  dokumenty: AGENTS.md (17338 znaků) + AGENTS.md v DSH_HOME (16418 znaků)
+
+  OK        5 tabulek D1                       = 5
+  OK        sloupců D1                         = 40
+  OK        českých sloupců 0                  = 0
+  OK        non-ASCII v názvu: 0               = 0
+  OK        ci.yml 182 řádků                   = 182
+  HISTOR.   10 míst s českým identifikátorem   tvrdí 10, dnes 0
+            → STAV PO Z1–Z8 — bylo 10, dnes 0 (opraveno)
+  HISTOR.   znaků v .md orchestra (44 781)     tvrdí 44781, dnes 7824933
+            → AGENTS.md měřeno 1. 10.; .md se pak commitovaly (3a2e691) → text narostl. POMĚR zůstal (5,7 % vs 5,8 %) = týž jev, jiný čas
+  INFO      diakritika v .md orchestra: 563247 z 7824933 = 7.2 %
+
+  v pořádku: 5 | historická (ne chyba): 2 | ROZEŠLO SE: 0 | NENAŠLA SE TVRZENÍ: 0
+  INFO: 1 tvrzení se našlo v OBECNÝCH pravidlech (AGENTS.md) — od 4. 10. 2026 jsou mimo projekt
+
+ZÁVĚR: čísla v AGENTS.md odpovídají zdroji.
+(Historická čísla jsou ve svém čase správná — nepřepisovat, jen označit.)
+
+==============================================================================
+### ag-mutace (autorita)   (exit=0)
+==============================================================================
+=== BOD 12: mutace `AGENTS.md` proti `ag-over-cisla.py` ===
+
+  0) vychozi stav: exit=0, v poradku=5, historicka=2, rozslo=0, nenasla=0
+
+  1) vracím vadu: `40 sloupců` -> `32 sloupců`  (vzor 1x)
+     exit=1 -> SPRAVNE SPADLA
+        ✗ ROZEŠLO SE  sloupců D1                     tvrdí 32, naměřeno 40
+        → sloupce v conductor/schema.sql
+        OK        českých sloupců 0                  = 0
+        v pořádku: 4 | historická (ne chyba): 2 | ROZEŠLO SE: 1 | NENAŠLA SE TVRZENÍ: 0
+
+  2) přeformuluji tvrzení: `40 sloupců` -> `čtyřicet sloupců`
+     exit=1, hlasi 'NENASLA SE TVRZENI': True
+        v pořádku: 3 | historická (ne chyba): 2 | ROZEŠLO SE: 0 | NENAŠLA SE TVRZENÍ: 2
+        ZÁVĚR: některé tvrzení se v dokumentu nenašlo — kontrola je slepá na
+
+  po vraceni originalu: exit=0
+
+=== POKRYTÍ nástroje (nález N9: částečný nástroj budí dojem úplnosti) ===
+  řádků s číslem v AGENTS.md      : 51
+  z toho číslo s jednotkou (tvrzení): 9
+  nástroj kontroluje              : 5 v pořádku + 2 historických (z 9 tvrzení s jednotkou)
+  -> zbytek čísel v AGENTS.md NENÍ kontrolován
+
+  ZMĚŘENO: mutací=2, chyceno=2, tvrzení_v_dokumentu=9, řádků_s_číslem=51
+            chyceno: mutace 1 (vada 40 -> 32)
+            chyceno: mutace 2 (přeformulované tvrzení)
+
+VYSLEDEK: brána spadne na vrácené vadě i na přeformulovaném tvrzení.
+
+==============================================================================
+### a1-a2-over   (exit=0)
+==============================================================================
+Kontrol: 23
+VŠE OK — A1 rozhoduje podle `ok && merged` a A2 ověřuje `owns` proti origin/main.
+
+==============================================================================
+### a3-over   (exit=0)
+==============================================================================
+šablona  job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+hra      job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+
+OK: obě kopie mají 'exit 1' na konci kroku 'Když pravidla neprošla'.
+ZMĚŘENO: 2 kontrol, 0 chyb
+
+==============================================================================
+### n8-zastarala   (exit=0)
+==============================================================================
+==============================================================================
+N8 — JE ANALÝZA JEŠTĚ PLATNÁ? (porovnání s kódem, ne s dokumentem)
+==============================================================================
+  analyzovaný dokument: ANALYZA-HLOUBKOVA-ORCHESTRA-2.md  (34323 znaků)
+
+  ⚠ ZASTARALÉ: §3.1/⑪: `tasks.status='done'` není ukotveno — rozhoduje `run.conclusion`
+     → A1: `done` teď závisí na `ok && merged` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §3.2: `auto-merge` při neúspěchu skončí zeleně (`exit 0` + komentář)
+     → A3: za krokem je `exit 1` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §⑪/2: `roadmap.status='done'` se neověřuje proti `origin/main`
+     → A2: ověřuje se proti stromu `origin/main` → tvrzení NEPLATÍ. POZOR: ptáme se na DEKLARACI I VOLÁNÍ — dokud se hledalo jen jméno, prošlo i přejmenování funkce, po kterém kód volá neexistující funkci
+  ⚠ ZASTARALÉ: §⑪/15: „PR sloučen" se bere z `conclusion` (S33 — mrtvá hodnota `merged`)
+     → A1/S33: do D1 se zapisuje stav `awaiting_human` → tvrzení NEPLATÍ. POZOR: ptáme se na ZAPSANÝ STAV (procházejí se VŠECHNY zápisy), ne na slovo v kódu — pouhá zmínka nestačí
+  ⚠ ZASTARALÉ: §3.2: gate — `size_lines` chybí u 13/18 a lint to nehlásí
+     → A4a: lint to hlásí → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §⑪/4: `done_note` je mrtvé pole (0 čtenářů v kódu)
+     → kontrolní vzorek — A1-A4 se ho nedotkly, má vyjít jako AKTUÁLNÍ
+  OK (aktuální): §⑪/9: `runs.artifacts` je mrtvý sloupec (zapisuje se, nikdo nečte)
+
+  zastaralých tvrzení: 6 z 7
+
+ZÁVĚR: analýza je SNAPSHOT k 2. 10. 2026 06:10 UTC a v některých
+tvrzeních se rozešla s kódem. Kdo ji čte jako POPIS SOUČASNOSTI,
+čte jiný stav, než jaký je. Proto má u sebe datum a odkaz na to,
+co z ní bylo provedeno (A1-A4 = IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md).
+
+==============================================================================
+### b5-over-tvrzeni   (exit=0)
+==============================================================================
+=== BOD 5: pět zastaralých tvrzení, ověřeno přímo v kódu ===
+
+  1) `tasks.status='done'` neni ukotveno — rozhoduje `run.conclusion`
+      -> NEPLATÍ (zastaralé)
+      dukaz: rozhodnuti je na `ok && merged`: 'if (ok && merged) {       await env.DB.prepare("UPDATE tasks SET statu'
+
+  2) `auto-merge` pri neuspechu skonci zelene (`exit 0` + komentar)
+      -> NEPLATÍ (zastaralé)
+      dukaz: posledni radek `run:` bloku kroku je 'exit 1'
+
+  3) `roadmap.status='done'` se neoveruje proti `origin/main`
+      -> NEPLATÍ (zastaralé)
+      dukaz: funkce `filesInOriginMain` v kodu: True, volani: 2x
+
+  4) „PR sloucen" se bere z `conclusion` (mrtva hodnota `merged`)
+      -> NEPLATÍ (zastaralé)
+      dukaz: `awaiting_human` v kodu: True; prvni zapis stavu do D1: 'done'
+
+  5) gate — `size_lines` chybi u 13/18 a lint to nehlasi
+      -> NEPLATÍ (zastaralé)
+      dukaz: lint obsahuje hlasku o chybejicim `size_lines`: True
+
+======================================================================
+  zastaralých (nezávisle): 5 z 5 -> [1, 2, 3, 4, 5]
+  `n8-zastarala-analyza.py` tvrdí: 5 z 7 (5 zastaralých + 2 kontrolní vzorky)
+
+VYSLEDEK: ČÍSLO SEDÍ — 5 zastaralých, ověřeno nezávisle na tom skriptu.
+
+==============================================================================
+### n1-over-inventar   (exit=0)
+==============================================================================
+=== N1: pozná `hl-rizika-jazyka.py` ZASTARALÝ inventář? ===
+  inventář: 1750723 B, sha256 44a3b7831d2c86a8…
+
+  1) ZDRAVÝ inventář (kontrola, že brána umí projít)
+     INVENTÁŘ: _inventar.json  (stáří 0.01 h, 1750723 B)
+     otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+     SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+     → exit=0 (očekáváno 0)
+
+  2) OTISK V INVENTÁŘI PŘEPSÁN (simulace: kód se změnil)
+     INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1704711 B)
+     CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚŘENÝ
+     otisk VSTUPŮ se rozešel — kód se od vzniku inventáře změnil:
+     → exit=1 (očekáváno 1)
+
+  3) INVENTÁŘ BEZ OTISKU (starší formát — stáří se nedá ověřit)
+     INVENTÁŘ: _inventar.json  (stáří 0.00 h, otisk vstupů v něm NENÍ (starší formát), 1548335 B)
+     CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚŘENÝ
+     inventář neobsahuje otisk vstupů — NELZE ověřit, že sedí s kódem
+     → exit=1 (očekáváno 1)
+
+  4) NÁVRAT do zdravého stavu (bajt na bajt)
+     INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1750723 B)
+     otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+     SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+     → exit=0 (očekáváno 0)
+
+  běh                  exit   výsledek
+  zdravý               0      OK
+  přepsaný otisk       1      OK
+  bez otisku           1      OK
+  návrat               0      OK
+
+VYSLEDEK: N1 JE OPRAVEN — zastaralý i nezměřený inventář SHODÍ nástroj
+          (a zdravý projde). Nástroj nad zastaralým snapshotem
+          netvrdí „0 vrácených“.
+
+==============================================================================
+### tsc (conductor)   (exit=0)
+==============================================================================
+
+==============================================================================
+### validate-all (CELEK)   (exit=0)
+==============================================================================
+════ A. CONDUCTOR (runtime) ════
+  OK   conductor odpovídá
+  OK   cron běží (čas)  — 2026-10-05T20:20:19.526Z
+  OK   je registrovaná hra  — games=1
+  OK   žádná úloha nevisí  — running=0
+
+════ B. REGISTR HER ════
+  OK   uo-shadows je registrovaná
+  OK   je aktivní  — active=1
+  OK   míří na správné repo  — ssevcikm-spec/uo-shadows
+  OK   roadmap_file je správný  — .forge/roadmap.json
+
+════ C. SOULAD CACHE × SOUBOR ════
+  OK   cache neobsahuje osiřelé řádky  — osiřelé=0
+  OK   cache není větší než soubor  — cache=21, soubor=22
+  OK   počet hotových granulí je znám  — 13/22 hotových
+
+════ D. KONFIGURACE CONDUCTORA ════
+  OK   MAX_ATTEMPTS nastaven  — MAX_ATTEMPTS = "5"
+  OK   RETRY_HOURS nastaven  — RETRY_HOURS = "3"
+  OK   cron každou minutu
+
+════ E. KÓD CONDUCTORA × DEPLOY ════
+  OK   lokální kód = repo  — 74492 B vs 74492 B (shoda po odečtení konců řádků)
+  OK   existuje úspěšný deploy conductora  — 7c11b2d5 (2026-10-02 11:12)
+  OK   deploy obsahuje poslední změnu conductora  — poslední změna conductor/ = 7c11b2d5, nasazeno z = 7c11b2d5
+
+════ F. HRA: WORKFLOW A BRÁNY ════
+  OK   brána na parsování je ve workflow
+  OK   brána je PŘED testy
+  OK   workflow používá providers.json orchestra
+  OK   konvence mají FileAccess
+  OK   konvence mají rezervovaná jména
+  OK   konvence mají JSON.parse_string
+
+════ G. WORKFLOW HRY JE ZAPNUTÝ ════
+  OK   agent.yml je active  — active
+
+════ H. MODELOVÝ ŘETĚZEC ════
+  OK   řetězec má 5 poskytovatelů  — mistral, cerebras, gemini, groq, openrouter
+  OK   gemini je označený skromny
+  OK   silné modely definované  — mistral, cerebras, groq
+  OK   živý providers.json = lokální
+
+════ I. LOKÁLNÍ PROSTŘEDÍ ════
+  OK   git.cmd existuje
+  OK   Godot pro worker existuje  — E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe
+  OK   .secrets má PAT
+
+════ J. ASSETY: REGISTR A LICENČNÍ BRÁNA ════
+  OK   registr assetů jde přečíst  — 4 zdrojů, 2 assetů
+  OK   povolené licence jsou definované  — cc0, cc-by, ofl, mit, public-domain
+  OK   cc-by-sa NENÍ povolená  — vynucuje stejnou licenci na celou hru
+  OK   každý asset má známý zdroj  — všechny OK
+  OK   každý asset má povolenou licenci  — kenney/interface-sounds:cc0, polyhaven/coast_sand_rocks_02:cc0
+  OK   stahované assety mají hash  — kenney/interface-sounds:hash OK, polyhaven/coast_sand_rocks_02:hash OK
+  OK   stahované assety jsou ověřené  — kenney/interface-sounds:ověřeno, polyhaven/coast_sand_rocks_02:ověřeno
+registr: E:\Workspaces\forge-orchestra\assets\asset-registry.json
+zdrojů: 4, assetů: 2, vybráno: 2
+
+  kenney/interface-sounds
+    Kenney Interface Sounds — balik, cc0, OVĚŘENO, 815 kB
+    extract je ZÁMĚRNĚ prázdný: bez --extract se nevybaluje nic, jen se vypíše obsah balíčku. Vybírej jednotlivé soubory (např. --extract "Audio/click_001.ogg") – 100 souborů v repu nikdo nechce a hra je stejně nenačte.
+  polyhaven/coast_sand_rocks_02
+    coast_sand_rocks_02 (difuzní mapa) — textura, cc0, OVĚŘENO, 820 kB
+    Zkušební asset pro ověření cesty (P1). Pro hru se vybírá podle potřeby, ne tenhle.
+
+zdroje:
+  polyhaven      cc0            strojově: ano  https://polyhaven.com
+  kenney         cc0            strojově: ano  https://kenney.nl
+  google-fonts   ofl            strojově: ano  https://fonts.google.com
+  rucni          ruzne          strojově: NE  
+  OK   fetch assetů jde spustit
+  OK   bez locku → projde s poznámkou
+        exit=0 (čekáno 0, poznámka o chybějícím locku)
+  OK   v pořádku → projde
+        exit=0: licence a původ assetů: v pořádku
+  OK   soubor bez záznamu → odmitne
+        exit=1 (čekáno 1 a jméno souboru)
+  OK   zakázaná licence cc-by-sa → odmitne
+        exit=1 (čekáno 1, zmínka o cc-by-sa)
+  OK   cc-by bez autora → odmitne
+        exit=1 (čekáno 1, zmínka o autorovi)
+  OK   přepsaný soubor (hash) → odmitne
+        exit=1 (čekáno 1, neshoda hashe)
+  OK   změněný CREDITS.md → odmitne
+        exit=1 (čekáno 1, neshoda CREDITS)
+  OK   živý P1 fixture → projde
+        SKIP – živý fixture z P1 tu není (spusť nejdřív asset-fetch.mjs)
+  OK   skutečný klon hry → beze změny chování
+        SKIP – klon hry games/uo-shadows tu není
+
+všech 9 scénářů prošlo
+  OK   brána na licence: 9 scénářů  — exit=0
+  poznámka: assets/asset-lock.json není – hra zatím žádné stažené assety nemá (brána se aktivuje prvním).
+licence a původ assetů: v pořádku
+  OK   brána projde na skutečném klonu hry
+
+════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════
+Kontrola schématu: E:\Workspaces\uo-shadows
+  spec.json deklaruje: projekce=izometricka, dlaždice=[96, 48], viewport=[960, 540]
+  mapa main.json      cell=96  viewport=[960, 540]  mřížka=[30, 16]
+  level.gd: výchozí buňka=96×48px, fallback=nezměřeno (v kódu není)
+  world.gd: cell=[], izometrie=ne
+  tiles/manifest.json: tile_size=[96, 48]
+  sprity: zkontrolováno 8, nesedí 0
+  poznámka: level.gd nemá fallback buňky (`get("cell", N)`) – kontrola fallbacku tedy nemá co měřit (výchozí buňka změřená je)
+  poznámka: scripts/world.gd existuje, ale jeho buňku se NEPODAŘILO přečíst – kontrola „dvě různé představy o mřížce“ NEPROBĚHLA
+
+Schéma je v souladu: deklarace, mapy, vykreslení i dlaždice říkají totéž.
+  OK   kontrola schématu se spustí (0 = soulad, 1 = rozpory, 2 = chybí spec)  — exit=0
+  OK   kontrola schématu je i v šabloně a v herním repu
+=== test-check-schema.py – offline testy (check-schema.py) ===
+  nástroj: E:\Workspaces\forge-orchestra\repo\.forge\check-schema.py
+  sha256:  531ae859f67031f8
+  OK   správná izometrie: žádné vady
+  OK   správná izometrie: výchozí buňka se PŘEČTE jako 96×48
+  OK   správná izometrie: fallback se čte jako nezměřený (v kódu není)
+  OK   špatná šířka (95 vs 96) se POJMENUJE
+  OK   špatná výška (47 vs 48) se POJMENUJE
+  OK   starý `var cell := 16` se POJMENUJE jako vada
+  OK   starý tvar: číslo se změří (ne prázdný seznam)
+  OK   fallback `get("cell", 96)` se PŘEČTE
+  OK   fallback se hlásí jako změřený
+  OK   nečitelný tvar: kontrola HLÁSÍ, že neproběhla (vada)
+  OK   nečitelný tvar: šířka se netváří jako změřená
+  OK   CLI vypíše nezměřený fallback jako „nezměřeno“
+  OK   CLI na správném repu končí exit 0
+  OK   CLI na chybném repu končí exit 1
+  OK   při obou tvarech platí POSLEDNÍ deklarace (96×48)
+  OK   chybějící world.gd se hlásí jako mrtvá kontrola
+
+Testů OK: 16, chyb: 0
+VŠE OK
+  OK   check-schema.py: offline testy (známá správná i chybná hodnota)  — exit=0
+=== generátor: E:\Workspaces\forge-orchestra\install-into-repo.ps1 ===
+=== skutečnost: E:\Workspaces\uo-shadows\.gitignore ===
+
+--- 1) generátor obsahuje povinná pravidla ---
+  OK    generátor: '.env'  (tajemství – `install-into-repo.ps1` ho do hry kopíruje s FORGE_SECRET)
+  OK    generátor: '.forge/node/.env'  (tajemství – konkrétní cesta, kterou kopírování používá)
+  OK    generátor: '__pycache__/'  (Python cache po lokálním spuštění bran)
+  OK    generátor: '*.pyc'  (Python cache (jednotlivé soubory))
+  OK    generátor: '.forge/provider.env'  (volba poskytovatele pro shell (nese klíč))
+
+--- 2) herní .gitignore obsahuje totéž ---
+  OK    hra: '.env'
+  OK    hra: '.forge/node/.env'
+  OK    hra: '__pycache__/'
+  OK    hra: '*.pyc'
+  OK    hra: '.forge/provider.env'
+
+--- 3) KONTRAKT: obě kopie se shodují v bezpečnostních pravidlech ---
+  OK    co generátor vnucuje, to hra má (a naopak)
+
+--- 4) pravidla SKUTEČNĚ platí (ne jen že jsou napsaná) ---
+  OK    git check-ignore '.forge/node/.env' (tajemství)
+  OK    git check-ignore '.env' (tajemství)
+  OK    git check-ignore '.forge/provider.env' (klíč poskytovatele)
+
+--- 5) negativní kontrola: běžný soubor ignorovaný NENÍ ---
+  OK    'scripts/player.gd' ignorovaný NENÍ (test umí i opak)
+
+VÝSLEDEK: 15 kontrol, 0 chyb
+  OK   .gitignore hry chrání tajemství (kontrakt generátor ↔ hra)  — exit=0
+?     agent.yml:328  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Parsování v pořádku ($(echo "$ZMENENE" | wc -l) souborů)."
+?     agent.yml:643  ($( v echo – obvykle záměr, zkontroluj)
+        echo "!! velká změna ($((add + del)) řádků, limit ${{ inputs.max_lines }})"; ok=0
+?     release.yml:92  ($( v echo – obvykle záměr, zkontroluj)
+        echo "Automatický build ze commitu \`${GITHUB_SHA:0:7}\` ($(date -u '+%Y-%m-%d %H:%M UTC'))."
+
+VÝSLEDEK: 0 vad, 3 echo s $( k posouzení (obvykle záměr)
+  OK   workflowy: žádné neescapované apostrofy v echo (bash by je spustil)  — exit=0
+=== vision.mjs – offline testy (mock API) ===
+  OK   proběhne celý tok (exit 0)
+  OK   projekce ze spec.json je ctvercova
+  OK   dlaždice ze spec.json jsou 24×24 (ne napevno 96×48)
+  OK   self-consistency proběhla (shoda=true)
+  OK   poslal právě 1 obrázek
+  OK   prompt obsahuje spočítaný obsah z mapy (6× floor, 2× wall)
+  OK   prompt nese styl hry z profilu
+  OK   prompt nese zákaz z profilu
+  OK   prompt neobsahuje jiná čísla dlaždic (žádné 96×48)
+  OK   profil s `popis_stylu` (nové jméno) styl NESMÍ ztratit
+  OK   profil bez stylu nespadne a prompt pošle (styl ze spec, nebo prázdný)
+  OK   neshoda dvou běhů je detekována (shoda=false)
+  OK   neshoda NEZHODÍ běh (exit 0) – je to signál, ne chyba
+  OK   neshoda je pojmenovaná v poznámce
+  OK   druhý běh je ve výstupu k dohledání
+  OK   shoda se pozná i při jiném pořadí položek
+  OK   diff proběhl (exit 0)
+  OK   diff poslal 2 obrázky
+  OK   diff prompt mluví o změnách a regresích
+  OK   vypnutá self-consistency = 1 volání
+  OK   shoda není vyplněná, když se neporovnává
+  OK   bez klíče hlásí chybějící klíč (exit 1)
+  OK   v chybě je jméno proměnné
+  OK   chybějící obrázek hlásí nenalezeno (exit 1)
+  OK   hláška obsahuje cestu
+  OK   diff s jedním obrázkem hlásí chybu (exit 2)
+  OK   ne-JSON odpověď se přijme a porovná volně (exit 0)
+  OK   baseline.py init proběhl (rozhraní pro cache funguje)
+  OK   schválený obrázek: model se NEVOLÁ (0 promptů)
+  OK   schválený obrázek: výstup to řekne (z_cache)
+  OK   schválený obrázek: exit 0
+  OK   schválený obrázek: důvod je pojmenovaný
+  OK   --force cache obejde a model se zavolá
+  OK   nedostupné API = exit 1
+  OK   i při selhání je ve výstupu JSON s pokusy
+  OK   bez profilu se řetěz bere z prostředí a chyba je srozumitelná
+
+Testů OK: 36, chyb: 0
+VŠE OK
+  OK   vision.mjs: offline testy (mock API) projdou  — exit=0
+  OK   profil vision existuje a je platný JSON  — hra=uo-shadows, režim očekávání=z_mapy
+  OK   profil NEobsahuje schéma hry (to patří do spec.json)  — _popis, verze, hra, ocekavany_obsah, mapa, styl_popis, zakazy_v_promptu, poskytovatele, self_consistency, _self_consistency, cache, stropy
+  OK   profil má zakázané soudy v promptu
+
+=== uo-shadows (hra) ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+=== repo (šablona) ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+Testů OK: 36, chyb: 0
+VŠE OK
+  OK   CI workflow: struktura a pořadí kroků  — exit=0
+=== 1. Extrakce guardu ze zdrojáku conductora ===
+  zdroj: E:\Workspaces\forge-orchestra\conductor\src\index.ts
+  vytaženo: 7 řádků SQL
+  OK   SQL guardu se podařilo vytáhnout ze zdrojáku  — 7 řádků
+  OK   SQL obsahuje NOT EXISTS (guard blokuje, ne že by jen třídil)
+  OK   SQL čte tabulku roadmap
+  OK   SQL má bind parametr pro retry hours
+  OK   SQL NEFILTRUJE podle rm.status (invariant 13 — jinak se cooldown neuplatní)
+
+=== 2. Chování guardu (skutečný SQL z conductora) ===
+  scénář                                                čekáno  naměřeno  výsledek
+  ------------------------------------------------------------------------------------
+  NOVÁ granule (vznikla teď, neselhal)                    True      True  OK
+  OK   scénář: NOVÁ granule (vznikla teď, neselhal)  — čekáno=True, naměřeno=True
+  selhalo před 10 min (v cooldownu)                      False     False  OK
+  OK   scénář: selhalo před 10 min (v cooldownu)  — čekáno=False, naměřeno=False
+  selhalo před 4 h (cooldown vypršel)                     True      True  OK
+  OK   scénář: selhalo před 4 h (cooldown vypršel)  — čekáno=True, naměřeno=True
+  řádek 'done' + nový ready úkol                          True      True  OK
+  OK   scénář: řádek 'done' + nový ready úkol  — čekáno=True, naměřeno=True
+  selhalo před 2 min, 'failed' (poslední pokus)          False     False  OK
+  OK   scénář: selhalo před 2 min, 'failed' (poslední pokus)  — čekáno=False, naměřeno=False
+
+
+VÝSLEDEK: 10 kontrol, 0 chyb
+VŠE OK
+  OK   cooldown guard: SQL ze zdrojáku + chování (dnes nachází vadu S12 → B1)  — exit=0
+=== baseline.py – offline testy ===
+  OK   prázdná baseline = všechny sledované soubory jsou nové
+  OK   soubor s podtržítkem na začátku jména se needviduje
+  OK   evidují se i vrstvy z Blenderu
+  OK   po init je vše schválené
+  OK   schválený a nezměněný obrázek je v cache
+  OK   cache nese, kdo schválil
+  OK   vizuálně změněný obrázek NENÍ v cache
+  OK   důvod změny je pojmenovaný
+  OK   změna se objeví ve stavu jako ZMENA
+  OK   přeuložené PNG zůstane v cache (phash i barva jsou stejné)
+  OK   zamítnutý obrázek NENÍ v cache
+  OK   důvod je v historii zamítnutých
+  OK   obrázek mimo repo hry = není v cache (bez výjimky)
+  OK   historie verdiktů má 2 záznamy
+  OK   záznam verdiktu má čas
+  OK   baseline.json s BOM se načte
+  OK   jednolité barvě se phash nevěří (vrací None)
+  OK   změna jednolitého obrázku se POZNÁ (přes sha256)
+  OK   změna strukturovaného obrázku se pozná přes phash
+  OK   phash je na barvu SLEPÝ (doklad mezery: stejný hash pro jinou barvu)
+  OK   přebarvení se PŘESTO pozná (barevný podpis)
+  OK   důvod pojmenovává barvu
+  OK   CLI `kontrola` vrací JSON s v_cache
+  OK   CLI `kontrola` končí s exit 0
+
+Testů OK: 24, chyb: 0
+VŠE OK
+  OK   baseline.py: offline testy (včetně mezer phash) projdou  — exit=0
+  OK   baseline.py je v šabloně i v herním repu
+Baseline: E:\Workspaces\uo-shadows\.forge\vision\baseline.json
+  schváleno 2026-09-30T23:07:32+00:00, položek 272
+  dnes: schválených 272, změněných 0, nových 0
+  OK   baseline hry jde přečíst (0 = schváleno, 1 = čeká na LGTM)  — exit=0
+
+════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ════
+Kontrol: 23
+VŠE OK — A1 rozhoduje podle `ok && merged` a A2 ověřuje `owns` proti origin/main.
+  OK   A1/A2: `done` jen při ok && merged, `owns` proti origin/main, cache s TTL  — a1-a2-over.py → exit=0
+šablona  job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+hra      job 'auto-merge' krok: 'Když pravidla neprošla – nechá se k ruční kontrole'
+         poslední řádek run: 'exit 1'   (exit 1 v celém souboru: 6x)
+
+OK: obě kopie mají 'exit 1' na konci kroku 'Když pravidla neprošla'.
+ZMĚŘENO: 2 kontrol, 0 chyb
+  OK   A3: krok „Když pravidla neprošla" končí `exit 1` v OBOU kopiích agent.yml  — a3-over.py → exit=0
+==============================================================================
+N8 — JE ANALÝZA JEŠTĚ PLATNÁ? (porovnání s kódem, ne s dokumentem)
+==============================================================================
+  analyzovaný dokument: ANALYZA-HLOUBKOVA-ORCHESTRA-2.md  (34323 znaků)
+
+  ⚠ ZASTARALÉ: §3.1/⑪: `tasks.status='done'` není ukotveno — rozhoduje `run.conclusion`
+     → A1: `done` teď závisí na `ok && merged` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §3.2: `auto-merge` při neúspěchu skončí zeleně (`exit 0` + komentář)
+     → A3: za krokem je `exit 1` → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §⑪/2: `roadmap.status='done'` se neověřuje proti `origin/main`
+     → A2: ověřuje se proti stromu `origin/main` → tvrzení NEPLATÍ. POZOR: ptáme se na DEKLARACI I VOLÁNÍ — dokud se hledalo jen jméno, prošlo i přejmenování funkce, po kterém kód volá neexistující funkci
+  ⚠ ZASTARALÉ: §⑪/15: „PR sloučen" se bere z `conclusion` (S33 — mrtvá hodnota `merged`)
+     → A1/S33: do D1 se zapisuje stav `awaiting_human` → tvrzení NEPLATÍ. POZOR: ptáme se na ZAPSANÝ STAV (procházejí se VŠECHNY zápisy), ne na slovo v kódu — pouhá zmínka nestačí
+  ⚠ ZASTARALÉ: §3.2: gate — `size_lines` chybí u 13/18 a lint to nehlásí
+     → A4a: lint to hlásí → tvrzení NEPLATÍ
+  ⚠ ZASTARALÉ: §⑪/4: `done_note` je mrtvé pole (0 čtenářů v kódu)
+     → kontrolní vzorek — A1-A4 se ho nedotkly, má vyjít jako AKTUÁLNÍ
+  OK (aktuální): §⑪/9: `runs.artifacts` je mrtvý sloupec (zapisuje se, nikdo nečte)
+
+  zastaralých tvrzení: 6 z 7
+
+ZÁVĚR: analýza je SNAPSHOT k 2. 10. 2026 06:10 UTC a v některých
+tvrzeních se rozešla s kódem. Kdo ji čte jako POPIS SOUČASNOSTI,
+čte jiný stav, než jaký je. Proto má u sebe datum a odkaz na to,
+co z ní bylo provedeno (A1-A4 = IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md).
+  OK   stárnutí analýzy: porovnává její tvrzení s KÓDEM (ne s dokumentem)  — n8-zastarala-analyza.py → exit=0
+=== BOD 5: pět zastaralých tvrzení, ověřeno přímo v kódu ===
+
+  1) `tasks.status='done'` neni ukotveno — rozhoduje `run.conclusion`
+      -> NEPLATÍ (zastaralé)
+      dukaz: rozhodnuti je na `ok && merged`: 'if (ok && merged) {       await env.DB.prepare("UPDATE tasks SET statu'
+
+  2) `auto-merge` pri neuspechu skonci zelene (`exit 0` + komentar)
+      -> NEPLATÍ (zastaralé)
+      dukaz: posledni radek `run:` bloku kroku je 'exit 1'
+
+  3) `roadmap.status='done'` se neoveruje proti `origin/main`
+      -> NEPLATÍ (zastaralé)
+      dukaz: funkce `filesInOriginMain` v kodu: True, volani: 2x
+
+  4) „PR sloucen" se bere z `conclusion` (mrtva hodnota `merged`)
+      -> NEPLATÍ (zastaralé)
+      dukaz: `awaiting_human` v kodu: True; prvni zapis stavu do D1: 'done'
+
+  5) gate — `size_lines` chybi u 13/18 a lint to nehlasi
+      -> NEPLATÍ (zastaralé)
+      dukaz: lint obsahuje hlasku o chybejicim `size_lines`: True
+
+======================================================================
+  zastaralých (nezávisle): 5 z 5 -> [1, 2, 3, 4, 5]
+  `n8-zastarala-analyza.py` tvrdí: 5 z 7 (5 zastaralých + 2 kontrolní vzorky)
+
+VYSLEDEK: ČÍSLO SEDÍ — 5 zastaralých, ověřeno nezávisle na tom skriptu.
+  OK   týchž 5 tvrzení ověřených NEZÁVISLE na n8-* (jiné měřidlo, s úryvky kódu)  — b5-over-tvrzeni.py → exit=0
+════════════════════════════════════════════════════════════════════════════════
+INVENTÁŘ: _inventar.json  (stáří 0.00 h, 1750723 B)
+  otisk vstupů SEDÍ: da637de5da4a948d (1027 souborů) — inventář je z TOHOHLE kódu
+════════════════════════════════════════════════════════════════════════════════
+FINÁLNÍ SEZNAM RIZIK — jazyk v kódu (1. 10. 2026)
+════════════════════════════════════════════════════════════════════════════════
+  nálezů v inventáři:        5828
+  z toho rizikové kontexty:  310
+  ZNÁMÉ FALEŠNÉ POPLACHY:    31  (vysvětlené níž)
+  TEXTY A HLÁŠKY (ne jména): 266  (vysvětlené níž)
+  SKUTEČNÉ NÁLEZY:           13
+
+── SKUTEČNÉ NÁLEZY (co má být ASCII) ────────────────────────────────────
+
+  orchestra/_analyza/audit2b-over.py  (8×)
+     :217  [porovnání (Eq)]  granulí
+     :230  [porovnání (Eq)]  granulí
+     :572  [porovnání (Eq)]  granulí
+     :236  [porovnání (Eq)]  granulí
+     :332  [porovnání (Eq)]  granulí
+     :376  [porovnání (Eq)]  granulí
+     :473  [porovnání (Eq)]  sloupců
+     :571  [porovnání (Eq)]  granulí
+
+  orchestra/_analyza/hl-rizika-jazyka.py  (2×)
+     :256  [porovnání (Eq)]  POROVNÁNÍ
+     :256  [porovnání (Eq)]  POROVNÁNÍ (case)
+
+  orchestra/_analyza/g3-brany.py  (1×)
+     :444  [porovnání (Eq)]  —
+
+  orchestra/_analyza/js-tokeny.mjs  (1×)
+     :96  [POROVNÁNÍ]  POROVNÁNÍ
+
+  orchestra/_analyza/z8-probe.py  (1×)
+     :23  [porovnání (Eq)]  Spusť agenta
+
+── FALEŠNÉ POPLACHY (měření je vysvětluje, nic se nepřejmenovává) ────────
+
+  orchestra/repo/.forge/baseline.py  (8×)
+     → řetězce jako „schváleno a nezměněno“ jsou HLAŠKY pro člověka; klíč `stav` jen nese text — kód se podle textu nerozhoduje
+
+  games/uo-shadows/.forge/baseline.py  (8×)
+     → totéž (druhá kopie téhož souboru)
+
+  orchestra/install-into-repo.ps1  (7×)
+     → fallback chytá `:` v české větě (Write-Host "Cíl: $Target") — jsou to hlášky, ověřeno ručně u všech 7
+
+  orchestra/tools/test-local.ps1  (4×)
+     → totéž — komentáře a hlášky, ověřeno ručně u všech 4
+
+  orchestra/conductor/schema.sql  (4×)
+     → řádky začínají `--`, tedy SQL komentář; fallback `#` nezná
+
+── TEXTY A HLÁŠKY, KTERÉ SE NEPŘEJMENOVÁVAJÍ ────────────────────────────
+   (klasifikátor je nazval „klíč objektu“ / „výraz“, ale ve zdroji to
+    není jméno — je to hláška pro člověka nebo text promptu)
+     90x  orchestra/_analyza/audit-inventar.json
+     19x  orchestra/_analyza/js-tokeny.mjs
+     15x  orchestra/conductor/src/index.ts
+     12x  orchestra/_analyza/audit2-rozpory.json
+     12x  orchestra/repo/.forge/vision.mjs
+     12x  games/uo-shadows/.forge/vision.mjs
+     10x  orchestra/repo/.forge/node/vision.test.mjs
+      9x  orchestra/repo/.forge/node/providers-check.mjs
+      9x  games/uo-shadows/.forge/node/providers-check.mjs
+      9x  games/uo-shadows/.forge/node/vision.test.mjs
+      8x  orchestra/tools/analyza-chyb.mjs
+      7x  orchestra/tools/asset-fetch.mjs
+      6x  orchestra/_analyza/hl-neanglicky-v-kodu.py
+      5x  orchestra/repo/.forge/node/worker.mjs
+      5x  orchestra/tools/overit-razeni.mjs
+   … a dalších 23 souborů
+
+────────────────────────────────────────────────────────────────────────────────
+  očekávaných míst: 0, nalezeno: 0
+  PŘEJEDNANÝCH MÍST: 11, z toho VRÁCENÝCH: 0
+  NOVÉ / NEZAŘAZENÉ (13) — projdi je, ať nic neuteče:
+     - orchestra/_analyza/audit2b-over.py:217  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:230  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:572  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:236  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:332  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:376  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/audit2b-over.py:473  [porovnání (Eq)]  sloupců
+     - orchestra/_analyza/audit2b-over.py:571  [porovnání (Eq)]  granulí
+     - orchestra/_analyza/g3-brany.py:444  [porovnání (Eq)]  —
+     - orchestra/_analyza/hl-rizika-jazyka.py:256  [porovnání (Eq)]  POROVNÁNÍ
+     - orchestra/_analyza/hl-rizika-jazyka.py:256  [porovnání (Eq)]  POROVNÁNÍ (case)
+     - orchestra/_analyza/js-tokeny.mjs:96  [POROVNÁNÍ]  POROVNÁNÍ
+     - orchestra/_analyza/z8-probe.py:23  [porovnání (Eq)]  Spusť agenta
+
+     z toho IDENTIFIKÁTORY (pravidlo je zakazuje): 0
+     z toho TEXTY / POROVNÁVANÉ LITERÁLY (diakritika je SPRÁVNĚ): 13
+
+── CO SE ZÁMĚRNĚ NEPŘEJMENOVÁVÁ ─────────────────────────────────────────
+  games/uo-shadows/assets/spec.json :: zmenšování
+     → lidský popis stylu v datech; kód ho nečte (ověřeno: 0 čtenářů v kódu)
+
+SEZNAM SEDÍ: žádný očekávaný identifikátor nechybí, žádný nový nepřibyl
+a žádné přejmenované místo se nevrátilo.
+(Textových/porovnávaných literálů s diakritikou mimo seznam: 13 — to je v pořádku, pravidlo se týká identifikátorů.)
+  OK   N1: inventář se hlásí stářím a otiskem vstupů; zastaralý SHODÍ nástroj  — hl-rizika-jazyka.py → exit=0
+
+════════════════════════════════════════════════════════════
+✓ VŠE V POŘÁDKU
+
+==============================================================================
+### verify-setup (struktura)   (exit=0)
+==============================================================================
+==============================================================================
+KONTROLA STRUKTURY — stanice + orchestra + hra
+==============================================================================
+  STANICE = C:\Users\Ssevc\Local-Deepseek   (lze přebít proměnnou FORGE_STANICE)
+  REPO    = E:\Workspaces\forge-orchestra
+  HRA     = E:\Workspaces\uo-shadows   (sourozenec repa)
+
+=== 1) kořen STANICE: co tam má být ===
+  OK    `AGENTS.md` stanice: řádek „dokumenty STANICE“ se seznamem
+  OK    `AGENTS.md` stanice: řádek „nástroje stanice“ se seznamem
+  OK    vzory v dokumentech se rozvinuly (12 jmen)
+  OK    vzory v nástrojích se rozvinuly (5 jmen)
+  seznam ODVOZEN z C:\Users\Ssevc\Local-Deepseek\AGENTS.md:
+    dokumenty (12): README.md, POZOR-E-DSH-NEMAZAT.md, ANALYZA-EFEKTIVITY-DSH.md, DEPLOY-VYLEPSENI.md, RESEARCH-public-repos.md, ANALYZA-VYVOJ-APLIKACI-A-HER.md, ZADANI-CREATOR-INDIKATORY.md, MOZNOSTI-AGENTA.md, OTEVRENA-TEMATA.md, PREDAVANI-SESSION.md, token-saving-tools-dsh-evaluation.md, sdxl-comfyui-2d-game-assets-research.md
+    nástroje  (5): dsh-plugins, dsh-consolidation, ollama, router, obrazky
+  OK    stanice/README.md
+  OK    stanice/POZOR-E-DSH-NEMAZAT.md
+  OK    stanice/ANALYZA-EFEKTIVITY-DSH.md
+  OK    stanice/DEPLOY-VYLEPSENI.md
+  OK    stanice/RESEARCH-public-repos.md
+  OK    stanice/ANALYZA-VYVOJ-APLIKACI-A-HER.md
+  OK    stanice/ZADANI-CREATOR-INDIKATORY.md
+  OK    stanice/MOZNOSTI-AGENTA.md
+  OK    stanice/OTEVRENA-TEMATA.md
+  OK    stanice/PREDAVANI-SESSION.md
+  OK    stanice/token-saving-tools-dsh-evaluation.md
+  OK    stanice/sdxl-comfyui-2d-game-assets-research.md
+  OK    stanice/dsh-plugins/
+  OK    stanice/dsh-consolidation/
+  OK    stanice/ollama/
+  OK    stanice/router/
+  OK    stanice/obrazky/
+  POZN  na disku, ale v `AGENTS.md` NEVYJMENOVANÉ: dokumentů 2, složek 12
+        dokumenty: AGENTS.md, NEXT-SESSION-INSTRUKCE.md
+        složky:    .tmp, .tools, .wrangler, _asar_probe, _p14-overovani, _retired, _zalohy, dsh-update-0.2.0, dsh-usage-visual, games, research, session-handoff
+        (poznámka, ne vada: deklarace je v `AGENTS.md`; tohle jen říká,
+         co tam vyjmenované NENÍ — aby úbytek pokrytí nebyl tichý)
+
+=== 2) co na stanici být NEMÁ (smazané projekty) ===
+  OK    smazané: gameforge
+  OK    smazané: uo-sandbox
+  OK    smazané: uo-sandbox-repo
+  (poznámka: repo `forge-quest` na GitHubu je ŽIVÉ — není to smazaná složka)
+
+=== 3) repo orchestra: klíčové soubory ===
+  OK    orchestra/AGENTS.md
+  OK    orchestra/README.md
+  OK    orchestra/HANDOFF.md
+  OK    orchestra/KRONIKA-PROJEKTU.md
+  OK    orchestra/NEXT-SESSION-INSTRUKCE.md
+  OK    orchestra/conductor/src/index.ts
+  OK    orchestra/conductor/wrangler.toml
+  OK    orchestra/conductor/schema.sql
+  OK    orchestra/conductor/tsconfig.json
+  OK    orchestra/repo/.forge/providers.json
+  OK    orchestra/repo/.forge/roadmap.json
+  OK    orchestra/repo/.forge/check-schema.py
+  OK    orchestra/tools/git.cmd
+  OK    orchestra/tools/status.mjs
+  OK    orchestra/tools/validate-all.mjs
+  OK    orchestra/tools/over-dokumentaci.py
+  OK    orchestra/tools/kontrola-diakritiky.py
+  OK    orchestra/_analyza/g3-brany.py
+  OK    orchestra/_analyza/hl-rizika-jazyka.py
+  OK    orchestra/.env (tajemství — obsah se nevypisuje)
+  OK    orchestra/.secrets/github_pat.txt (tajemství — obsah se nevypisuje)
+
+=== 4) hra (sourozenec repa): klíčové soubory ===
+  OK    hra/project.godot
+  OK    hra/main.tscn
+  OK    hra/CONVENTIONS.md
+  OK    hra/forge.json
+  OK    hra/hra.cmd
+  OK    hra/.github/workflows/agent.yml
+  OK    hra/.github/workflows/ci.yml
+  OK    hra/.github/workflows/release.yml
+  OK    hra/.forge/roadmap.json
+  OK    hra/.forge/providers.json
+  OK    hra/.forge/pick-provider.mjs
+  OK    hra/.forge/vision-profile.json
+  OK    hra/.forge/node/worker.mjs
+  OK    hra/assets/spec.json
+
+=== 5) platnost JSON ===
+  OK    orchestra/repo/.forge/providers.json je platný JSON
+  OK    orchestra/repo/.forge/roadmap.json (šablona) je platný JSON
+        0 granulí, 0 hotových, 0 strong
+  OK    hra/.forge/roadmap.json je platný JSON
+        22 granulí, 13 hotových, 9 strong
+  OK    hra/forge.json je platný JSON
+  OK    hra/assets/spec.json je platný JSON
+
+=== 6) dokumenty jsou platné UTF-8 (čte se bajtově) ===
+  OK    stanice/README.md je platné UTF-8
+  OK    stanice/AGENTS.md je platné UTF-8
+  OK    orchestra/AGENTS.md je platné UTF-8
+  OK    orchestra/HANDOFF.md je platné UTF-8
+  OK    orchestra/KRONIKA-PROJEKTU.md je platné UTF-8
+  OK    hra/AGENTS.md je platné UTF-8
+  OK    hra/CONVENTIONS.md je platné UTF-8
+  OK    ~/.dsh/skills/orchestra/SKILL.md je platné UTF-8
+
+=== 7) git stav obou repů ===
+  OK    orchestra: git stav jde přečíst
+        114 necommitnutých změn, origin/main..HEAD = 8   (nic se nepushuje)
+  OK    hra: git stav jde přečíst
+        0 necommitnutých změn, origin/main..HEAD = 1   (nic se nepushuje)
+
+ZMĚŘENO: 74 kontrol, 0 chyb
+VŠE OK — struktura stanice i obou repů odpovídá dnešnímu uspořádání.
+
+==============================================================================
+### chybějící importy (statická)   (exit=0)
+==============================================================================
+OK: každé volání `join`/`dirname`/… má v souboru svůj import.
+ZMĚŘENO: 67 souborů, 0 chybějících importů
+
+==============================================================================
+### CI workflow (šablona + hra)   (exit=0)
+==============================================================================
+
+=== uo-shadows (hra) ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+=== repo (šablona) ===
+  OK   nemá taby (YAML je zakazuje)
+  OK   má právě jeden blok "jobs:"
+  OK   kroků je rozumně (>= 8)
+  OK   každý krok má "run:" nebo "uses:"
+  OK   volaný soubor existuje: .forge/install-godot.sh
+  OK   volaný soubor existuje: .forge/check-schema.py
+  OK   volaný soubor existuje: .forge/check-assets.py
+  OK   volaný soubor existuje: .forge/check-wiring.py
+  OK   volaný soubor existuje: .forge/verify-level-render.py
+  OK   volaný soubor existuje: .forge/vision.mjs
+  OK   CI volá kontrolu schématu
+  OK   CI volá vision
+  OK   snímek se vyrábí PŘED vision
+  OK   kontrola schématu je PŘED vision (vision potřebuje vědět, proti čemu měří)
+  OK   import assetů je PŘED kontrolou schématu
+  OK   vision má continue-on-error (neblokuje slučování)
+  OK   vision končí na "|| echo" (výpadek kvóty není chyba hry)
+  OK   vision se přeskočí, když není klíč
+
+Testů OK: 36, chyb: 0
+VŠE OK
+
+==============================================================================
+### escape sekvence (H79, statická)   (exit=0)
+==============================================================================
+========================================================================================
+H79 — NEPLATNÉ ESCAPE SEKVENCE (`SyntaxWarning` z `ast.parse`)
+========================================================================================
+  prošlé soubory: 138   (skip: .git, __pycache__, _archiv, node_modules)
+
+ZMĚŘENO: 0 neplatných escape sekvencí (138 souborů prošlo)
+
+==============================================================================
+### escape sekvence (H79, mutace)   (exit=0)
+==============================================================================
+============================================================================================
+NÁLEZ H79 — neplatné escape sekvence a `filename` v `ast.parse`
+============================================================================================
+  skener = E:\Workspaces\forge-orchestra\_analyza\h79-escape-sken.py
+  WS     = E:\Workspaces\forge-orchestra
+
+── 1) POZITIVNÍ KONTROLA: sonda s vadnou sekvencí ─────────────────────
+  OK    sonda před testem neexistuje
+      se sondou: exit=1
+  OK    se sondou skener skončí nenulově (vadu VIDÍ)
+  OK    a vypíše ji jako `_h79-sonda-escape.py:2` (jméno souboru I řádek)
+  OK    sonda uklizena
+
+── 2) OBA REPY: 0 neplatných escape sekvencí ─────────────────────────
+      exit=0
+      |   prošlé soubory: 138   (skip: .git, __pycache__, _archiv, node_modules)
+      | ZMĚŘENO: 0 neplatných escape sekvencí (138 souborů prošlo)
+  OK    skener nad oběma repy: exit 0 (žádná vada)
+  OK    a vykáže to čítačem (`ZMĚŘENO: 0 …`)
+
+── 3) OBSAH SE NEZMĚNIL: konstanty proti `git show HEAD:` ─────────────
+  OK    _analyza/p1-inventura-cest.py: `git show HEAD:` vrátil obsah
+  OK    _analyza/p1-inventura-cest.py: 6 řetězců se zpětným lomítkem je SHODNÝCH s `HEAD` (raw string obsah nezměnil)
+  OK    _analyza/ps1-bom-crlf.py: `git show HEAD:` vrátil obsah
+  OK    _analyza/ps1-bom-crlf.py: 1 řetězců se zpětným lomítkem je SHODNÝCH s `HEAD` (raw string obsah nezměnil)
+  OK    _analyza/sken-vazeb.py: `git show HEAD:` vrátil obsah
+  OK    _analyza/sken-vazeb.py: 6 řetězců se zpětným lomítkem je SHODNÝCH s `HEAD` (raw string obsah nezměnil)
+
+── 4) `filename` v `ast.parse` — volá se funkce ze ŽIVÉHO skeneru ──────
+  OK    ve skeneru je funkce `python_nalezy` (dá se vyjmout a zavolat)
+  OK    podařilo se vyjmout její zdroj (AST → segment)
+      varování ze živé funkce: 1
+  OK    živá funkce na vadném textu vyrobí `SyntaxWarning`
+  OK    a varování má JMÉNO SOUBORU, které jsme předali (`fixtura-h79.py`)
+
+── 5) MUTACE: ze zdroje funkce se odebere `filename=soubor` ───────────
+  OK    mutace se provedla v TEXTU (nový tvar v mutantu není)
+      varování z mutantu: ['<unknown>']
+  OK    MUTACE: varování je BEZ jména souboru (`<unknown>`) — přesně to byl H79 a test by ZČERVENAL
+
+============================================================================================
+VÝSLEDEK: 18 kontrol, 0 chyb
+H79 JE OPRAVENO A DOKÁZÁNO: 0 varování, obsah shodný s `HEAD`, varování má jméno souboru.
+
+==============================================================================
+### g3 klasifikátor nezačatých (H71)   (exit=0)
+==============================================================================
+============================================================================================
+NÁLEZ H71 — umí `g3` poznat, že brána BĚŽELA (a neříct „nezačala“)?
+============================================================================================
+  zdroj  = E:\Workspaces\forge-orchestra\_analyza\g3-brany.py
+  fixtura= E:\Workspaces\forge-orchestra\_analyza\fixtura-h71  (vzniká a uklidí se; živý soubor se NEMUTUJE)
+
+  OK    živý `g3-brany.py` volá nový klasifikátor `je_neotevrena(...)` 1×
+  OK    živý `g3-brany.py` UŽ NEOBSAHUJE vadnou podmínku `len(v) < 500`
+  OK    klasifikátor je pojmenovaná funkce (dá se volat a měnit zvlášť)
+── 1) ZDRAVÝ ZDROJ — tři fixturové brány s `exit=2` ──────────────────
+  OK    fixtura: kopie `g3` vznikla a má fixturové BRANY
+      g3 na fixtuře: exit=0
+      |   exit=2   fixtura: exit=2 s VLASTNIM hlasenim otevřela: — (brána nemá čítač)
+      |   exit=2   fixtura: exit=2 BEZ vystupu  otevřela: — (brána nemá čítač)
+      |   exit=2   fixtura: neexistujici soubor otevřela: — (brána nemá čítač)
+      | plný výstup: g3-brany-vystup.txt (866 znaků)
+      | ⚠ BRÁNY, KTERÉ VŮBEC NEZAČALY (2) — jejich `exit` NENÍ výsledek:
+      |    fixtura: exit=2 BEZ vystupu  (exit=2, žádný čítač a výstup bez vlastního hlášení (0 B))
+      |    fixtura: neexistujici soubor  (exit=2, žádný čítač a výstup bez vlastního hlášení (193 B))
+  OK    fixtura: `g3` vykázal 3 brány
+      nezačaly podle g3: ['fixtura: exit=2 BEZ vystupu', 'fixtura: neexistujici soubor']
+  OK    falešný poplach JE OPRAVEN: brána s vlastním hlášením NENÍ mezi nezačatými
+  OK    a přesto: neexistující soubor MEZI NEZAČATÝMI JE
+  OK    a brána s prázdným výstupem je tam taky (kritérium zadání)
+  OK    seznam nezačatých má právě 2 položky (ne 3 — to byl H71)
+
+── 2) MUTACE: vrácena původní podmínka `len(v) < 500` ────────────────
+  OK    mutace se provedla v TEXTU (nová podmínka v mutantu není)
+  OK    a měřená podmínka se vrátila (stará je v mutantu 1×)
+  OK    mutant je na disku a liší se od zdravé kopie
+      mutant: exit=0, nezačaly: ['fixtura: exit=2 s VLASTNIM hlasenim', 'fixtura: exit=2 BEZ vystupu', 'fixtura: neexistujici soubor']
+  OK    MUTACE: brána s vlastním hlášením SE OBAVÍ mezi nezačatými (to je přesně H71 — test by ZČERVENAL)
+  OK    MUTACE: seznam nezačatých má 3 položky místo 2
+  OK    fixtura uklizena (živý `g3` ani jeho výstup se nedotkly)
+
+============================================================================================
+VÝSLEDEK: 15 kontrol, 0 chyb
+H71 JE OPRAVENO A DOKÁZÁNO: běžící brána se nezařadí mezi nezačaté a chybějící soubor se zařadí.
+
+==============================================================================
+### verify-setup seznam+čítač (H72/H73)   (exit=0)
+==============================================================================
+============================================================================================
+NÁLEZY H72 + H73 — odvozuje brána seznam z `AGENTS.md` a počítá VŠE?
+============================================================================================
+  brána   = E:\Workspaces\forge-orchestra\tools\verify-setup.py
+  STANICE = C:\Users\Ssevc\Local-Deepseek
+  fixtura = E:\Workspaces\forge-orchestra\_analyza\fixtura-h72  (vzniká a uklidí se, do živé stanice se nesahá)
+
+── 0) Seznam dokumentů/nástrojů se čte Z VÝSTUPU brány ─────────────────
+  OK    brána nad ŽIVOU stanicí: exit 0 (je 0)
+  OK    výstup brány vykazuje ODVOZENÝ seznam dokumentů i nástrojů
+      dokumenty odvozené bránou: 12 → ['README.md', 'POZOR-E-DSH-NEMAZAT.md', 'ANALYZA-EFEKTIVITY-DSH.md', 'DEPLOY-VYLEPSENI.md', 'RESEARCH-public-repos.md', 'ANALYZA-VYVOJ-APLIKACI-A-HER.md', 'ZADANI-CREATOR-INDIKATORY.md', 'MOZNOSTI-AGENTA.md', 'OTEVRENA-TEMATA.md', 'PREDAVANI-SESSION.md', 'token-saving-tools-dsh-evaluation.md', 'sdxl-comfyui-2d-game-assets-research.md']
+      nástroje  odvozené bránou: 5 → ['dsh-plugins', 'dsh-consolidation', 'ollama', 'router', 'obrazky']
+  OK    brána odvodila aspoň 12 dokumentů (dřív RUČNÍCH 6) — je 12
+  OK    brána odvodila aspoň 5 nástrojů — je 5
+  OK    mezi odvozenými dokumenty je i ten, který RUČNÍ seznam nehlídal (`ANALYZA-EFEKTIVITY-DSH.md`)
+      čítač na živé stanici: 74 kontrol, 0 chyb
+
+── 1) ZDRAVÁ FIXTURA: všechny deklarované položky existují ────────────
+  OK    zdravá fixtura: exit 0 (je 0)
+  OK    zdravá fixtura: vykázaný čítač (74 kontrol, 0 chyb)
+
+── 2) DEKLAROVANÝ DOKUMENT ODEBRÁN ───────────────────────────────────
+  OK    po odebrání `POZOR-E-DSH-NEMAZAT.md`: exit 1 (je 1)
+  OK    brána to POJMENUJE (`CHYBI stanice/POZOR-E-DSH-NEMAZAT.md`)
+
+── 3) VZOR V DEKLARACI BEZ SHODY (nesmí být ticho) ───────────────────
+  OK    mezi odvozenými dokumenty je rozvinutý vzor `token-saving-*.md`
+  OK    vzor `token-saving-*.md` bez souboru → exit 1 (je 1)
+  OK    brána to ŘEKNE („vzor bez souboru“)
+
+── 4) `AGENTS.md` NEMÁ řádek „dokumenty STANICE“ ─────────────────────
+  OK    fixtura: řádek „dokumenty STANICE“ je z `AGENTS.md` odebrán
+  OK    chybějící řádek → exit 1 (je 1)
+  OK    brána to ŘEKNE („dokumenty STANICE“ v chybě)
+  OK    a NENÍ to náhodou kvůli chybějícímu souboru na disku
+
+── 5) řádek JE, ale seznam je PRÁZDNÝ ────────────────────────────────
+  OK    fixtura: buňka se seznamem je nahrazena pomlčkou
+  OK    prázdný seznam → exit 1 (je 1)
+
+── 6) H73: rozbitý dokument v §6 NESMÍ ZVÝŠIT vykázaný počet kontrol ─
+      zdravá: 74 kontrol / 0 chyb   ·   rozbitá: 74 kontrol / 1 chyb
+  OK    rozbitý dokument: exit 1 (je 1)
+  OK    rozbitý dokument: `chyb` se zvýší (kontrola opravdu proběhla)
+  OK    H73: vykázaný POČET KONTROL se přitom NEZMĚNÍ (dřív 49 → 50, protože úspěch se nepočítal)
+
+── 7) MUTACE živé brány (záloha → změna → běh → návrat) ──────────────
+  OK    M1 (H72): kontrola odvození vypnuta: kotva je v bráně 1× (je 1×)
+  OK    M1 (H72): kontrola odvození vypnuta: mutace se propsala NA DISK
+  OK    M1 (H72): kontrola odvození vypnuta: měřená PODMÍNKA přestala platit
+  OK    M1 (H72): kontrola odvození vypnuta: chybějící řádek projde jako exit=0 (je 0) — test by ZČERVENAL
+  OK    M1 (H72): kontrola odvození vypnuta: brána vrácena bajt na bajt (sha 4c7251b36b7042e6)
+  OK    M2 (H73): úspěch v §6 se nepočítá: kotva je v bráně 1× (je 1×)
+  OK    M2 (H73): úspěch v §6 se nepočítá: mutace se propsala NA DISK
+  OK    M2 (H73): úspěch v §6 se nepočítá: měřená PODMÍNKA přestala platit
+      s mutací: zdravá 66 kontrol, rozbitá 67 kontrol
+  OK    M2 (H73): úspěch v §6 se nepočítá: počet kontrol SKOČÍ o 1 (správně 0) — test by ZČERVENAL
+  OK    M2 (H73): úspěch v §6 se nepočítá: brána vrácena bajt na bajt (sha 4c7251b36b7042e6)
+  OK    M3 (H72): vzor bez shody se nehlásí: kotva je v bráně 1× (je 1×)
+  OK    M3 (H72): vzor bez shody se nehlásí: mutace se propsala NA DISK
+  OK    M3 (H72): vzor bez shody se nehlásí: měřená PODMÍNKA přestala platit
+  OK    M3 (H72): vzor bez shody se nehlásí: zestárlý vzor projde jako exit=0 (je 0) — test by ZČERVENAL
+  OK    M3 (H72): vzor bez shody se nehlásí: brána vrácena bajt na bajt (sha 4c7251b36b7042e6)
+  OK    po návratu: chybějící řádek znovu dá exit 1 (brána měří)
+  OK    fixtura uklizena (v repu nezůstal žádný soubor navíc)
+
+============================================================================================
+VÝSLEDEK: 38 kontrol, 0 chyb
+H72 i H73 JSOU OPRAVENÉ A DOKÁZANÉ (fixtura + tři mutace).
