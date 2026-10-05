@@ -61,6 +61,27 @@ HRA = WS.parent / "uo-shadows"
 KOREN_REPA = {"orchestra": WS, "games/uo-shadows": HRA}
 GIT = WS / "tools" / "git.cmd"
 
+# ── CO SE Z MERENI VYLUCUJE (nález H52) ──────────────────────────────────────
+# Vzor se testuje na relativni ceste s DOPREDNYMI lomítky.
+# Vylučuji se jen CIZI STROMY, CACHE, ARCHIV (záznam) a MEZIVYSTUPY SKENERU —
+# nikdy „nepohodlný" živý kód: kdyby se vylučoval kód, brána by byla slepá
+# přesně tam, kvůli čemu existuje.
+ARTEFAKT_RE = re.compile(
+    r"(^|/)("
+    r"_analyza/_archiv/|_analyza/zaloha|_analyza/_zaloha|"
+    r"_analyza/[^/]*-scratch/|_analyza/_scratch|_analyza/a-godot-user/|"
+    r"node_modules/|\.godot/|\.git/|"
+    r"_analyza/_[^/]*\.json$|_analyza/[^/]*-(vystup|zaloha|log)\.(txt|json)$|"
+    r"_analyza/_tokeny-vstup\.txt|_analyza/c2-mutace-zaloha\.json|"
+    r"_analyza/_g3-.*\.txt|"
+    r"\.tmp/|\.test/|\.npm-cache/|\.wrangler/"
+    r")"
+)
+# Kolik souboru bylo vylouceno a ktere NETRACKOVANE se merily — vypisuje se to
+# ve vysledku, aby bylo videt, CO brána videla (ticho neni zelená).
+VYLOUCENE: dict[str, list[str]] = {}
+NETRACKOVANE: dict[str, list[str]] = {}
+
 # „Neanglické" = obsahuje znak mimo ASCII. Tím se chytí diakritika i „–" nebo "„".
 def neascii(s: str) -> bool:
     return any(ord(c) > 127 for c in s)
@@ -85,11 +106,54 @@ RIZIKO_KONTEXT = {
 
 
 def soubory(repo: str) -> list[str]:
-    r = subprocess.run([str(GIT), "-C", str(KOREN_REPA[repo]), "ls-files"],
+    """Soubory ke skenu: **TRACKOVANÉ I NETRACKOVANÉ** (mínus artefakty).
+
+    ⚠ NÁLEZ H52 (naměřeno 4. 10. 2026, P13c): do téhle chvíle se bralo POUZE
+    `git ls-files`, takže **necommitnutý nový kód byl pro jazykovou bránu
+    NEVIDITELNÝ**. Doloženo: dočasný soubor s `def změř(...)` v kořeni repa dal
+    **0 nálezů** — v inventáři se neobjevil vůbec.
+
+    Proč je to vada a ne vlastnost: `hl-rizika-jazyka.py` se používá jako
+    **brána před commitem** (`g3`, `validate-all`) — jenže **to, co se má
+    zkontrolovat, bývá právě to necommitnuté**. Brána, která kontroluje jen to,
+    co už je v gitu, **nemůže zabránit commitnutí vady**. Naměřeno na vlastním
+    omylu: `def změř` našla brána **až poté, co byl soubor v gitu**.
+
+    Co se vylučuje a PROČ (jinak by brána hlásila vady na datech):
+      * `_analyza/_archiv/**` a `_analyza/zaloha*/**` — archivované nástroje
+        a ZÁLOHY; jsou to **záznamy**, ne živý kód (a archiv je gitignorovaný, D3),
+      * `node_modules/**`, `_analyza/*-scratch/**`, `.godot/**` — cizí stromy
+        a cache,
+      * `_analyza/_*.json` — **mezivýstupy skeneru** (`_inventar.json`,
+        `_tokeny.json`) a sondy; obsahují nálezy **jako data**.
+    Vylučování se **vypíše** (`VYLOUČENO`) — tiché vynechání by vypadalo jako
+    změřená nula (`overovani` §2.3).
+    """
+    cesta = KOREN_REPA[repo]
+    r = subprocess.run([str(GIT), "-C", str(cesta), "ls-files"],
                        capture_output=True, text=True, encoding="utf-8")
     if r.returncode != 0:
         raise SystemExit(f"CHYBA: git ls-files v {repo} selhalo: {r.stderr.strip()}")
-    return r.stdout.splitlines()
+    trackovane = set(r.stdout.splitlines())
+    # `--others --exclude-standard`: co git NESLEDUJE a co zároveň není
+    # v `.gitignore`. Tím se do skenu dostane právě to, co ještě není commitnuté.
+    r2 = subprocess.run([str(GIT), "-C", str(cesta), "ls-files",
+                         "--others", "--exclude-standard"],
+                        capture_output=True, text=True, encoding="utf-8")
+    if r2.returncode != 0:
+        raise SystemExit(f"CHYBA: git ls-files --others v {repo} selhalo: {r2.stderr.strip()}")
+    netrackovane = set(r2.stdout.splitlines())
+
+    vsechny = sorted(trackovane | netrackovane)
+    vracene, vyloucene = [], []
+    for f in vsechny:
+        if ARTEFAKT_RE.search(f.replace("\\", "/")):
+            vyloucene.append(f)
+        else:
+            vracene.append(f)
+    VYLOUCENE[repo] = vyloucene
+    NETRACKOVANE[repo] = sorted(netrackovane - set(vyloucene))
+    return vracene
 
 
 def obsahovy_otisk(seznamy: dict[str, list[str]]) -> dict:
@@ -107,9 +171,29 @@ def obsahovy_otisk(seznamy: dict[str, list[str]]) -> dict:
     """
     zaznamy = []
     otisk = hashlib.sha256()
+    vynechane = []
     for repo in sorted(seznamy):
         relativni = []
         for f in sorted(seznamy[repo]):
+            # ⚠ P13c (4. 10. 2026) — SAMOODKAZ MĚŘIDLA. Inventář
+            # (`_analyza/_inventar.json`) byl do otisku vstupů zahrnutý, i když
+            # ho **generuje tenhle skener sám**. Důsledek naměřený v praxi:
+            # `--json _analyza/_inventar.json` zapsalo inventář → otisk se změnil
+            # → hned následující `hl-rizika-jazyka.py` ohlásil „INVENTÁŘ JE
+            # ZASTARALÝ“ (a `n1-over-inventar` spadl s „brána neprojde ani ve
+            # zdravém stavu“). Měřidlo, které měří samo sebe, hlásí rozchod vždy.
+            # Vylučuje se proto z OTISKU, ale v seznamu souborů zůstává —
+            # a je vidět, že se vynechal (`otisk_vynechane`).
+            if (f.endswith("_analyza/_inventar.json")
+                    or f.endswith("_analyza/_tokeny-vstup.txt")
+                    # ⚠ P13c-b: LOGY Z BĚHŮ BRAN. `g3-brany.py` si píše plný
+                    # výstup a ten se mění **při každém běhu** — když byl
+                    # v otisku, hlásil `hl-rizika-jazyka.py` „zastaralý inventář"
+                    # po každém přehledu bran. Je to **artefakt**, ne kód.
+                    or f.endswith("_analyza/g3-brany-vystup.txt")
+                    or "/_analyza/_g3-" in f):
+                vynechane.append(f)
+                continue
             p = KOREN_REPA[repo] / f
             if not p.is_file():
                 continue
@@ -121,7 +205,8 @@ def obsahovy_otisk(seznamy: dict[str, list[str]]) -> dict:
             otisk.update(f"{z['cesta']}|{z['bajtu']}|{z['sha256']}\n".encode("utf-8"))
         zaznamy.append({"repo": repo, "souboru": len(relativni), "soubory": relativni})
     return {"verze": 1, "sha256": otisk.hexdigest(),
-            "souboru": sum(z["souboru"] for z in zaznamy), "repozitare": zaznamy}
+            "souboru": sum(z["souboru"] for z in zaznamy), "repozitare": zaznamy,
+            "otisk_vynechane": vynechane}
 
 
 # Klíče, jejichž HODNOTA je strojově čitelná (stav, výsledek, druh) – na těch
@@ -143,11 +228,30 @@ def _je_strojova_hodnota(klic: ast.AST | None) -> bool:
 
 # ─────────────────────────── Python: AST ──────────────────────────────────────
 def python_nalezy(text: str, soubor: str) -> tuple[list[dict], str | None]:
+    # ⚠ H79 (P14, 5. 10. 2026): `ast.parse(text)` BEZ `filename` hlásí varování
+    # jako `<unknown>:21` — **bez jména souboru**. Naměřeno: tři `SyntaxWarning:
+    # invalid escape sequence` se nedaly dohledat. S `filename` je varování
+    # trasovatelné (`soubor:řádek`), a to je celý rozdíl mezi „někde to je"
+    # a „tady to je".
     try:
-        strom = ast.parse(text)
+        strom = ast.parse(text, filename=soubor)
     except SyntaxError as e:
+        # ⚠ P13c (4. 10. 2026): `utf-8-sig` BOM ODSTRAŇUJE, ale soubor, který ho
+        # má UVNITŘ (nebo ho `read_text` vrátí jako znak), spadne na
+        # `SyntaxError: invalid non-printable character U+FEFF (řádek 1)`.
+        # Naměřeno: `_analyza/p8e-najdi-nedoresene.py` → celý soubor
+        # v NEPOKRYTO. Zkusit znovu bez BOM je levné a je to táž informace.
+        if "\ufeff" in text:
+            try:
+                strom = ast.parse(text.replace("\ufeff", ""), filename=soubor)
+                return python_nalezy_ze_stromu(strom, soubor)
+            except SyntaxError:
+                pass
         return [], f"SyntaxError: {e.msg} (řádek {e.lineno})"
+    return python_nalezy_ze_stromu(strom, soubor)
 
+
+def python_nalezy_ze_stromu(strom, soubor: str) -> tuple[list[dict], str | None]:
     tres = []
     for uzel in ast.walk(strom):
         if isinstance(uzel, ast.Compare):
@@ -634,7 +738,15 @@ for repo in REPA:
         if prip not in PRIPONY:
             continue
         try:
-            text = p.read_text(encoding="utf-8")
+            text = p.read_text(encoding="utf-8-sig")
+        except UnicodeDecodeError:
+            # Některé soubory nejsou UTF-8 (naměřeno: `_analyza/p8e-*.py` má BOM
+            # a Windows-1250 uvnitř). Zkusit cp1252 je lepší než soubor vzdát.
+            try:
+                text = p.read_text(encoding="cp1252")
+            except Exception as e:
+                nepokryto.append((klic, "nejde přečíst", str(e)[:60]))
+                continue
         except Exception as e:
             nepokryto.append((klic, "nejde přečíst", str(e)[:60]))
             continue
@@ -654,6 +766,11 @@ if "--json" in sys.argv:
     cil = sys.argv[sys.argv.index("--json") + 1] if len(sys.argv) > sys.argv.index("--json") + 1 else None
     data = {"nalezy": vsechny, "nepokryto": nepokryto,
             "souboru_zpracovano": len(zpracovano),
+            # NÁLEZ H52: i v datech musí být vidět, že skener měří NETRACKOVANÉ
+            # soubory a co vyloučil. Kdo čte jen JSON, nesmí dostat dojem, že
+            # inventář pokrývá jen git.
+            "netrackovane": {r: s for r, s in NETRACKOVANE.items() if s},
+            "vyloucene_artefakty": {r: len(s) for r, s in VYLOUCENE.items()},
             "otisk_vstupu": obsahovy_otisk(seznamy)}
     if cil:
         pathlib.Path(cil).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -666,6 +783,24 @@ print("═" * 84)
 print("INVENTÁŘ NEANGLICKÝCH TEXTŮ V KÓDU")
 print("═" * 84)
 print(f"  souborů zpracováno:  {len(zpracovano)}")
+# ⚠ NÁLEZ H52: MUSÍ BÝT VIDĚT, ŽE SKENER VIDÍ I NETRACKOVANÉ SOUBORY.
+# Do 4. 10. 2026 se četlo jen `git ls-files` a necommitnutý kód byl neviditelný.
+_tr = sum(len(v) for v in NETRACKOVANE.values())
+print(f"  z toho NETRACKOVANÝCH: {_tr}"
+      f"   ← soubory, které ještě nejsou v gitu (dřív je skener NEVIDĚL)")
+for repo, sez in sorted(NETRACKOVANE.items()):
+    if sez:
+        print(f"      {repo}: {len(sez)}")
+        for f in sez[:8]:
+            print(f"        {f}")
+        if len(sez) > 8:
+            print(f"        … a dalších {len(sez) - 8}")
+_vy = sum(len(v) for v in VYLOUCENE.values())
+print(f"  VYLOUČENO (artefakty): {_vy}"
+      f"   ← archiv, zálohy, cache a mezivýstupy skeneru (nejsou to vady)")
+for repo, sez in sorted(VYLOUCENE.items()):
+    if sez:
+        print(f"      {repo}: {len(sez)}")
 print(f"  nálezů celkem:       {len(vsechny)}")
 print(f"  NEPOKRYTO:           {len(nepokryto)}   ← když je to >0, inventář NENÍ úplný")
 print()

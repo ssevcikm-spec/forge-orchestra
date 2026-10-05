@@ -137,6 +137,26 @@ co je vázané na tento projekt:
 | Diakritika v `.md` orchestra | 2 533 znaků ze 44 781 = **5,7 %** | **536 623 ze 7 476 476 = 7,2 %** | ⚠ **změna rozsahu** — `.md` se commitovaly (3a2e691) a přesunuly; **poměr zůstal**, jev je týž |
 | Čeština jako IDENTIFIKÁTOR | **10 míst** | **0** (přejmenováno Z1–Z8) | ✅ vyřešeno |
 
+> **⚠ TŘETÍ MĚŘENÍ — 4. 10. 2026 (P13c, po opravě měřidla):** skener měřil
+> **jen soubory z gitu** (`git ls-files`), takže **necommitnutý nový kód pro
+> jazykovou bránu NEEXISTOVAL** — a to je přesně ten kód, který se má před
+> commitem zkontrolovat (nález **H52**). Navíc načetl **jen 205 z 1008** souborů,
+> protože rozbitý `require` v `js-tokeny.mjs` hledal TypeScript ve **starém
+> layoutu** → **68 JS/TS souborů** (včetně `conductor/src/index.ts`) skončilo
+> v NEPOKRYTO. Dnešní naměřený stav:
+>
+> | Veličina | Hodnota |
+> |---|---|
+> | souborů zpracováno | **274** (z toho **14 NETRACKOVANÝCH** — dřív neviditelné) |
+> | vyloučeno vzorem artefaktů | **11** (archiv, zálohy, cache, mezivýstupy skeneru) |
+> | NEPOKRYTO | **0** (dřív 69) |
+> | nálezů v inventáři | 5 504 |
+> | **SKUTEČNÉ NÁLEZY identifikátorů** | **0** (13 textových/porovnávaných literálů je správně česky) |
+>
+> **Co z toho plyne pro pravidlo:** brána, která čte jen git, **nemůže zabránit
+> commitnutí vady** — nový soubor je pro ni neviditelný, dokud ho někdo
+> necommitne. Kontrola se proto dělá **před** commitem a čte i netrackované.
+
 **Naměřené příklady (každý z kódu, ne z dojmu):**
 
 > **⚠ DATUM SPOTŘEBY (doplněno 2. 10. 2026):** příklady níž jsou **naměřené

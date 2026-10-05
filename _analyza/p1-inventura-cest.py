@@ -6,7 +6,12 @@ import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
 _HRA = _REPO.parent / "uo-shadows"
-"""P1 — INVENTURA ABSOLUTNICH CEST PO SOUBORECH (ne po vyskutech).
+# ⚠ H79 (5. 10. 2026): řetězec je odsud RAW (`r"""`). Obsahuje `_analyza\`,
+# `orchestra\` atd. — v NERAW literálu to byly **neplatné escape sekvence**
+# (`SyntaxWarning: invalid escape sequence '\`'`), které příští verze Pythonu
+# udělá chybou. Raw string **obsah nemění** (ověřeno testem `test-h79-escape.py`
+# proti `git show HEAD:` — parsované konstanty jsou bajt na bajt shodné).
+r"""P1 — INVENTURA ABSOLUTNICH CEST PO SOUBORECH (ne po vyskutech).
 
 PROC TO EXISTUJE: `sken-cest-celek.py` pocita VYSKYTY (208), ale prace se dela
 po SOUBORECH. Plan (PLAN-SEPARACE-WORKSPACE.md §10.2b) nameril **176 souboru**:

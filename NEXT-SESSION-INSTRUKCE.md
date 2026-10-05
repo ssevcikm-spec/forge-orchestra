@@ -1,191 +1,159 @@
-# ZADÁNÍ PRO AKČNÍ SESSION — opravit, co ověření přesunu našlo
+# ZADÁNÍ PRO OVĚŘOVACÍ SESSION — přeměřit opravy P15 JINÝM měřidlem
 
-**Zkontrolováno při:** `dbe4e4e` („P13: ověření přesunu na E: — HANDOFF §30, nálezy H48–H56, omyly 138–143")
-**Zapsáno:** 4. 10. 2026, plánovací (ověřovací) session
-**Stav obou repů při psaní:** `forge-orchestra` = `dbe4e4e` (strom čistý) · `uo-shadows` = `869dce8` (strom čistý)
-**Pushnuto:** **NE** — `origin/main..HEAD = 7` (orchestra) a **1** (hra). Push **jen na vyžádání**.
-**Co je v `HANDOFF.md`:** **§30 = OVĚŘENÍ PŘESUNU** (výsledky, nálezy H48–H56, omyly **138–143**) · §29 = záznam akční session · §2 = co je otevřené
-**Co je v `KRONIKA-PROJEKTU.md`:** řádek **26** (ověření) · nálezy **H48–H56** v §2 · rozhodnuté návrhy **NA24–NA26** v §6
-**Co tenhle dokument JE:** **zadání pro AKČNÍ session**, které má **opravit vady nalezené ověřením** přesunu na `E:`.
+**Zkontrolováno při:** `c620a06` („P13b: doplnen omyl 143 a hlavicka zadani na dbe4e4e")
+**Zapsáno:** 5. 10. 2026, **konec 22:1x +02:00 = 20:1x UTC**, akční session **P15** (plný záznam: `HANDOFF.md` **§33**, omyly **§8u**)
+**Stav obou repů při psaní:** `forge-orchestra` = `c620a06` (**114 změněných/nových souborů, NEcommitnuto**; z toho **50 netrackovaných**) · `uo-shadows` = `869dce8` (strom čistý)
+**Pushnuto:** **NE** — `origin/main..HEAD` = **8** (orchestra) a **1** (hra). Push **jen na vyžádání**.
+**Co je v `HANDOFF.md`:** **§33 = P15** (Úkoly A–I, nálezy **H80–H82**, vlastní omyly **156–159**) · §32 = P14 · §31 = P13c · §2 = co je otevřené
+**Co je v `KRONIKA-PROJEKTU.md`:** řádek **29** (P15) · nálezy **H80–H82** v §2.9 · blok omylů **8u** · návrhy **NA27–NA30** (všechny `APLIKOVÁNO`)
+**Co tenhle dokument JE:** **zadání pro OVĚŘOVACÍ session** — akční session skončila,
+**5 vad měřidel opravila a každou doložila testem**; tenhle dokument má ty důkazy
+**přeměřit nezávisle**.
+**Datum spotřeby:** všechny údaje o stavu níž jsou **k 5. 10. 2026, 20:1x UTC**;
+co je starší, je v `HANDOFF.md` §33 a je to **záznam**, ne stav.
 
-> **⚠ Hlavička zadání je ZÁMĚRNĚ přepsaná celá.** Předchozí verze tvrdila `c3ee946`
-> a byla **zastaralá** (HEAD se mezitím posunul o 2 commity) — a nástroj
-> `_analyza/zadani-kontrola.py`, který to má hlídat, je **slepý na orchestra**
-> (nález **H53**). Proto se hlavička odteď měří, ne odhaduje.
+> **⚠ PROČ OVĚŘOVACÍ A NE AKČNÍ:** P15 opravila **měřidla** — a u měřidel platí
+> `AGENTS.md` („autor není nezávislý reviewer") **dvojnásob**: testy, které
+> opravu dokazují, **napsal autor opravy**. Přesně tuhle chybu řešila P14
+> u P13c a je to důvod, proč existuje **§9.7 skillu `overovani`** („oprava
+> měřidla má taky slepá místa — a nikdo je neměří").
 >
-> **⚠ A pozor na zdánlivý rozchod:** `dbe4e4e` je commit, kterým se tahle session
-> **zapsala** — takže **živý HEAD bude o 1–2 commity napřed** (další commit
-> vznikne zápisem téhle hlavičky). **Není to zastaralé zadání** — je to táž past
-> jako „dvě měření v různých časech" (`overovani` §7.7). Kdo se ptá na shodu
-> hlavičky a HEAD, musí **odečíst commity vlastního zápisu**.
+> **⚠ A DRUHÁ VĚTA, KTERÁ PLATÍ PRO TEBE:** **co najdeš, NEOPRAVUJ.**
+> P14 to udělala správně a je to zapsané: *„opravovat měřidlo, které právě
+> ověřuji, je chyba, kvůli které tahle session vznikla."* Nález **zapiš**
+> a **nech ho** na akční session — a to i kdyby šel opravit jedním znakem.
 
 ---
 
-## 0. Co je hotové a co NE (stav po ověření)
+## 0. Co P15 TVRDÍ (a co z toho musíš přeměřit)
 
-Ověření **potvrdilo jádro přesunu**: data jsou na místě, historie nedotčená,
-žádná junctiona, archiv gitignorovaný, `.secrets` v gitu není, `hra.cmd`
-funguje bez `FORGE_GODOT` (spuštěno, Godot naběhl).
-
-**Ale našlo čtyři vady, které přesun zanechal — a všechny jsou v MĚŘIDLE, ne v datech.**
-To je konzistentní se vzorem projektu (76 % omylů vzniká v měřidle):
-
-| # | Vada | Nález |
+| # | Co P15 tvrdí | Čím to tvrdí (JEJÍ měřidlo — nevěř mu) |
 |---|---|---|
-| 1 | **`_analyza/g3-brany.py` spouští 15 z 29 bran po STARÝCH cestách** → ty brány **vůbec neběží** a `exit=2` se čte jako „červená" | **H48** |
-| 2 | **`tools/test-gitignore-tajemstvi.py` je po přesunu ROZBITÝ** (`STANICE` nedefinovaná → `NameError`) a **žádná brána ho nespouští** | **H49** |
-| 3 | **`tools/verify-setup.py` má pevnou cestu na starý kořen** → hlásí 6× CHYBI; **také ho nic nespouští** | **H50** |
-| 4 | **`_analyza/zadani-kontrola.py` je SLEPÝ na orchestra** (hledá klíč `orchestra`, repo se jmenuje `forge-orchestra`) | **H53** |
+| **A** | `zadani-kontrola.py` měl vadu H70 **DVAKRÁT** (ř. 196 **a 210**), obojí opraveno a větev se **ZAVOLÁ** | `_analyza/test-h70-vetev.py` → **18 kontrol, 0 chyb** |
+| **B** | `verify-setup.py` **odvozuje** seznamy z `AGENTS.md` (12 dokumentů + 5 nástrojů) a čítač je **74** (= opravdu provedené kontroly) | `_analyza/test-h72-h73.py` → **38 kontrol, 0 chyb** |
+| **C** | `g3` klasifikuje „nezačala" **podle obsahu** (`je_neotevrena()`), ne podle délky výstupu | `_analyza/test-h71-klasifikator.py` → **15 kontrol, 0 chyb** |
+| **D** | `_analyza/` má **0** neplatných escape sekvencí a `ast.parse` dostává `filename` | `_analyza/h79-escape-sken.py` → **0**; `test-h79-escape.py` → **18/0** |
+| **E** | `g3` má teď **34 bran**, 0 nedosazených, 0 nezačatých, 0 nenulových exitů | `python _analyza\g3-brany.py` |
+| **F** | `_archiv` je zálohovaný: **347 souborů / 1,58 MB**, každý se shodným SHA-256 | `python _analyza\zalohuj-archiv.py` |
+| **G** | záznamy (H74–H77) jsou doplněné **jen PŘIDÁNÍM** | `git diff` |
 
-**A jeden nález o pokrytí, který je důležitější než všechny čtyři:**
-
-| # | Vada | Nález |
-|---|---|---|
-| 5 | **Skener `hl-neanglicky-v-kodu.py` čte JEN soubory z gitu** (`git ls-files`) → **necommitnutý nový kód je pro jazykovou bránu neviditelný** | **H52** |
+**Tvůj úkol není tato tabulka přečíst. Tvůj úkol je NAPADNOUT ji** — a to
+**jiným postupem**, než kterým vznikla.
 
 ---
 
 ## 1. Cíl (jedna věta)
 
-**Opravit pět měřidel rozbitých přesunem — a každou opravu doložit mutačním
-testem, protože u čtyř z pěti jde právě o to, že brána tiše neměří.**
+**Přeměřit všech sedm tvrzení z §33 vlastním měřidlem, spustit všech 34 bran
+SAMOSTATNĚ (ne jen přes `g3`), ověřit, že záloha `_archiv` jde použít, a každý
+rozchod zapsat jako nález — aniž bys cokoli opravil.**
 
 ---
 
-## 2. Úkoly (v tomto pořadí — první je nejdůležitější)
+## 2. Úkoly (v tomto pořadí)
 
-### 2.1 Úkol A — `g3-brany.py`: 15 bran neběží (nález H48)
+### 2.1 Úkol A — NAPIŠ SI VLASTNÍ MĚŘIDLA (ne `python _analyza\test-h*.py`)
 
-**Naměřeno:** `WS = pathlib.Path(__file__).resolve().parent.parent` = **kořen repa**
-(`E:\Workspaces\forge-orchestra`), ale seznam `BRANY` má **11 literálů starých cest**:
+**Pro každou z pěti oprav napiš jiný test, než jaký má P15.** Pouštět cizí test
+a opsat „0 chyb" **není měření** — je to čtení cizího tvrzení. Konkrétně:
 
-```
-["python", "orchestra/tools/kontrola-diakritiky.py"]      <- orchestra/ uz neexistuje
-["python", "orchestra/repo/.forge/check-schema.py", "games/uo-shadows"]
-GODOT = WS / "orchestra" / "tools" / "godot" / "...console.exe"   <- Godot je v E:\Tools\godot
-zdroj_godot = WS / "games" / "uo-shadows" / ".godot"              <- hra je sourozenec
-```
+- **A1 (H70).** Ověř **vlastní** reprodukcí, že brána s neznámým jménem repa
+  **vypíše hlášení** a **nespadne na `ValueError`**. Použij **jiný** než můj
+  postup (např. `--soubor` s fixturou vyrobenou ve **svém** adresáři, nebo
+  spuštění s hlavičkou opsanou z `HANDOFF.md` §32.5). **A hlavně:** ověř
+  **vlastním plošným skenem** (Python walk, **ne `grep`** — `dsh-prostredi` §1),
+  že v celém stromě **není ani jeden** další `for j, _ in zivy` nad slovníkem.
+  P15 tvrdí, že byly **dva**; **když jich najdeš víc, je to nález H80 rozšířený.**
+- **A2 (H71).** Ověř klasifikátor **z druhé strany**: vyrob **svou** bránu, která
+  skončí `exit=2` s **krátkým vlastním hlášením**, a dokaž, že ji `g3`
+  **nezařadí** mezi nezačaté — a že **neexistující soubor zařadí**. Můžeš použít
+  `_analyza/p14b-exity.py` (spouští brány samostatně), ale **musíš se ptát,
+  jestli měří totéž** (`overovani` §10.5).
+- **A3 (H72/H73).** Ověř **AST parserem**, že v `tools/verify-setup.py`
+  **nejsou** literály `DOKUMENTY_STANICE = [...]` / `SLOZKY_STANICE = [...]`
+  a že se oba seznamy **skutečně čtou** z `AGENTS.md`. **A ověř čítač:** rozbit
+  dokument, který jde přes §6, a dokaž, že se **vykázaný počet kontrol NEZMĚNÍ**
+  (to je celý H73). **Pozor:** `ZMĚŘENO: N kontrol` musí být **N** i tehdy, když
+  kontrola **projde** — zkuste to ověřit **bez** mého testu.
+- **A4 (H79).** `python -W error::SyntaxWarning` nad **oběma repy** → **0**.
+  A ověř, že **obsah** těch řetězců je proti `git show HEAD:` **shodný**
+  (raw string nesmí změnit jediný znak).
+- **A5 (H80–H82).** Ověř, že P15 zapsala **správná čísla**: H80 (dva výskyty),
+  H81 (popisek „prošly" u `exit=2` v `g3`), H82 (buňka `tento koren (*.md)`
+  má backtick).
 
-**Důkaz, že brány neběží** (ne že jsou červené):
-```
-### diakritika (brána)   (exit=2)
-python: can't open file 'E:\Workspaces\forge-orchestra\orchestra\tools\kontrola-diakritiky.py':
-[Errno 2] No such file or directory
-```
+### 2.2 Úkol B — SPUSŤ VŠECH 34 BRAN SAMOSTATNĚ (ne jen přes `g3`)
 
-**Co ověřit v `g3-brany-vystup.txt`: 15 sekcí `exit=2` s `can't open file`.**
+`g3` je **PŘEHLED, ne brána** (NA23b) a **P15 ho sama přepsala** (přidala 4 brány
+a změnila klasifikátor). Kdo se měří sám, **nemá důkaz**. Proto:
 
-**Jak opravit:** cesty **odvodit** (`WS / "tools" / ...`), ne přepsat na novou
-absolutní — jinak se vada vrátí při dalším přesunu (to je celý princip P8):
+1. **vytáhni seznam `BRANY` z `g3` AST parserem**, ne čtením,
+2. **kaž­dou bránu spusť zvlášť** (vlastní `subprocess`, `cwd` = kořen repa),
+3. zapiš **exit kód** a **co brána vykázala** u každé,
+4. **hledej tři různé stavy** (`overovani` §7.13): měří / neměří (bez čítače) /
+   **neproběhlo (prostředí)** — a ten třetí **nesmíš** počítat jako červenou.
 
-| Starý literál | Správně |
+**Očekávané (P15):** 34 bran, **0 nenulových exitů**, 0 nedosazených záznamníků.
+**Když najdeš nenulový exit, první otázka je „je zastaralý inventář?"** —
+`python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json`
+(pravidlo **NA1**, nález **H60**). A **druhá** otázka: **proběhla ta brána vůbec?**
+
+### 2.3 Úkol C — PŘEMĚŘ ČÍSLA Z §33 (každé zvlášť a jinudy)
+
+| Tvrzení | Jak ho přeměřit **jinak** než P15 |
 |---|---|
-| `orchestra/tools/X` | `WS / "tools" / "X"` |
-| `orchestra/repo/.forge/X` | `WS / "repo" / ".forge" / "X"` |
-| `games/uo-shadows` | `WS.parent / "uo-shadows"` |
-| `WS / "orchestra" / "tools" / "godot"` | `E:\Tools\godot` (nebo `FORGE_GODOT`) |
-| `WS / "games" / "uo-shadows"` | `WS.parent / "uo-shadows"` |
+| `g3` má **34** bran | AST `BRANY` + počet sekcí v `_analyza/g3-brany-vystup.txt` |
+| `verify-setup` hlásí **74** kontrol | spustit a porovnat s **AST počtem** `zkontroluj(` volání, která se provedou — a **vysvětlit každý rozdíl** (P13c na tomhle jednou spadla: statická metrika ≠ běh) |
+| `_archiv` **347** souborů / 1,58 MB | spočítat **nezávisle** (`rglob`) a porovnat s `MANIFEST.json` |
+| `h79` **0** varování | vlastní sken `ast.parse(filename=…)` nad oběma repy |
+| `kronika` **154** omylů / 21 bloků | `_analyza/p14f-prepocet-kroniky.py` **a** `_analyza/kronika-kontrola.py` — a **řekni, který zdroj počítá co** (H18: tři čísla téhož jména) |
 
-**Hotovo znamená:** `g3` vypíše u **všech** bran reálný `exit` a `otevřela:` —
-a **počet bran s `can't open file` je 0**. Zapiš obě čísla (kolik bran, kolik
-jich neběželo před opravou a po ní).
+### 2.4 Úkol D — JE ZÁLOHA `_archiv` POUŽITELNÁ? (ne jen spočítaná)
 
-### 2.2 Úkol B — `test-gitignore-tajemstvi.py`: `NameError` (nález H49)
+**Tohle P15 neudělala a je to nejcennější úkol:** záloha, ze které se **nedá
+obnovit**, je horší než žádná, protože vypadá jako záloha.
 
-**Naměřeno spuštěním:**
-```
-File "E:\Workspaces\forge-orchestra\tools\test-gitignore-tajemstvi.py", line 43, in <module>
-  WS = pathlib.Path(STANICE)
-NameError: name 'STANICE' is not defined
-```
+1. `python _analyza\zalohuj-archiv.py --jen-kontrola` → musí hlásit shodu,
+2. **vyber 3 soubory z manifestu**, obnov je do **vlastního** adresáře
+   a porovnej **SHA-256 se zdrojem** i **se zálohou**,
+3. **řekni, co záloha NEUMÍ** (např. neumí obnovit smazaný soubor, když ho
+   v záloze nemá; nemá historii; je na témž stroji) — a napiš to jako **nález
+   nebo jako přiznanou mez**.
 
-Soubor má na řádku 5 `_PARENT = _pl.Path(__file__).resolve().parents[1]`
-(ta je **správně odvozená a nikde se nepoužívá**) a na řádku 43 `STANICE` —
-**která nikde definovaná není**. Původní kód měl `STANICE` z hlavičky, kterou
-P8 nahradil za `_PARENT`; **použití se přejmenovat zapomnělo.**
+### 2.5 Úkol E — JSOU ZÁZNAMY OPRAVDU JEN PŘIDANÉ?
 
-Navíc cesty níž jsou ještě ve **starém tvaru struktury**:
-```python
-GENERATOR = WS / "orchestra" / "install-into-repo.ps1"   # orchestra/ neexistuje
-HRA       = WS / "games" / "uo-shadows"                  # hra je sourozenec
-```
+`HANDOFF.md` **i** `KRONIKA-PROJEKTU.md` jsou **záznamy** — `AGENTS.md`:
+„co je záznam, se jen doplňuje". Ověř to **`git diff`**, ne dojmem:
 
-**Hotovo znamená:** `python tools\test-gitignore-tajemstvi.py` → **`VÝSLEDEK: N kontrol, 0 chyb`**
-s **nenulovým počtem kontrol** (vypiš to číslo — „0 kontrol, 0 chyb" není zelená).
+1. `git diff HEAD -- KRONIKA-PROJEKTU.md` → **jen přidání** (kromě celkem
+   přepočteného souhrnu — ten je **stav**, ne záznam; ověř, že k tomu došlo
+   **jen tam**),
+2. `git diff HEAD -- HANDOFF.md` → ověř, že **§31.7, §31.9 a řádek 27 kroniky
+   mají původní věty pořád na místě** (H75/H76/H77 se měly **doplnit**, ne
+   přepsat),
+3. `python _analyza\handoff-kontrola-uplnost.py` → **83/83**,
+4. `python _analyza\kronika-kontrola.py` → **exit 0**.
 
-### 2.3 Úkol C — `verify-setup.py`: pevná cesta na starý kořen (nález H50)
+**A ověř, že `NEXT-SESSION-INSTRUKCE.md` (tenhle soubor) není zastaralý:**
+`python _analyza\zadani-kontrola.py`.
 
-**Naměřeno spuštěním:** `W = r"C:\Users\Ssevc\Local-Deepseek"` a očekávané
-složky `orchestra`, `games`, `games/uo-shadows` → **`CHYBI`**; dále
-`HANDOFF.md`, `orchestra/README.md`, `.forge/roadmap.json` → **`No such file`**.
+### 2.6 Úkol F — PUSH (rozhodnutí je na uživateli)
 
-**Pozor, tenhle nástroj už byl jednou zapsaný jako otevřený bod:** `HANDOFF.md`
-§2.6 (N8) říká *„`verify-setup.py:11-12` vyžaduje 9 sourozeneckých složek —
-dnes `VSE OK`, ale po separaci by hlásil 6× CHYBI"*. **Po přesunu to nastalo** —
-a je to **poprvé, co se to proměřilo spuštěním**.
+**Nepushnuto:** orchestra **8 commitů** + **114 změněných souborů**, hra **1**.
+Předlož uživateli **`git status` + `git diff --stat`** a **rozhodnutí nech na
+něm**. Když push, pak **třemi kroky** (`DSH_HOME\AGENTS.md`, „Jak ověřit
+nasazení"): push dorazil → build na **SPRÁVNÉM** commitu → server posílá
+**NOVÝ** artefakt. (`uo-shadows` má 1 nepushnutý commit — ověř, co v něm je.)
 
-**Rozhodni: opravit, nebo smazat?** Nástroj kontroluje **strukturu staré stanice**
-(9 sourozeneckých složek rootu), která **už neexistuje**. Buď ho přepiš na
-**dnešní strukturu** (dva repy + stanice), nebo ho **zařaď mezi archivované
-jednorázovky** (D5) — a v obou případech **napiš, co bylo důvodem**. Nenech ho
-ležet: nástroj, který po přesunu hlásí 6 chyb a nikdo ho nespouští, je
-**nastražený**.
+### 2.7 Úkol G — záznamy a předání (povinné na konci)
 
-### 2.4 Úkol D — `zadani-kontrola.py`: slepý na orchestra (nález H53)
-
-**Naměřeno:** skript si postaví slovník z hlavičky **správně** —
-`{'forge-orchestra': 'c3ee946', 'uo-shadows': '869dce8'}` — ale srovnává ho
-s klíčem **`orchestra`** (`REPA = [("orchestra", WS), ("uo-shadows", _HRA)]`).
-`tvrzene_head.get("orchestra")` → **`None`** → vypíše
-`? orchestra: zadání netvrdí žádný commit` a **orchestra se vůbec neporovná**.
-
-**Důsledek, který se nesmí splést:** skript skončil `exit 1` a jeho verdikt
-(„zadání je zastaralé") byl **náhodou správný** — ale **ne z toho důvodu, kvůli
-kterému existuje**. Kdyby zadání tvrdilo `dea6f5c` (správně), spadl by stejně.
-Tohle je přesně past z `overovani` §10.1: **`exit 1` ze špatného důvodu.**
-
-**Jak opravit:** `REPA` musí znát **skutečná jména repů** (`forge-orchestra`,
-`uo-shadows`) — a vedle toho musí umět **přečíst jméno z hlavičky**, aby ho
-nezapisoval napevno (jinak se vada vrátí při dalším přejmenování).
-
-**Hotovo znamená:** se **správnou** hlavičkou (`dea6f5c`) → `exit 0`; s
-**vrácenou vadou** (`c3ee946`) → `exit 1`. **Mutačně dolož obojí.**
-
-### 2.5 Úkol E — skener čte jen git (nález H52)
-
-**Naměřeno:** `seznamy = {repo: soubory(repo) for repo in REPA}`, kde
-`soubory()` je `git ls-files`. **Netrackovaný soubor tedy skener nikdy nevidí** —
-doloženo: dočasný soubor s `def změř(...)` v kořeni repa dal **0 nálezů**
-(v inventáři se neobjevil vůbec).
-
-**Proč to je vada a ne vlastnost:** `hl-rizika-jazyka.py` se používá jako
-**brána před commitem** (přesně to dělá `g3` a `validate-all`). Jenže **to, co
-se má zkontrolovat, bývá právě to necommitnuté** — nový nástroj, nová funkce.
-Brána, která kontroluje jen to, co je už v gitu, **nemůže zabránit commitnutí vady**.
-Naměřeno na vlastním omylu akční session: **omyl 137** (`def změř`) našla brána
-**až poté, co byl soubor v gitu**.
-
-**Rozhodni a zapiš:** má skener číst **i netrackované** soubory (a vyloučit
-artefakty podle `ARTEFAKTY`), nebo má být v docstringu **přiznané**, že měří jen
-git? Druhá varianta je přípustná — ale **musí být vidět ve výstupu**
-(„ZMĚŘENO: N souborů z gitu; netrackované NEZMĚŘENY").
-
-### 2.6 Úkol F — dočistit `Local-Deepseek` v živém kódu
-
-**Naměřeno (git-trackovaný kód, mimo `_archiv`, oba repy):** **15 souborů**.
-Klasifikace:
-
-| Druh | Soubory | Co s tím |
-|---|---|---|
-| **LEGITIMNÍ (D6)** — kořen stanice | `tools/kontrola-diakritiky.py`, `tools/over-dokumentaci.py`, `_analyza/kronika-kontrola.py`, `_analyza/zadani-kontrola.py`, `_analyza/p9-presun-dokumentu.py` | **nechat** — je to `STANICE` (dokumenty zůstaly stanici) |
-| **JEDNORÁZOVKY P8** — pracují na starém stromě | `_analyza/p1-kdo-chybi.py`, `p1-rozdil-mnozin.py`, `p1-rozdil-proti-planu.py`, `p5-presun.py`, `p8-oprava-cest.py`, `p8b-oprava-analyza.py`, `p8b-zjisti-zive.py`, `p8d-oprava-skladanych-cest.py` | **archivovat** (D5) — přesun je hotový, nemají co dělat |
-| **KOMENTÁŘE (doložené)** | `install-into-repo.ps1` (2 řádky, příklady použití) | **nechat** — §29.7 to už správně popisuje |
-| **VADA** | `tools/verify-setup.py` | **Úkol C** |
-
-**Pozor na dvě věci:** (1) `_analyza/p1-inventura-cest.py` a `p1b-odvozene-cesty.py`
-obsahují `Local-Deepseek` **jen jako vzorek (regex)** — to je správně, **nemazat**.
-(2) **Starý tvar `orchestra/` je horší než `Local-Deepseek`** — najdi i ten
-(`grep` na `"orchestra/` v kódu, ne v dokumentech; v `g3` jich bylo 10).
+- `HANDOFF.md`: **§34** (záznam o provedení) + **`### 8v.`** (vlastní omyly),
+- `KRONIKA-PROJEKTU.md`: **řádek 30** v §1, **řádek bloku `8v`** v §3
+  (a **přepočti `celkem`** — `python _analyza\p14f-prepocet-kroniky.py`),
+  nálezy v **§2.10**, rozhodni **NA31+** (a jakékoli nové návrhy nech
+  ve stavu `NEOVĚŘENO`),
+- přepiš **tenhle soubor** pro další session,
+- do chatu **prompt pro uživatele** i se **stavovým řádkem** (NA2/NA10).
 
 ---
 
@@ -193,98 +161,112 @@ obsahují `Local-Deepseek` **jen jako vzorek (regex)** — to je správně, **ne
 
 | # | Podmínka | Jak se to pozná |
 |---|---|---|
-| 1 | **`g3` spustí všech 29 bran** | v `g3-brany-vystup.txt` je **0** sekcí `can't open file` |
-| 2 | **`test-gitignore-tajemstvi.py` projde** | `N kontrol, 0 chyb`, **N > 0** |
-| 3 | **`verify-setup.py` je opravený NEBO archivovaný** | a je **napsáno proč** |
-| 4 | **`zadani-kontrola.py` sedí na správnou i vrácenou hlavičku** | mutačně: `dea6f5c` → 0, `c3ee946` → 1 |
-| 5 | **U skeneru je rozhodnuto o netrackovaných souborech** | a je to **vidět ve výstupu** |
-| 6 | **Každá oprava má mutační test** | s vrácenou vadou brána **spadne** |
-| 7 | `python _analyza\kronika-kontrola.py` → `exit 0` | řádek 26 + H48–H56 sedí |
-| 8 | `python _analyza\handoff-kontrola-uplnost.py` → `83/83` (nebo víc) | bez újmy |
+| 1 | **Sedm tvrzení z §33 přeměřeno VLASTNÍM měřidlem** | každé má vlastní skript v `_analyza/` (ne spuštěný `test-h*.py` z P15) |
+| 2 | **Všech 34 bran spuštěno SAMOSTATNĚ** | výpis exit kódů + čítačů, a **pojmenovaný** třetí stav („neproběhlo — prostředí"), když nastane |
+| 3 | **H80 ověřeno plošným skenem** | Python walk nad oběma repy: **kolik** `for j, _ in zivy` nad slovníkem zbylo (P15 tvrdí **0**) |
+| 4 | **Záloha je POUŽITELNÁ** | 3 soubory obnoveny a **SHA-256 shodné**; a je napsáno, **co záloha neumí** |
+| 5 | **Záznamy jen přidány** | `git diff` u kroniky i `HANDOFF.md` ukáže **přidání**, ne přepis §31/řádku 27 |
+| 6 | **Nálezy zapsané, nic neopravené** | každý rozchod má číslo **H8x**, je v `HANDOFF.md` **i** v kronice §2.10, a **kód zůstal nedotčený** |
+| 7 | **Brány zelené** | `python _analyza\g3-brany.py` → **0 nenulových exitů**; `node tools\validate-all.mjs` → **`✓ VŠE V POŘÁDKU`** |
+| 8 | **Uživatel má `git status` + `git diff --stat`** | a rozhodnutí o pushi je **jeho** |
 | 9 | V chatu je **prompt pro uživatele** i **stavový řádek** | ke zkopírování |
 
 ---
 
 ## 4. Co NEDĚLAT
 
-- **Nepřesouvat nic zpátky.** Přesun je ověřený; návrat by byl regrese.
-- **Nedělat junctionu** na staré místo (záměr, P7).
-- **Nepřepisovat historické citace cest** v `ANALYZA-*`, `HANDOFF.md`,
-  `KRONIKA-PROJEKTU.md` a `_analyza/_archiv/` — jsou to **záznamy**.
-- **Nepřepisovat `HANDOFF.md`** — jen **přidávat** (nic nesmí zmizet).
-- **Nemazat `_analyza/_archiv/`** ani `_analyza/zaloha/`.
-- **Neopravovat cesty přepsáním na novou absolutní** — **odvozuj** je
-  (`__file__` / `import.meta.url` / `WS.parent`). To je princip P8.
-- **Nepushovat bez vyžádání.** Předem ukázat `git status` a `git diff --stat`.
-- **Nezaměňovat `E:\Workspaces\forge-orchestra` a `E:\Workspaces\uo-shadows`.**
-- **Nespouštět `Get-PSDrive` jako důkaz o místě na disku** (nález **H56**).
+- **NEOPRAVOVAT to, co najdeš.** Jsi ověřovatel. Oprava patří do **akční**
+  session — a to je přesně to pravidlo, které P14 dodržela a díky kterému její
+  nálezy něco znamenají.
+- **Nepouštět `_analyza/test-h*.py` jako SVŮJ důkaz.** Ty testy napsal autor
+  oprav; když je jen spustíš, opisuješ jeho tvrzení (`overovani` §9.1).
+- **Nepřesouvat nic zpátky** a **nedělat junctionu** na `C:` (záměr P7).
+- **Nepřepisovat `HANDOFF.md` ani `KRONIKU`** — jen **přidávat**; historická
+  čísla (`150`, `126`, `42`, `49`, `30 bran`) se **nechávají citovaná**.
+- **Nemazat `_analyza/_archiv/`** ani **`_analyza/_zaloha*`** ani novou zálohu
+  v `C:\Users\Ssevc\Local-Deepseek\_zalohy\` — **jsou to cesty zpět**.
+- **Nepřepisovat `p1-inventura-cest.py` a `p1b-odvozene-cesty.py`** v tom, co
+  dělají — mají `Local-Deepseek` jako **VZOREK (regex)**; v P15 se měnil jen
+  **docstring** (H79) a i ten tak, že **obsah zůstal shodný** (doloženo
+  porovnáním s `git show HEAD:`).
+- **Neopravovat cesty přepsáním na novou absolutní** — **odvozuj** je (P8).
+- **Nepovažovat zelené `g3` za důkaz** — je to **PŘEHLED, ne brána** (NA23b).
+- **Nespouštět `Get-PSDrive` jako důkaz o místě na disku** (H56 — závisí na
+  oprávnění).
+- **Nedávat `p14b`/`p14c`/`test-h70-vetev.py` do `validate-all.mjs`** —
+  **přepisují soubory** (a vracejí je) a validátor takové nástroje **správně
+  odmítá spustit** (rozhodnutí NA30).
+- **Nepushovat bez vyžádání.**
 
 ---
 
 ## 5. Naměřená východiska (aby se nemusela měřit znovu)
 
 ```
-# hlavička
-git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD   -> dea6f5c
+# hlavička a stav (5. 10. 2026, 20:1x UTC)
+git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD   -> c620a06
 git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD   -> 869dce8
-git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD  -> 6
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD  -> 8
 git -C E:\Workspaces\uo-shadows      rev-list --count origin/main..HEAD  -> 1
+git -C E:\Workspaces\forge-orchestra status --porcelain  (radku)         -> 114
+git -C E:\Workspaces\forge-orchestra ls-files --others --exclude-standard (radku) -> 50
 
-# brány (spuštěno 4. 10. 2026 plánovací session, plné oprávnění)
-python tools\over-dokumentaci.py        -> 67 kontrol, 0 chyb, exit 0
-python tools\kontrola-diakritiky.py     -> otevřeno 149 z 193 (archivováno 44), exit 0
-python tools\over-skilly.py             -> 13 skillů, 0 chyb, exit 0
-python _analyza\hl-rizika-jazyka.py     -> 0 vrácených, 11 textových, exit 0
-python _analyza\ag-over-cisla.py        -> 5 v pořádku, 2 historická, 0 rozchodů, exit 0
-python _analyza\kronika-kontrola.py     -> 132 omylů, 47 nálezů, 24 sessions, exit 0
-python _analyza\handoff-kontrola-uplnost.py -> 83/83, exit 0
-python _analyza\hl2-kontrola.py         -> 10/10, exit 0
-python _analyza\a3-over.py              -> 23 kontrol, exit 0
-python _analyza\a1-a2-over.py           -> 23 kontrol, exit 0
-python _analyza\ag-mutace.py            -> mutační (2/2), exit 1 = SPRÁVNĚ
-python _analyza\n1-over-inventar.py     -> mutační, exit 1 = SPRÁVNĚ
-node tools\kontrola-driftu.mjs          -> 12 souborů, 1 rozdíl, exit 1
+# P15: co se měřilo a jak to vyšlo  (POZOR: tohle jsou TVRZENÍ, která ověřuješ)
+python _analyza\test-h70-vetev.py             -> 18 kontrol, 0 chyb   (H70, DVA vyskyty: r.196 + r.210)
+python _analyza\test-h71-klasifikator.py      -> 15 kontrol, 0 chyb   (H71)
+python _analyza\test-h72-h73.py               -> 38 kontrol, 0 chyb   (H72 + H73)
+python _analyza\test-h79-escape.py            -> 18 kontrol, 0 chyb   (H79)
+python _analyza\h79-escape-sken.py            -> 0 neplatnych escape sekvenci
+python _analyza\zalohuj-archiv.py             -> 347 souboru, 1,58 MB, SHA-256 sedi
+python _analyza\g3-brany.py                   -> 34 bran, 0 nedosazenych, 0 nezacatych, 0 nenulovych
+node   tools\validate-all.mjs                 -> VSE V PORADKU, exit 0
+python _analyza\handoff-kontrola-uplnost.py   -> 83/83, exit 0
+python _analyza\kronika-kontrola.py           -> 154 omylu / 82 nalezu / 28 sessions, exit 0
+python _analyza\p14f-prepocet-kroniky.py      -> soucet radku kroniky §3 (21 bloku, 154 omylu)
+python _analyza\zadani-kontrola.py            -> exit 0
 
-# g3 (přehled) — POZOR: tohle je soubor, který je potřeba opravit
-python _analyza\g3-brany.py   -> brán celkem 30, s nenulovým exit 21,
-                                 15 z nich "can't open file" (neběžely)
-
-# struktura
-_analyza/_archiv:        333 souborů   (git ls-files -> 0, gitignore řádek 74)
-_analyza (soubory):      191           z toho .py: 46
-tools (soubory):          69           z toho .py: 26
-git ls-files: orchestra 335 + hra 670 = 1005
+# inventar se MUSI pregenerovat po kazde zmene souboru ve stromu (H60: otisk je z OBSAHU)
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 ```
+
+**Uložené doklady (ne rekonstrukce):**
+`_analyza/p14b-exity-vystup.txt` (+ `.json`) · `_analyza/_g3-po-oprave-20261005.txt`
+(uložený běh P13c) · `_analyza/g3-brany-vystup.txt` (**plný výpis posledního běhu**
+P15 — pozor, přepíše ho každý další běh `g3`) ·
+**záloha `_analyza/_archiv` je od P15 v `C:\Users\Ssevc\Local-Deepseek\_zalohy\forge-orchestra\`**
+(včetně `MANIFEST.json` a `MANIFEST.txt`).
 
 ---
 
 ## 6. Prompt pro uživatele (zkopíruj do nového chatu)
 
 ```text
-Jsi AKČNÍ session. Repa jsou na E:
+Jsi OVĚŘOVACÍ session. Repa jsou na E:
   orchestra = E:\Workspaces\forge-orchestra
   hra       = E:\Workspaces\uo-shadows
 
 Zadání pro tebe je v E:\Workspaces\forge-orchestra\NEXT-SESSION-INSTRUKCE.md
 — přečti ho CELÝ.
 
-Kontext: plánovací session NEZÁVISLE OVĚŘILA přesun na E: (HANDOFF.md §30,
-nálezy H48–H56, KRONIKA řádek 26). Jádro přesunu obstálo — data sedí, historie
-nedotčená, žádná junctiona. Ale našla PĚT rozbitých měřidel a tvůj úkol je
-opravit je. Hlavní je Úkol A: _analyza/g3-brany.py spouští 15 z 29 bran po
-STARÝCH cestách (orchestra/tools/...), takže ty brány VŮBEC NEBĚŽÍ a jejich
-exit=2 se čte jako "červená".
+Kontext: akční session P15 opravila pět vad měřidel a čtyři nesrovnalosti
+v záznamech (HANDOFF.md §33, nálezy H80–H82, omyly 156–159). Každou opravu
+doložila testem, který ji ZAVOLÁ — ale ty testy psal AUTOR oprav, takže to není
+nezávislý důkaz. Proto jsi tady ty.
 
-Pořadí: A (g3) → B (test-gitignore) → C (verify-setup) → D (zadani-kontrola)
-→ E (skener) → F (dočistit cesty). Každou opravu dolož MUTAČNÍM TESTEM —
-u čtyř z pěti jde právě o to, že brána tiše neměří.
+Pořadí: A (napiš si VLASTNÍ měřidla a přeměř sedm tvrzení z §33) → B (spusť všech
+34 bran SAMOSTATNĚ, ne jen přes g3) → C (přeměř čísla jinudy) → D (je záloha
+_archiv POUŽITELNÁ? obnov 3 soubory a porovnej SHA-256) → E (jsou záznamy jen
+přidané? git diff) → F (git status + git diff --stat, rozhodnutí o pushi na
+uživateli) → G (záznamy).
 
-Cesty ODVOZUJ (__file__ / WS.parent), nepřepisuj na novou absolutní.
-Nepřepisuj HANDOFF.md (jen přidávej), nemaž _analyza/_archiv/, nepoushej
-bez vyžádání.
+CO NAJDEŠ, NEOPRAVUJ — zapiš to jako nález a nech to na akční session. To je
+pravidlo, kvůli kterému tahle session existuje. Nic nepřesouvej zpátky,
+nepřepisuj HANDOFF.md ani KRONIKU (jen přidávej), nemaž _analyza/_archiv/
+ani novou zálohu v C:\Users\Ssevc\Local-Deepseek\_zalohy\, nepushuj bez
+vyžádání. Cesty ODVOZUJ, nepřepisuj na novou absolutní.
 
 Na konci povinně: přepiš NEXT-SESSION-INSTRUKCE.md pro další session, zapiš
-výsledky a omyly do HANDOFF.md, doplň řádek do KRONIKA-PROJEKTU.md
-(a rozhodni návrhy ve stavu NEOVĚŘENO), a do chatu vlož prompt pro uživatele
-i se STAVOVÝM ŘÁDKEM.
+výsledky a omyly do HANDOFF.md, doplň řádek do KRONIKA-PROJEKTU.md (a rozhodni
+nové návrhy ve stavu NEOVĚŘENO), a do chatu vlož prompt pro uživatele i se
+STAVOVÝM ŘÁDKEM.
 ```

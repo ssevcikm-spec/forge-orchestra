@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 // P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
 // skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
 // `tools/` je primo v koreni repa, takze PARENT = root repa.
@@ -10,9 +10,22 @@ import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
 const ORCH = join(PARENT);
-const GAME = join(PARENT, 'uo-shadows');
+// ⚠ P13c (4. 10. 2026): hra je SOUROZENEC repa, ne `PARENT/games/uo-shadows`.
+// Do téhle chvíle tu stálo `join(PARENT, 'uo-shadows')` (což po přesunu na `E:`
+// ukazovalo na neexistující `E:\Workspaces\forge-orchestra\uo-shadows`) a na
+// dalších místech `PARENT/../games/uo-shadows` (taky neexistuje) — validátor
+// proto hlásil vady o hře, kterou vůbec neotevřel.
+const GAME = join(PARENT, '..', 'uo-shadows');
 const GAMEREPO = 'ssevcikm-spec/uo-shadows';
 const ORCHREPO = 'ssevcikm-spec/forge-orchestra';
+// Godot je od D7 OBECNÝ NÁSTROJ STANICE (`E:\Tools\godot\`), ne součást repa.
+// Když se nenajde, je to VIDĚT — kontrola na něm níž nesmí tiše „projít".
+const KANDIDATI_GODOT = [
+  process.env.FORGE_GODOT,
+  'E:\\Tools\\godot\\Godot_v4.7.2-stable_win64_console.exe',
+  join(PARENT, '..', 'Tools', 'godot', 'Godot_v4.7.2-stable_win64_console.exe'),
+].filter(Boolean);
+const GODOT_CESTA = KANDIDATI_GODOT.find((c) => existsSync(c)) || KANDIDATI_GODOT[0];
 const PAT = readFileSync(`${ORCH}/.secrets/github_pat.txt`, 'utf8').trim();
 const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json', 'User-Agent': 'validate' };
 const env = Object.fromEntries(
@@ -122,7 +135,7 @@ test('živý providers.json = lokální', JSON.stringify(ziva) === JSON.stringif
 
 console.log('\n════ I. LOKÁLNÍ PROSTŘEDÍ ════');
 test('git.cmd existuje', !!readFileSync(`${ORCH}/tools/git.cmd`));
-test('Godot pro worker existuje', (() => { try { return readFileSync(`${ORCH}/tools/godot/Godot_v4.7.2-stable_win64_console.exe`).length > 0; } catch { return false; } })());
+test('Godot pro worker existuje', (() => { try { return readFileSync(GODOT_CESTA).length > 0; } catch { return false; } })(), GODOT_CESTA);
 test('.secrets má PAT', readFileSync(`${ORCH}/.secrets/github_pat.txt`, 'utf8').trim().length > 20);
 
 // ── J. ASSETY: REGISTR ZDROJŮ A BRÁNA NA LICENCE ─────────────────────────────
@@ -171,7 +184,7 @@ if (registr) {
 test('fetch assetů jde spustit', spust(process.execPath, [`${ORCH}/tools/asset-fetch.mjs`, '--seznam']).stav === 0);
 const licenceTest = spust('python', [`${ORCH}/tools/test-licence.py`]);
 test('brána na licence: 9 scénářů', licenceTest.stav === 0, `exit=${licenceTest.stav}`);
-test('brána projde na skutečném klonu hry', spust('python', [`${ORCH}/tools/check-licence.py`, `${ORCH}/../games/uo-shadows`]).stav === 0);
+test('brána projde na skutečném klonu hry', spust('python', [`${ORCH}/tools/check-licence.py`, `${GAME}`]).stav === 0);
 
 // ── K. VIZUÁLNÍ SCHÉMA A „OČI" (vision) ──────────────────────────────────────
 //
@@ -198,7 +211,7 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   // správná kopie v `.forge/` změří `96×48px` a pojmenuje mrtvou větev
   // v `world.gd`. Validátor tedy měřil jinou kopii, než jaká běží v CI.
   // Správný zdroj je `repo/.forge/check-schema.py` (tentýž soubor dostane hra).
-  const kontrola = spust('python', [`${ORCH}/repo/.forge/check-schema.py`, `${ORCH}/../games/uo-shadows`]);
+  const kontrola = spust('python', [`${ORCH}/repo/.forge/check-schema.py`, `${GAME}`]);
   // 0 = soulad, 1 = rozpory, 2 = chybí spec (nedá se měřit).
   // 2 NENÍ úspěch — „nemám co měřit" se nesmí počítat jako zelená.
   test('kontrola schématu se spustí (0 = soulad, 1 = rozpory, 2 = chybí spec)',
@@ -206,7 +219,7 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
     `exit=${kontrola.stav}`);
   test('kontrola schématu je i v šabloně a v herním repu',
     existsSync(`${ORCH}/repo/.forge/check-schema.py`)
-    && existsSync(`${ORCH}/../games/uo-shadows/.forge/check-schema.py`));
+    && existsSync(`${GAME}/.forge/check-schema.py`));
 
   // 1. 10. 2026: kontrola výchozích hodnot v `level.gd` TIŠE PŘESTALA MĚŘIT –
   // hledala `var cell := 16`, ale po migraci na izometrii je v kódu
@@ -238,7 +251,7 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   const vision = spust(process.execPath, [`${ORCH}/repo/.forge/node/vision.test.mjs`]);
   test('vision.mjs: offline testy (mock API) projdou', vision.stav === 0, `exit=${vision.stav}`);
 
-  const profilCesta = `${ORCH}/../games/uo-shadows/.forge/vision-profile.json`;
+  const profilCesta = `${GAME}/.forge/vision-profile.json`;
   try {
     const p = JSON.parse(readFileSync(profilCesta, 'utf8'));
     test('profil vision existuje a je platný JSON', true, `hra=${p.hra}, režim očekávání=${p.ocekavany_obsah}`);
@@ -285,10 +298,10 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
 
   test('baseline.py je v šabloně i v herním repu',
     existsSync(`${ORCH}/repo/.forge/baseline.py`)
-    && existsSync(`${ORCH}/../games/uo-shadows/.forge/baseline.py`));
+    && existsSync(`${GAME}/.forge/baseline.py`));
 
   const stav = spust('python', [`${ORCH}/repo/.forge/baseline.py`,
-                                '--koren', `${ORCH}/../games/uo-shadows`, 'stav']);
+                                '--koren', `${GAME}`, 'stav']);
   // 0 = vše schválené a nezměněné, 1 = jsou neschválené změny.
   // 1 NENÍ chyba nástroje – je to stav hry (a je to dnešní očekávaný stav,
   // dokud uživatel neřekne LGTM).
@@ -319,10 +332,11 @@ function kontroly(v) {
 // „co je pouze čtoucí" zastaral jako každý jiný ručně vedený seznam.
 console.log('\n════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ════');
 {
-  // `_analyza\` je pracovní složka workspace (mimo oba repozitáře), proto se
-  // cesta bere z umístění tohohle souboru a NEnapevno. Když složka není
-  // (čerstvý klon orchestra), sekce to ŘEKNE — ticho by vypadalo jako úspěch.
-  const ANALYZA = `${ORCH}/../_analyza`;
+  // `_analyza\` se 4. 10. 2026 PRESUNULA DO REPA orchestra (D3) — dřív byla
+  // mimo oba repozitáře. Cesta se proto bere z umístění tohohle souboru
+  // (`tools/..`), NEnapevno. Když složka není, sekce to ŘEKNE — ticho by
+  // vypadalo jako úspěch.
+  const ANALYZA = `${ORCH}/_analyza`;
   const BRANY = [
     ['a1-a2-over.py',
      'A1/A2: `done` jen při ok && merged, `owns` proti origin/main, cache s TTL',

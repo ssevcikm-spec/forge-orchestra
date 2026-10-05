@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 // P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
 // skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
 // `tools/` je primo v koreni repa, takze PARENT = root repa.
@@ -36,8 +36,15 @@ function test(nazev, podminka, detail = '') {
   }
 }
 
+// ⚠ P13c-b (5. 10. 2026, táž třída jako H48/H57): hra je **SOUROZENEC** repa
+// (`E:\Workspaces\uo-shadows`), ne `PARENT/uo-shadows`. Do téhle chvíle tu
+// stálo `join(PARENT, 'uo-shadows')` → test hlásil
+// `FAIL uo-shadows: ci.yml existuje … E:\Workspaces\forge-orchestra\uo-shadows/…`
+// a **celý běh skončil `exit 1`** — tedy „brána našla vadu" nad souborem,
+// který vůbec neotevřela. A protože byl modul rozbitý i na `join` (H68),
+// nikdo to neviděl.
 const CILE = [
-  ['uo-shadows', join(PARENT, 'uo-shadows')],
+  ['uo-shadows (hra)', join(PARENT, '..', 'uo-shadows')],
   ['repo (šablona)', join(PARENT, 'repo')],
 ];
 

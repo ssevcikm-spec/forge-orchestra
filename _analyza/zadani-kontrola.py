@@ -53,7 +53,41 @@ if "--soubor" in sys.argv:
     ZADANI = pathlib.Path(sys.argv[_i + 1])
     if not ZADANI.is_absolute():
         ZADANI = WS / ZADANI
-REPA = [("orchestra", WS), ("uo-shadows", _HRA)]
+# ⚠ NÁLEZ H53 (4. 10. 2026, P13c): tady stálo `("orchestra", WS)` — tedy klíč,
+# který se **jmenoval jinak než repo**. Zadání píše `forge-orchestra = <sha>`
+# (podle NÁZVU REPA), ale skript se ptal na klíč `orchestra` →
+# `tvrzene_head.get("orchestra")` vrátil `None` → vypsal
+# „? orchestra: zadání netvrdí žádný commit" a **orchestra se vůbec neporovnala**.
+#
+# Důsledek, který se nesmí splést: skript skončil `exit 1` a jeho verdikt
+# („zadání je zastaralé") byl **náhodou správný** — ale **ne z toho důvodu,
+# kvůli kterému existuje**. Kdyby zadání tvrdilo správný commit, spadl by
+# stejně. Je to past z `overovani` §10.1: `exit 1` ze špatného důvodu.
+#
+# Odteď: (1) zobrazované jméno je **jméno adresáře repa** (odvozené, ne literál),
+# (2) ke každému repu se hledá klíč **podle VÍC možných jmen** — jméno složky,
+# jméno s předponou `forge-`, a hodnota z hlavičky, (3) nespárované tvrzení
+# z hlavičky se **vypíše jako varování** (nesmí tiše zmizet).
+REPA = [(WS.name, WS), (_HRA.name, _HRA)]
+# Jak se repo může v hlavičce jmenovat. `{d}` = jméno složky.
+_ALIASY = ("{d}", "forge-{d}", "forge_orchestra", "{d}-repo")
+
+
+def _mozna_jmena(jmeno: str) -> list[str]:
+    return [v.format(d=jmeno).lower() for v in _ALIASY]
+
+
+def _najdi_tvrzene(jmeno: str) -> str:
+    """Najde tvrzený commit pro repo podle VŠECH možných jmen z hlavičky."""
+    for kandidat in _mozna_jmena(jmeno):
+        if tvrzene_head.get(kandidat):
+            return tvrzene_head[kandidat]
+    # Poslední záchrana: shoda podle podřetězce (např. `forge-orchestra` vs.
+    # `orchestra`) — ale jen když je kandidát JEDNOZNAČNÝ.
+    shody = [v for k, v in tvrzene_head.items() if jmeno.lower() in k or k in jmeno.lower()]
+    if len(shody) == 1:
+        return shody[0]
+    return ""
 
 
 def git(repo: pathlib.Path, *args: str) -> str:
@@ -132,9 +166,10 @@ if not radek_stavu:
     print("       jen text, ne to, PROTI ČEMU bylo měřeno. Doplň ji.")
     varovani += 1
 for jmeno, s in zivy.items():
-    tvrz = tvrzene_head.get(jmeno.lower())
+    tvrz = _najdi_tvrzene(jmeno)
     if not tvrz:
         print(f"  ?    {jmeno}: zadání netvrdí žádný commit")
+        print(f"       (hledáno pod jmény: {', '.join(_mozna_jmena(jmeno))})")
         varovani += 1
         continue
     if s["head"].startswith(tvrz) or tvrz.startswith(s["head"][:len(tvrz)]):
@@ -145,6 +180,39 @@ for jmeno, s in zivy.items():
     kolik = git(cesta_repa, "rev-list", "--count", f"{tvrz}..HEAD")
     print(f"  ⚠    {jmeno}: zadání tvrdí {tvrz[:9]}, skutečný HEAD je {s['head'][:9]}"
           f"  → přibylo commitů: {kolik or '?'}")
+    varovani += 1
+
+# ── 3b) TVRZENÍ, KTERÁ SE NEPODAŘILO PŘIŘADIT ────────────────────────────────
+# Když hlavička tvrdí commit k repu, které skript nezná, je to NÁLEZ: buď se
+# repo přejmenovalo, nebo je v hlavičce jiné jméno, než jaké má adresař.
+# Ticho by znamenalo „porovnal jsem všechno" — a přitom se část neporovnala.
+prirazene = set()
+for jmeno, _ in zivy.items():
+    for kandidat in _mozna_jmena(jmeno):
+        if tvrzene_head.get(kandidat):
+            prirazene.add(kandidat)
+nenalezene = {k: v for k, v in tvrzene_head.items() if k not in prirazene}
+# ⚠ NÁLEZ H70 (5. 10. 2026, P14): tady stálo `for j, _ in zivy` — a `zivy` je
+# **slovník** (klíč → stav repa), takže iterace dává **řetězce** (klíče), ne
+# dvojice. `ValueError: too many values to unpack (expected 2)`.
+# Ve zdravém stavu se větev **nikdy nezavolá** (`nenalezene` je prázdné), takže
+# ji **žádný test neměl** — a při prvním skutečném použití spadla MÍSTO toho,
+# aby poruchu vypsala (`overovani` §7.10 obráceně: červená, ale nic neřekne).
+# Oprava: iteruje se přes KLÍČE (`for j in zivy`), protože `j` je jméno repa.
+# Dokázáno mutačně: `_analyza/test-h70-vetev.py` tuhle větev ZAVOLÁ (fixturou
+# s neznámým jménem repa) a s vrácenou vadou **zčervená** (traceback místo hlášení).
+nenalezene = {k: v for k, v in nenalezene.items()
+              if not any(k in _mozna_jmena(j) or j in k for j in zivy)}
+if nenalezene:
+    print("  ⚠    tvrzení z hlavičky, která se nepodařilo přiřadit k repu:")
+    for k, v in nenalezene.items():
+        # ⚠ DRUHÝ VÝSKYT TÉŽE VADY (nalezen testem `test-h70-vetev.py`,
+        # 5. 10. 2026): i tady se iterovalo `for j, _ in zivy` nad slovníkem.
+        # Zadání ani P14 o něm nevěděly (H70 popisoval jen řádek 196) — a to je
+        # přesně to, co znamená „test musí tu větev ZAVOLAT": jeden běh na
+        # fixtuře našel oba výskyty, čtení kódu jen jeden.
+        print(f"       {k} = {v[:9]}  (známá jména repů: "
+              f"{', '.join(j for j in zivy)})")
     varovani += 1
 
 # ── 4) ZNÁMKY STÁRÍ V TEXTU ────────────────────────────────────────────────

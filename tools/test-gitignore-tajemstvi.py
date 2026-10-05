@@ -40,9 +40,13 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WS = pathlib.Path(STANICE)
-GENERATOR = WS / "orchestra" / "install-into-repo.ps1"
-HRA = WS / "games" / "uo-shadows"
+WS = pathlib.Path(_PARENT)
+GENERATOR = WS / "install-into-repo.ps1"
+# P8 (presun na E:, 4. 10. 2026): hra je SOUROZENEC repa, ne `WS/games/...`.
+HRA = WS.parent / "uo-shadows"
+# git se bere z repa (OpenSSL backend), ne z PATH — `git` v PATH padá na
+# schannel (`SEC_E_NO_CREDENTIALS`) a vypadá to jako vada testu.
+GIT = WS / "tools" / "git.cmd"
 
 # Co musí `.gitignore` hry ignorovat. První dva jsou BEZPEČNOSTNÍ (tajemství),
 # zbytek je hygiena, která se taky osvědčila jako drahá (cache v patchi a PR).
@@ -140,7 +144,7 @@ def main() -> int:
         (".forge/provider.env", "klíč poskytovatele"),
     ]:
         r = subprocess.run(
-            ["git", "-C", str(HRA), "check-ignore", "-v", cesta],
+            [str(GIT), "-C", str(HRA), "check-ignore", "-v", cesta],
             capture_output=True, text=True,
         )
         zkontroluj(
@@ -154,7 +158,7 @@ def main() -> int:
     print("--- 5) negativní kontrola: běžný soubor ignorovaný NENÍ ---")
     # Kdyby .gitignore ignoroval všechno, test výš by prošel a nic by nedokázal.
     r = subprocess.run(
-        ["git", "-C", str(HRA), "check-ignore", "-v", "scripts/player.gd"],
+        [str(GIT), "-C", str(HRA), "check-ignore", "-v", "scripts/player.gd"],
         capture_output=True, text=True,
     )
     zkontroluj(

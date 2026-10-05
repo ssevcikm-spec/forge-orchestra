@@ -37,10 +37,12 @@ KOPIE = [
 PREFIX = "Když pravidla"
 
 chyby = []
+kontrol = 0
 for jmeno, cesta in KOPIE:
     if not cesta.exists():
         chyby.append(f"{jmeno}: soubor neexistuje: {cesta}")
         continue
+    kontrol += 1
     data = yaml.safe_load(cesta.read_text(encoding="utf-8"))
     # POZOR: krok je v jobu `auto-merge`, NE v `agent`. Kdo hledá v `agent`,
     # najde 0 a vypadá to jako vrácená vada — což se při psaní tohohle
@@ -68,6 +70,12 @@ print()
 if chyby:
     for c in chyby:
         print("CHYBA:", c)
+    # Čítač i u vady — `g3-brany.py` ho čte jako „kolik toho brána otevřela".
+    print(f"ZMĚŘENO: {kontrol} kontrol, {len(chyby)} chyb")
     sys.exit(1)
 print("OK: obě kopie mají 'exit 1' na konci kroku 'Když pravidla neprošla'.")
+# ⚠ P13c (4. 10. 2026): čítač se MUSÍ vytisknout, jinak `g3` u téhle brány
+# ukazoval „otevřela: 1" — a to bylo **první číslo v díře ve výstupu**
+# (mezera za `job`), ne počet kontrol. Přesně past z `overovani` §10.1.
+print(f"ZMĚŘENO: {kontrol} kontrol, 0 chyb")
 sys.exit(0)

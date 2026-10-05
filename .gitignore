@@ -28,13 +28,11 @@ repo/.forge/provider.json
 # cache v ~/.cache/forge) – tam tahle binárka není potřeba.
 #
 # POZOR: není to jen úklid, je to i dokumentace. Dva nástroje tuhle cestu
-# OČEKÁVAJÍ na disku (`tools/validate-all.mjs:118`, `tools/verify-setup.py:37`),
-# takže po klonu orchestra lokálně chybí a obě kontroly to hlásí. To je
-# správné – chybí skutečně. Kdo chce spouštět Godot lokálně, stáhne si
-# `Godot_v4.7.2-stable_win64_console.exe` do `tools/godot/`.
-#
-# `.gitignore` tu dřív NEBYL a binárka visela jako untracked – stačilo jedno
-# `git add -A` a byl by z toho 172MB commit, který GitHub odmítne.
+# OČEKÁVAJÍ na disku, ale od D7 (přesun na `E:`) je Godot **obecný nástroj
+# stanice** v `E:\Tools\godot\` — a obě kontroly ho hledají TAM (a umí i
+# `FORGE_GODOT`). Dřív tu stálo `tools/validate-all.mjs:118` a
+# `tools/verify-setup.py:37`; ta čísla i cesta po přesunu **přestala platit**.
+# Kdo chce spouštět Godot lokálně, nastaví `FORGE_GODOT` nebo ho má v `E:\Tools`.
 tools/godot/
 
 # Python cache (vzniká LOKÁLNÍM spuštěním bran – check-schema.py apod.).
@@ -80,3 +78,15 @@ _analyza/P8C-BRANY-PO-OPRAVE.md
 _analyza/p5-presun-log.txt
 _analyza/p8-oprava-cest-log.txt
 _analyza/p8b-oprava-analyza-log.txt
+# P13c (5. 10. 2026): dvě GENEROVANÉ věci, které dřív visely jako untracked —
+# a protože skener od P13c čte i netrackované (H52), nafukovaly výstup:
+#   * `_tokeny-vstup.txt` — seznam souborů pro `js-tokeny.mjs` (mezivýstup),
+#   * `c2-mutace-zaloha.json` — záloha inventáře, kterou si `c2-mutace.py`
+#     vytváří a zase vrací (je to PRACOVNÍ kopie, ne záznam).
+_analyza/_tokeny-vstup.txt
+_analyza/c2-mutace-zaloha.json
+# P13c-b: LOGY Z BĚHŮ BRAN (`g3-brany.py` si píše plný výstup). Mění se při
+# KAŽDÉM běhu — když byly v otisku vstupů, hlásila jazyková brána „zastaralý
+# inventář" po každém přehledu bran. Jsou to artefakty, ne kód, a proto se
+# ukládají s `_` prefixem (stejná konvence jako `_inventar.json`).
+_analyza/_g3-*.txt

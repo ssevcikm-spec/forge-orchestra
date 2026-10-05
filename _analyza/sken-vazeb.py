@@ -8,7 +8,10 @@ _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
 _HRA = _REPO.parent / "uo-shadows"
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Sken vazeb orchestra a hry na okoli workspace.
+# ⚠ H79 (5. 10. 2026): řetězec je odsud RAW (`r"""`) — obsahuje `..\..\`,
+# což byl v NERAW literálu **neplatný escape** (`invalid escape sequence '\.'`).
+# Raw string **obsah nemění** (dokázáno v `test-h79-escape.py`).
+r"""Sken vazeb orchestra a hry na okoli workspace.
 
 Read-only. Hleda:
   1) absolutni cesty na Local-Deepseek

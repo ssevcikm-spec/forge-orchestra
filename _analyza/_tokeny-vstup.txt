@@ -1,4 +1,5 @@
 E:\Workspaces\forge-orchestra\_analyza\dsh-session-prehled.mjs
+E:\Workspaces\forge-orchestra\_analyza\f3-over-deploy.mjs
 E:\Workspaces\forge-orchestra\_analyza\js-tokeny.mjs
 E:\Workspaces\forge-orchestra\_analyza\over-okno.mjs
 E:\Workspaces\forge-orchestra\bin\task.mjs

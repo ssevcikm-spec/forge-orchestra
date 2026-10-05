@@ -28,6 +28,15 @@ import pathlib
 import sys
 
 ROOT = pathlib.Path(_PARENT / 'uo-shadows')
+if not ROOT.is_dir():
+    # ⚠ P13c (4. 10. 2026): hra je SOUROZENEC repa (přesun na `E:`), ne potomek.
+    # Do téhle chvíle tu byla jen cesta `_PARENT / 'uo-shadows'`, která po
+    # přesunu **neexistuje** → `FileNotFoundError` a brána se čtla jako
+    # „červená", přitom **vůbec neměřila**. Zkouší se obojí (potomek i sourozenec),
+    # aby nástroj fungoval před přesunem i po něm.
+    _sourozenec = _PARENT.parent / 'uo-shadows'
+    if _sourozenec.is_dir():
+        ROOT = _sourozenec
 ROADMAP = ROOT / ".forge" / "roadmap.json"
 
 
@@ -139,6 +148,12 @@ def main() -> int:
         print("  ale 'size_lines' chybí, gate auto-merge PR zamítne (pravidlo 60).")
     else:
         print("  žádné – všechny granule mají deklarovanou velikost")
+    # ⚠ Čítač MUSÍ BÝT VŽDY — `g3-brany.py` z něj čte „kolik toho brána
+    # otevřela". Do 4. 10. 2026 se čítač tiskl jen v nenulové větvi, takže
+    # u zdravé roadmapy zůstal sloupec `otevřela:` prázdný (a prázdno se čte
+    # jako „brána neměřila" — past S27).
+    print(f"ZMĚŘENO: {len(grains)} granulí zkontrolováno, "
+          f"{len(problemy)} problémů, {len(kolize)} kolizí souborů")
     return 0
 
 

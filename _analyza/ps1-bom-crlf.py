@@ -1,8 +1,13 @@
-"""Prepis .ps1 na UTF-8 BOM + jednotne CRLF (bajty, ne text) a over parserem.
+# ⚠ H79 (5. 10. 2026): docstring je odsud RAW (`r"""`) — obsahoval
+# `_analyza\ps1-bom-crlf.py`, což byl **neplatný escape** (`invalid escape
+# sequence '\p'`). Aby obsah zůstal DOSLOVA stejný, je i `\\r` níž zapsané
+# jako `\r` (v raw stringu je to **týž** text: zpětný apostrof + `r`).
+# Ověřeno testem `test-h79-escape.py` proti `git show HEAD:`.
+r"""Prepis .ps1 na UTF-8 BOM + jednotne CRLF (bajty, ne text) a over parserem.
 
 PROC: skill `dsh-prostredi` §3 — bez BOM cte PowerShell .ps1 jako cp1252 a
 ceske znaky se rozsypou (parser pak hlasi chybu na radku, ktery v souboru
-neni). `write_text()` navic umi vyrobit dvojite \\r. Zapisuje se proto BAJTY.
+neni). `write_text()` navic umi vyrobit dvojite \r. Zapisuje se proto BAJTY.
 
 Pouziti: python _analyza\ps1-bom-crlf.py <soubor.ps1> [<dalsi.ps1> ...]
 """

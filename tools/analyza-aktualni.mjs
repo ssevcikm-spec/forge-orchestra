@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { dirname, join } from 'node:path';
 // P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni
 // skriptu, aby nastroj fungoval z jakehokoliv umisteni repa.
 // `tools/` je primo v koreni repa, takze PARENT = root repa.

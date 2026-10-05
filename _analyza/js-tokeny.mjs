@@ -34,10 +34,27 @@ const KOREN = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 let ts = null;
 let tsChyba = null;
-try {
-  ts = require(path.join(KOREN, 'orchestra', 'conductor', 'node_modules', 'typescript'));
-} catch (e) {
-  tsChyba = `typescript nejde načíst: ${e.message}`;
+// ⚠ P13c (4. 10. 2026, táž třída jako H48/H52): tady stálo
+// `path.join(KOREN, 'orchestra', 'conductor', 'node_modules', 'typescript')` —
+// tedy cesta ze STARÉHO layoutu. Po přesunu na `E:` TypeScript **nebyl
+// nalezen**, `ts` zůstal `null` a **všech 68 JS/TS souborů** skončilo
+// v NEPOKRYTO („parser to nepřečetl"). Navenek to vypadalo, že skener
+// „něco neměří" — a byl to jen rozbitý `require`.
+//
+// Cesta se proto ODVOZUJE z umístění tohohle souboru (`_analyza/..` = kořen
+// repa) a hledá se na obvyklých místech; když se nenajde, řekne se to
+// (`tsChyba`) — tichý `null` by znamenal 68 nezměřených souborů.
+const KANDIDATI_TS = [
+  path.join(KOREN, 'conductor', 'node_modules', 'typescript'),
+  path.join(KOREN, 'node_modules', 'typescript'),
+];
+for (const kandidat of KANDIDATI_TS) {
+  try {
+    ts = require(kandidat);
+    break;
+  } catch (e) {
+    tsChyba = `typescript nejde načíst z ${kandidat}: ${e.message}`;
+  }
 }
 
 const neascii = (s) => /[^\x00-\x7F]/.test(s);

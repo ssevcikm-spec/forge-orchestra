@@ -872,6 +872,76 @@ skutečně provedla** (138).
 
 ---
 
+### 8s. Omyly 144–148 — AKČNÍ session 5. 10. 2026 (P13c: OPRAVA PĚTI MĚŘIDEL)
+
+**Pět omylů, a všechny mají stejný podpis jako předchozí sekce: měřil jsem
+něco jiného, než jsem si myslel.** Záznam: `HANDOFF.md` **§31.8**.
+**Tři z nich (144, 145, 148) vznikly ve VLASTNÍM MĚŘIDLE** — a dva z nich
+(147, 148) by vedly k **nepravdivému nálezu o správném kódu**.
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **144** | „Vrátím do `g3` STARÝ literál cesty (`orchestra/tools/over-skilly.py`) — to je přece vada H48." | **Není.** Vada H48 je **nedosazený ZÁZNAMNÍK** (`<TOOLS>`), ne jiná (neexistující) cesta. `dosad()` s takovým textem nemá co dělat a `NEDOSAZENÉ CESTY` **správně mlčelo** | **Měřená podmínka se musí obrátit, ne jen „něco změnit"** (`overovani` §7.14). Oprava: mutace **vypíná substituci** — záznamník zůstane v příkazu a soubor s ostrými závorkami neexistuje |
+| **145** | „S vadou se v zachyceném výstupu objeví `can't open file` — na to se dá ptát." | **Neobjeví.** PowerShell spouštěl neexistující cestu a spadl **sám** (`WinError 2`); v `capture_output` nebylo NIC z toho, co jsem hledal. Test proto hlásil „brána vadu nevidí" | **Predikát mířil na TEXT interpretu, ne na VÝSLEDEK.** Oprava: signál = `exit=2` **a zároveň** žádný čítač **a zároveň** krátký výstup. (A je to táž past, jakou zadání samo používá: `can't open file` je text **Pythonu**, ne stav.) |
+| **146** | „Mutace `install-into-repo.ps1` je jen náhrada textu — kódování neřeším." | Zápis **zahodil UTF-8 BOM** (soubor ho má), a `blok_generatoru()` čte `utf-8-sig` → mutace by měřila **jiný jev** | **Zapisuj ve stejném kódování, v jakém čteš** (`dsh-prostredi` §5b). Oprava: BOM se detekuje, zapisuje se s ním a po zápisu se **jeho přítomnost ověří** |
+| **147** | „Když soubor obsahuje `ZMĚŘENO`, najdu to vzorem `ZMĚŘENO`." | **Ve třech souborech bylo `ZMEŘENO`** — chybělo `Ě` (`verify-setup.py`, `lint-roadmapa.py`, `f3-over-deploy.mjs`). **Výpis vypadal dobře, vadný byl SOUBOR** | **Přesně obrácená past, než popisuje `dsh-prostredi` §2b** (tam vypadá vadně soubor, a je to výpis). Našel to **mutační test**; opraveno `_analyza/p13c-oprav-diakritiku.py` a ověřeno **čtením z disku** |
+| **148** | „Sken na chybějící importy hlásí 57 souborů — to je velký nález." | **Většina byla falešných.** Vzor `\bjoin\s*\(` chytal i **`arr.join(',')`** (metoda pole). `conductor/src/index.ts` má 9× `Array.join` a `join()` z `node:path` **nikdy nevolá** | **Falešný poplach nutí „opravovat" správný kód** (`overovani` §9.5) — a tady by přidal **import, který soubor nepotřebuje**. Oprava: předpona `.`/`?.`/`\w` volání vylučuje; `resolve` se **vůbec nehlídá** (`new Promise((resolve) => …)` je jiné `resolve`) |
+
+**Vzor z těch pěti (a je poučnější než u 138–143):** u **třech** z nich šlo
+o to, že **měřidlo měřilo samo sebe nebo svůj text** — a **všechny tři** by
+vyrobily **nepravdivý závěr o bráně** („je slepá", „neměří", „má 57 nálezů").
+**Dva (144, 145) odhalil až běh testu, ne čtení kódu** — což je týž závěr jako
+u předchozích sekcí: **mutace, která se tiše neprovede nebo míří na jinou
+podmínku, tvrdí totéž co mutace, která projde.**
+
+---
+
+### 8t. Omyly 149–155 — OVĚŘOVACÍ session 5. 10. 2026 (P14: PŘEMĚŘENÍ OPRAV P13c)
+
+**Sedm omylů, a všechny mají tentýž podpis jako celá tahle kronika: měřil jsem
+něco jiného, než jsem si myslel.** Záznam: `HANDOFF.md` **§32.8**.
+**Dva z nich (149 a 152) by daly NEPRAVDIVÝ NÁLEZ o cizím kódu nebo o datech** —
+a jeden (149) **shodil tři cizí brány**, přičemž to chvíli vypadalo jako vada
+orchestra.
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **149** | „Píšu jen ověřovací nástroj, jazyk neřeším." | V `_analyza/p14d-verify-setup-sonda.py` bylo jméno proměnné **`okolí`** (s diakritikou) → `hl-rizika-jazyka.py` **exit 1** → `validate-all.mjs` **1 PROBLÉM** → `n1-over-inventar` a `C2: mutace N1` **exit 2**. **Tři červené brány z jedné mojí proměnné** | **Našla to brána projektu, ne já** — a přesně proto existuje. Oprava: `okolí` → `okoli`; a protože to málem stálo celé měření, vznikl **`_analyza/_sonda-identifikatory.py`** (AST nad mými skripty: 3 446 identifikátorů, 0 nálezů) |
+| **150** | „Mutační test prošel → měřidlo měří." | Test čekal text `ostrá závorka`, což je **podřetězec i v řádku `OK`**. Prošel by **i nad slepým měřidlem** | **Popisek kontroly není její výsledek** (`overovani` §10.1: „vzor něco našel" ≠ „vzor našel to, co hledám"). Oprava: očekávaný text má předponu **`CHYBA …`** |
+| **151** | „Když je tělo sekce prázdné, moje měřidlo to pozná." | **Nepoznalo.** Tělo začínalo oddělovačem `====`, takže „prázdné" tělo mělo po `strip()` **78 znaků** | Odhalil to **mutační test M4 mého vlastního měřidla**. Oprava: oddělovač se z těla odstraní **před** měřením prázdnoty |
+| **152** | „Součet řádků tabulky v kronice §3 je **130** a bloků **18**." | **143 a 19.** Vzor vyžadoval `\| **N** \|` i v posledním sloupci, ale blok `1–13` má tam **pomlčku** → jeho řádek se tiše vynechal | **Kdybych to zapsal, byl by to nepravdivý nález o datech kroniky.** Oprava: poslední sloupec smí být `—`; součet se navíc křížově ověřil proti `kronika-kontrola.py` (**143**) |
+| **153** | „Kotva `\n.env\n` v `.ps1` souboru funguje." | **Nefunguje** — `install-into-repo.ps1` má **195× CRLF a 0× osamocené LF**. Mutace by se **tiše neprovedla** a test by hlásil „brána je slepá" | Ověřeno **měřením bajtů PŘED během** (`overovani` §7.9). Kdyby se to neudělalo, byl by to **falešný nález o bráně** |
+| **154** | „Heredoc `python - <<'PY'` mi ušetří psaní skriptu." | PowerShell ho **nemá** (`The '<' operator is reserved for future use`) a **zbytek skriptu rozparsuje jako PowerShell** → chyby míří na řádky, které s příčinou nesouvisí | `dsh-prostredi` §3f to říká **doslova** — a stejně jsem to udělal. Oprava: skript **do souboru** (`write`), ne do `-c` ani do heredocu |
+| **155** | „Ověřím, že kód nikde nečte `AGENTS.md`" (o ručním seznamu v `verify-setup.py`) | **Nepravda** — brána `AGENTS.md` **čte** (kontroluje jeho UTF-8 v §6). Správné tvrzení je **užší**: seznam se z něj **neodvozuje** | **Příliš široké tvrzení je taky nepravda** (a je to stejná třída jako „brána čte citaci místo tvrzení"). Oprava: kontrola se ptá na **kód před seznamem** a na **AST literál**, ne na „zmínku v souboru" |
+
+> **⚠ POUČENÍ, KTERÉ JE CENNĚJŠÍ NEŽ TĚCH SEDM OMYLŮ:** **omyl 149 odhalila
+> brána projektu, ne já** — a to je poprvé v téhle kronice, co se vada měřidla
+> našeho vlastního ověřovatele projevila **jako červená cizí brány**.
+> Kdybych `validate-all` nespustil, **zapsal bych „3 nenulové exity" jako stav
+> orchestra** a byla by to lež — vyrobená ověřovatelem.
+> **A druhá polovina téhož:** kdybych měřil **jen** podle `g3`, uviděl bych
+> „0 nenulových exitů" a **nic bych nezjistil** — rozdíl je v tom, že jsem každou
+> bránu spouštěl **sám** (`p14b`) a **PTAL SE, KDO JE ČERVENÝ**.
+
+### 8u. Omyly 156–159 — AKČNÍ session 5. 10. 2026 (P15: OPRAVA NÁLEZŮ H70–H79 Z P14)
+
+**Čtyři omyly — a tři z nich jsou v MĚŘIDLE, ne v opravovaném kódu.** Záznam:
+`HANDOFF.md` **§33**. Všechny čtyři mají tentýž podpis jako celá kronika:
+**měřil jsem něco jiného, než jsem si myslel.**
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **156** | „Očekávaný text brány znám — stojí v zadání i v `HANDOFF.md` §32.5." | `zadani-kontrola.py` hlásí **„nepodařilo přiřadit k repu"**, ale test hledal **„nepodařilo se přiřadit k repu"** → hlásil **CHYBU na SPRÁVNÉ bráně** | Text jsem **opsal ze ZÁZNAMU, ne ze ZDROJE**. `HANDOFF.md` i zadání píší „nepodařilo se přiřadit" — to je **popis záměru**, ne výstup brány. Oprava: konstanta ze **zdroje** (`grep` v bráně). Odhalil to běh testu |
+| **157** | „Rychlá kontrola přes `python -c` mi ušetří psaní souboru." | `python -c` s českým textem **rozbil diakritiku** → skript tvrdil **„ten řetězec v souboru není"**, ačkoli v něm je | `dsh-prostredi` **§3d to říká doslova** („kde je český text, piš skript do souboru") — a stejně jsem to udělal. Vzniklo z toho hledání **vady souboru, která neexistovala** |
+| **158** | „Když hlavička tvrdí neznámé jméno repa, brána spadne na TÉ větvi." | Fixtura **neměla soubory na disku**, takže `exit 1` šlo z §6 („`README.md` neexistuje"), **ne** z chybějícího tvrzení. A mutace M1 vypadala, že **NEFUNGUJE** — protože brána spadla i s ní | `overovani` **§10.1**: `exit 1` **ze špatného důvodu**. Oprava: fixtura má soubory na disku **a** přibyla kontrola „a NENÍ to kvůli chybějícímu souboru" |
+| **159** | „Ověřím, že se mutant liší od zdravé kopie." | Porovnal jsem **soubor sám se sebou** — obě strany čtly tentýž (už přepsaný) soubor → **falešná CHYBA** | Obsah zdravé kopie se musí uložit **PŘED** přepsáním. Táž třída jako „dvě měření z téhož místa" (`overovani` §9.2) |
+
+> **⚠ POUČENÍ, KTERÉ JE CENNĚJŠÍ NEŽ TY ČTYŘI:** **test H70 našel DRUHÝ výskyt
+> téže vady, který neznal ani P14, ani zadání** — na **řádku 210**
+> (`', '.join(j for j, _ in zivy)`). Kdo vadu hledá **čtením**, najde jedno
+> místo; kdo ji **ZAVOLÁ**, najde obě. To je celý smysl věty „test musí tu
+> větev ZAVOLAT" — a je to zapsané jako nález **H80** (§2.9 kroniky).
+
 ## 9. Co už otevřené NENÍ
 
 - ~~F0.1–F0.6~~ → hotové a pushnuté.
@@ -5558,3 +5628,887 @@ C:\Users\Ssevc\Local-Deepseek\ZPRESNENI-E.py               # zpřesnění skenu 
 C:\Users\Ssevc\Local-Deepseek\OVERENI-PRESUNU-MUTACE-vystup.txt   # plný výstup
 ```
 
+---
+
+## 31. PROVEDENO 4.–5. 10. 2026 (23:0x–00:1x) — AKČNÍ session P13c: OPRAVA PĚTI MĚŘIDEL PO PŘESUNU
+
+> **Co tahle sekce JE:** **záznam o provedení** akční session podle
+> `NEXT-SESSION-INSTRUKCE.md` ze 4. 10. 2026 (Úkoly **A–F**). Není to stav —
+> stav je v §2 a v novém zadání. **Co se změnilo v souborech:** `git status`.
+
+### 31.1 Výsledek v jedné větě
+
+**Zadání bylo přesné a všech pět vad se potvrdilo spuštěním** — a při opravách
+se našlo **ještě osm dalších vad téhož druhu** (`Local-Deepseek` / `orchestra/`
+v živém kódu), z toho **dvě takové, které shazovaly měření plošně** (skener
+neviděl 68 JS/TS souborů a 803 souborů hry; `validate-all` nešel vůbec spustit).
+
+| # | Úkol | Stav | Doklad |
+|---|---|---|---|
+| **A** | `g3-brany.py` — cesty odvodit | **HOTOVO** | **30 bran**, **0 nedosazených záznamníků**, **0 bran, které vůbec nezačaly** (před: **15**) |
+| **B** | `test-gitignore-tajemstvi.py` | **HOTOVO** | `VÝSLEDEK: 15 kontrol, 0 chyb`, `exit 0` (před: `NameError`) |
+| **C** | `verify-setup.py` | **HOTOVO — PŘEPSÁN na dnešní strukturu** | `ZMĚŘENO: 49 kontrol, 0 chyb`, `exit 0` (před: 6× CHYBI); **zařazen do `g3`** |
+| **D** | `zadani-kontrola.py` — slepý na orchestra | **HOTOVO** | zdravá hlavička → `exit 0`; vrácená vada → `exit 1`; **mutačně doloženo** (`_analyza/test-zadani-kontrola.py`, 5 kontrol) |
+| **E** | skener čte jen git | **HOTOVO — čte i NETRACKOVANÉ** | `268 souborů zpracováno`, z toho **23 netrackovaných**; **NEPOKRYTO 0** (dřív 69) |
+| **F** | dočistit `Local-Deepseek` v živém kódu | **HOTOVO** | 15 živých souborů klasifikováno; **14 jednorázovek P8/P9 archivováno**; `FORGE_GODOT` opraven |
+
+**Mutační testy všech oprav:** `_analyza/test-p13c-oprav.py` → **27 kontrol, 0 chyb**
+(5 oprav × známý správný i chybný případ; plný výstup `_analyza/p13c-mutace-vystup.txt`).
+
+> **⚠ P13c-b — DRUHÁ VLNA TÉHOŽ DNE.** Po prvním zeleném běhu se ukázalo, že
+> `tools/test-ci-workflow.mjs` **spadl ze stejného důvodu jako H57** (`join()`
+> bez importu). Plošný sken pak našel **31 souborů** v orchestra se stejnou
+> vadou (**H68**) — a ta brána se zároveň ptala na `ci.yml` v cestě, která po
+> přesunu neexistuje (**H69**). Po opravě: **`g3` → 30 bran, 0 nenulových exitů**
+> a `node tools/validate-all.mjs` → **`✓ VŠE V POŘÁDKU`**.
+
+### 31.2 NÁLEZ H48 — `g3-brany.py` spouštěl 15 z 29 bran po STARÝCH cestách
+
+**Naměřeno před opravou** (plný výstup `g3-brany-vystup.txt`): **15 sekcí
+`exit=2` s `can't open file`** — brány **vůbec neběžely** a v přehledu vypadaly
+jako „červená" (`overovani` §7.13: neproběhlo ≠ červená).
+
+**Co to bylo:** seznam `BRANY` měl **11 literálů starých cest** (`orchestra/tools/…`,
+`WS / "games" / "uo-shadows"`, `WS / "orchestra" / "tools" / "godot"`) a dva
+nástroje v něm **nebyly na disku vůbec** (byly v `_analyza/_archiv/`).
+
+**Oprava (P8 — odvozovat, ne přepisovat):** seznam teď nese **záznamníky**
+(`<TOOLS>`, `<HRA>`, `<ANALYZA>`, `<FORGE>`, `<GODOT>`, `<STANICE>`), které
+`spust()` nahradí **odvozenými cestami** z umístění skriptu. Dvě nová hlášení:
+`NEDOSAZENÉ CESTY` a **`BRÁNY, KTERÉ VŮBEC NEZAČALY`** (signál = `exit=2`
++ žádný čítač + krátký výstup — **ne text `can't open file`**, ten se u plné
+cesty neobjeví; to odhalil až mutační test).
+
+**Deset archivovaných bran se VRÁTILO** (`a-mutace-run.py`, `b-mutace.py`,
+`c1-dukaz-selhani.py`, `c2-mutace.py`, `g1-mutace-diakritika.py`,
+`g1-diakritika-novych.py`, `t3-kronika-mutace.py`, `f2-over-cooldown.py`,
+`f3-over-deploy.mjs`, `_registr-bran.py` + pomocné `a-oprav-test.py`,
+`b-oprav-test.py`) — jsou to **brány a jejich mutační testy**, ne sondy; záznam
+o částečném návratu je v `_analyza/_archiv/CO-SE-ARCHIVOVALO.md`.
+
+**Dvě brány se naopak ze seznamu VYNDALY** (byly to jednorázovky, ne brány):
+`mutace A` (2×) — `a-mutace-run.py` potřebuje patch testu Úkolu A a předpokládá,
+že `move()` v `player.gd` **ještě není** (dnes **je**, `ffe9bd8`) — a
+`C1: důkaz selhání`, který mutuje `a3-kontrola.mjs` (**v archivu, nevrací se**);
+jeho roli převzala **živá brána `a3-over.py`**, která v seznamu nebyla.
+
+### 31.3 NÁLEZY H49, H50, H53 — tři nástroje (a co s nimi)
+
+- **H49 `tools/test-gitignore-tajemstvi.py`:** `STANICE` nedefinovaná
+  (`_PARENT` byla správně odvozená a **nikde se nepoužívala**), staré cesty na
+  generátor a hru, `git` z PATH. **Opraveno**; navíc **zařazeno do
+  `validate-all.mjs`** — ono to tam formálně bylo, ale `validate-all` **vůbec
+  nešel spustit** (viz H62), takže test nikdo nespouštěl.
+- **H50 `tools/verify-setup.py`:** **ROZHODNUTÍ = PŘEPSAT**, ne archivovat.
+  Důvod: struktura se **skutečně změnila** (dva repy + kořen stanice), a to je
+  právě to, co má smysl kontrolovat. Nová verze odvozuje `REPO` a `HRA`
+  (`__file__` a `WS.parent`), kořen stanice bere z `FORGE_STANICE` s výchozí
+  hodnotou, **vypisuje čítač** a je **v `g3`** — dřív ji nespouštělo nic, a
+  proto 6× CHYBI nikdo neviděl.
+- **H53 `_analyza/zadani-kontrola.py`:** `REPA` mělo klíč `orchestra`, ale
+  hlavička píše `forge-orchestra` → `tvrzene_head.get("orchestra")` = `None`
+  → **orchestra se vůbec neporovnala** a `exit 1` byl **správný z jiného
+  důvodu** (`overovani` §10.1). **Opraveno:** jméno repa se bere z **názvu
+  adresáře** a hledá se pod **více aliasy**; nepřiřazená tvrzení z hlavičky se
+  **vypíšou jako varování** (nesmí tiše zmizet).
+
+### 31.4 NÁLEZ H52 — skener neviděl NETRACKOVANÝ kód (a měřil 205 z 1008 souborů)
+
+**Dvě vady v jednom měřidle, obě naměřené:**
+
+| Vada | Projev | Oprava |
+|---|---|---|
+| `soubory()` bralo jen `git ls-files` | nový (necommitnutý) soubor **v inventáři vůbec nebyl** — a to je přesně ten, který se má před commitem zkontrolovat | čte i `git ls-files --others --exclude-standard`; artefakty (archiv, zálohy, cache, mezivýstupy skeneru) se **vylučují a VYPISUJÍ** |
+| **`KOREN_REPA` byl ZASTARALÝ** (`WS / "games" / "uo-shadows"`) | **803 souborů hry se tiše přeskakovalo** (větev `if not p.is_file(): continue`) — „1005 souborů" v otisku bylo **číslo ze seznamu, ne z disku** | `KOREN_REPA = {"orchestra": WS, "games/uo-shadows": HRA}` |
+
+**A třetí, plošná:** `js-tokeny.mjs` hledal TypeScript v `KOREN/orchestra/conductor/…`
+→ **`require` selhal**, `ts = null` a **68 JS/TS souborů** (včetně
+`conductor/src/index.ts`) skončilo v NEPOKRYTO. Po opravě: **NEPOKRYTO 0**,
+zpracováno **274** souborů, v otisku **1009**.
+
+**Rozhodnutí (zadání žádalo zapsat):** skener **čte i netrackované** — a je to
+**vidět ve výstupu** (`z toho NETRACKOVANÝCH: N` + výčet) i v datech
+(`"netrackovane"`, `"vyloucene_artefakty"`).
+
+### 31.5 NÁLEZY H57–H69 — co se našlo NAVÍC (a všechny spuštěním)
+
+| # | Nález | Doklad |
+|---|---|---|
+| **H57** | **`tools/validate-all.mjs` NEBYL SPUSTITELNÝ VŮBEC**: `join` se volal, ale **nebyl importovaný** (`ReferenceError` na řádku 12, **před první kontrolou**); navíc 6× `${ORCH}/../games/uo-shadows` a `${ORCH}/../_analyza` — **po přesunu neexistují** | před: `ReferenceError: join is not defined`; po: `✓ VŠE V POŘÁDKU` |
+| **H58** | **`_analyza/js-tokeny.mjs`** načítal TypeScript ze **staré cesty** → `require` selhal, `ts = null` a **68 JS/TS souborů** skončilo v NEPOKRYTO | inventář: `NEPOKRYTO 69` → **`0`** |
+| **H59** | **`hl-neanglicky-v-kodu.py` měl zastaralý `KOREN_REPA`** (`WS / "games" / "uo-shadows"`) → **803 souborů hry se tiše přeskakovalo** (větev `if not p.is_file(): continue`); „1005 souborů" v otisku bylo **číslo ze seznamu, ne z disku** | inventář: `205` → **`268`** zpracovaných, otisk `1005` → **`1003`** |
+| **H60** | **SAMOODKAZ MĚŘIDLA:** `obsahovy_otisk()` zahrnoval `_analyza/_inventar.json`, který **generuje sám skener** → po každé regeneraci „INVENTÁŘ JE ZASTARALÝ"; `n1-over-inventar` padal s „brána neprojde ani ve zdravém stavu". **Druhá část téhož:** `_tokeny-vstup.txt` byl v otisku taky a měnil se při **každém** běhu skeneru | `n1-over-inventar` → **4 běhy, všechny OK**; otisk se mezi dvěma běhy **nemění**; `validate-all` → `exit 0` |
+| **H61** | **`tools/lint-roadmapa.py`** hledal roadmapu v `_PARENT / 'uo-shadows'` (starý tvar) → `FileNotFoundError` — a **neměl čítač** (sloupec `otevřela:` byl prázdný i v zeleném stavu = past S27) | `ZMĚŘENO: 22 granulí zkontrolováno, 16 problémů, 3 kolizí` |
+| **H62** | **`_analyza/f3-over-deploy.mjs`** měl `ORCH = 'C:/Users/Ssevc/Local-Deepseek/orchestra'` → spadl **před prvním testem** (`ENOENT` na `.secrets/github_pat.txt`); čítač tiskl **doprostřed** výpisu (g3 bere **poslední** výskyt) | po opravě: `ZMĚŘENO: 50 úloh…`, `exit 0` |
+| **H63** | **`repo/.forge/node/.env` (NETRACKOVANÝ) měl `FORGE_GODOT` na starou cestu** — worker by na kroku `godot-*` spadl a vypadalo by to jako vada kroku | `E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe`; worker naběhl (`godot 4.7.2`) |
+| **H64** | **`_analyza/a-ukol-scratch` byl ZASTARALÝ worktree** mířící na `C:/Users/Ssevc/Local-Deepseek/games/uo-shadows/.git/worktrees/…` → `mutace B` padala na „not a git repository" | `git worktree prune` + nový worktree ze hry; `mutace B` → `chyceno 2 z 2` |
+| **H65** | **`_registr-bran.json` byl OSIŘELÝ** — jeho generátor `_registr-bran.py` byl v archivu a `g3` ho nikdy nepoužil | generátor vrácen (v `_archiv` zůstává záznam) |
+| **H66** | **Skener měl 1 soubor v NEPOKRYTO navždy**: `p8e-najdi-nedoresene.py` má **BOM uprostřed** → `SyntaxError: invalid non-printable character U+FEFF` | čtení `utf-8-sig` + záložní pokus bez BOM → **NEPOKRYTO 0** |
+| **H67** | **`zadani-kontrola.py` mělo pravdu OMYLEM** (H53) — a **mutační test to dokázal**: se správnou hlavičkou dá `exit 0` | `_analyza/test-zadani-kontrola.py` → 5 kontrol, 0 chyb |
+| **H68** | **`join()` VOLANÉ BEZ IMPORTU — v 31 souborech orchestra.** Modul spadne **PŘED první kontrolou**, takže se to čte jako „brána našla vadu". Naměřeno na **dvou bránách**: `tools/validate-all.mjs` (H57) a `tools/test-ci-workflow.mjs`. Vzniklo zřejmě hromadnou opravou cest (P8): přidalo se `join(...)`, import ne | plošný sken `_analyza/hl-chybejici-importy.py`: **31 souborů** → po opravě **67 souborů, 0 chyb**; `fronta.mjs` (dřív `ReferenceError`) → `HTTP 200, ukolu: 50` |
+| **H69** | **`tools/test-ci-workflow.mjs` hledal `ci.yml` v `orchestra/uo-shadows`** — cesta, která po přesunu **neexistuje** → `FAIL uo-shadows: ci.yml existuje` a `exit 1` (falešný poplach nad souborem, který test **nikdy neotevřel**) | po opravě na sourozence: `Testů OK: 36, chyb: 0` — a brána je **nově v `g3`** (dřív ji nespouštělo nic) |
+
+> **⚠ DVĚ CHYBY VLASTNÍHO SKENU, KTERÉ ODHALIL AŽ BĚH** (obojí je poučení):
+> 1. **Predikát `\bjoin\s*\(` chytal i `arr.join(',')`** — metodu pole, ne
+>    volání volné funkce. Sken hlásil **57 souborů**, z toho většinu falešně
+>    (`conductor/src/index.ts` má 9× `Array.join` a `join()` z `node:path`
+>    **nikdy nevolá**). Oprava: předpona `.`/`?.`/`\w` volání vylučuje.
+> 2. **`resolve` je dvojznačné** — `new Promise((resolve) => …)` není
+>    `path.resolve`. Sken ho proto **vůbec nehlídá** (přiznaná mez místo
+>    falešného poplachu).
+
+### 31.6 Mutační testy — u KAŽDÉ opravy (zadání to žádalo u všech pěti)
+
+`python _analyza\test-p13c-oprav.py` (plný výstup:
+`_analyza/p13c-mutace-vystup.txt`). Každý test má **známý správný i známý
+chybný** případ, každý zápis je v `try/finally` a vrací soubor **bajt na bajt**:
+
+| Test | Zdravý stav | Vrácená vada | Výsledek |
+|---|---|---|---|
+| **A** `g3` cesty | 0 nedosazených, 0 nezačatých | substituce vypnuta → `NEDOSAZENÉ CESTY` + `BRÁNY, KTERÉ VŮBEC NEZAČALY` | **měří** |
+| **B** `test-gitignore` | 15 kontrol, 0 chyb, `exit 0` | z generátoru zmizí `.env` → `CHYBA`, `exit 1` | **měří** |
+| **C** `verify-setup` | `ZMĚŘENO: 84 kontrol, 0 chyb`, `exit 0` | `FORGE_STANICE` mimo → `exit 1` | **měří** |
+| **D** `zadani-kontrola` | živý HEAD → `exit 0` | starý sha → `exit 1` + pojmenovaný rozchod | **měří** |
+| **E** skener | netrackovaný soubor s `změř_něco` **JE v inventáři** | soubor s `_` prefixem → **vyloučen a vidět ve `vyloucene_artefakty`** | **měří** |
+
+> **⚠ DVĚ CHYBY VLASTNÍHO TESTU, KTERÉ ODHALIL AŽ BĚH** (a jsou to poučení,
+> ne omluva — zapsané i v §8s):
+> 1. **Predikát mířil na TEXT interpretu.** Test hledal `can't open file`;
+>    s vadou se ten text **vůbec neobjevil** (PowerShell spadl sám). Signál se
+>    přesunul na **výsledek** (`exit=2` + žádný čítač + krátký výstup).
+> 2. **Druhá mutace měnila PODMÍNKU, KTERÁ SE NEMĚLA MĚNIT** — měnila
+>    záznamník na jinou (neexistující) cestu, což **není** vada H48. Měřená
+>    podmínka se obrátila přímo: **vypnutí substituce**.
+
+### 31.7 Brány: kolik která otevřela PO OPRAVĚ (30 bran, 0 nenulových exitů)
+
+```
+python _analyza\g3-brany.py     # -> brán celkem 30, s nenulovým exit: 0
+                                #    záznamníky cest: 0 nedosazených
+                                #    brány, které vůbec nezačaly: 0
+node tools\validate-all.mjs     # -> ✓ VŠE V POŘÁDKU
+python _analyza\test-p13c-oprav.py  # -> 27 kontrol, 0 chyb (5 oprav MĚŘÍ)
+```
+
+| Brána | Otevřela | Exit |
+|---|---|---|
+| `testy hry (Godot)` | **91 kontrol / 0 selhání** | 0 |
+| `mutace B (combat)` | **2 / 2 chyceno** | 0 |
+| `C1: a3-over` | 2 (obě kopie `agent.yml`) | 0 |
+| `C2: mutace N1` | 4 běhy OK | 0 |
+| `C2: sebekontrola diakritiky` | **127× náhradní znak** | 0 |
+| `diakritika (brána)` | **10 977 znaků** | 0 |
+| `handoff úplnost` | **83 klíčů** | 0 |
+| `kronika úplnost` | **138 omylů / 56 nálezů / 26 sessions** | 0 |
+| `kronika mutace` | **8 případů** | 0 |
+| `diakritika nových souborů` | **270 souborů** | 0 |
+| `zadání kontrola` | 265 řádků | 0 |
+| `over-dokumentaci` | **67 kontrol** | 0 |
+| `over-skilly` | **13 skillů** | 0 |
+| `lint-roadmapa` | 8 / 22 granulí | 0 |
+| `check-schema (hra)` | „Schéma je v souladu" | 0 |
+| `test-cooldown` | **10 / 0** | 0 |
+| `f2 over cooldown` | **10 / 0** | 0 |
+| `deploy B1` | **50 úloh** | 0 |
+| `ag-over-cisla` | **2 026** | 0 |
+| `ag-mutace (autorita)` | **2 / 2 chyceno** | 0 |
+| `a1-a2-over` | **23 kontrol** | 0 |
+| `a3-over` | 2 | 0 |
+| `n8-zastarala` | 6 / 7 | 0 |
+| `b5-over-tvrzeni` | 13 / 18 | 0 |
+| `n1-over-inventar` | 4 běhy OK | 0 |
+| `tsc (conductor)` | — (nemá čítač) | 0 |
+| `validate-all (CELEK)` | — (aggregátor, čítač nemá) | **0** |
+| `verify-setup (struktura)` | **49 kontrol** | 0 |
+| `chybějící importy (statická)` | **67 souborů** | 0 |
+| `CI workflow (šablona + hra)` | **36 testů** | 0 |
+
+**Pro srovnání — stav PŘED P13c** (`_analyza/g3-baseline-20261004.txt`):
+**30 bran, 22 s nenulovým exit**, z toho **15 vůbec neběželo**
+(`can't open file`) a 8 se čtlo jako „červená".
+
+> **⚠ OPRAVA 5. 10. 2026 (P14, nález H76) — ČÍSLA V TABULCE NEJSOU Z BĚHU,
+> KTERÝ JE ULOŽENÝ JAKO DOKLAD.** Tabulka výš má `diakritika nových souborů 270`,
+> `zadání kontrola 265`, `kronika úplnost 138`, `a3-over 2` a
+> `C2: mutace N1 = 4 běhy OK`. Uložený běh `_analyza/_g3-po-oprave-20261005.txt`
+> (zapsán 4. 10. 2026, 23:55) ale dává **279 / 273 / 143**, **`a3-over 0`**
+> a **`C2: mutace N1 = —`**:
+>
+> | Veličina | V tabulce §31.7 | Uložený běh `_g3-po-oprave-20261005.txt` |
+> |---|---|---|
+> | `diakritika nových souborů` | 270 | **279** |
+> | `zadání kontrola` | 265 | **273** |
+> | `kronika úplnost` | 138 | **143** |
+> | `a3-over` | 2 | **0** |
+> | `C2: mutace N1` | 4 běhy OK | **—** |
+>
+> **Tabulka je tedy z JINÉHO (staršího) běhu, než jaký je uložený jako doklad**
+> — a ten běh se **neukládal**. Původní čísla se **nepřepisují** (`AGENTS.md`:
+> co je záznam, se jen doplňuje) — doplňuje se **řádek s během, ze kterého
+> tabulka je**, a to je tenhle odstavec.
+> **Pravidlo, které z toho plyne:** k číslu patří **běh**. Když se běh neukládá,
+> je to **číslo bez svého zdroje** — táž třída jako „různé čítače nesou stejné
+> jméno" (`dsh-prostredi` §5).
+
+> **⚠ CO SE TÍM NEMYSLELO:** že je orchestra zdravá. `g3` je **PŘEHLED, ne
+> blokující brána** (NA23b) a **P13c ho sama přepsala** — proto je v zadání pro
+> další session Úkol A: **přeměřit ho jiným měřidlem**. Zelený přehled
+> **není** nezávislý důkaz.
+
+### 31.8 Vlastní omyly této session
+
+Viz **§8s** (omyl **144–148**):
+
+| # | Omyl | Jak se poznal |
+|---|---|---|
+| **144** | **Mutační test A2 měnil jinou podmínku, než měl** — měnil záznamník na jinou (neexistující) cestu, což **není** vada H48 (substituce s ní nic dělat nemusí) | `NEDOSAZENÉ CESTY` správně mlčelo a test hlásil „vada není vidět" |
+| **145** | **Predikát mířil na TEXT interpretu.** Test hledal `can't open file`; s vadou se ten text **vůbec neobjevil** (PowerShell spadl sám) | mutace prošla, ale nebylo co najít → signál se přesunul na **výsledek** (`exit=2` + žádný čítač + krátký výstup) |
+| **146** | **Mutace `install-into-repo.ps1` ZAHODILA BOM** — a `blok_generatoru()` čte `utf-8-sig`, takže by měřil **jiný jev** | assert na BOM v `mutuj()`; zápis se děje ve **stejném kódování**, v jakém se čte |
+| **147** | **ZTRACENÁ DIAKRITIKA VE TŘECH SOUBORECH** — do `verify-setup.py`, `lint-roadmapa.py` a `f3-over-deploy.mjs` se dostalo `ZMEŘENO` (chybí `Ě`). **Výpis vypadal dobře, vadný byl soubor** (`dsh-prostredi` §2b obráceně) | našel to **mutační test**, který hledal `ZMĚŘENO`; opraveno `_analyza/p13c-oprav-diakritiku.py`, ověřeno čtením z disku |
+| **148** | **Falešný poplach ve vlastním skenu: 57 „nálezů", z toho většina falešných.** `\bjoin\s*\(` chytalo i `arr.join(',')` (metoda pole) | `conductor/src/index.ts` má 9× `Array.join` a `join()` z `node:path` **nikdy nevolá**; opraveno předponou `.`/`?.`/`\w` |
+
+> **⚠ A JEDNA VĚC, KTERÁ NEBYLA OMyl, ALE STÁLA ČAS:** scratch worktree
+> (`_analyza/a-ukol-scratch`) byl **zastaralý** (H64) a jeho obnova si vyžádala
+> smazat 1 233 souborů zálohy. **Před smazáním se ověřilo, že nový worktree
+> funguje** (`rev-parse`, `.godot` s 574 soubory) — ne až po něm.
+
+### 31.9 Co zůstává OTEVŘENÉ (nové z 5. 10. 2026, po P13c)
+
+- **`_analyza/_archiv/` (333+ souborů) stále NENÍ zálohovaný** (§29.7, §30.18) —
+  je to **jediná cesta zpět** a je gitignorovaný. **Neuzavřeno.**
+- **`g3` je přehled, ne blokující brána** (NA23b platí dál): 8 nenulových exitů
+  je dnes **správných**, ale **baseline se musí přeměřit při každé změně** —
+  a část z nich závisí na **oprávnění** (H51, H56).
+- **`mutace A` a `C1: důkaz selhání` jsou mimo `g3`** — nejsou to brány, ale
+  **měřidla jednorázových oprav**. Kdyby se oprava Úkolu A někdy vracela,
+  nástroje jsou v `_analyza/_archiv/`.
+- **`sken-vazeb.py` a `p1-inventura-cest.py`/`p1b-odvozene-cesty.py` zůstávají
+  živé** — obsahují `Local-Deepseek` jako **VZOREK (regex)**, což je správně.
+  Kdo je bude „čistit", **rozbije měřidlo** (zadání to říká výslovně).
+- **`docs/`, `README.md` projektu** a další dokumenty nebyly touto session
+  měněny — **otevřené body z §2, §29.7 a §30.18 platí dál**; tahle sekce je
+  **nemaže**.
+
+> **⚠ OPRAVA 5. 10. 2026 (P14, nález H75) — „8 NENULOVÝCH EXITŮ" NENÍ PRAVDA.**
+> V odrážce výš stojí, že **8 nenulových exitů je dnes správných**. Naměřeno
+> jinak: **§31.7** (nadpis i tabulka), **§31.1**, **§31.5** i **uložený běh**
+> `_analyza/_g3-po-oprave-20261005.txt` říkají **0** — a **všech 30 bran
+> spuštěných SAMOSTATNĚ** (`_analyza/p14b-exity.py`, P14) dalo **0 nenulových
+> exitů**. „8" je **zbytek z MEZISTAVU P13c** (po opravě cest, před opravou
+> bran) a **běh, ze kterého vzniklo, se nepodařilo dohledat**.
+> **Původní věta se NEPŘEPISUJE** (je to záznam — `AGENTS.md`) — platí ale, že
+> **dnešní správná hodnota je 0**. `NA23b` („`g3` je přehled, ne blokující
+> brána") tím **není dotčeno** — jen jeho „baseline" je dnes **prázdná množina**,
+> ne osm položek.
+
+
+---
+
+## 32. PROVEDENO 5. 10. 2026 (18:5x–20:1x) — OVĚŘOVACÍ session P14: OPRAVA P13c PŘEMĚŘENA JINÝM MĚŘIDLEM
+
+> **Co tahle sekce JE:** **záznam o provedení** ověřovací session podle
+> `NEXT-SESSION-INSTRUKCE.md` z 5. 10. 2026 (Úkoly **A–G**). Není to stav —
+> stav je v **§2** a v novém zadání. **Co se změnilo v souborech:** `git status`.
+> **Vlastní omyly:** **§8t** (omyl **149–155**).
+
+### 32.1 Výsledek v jedné větě
+
+**Pět oprav P13c MĚŘÍ — a nezávislé měřidlo to potvrdilo z jiné strany, než
+odkud to tvrdil autor oprav:** `g3` má **30 bran v AST = 30 sekcí ve výpisu**,
+**0 neexistujících cest**, a když jsem **všech 30 bran spustil sám** (ne přes
+`g3`), daly **0 nenulových exitů**. **ALE našly se čtyři věci, které P13c
+netvrdila — a jedna z nich je nová vada měřidla (H70):** bezpečnostní síť, kterou
+P13c do `zadani-kontrola.py` přidala proti H53, **při svém prvním skutečném
+použití spadne** (`ValueError`), místo aby poruchu vypsala.
+
+| # | Úkol | Stav | Doklad |
+|---|---|---|---|
+| **A** | `g3` přeměřen **jiným měřidlem** | **HOTOVO — BEZ ROZCHODU** | `_analyza/p14a-g3-nezavisle.py`: AST **30** = výpis **30**, jména i pořadí sedí u **30/30**, **0** neexistujících cest, **0** nedosazených záznamníků. A to měřidlo má **vlastní mutační test** (`_analyza/test-p14a-mutace.py`, **13 kontrol, 0 chyb**, 5 vad ho shodí) |
+| **B** | 8 nenulových exitů | **VYVRÁCENO MĚŘENÍM** | **Žádných 8 neexistuje.** Všech 30 bran spuštěno samostatně (`_analyza/p14b-exity.py`): **0 nenulových exitů**, **28× „měří"** (exit 0 + čítač), **2× bez čítače** (`check-schema` = textový verdikt, `tsc` = kompilátor). Tvrzení „8" je **zbytek z MEZISTAVU P13c** a je v rozporu s **§31.7** i s uloženým během |
+| **C** | Vlastní mutační testy pěti oprav | **HOTOVO — 4 z 5 MĚŘÍ, 1 ODHALILA VADU** | `_analyza/p14c-mutace-oprav.py`: **55 kontrol, 1 chyba** — a ta jedna **není chyba opravy P13c, ale nový nález H70** (viz 32.5). Každá mutace ověřena **dvakrát** (změna na disku + že měřená podmínka PŘESTALA platit) a každý soubor vrácen **bajt na bajt** |
+| **D** | `verify-setup.py`: je seznam ruční? | **ANO — a je to nález (H72, H73)** | Seznamy jsou v kódu **literály** (AST), ačkoli komentář o dva řádky výš tvrdí, že se **čtou z `AGENTS.md`**. S `AGENTS.md` se **neshodují**: **7 dokumentů** brána nehlídá a u složek se množiny liší na **4 místech** |
+| **E** | Artefakty vs. 278 z 1010 | **VYSVĚTLENO MĚŘENÍM** | **1010 = 278 parsovaných + 571 assetů (.png 285, .import 284) + 120 dokumentů (.md/.txt) + 41 ostatních**. Všech **31 netrackovaných** je **KÓD** (skripty v `_analyza/`) — **žádný se vylučovat nemá**; a skener je skutečně vidí (mutačně: sonda v kořeni i `_*.py` v `_analyza/` **v inventáři JSOU**, artefakt `_analyza/_*.json` **NENÍ**) |
+| **F** | Záznamy celé | **HOTOVO — s dvěma nálezy** | `handoff-kontrola-uplnost.py` **83/83**, `kronika-kontrola.py` **exit 0** (143 omylů, 69 nálezů, 26 sessions), `git diff HEAD -- KRONIKA-PROJEKTU.md` = **jen přidání** (řádek 27, H57–H69, blok `8s`). **Ale** souhrnný řádek `celkem` v kronize §3 je **zastaralý** (H74) a §31.9 si **odporuje** s §31.7 (H75) |
+| **G** | Push | **NEPUSHNUTO — rozhodnutí je na uživateli** | orchestra **8 commitů** + **necommitnutá práce**, hra **1 commit**. `git status` v **32.10** |
+
+### 32.2 Úkol A — `g3` měřený JINÝM měřidlem (ne `g3`)
+
+**Proč to nestačí samo:** `g3-brany.py` **přepsal autor opravy** (P13c) — kdo si
+opraví měřidlo a pak se jím měří, **nemá důkaz** (`overovani` §9.7).
+Měřidlo proto **nečte `g3` ani jeho výstupní formát**: spočítá `BRANY`
+**AST parserem** a z **plného výpisu** si vytáhne sekce `### <popis>   (exit=N)`.
+
+```
+python _analyza\p14a-g3-nezavisle.py      -> ZMĚŘENO: 9 kontrol, 0 chyb, exit 0
+python _analyza\test-p14a-mutace.py       -> 13 kontrol, 0 chyb, exit 0 (5 vad shodí)
+```
+
+| Co se měřilo | Naměřeno | Jak |
+|---|---|---|
+| bran v `BRANY` (AST) | **30** | `ast.parse` nad `g3-brany.py` → `ast.List` v přiřazení `BRANY` |
+| sekcí `### … (exit=N)` ve výpisu | **30** | regex nad `_analyza/g3-brany-vystup.txt` |
+| jméno i pořadí sekce = jméno brány | **30 z 30** | porovnání po jedné, v pořadí |
+| sekcí s prázdným tělem | **0** | tělo = text mezi hlavičkami, oddělovač `====` odstraněn |
+| sekcí s podpisem „soubor neexistuje" | **0** | `can't open file`, `Cannot find module`, `ENOENT`, `WinError 2` |
+| neexistujících cest v `BRANY` | **0** | záznamníky dosazeny **vlastním kódem** (`<WS>`, `<HRA>`, `<TOOLS>`, `<ANALYZA>`, `<FORGE>`, `<GODOT>`, `<STANICE>`) a každá cesta ověřena na disku |
+| zbytků ostrých závorek po dosazení | **0** | totéž |
+| **sekcí s NENULOVÝM exit ve výpisu** | **0** | — |
+
+> **⚠ ČÍSLO ZE ZADÁNÍ („28 = 28") JE ZASTARALÉ: správně je 30 = 30.**
+> Zadání psala session P13c **před** svou druhou vlnou (P13c-b), která do `g3`
+> přidala **dvě brány** (`chybějící importy (statická)` a `CI workflow`).
+> **Zadání se měří proti commitu, ne proti sobě** — a to je přesně ta vada,
+> kterou má hlídat `zadani-kontrola.py`.
+
+**Měřidlo samo je mutačně ověřené** (to je podmínka, bez které by „0 chyb" nic
+neznamenalo): fixtura se dvěma branami + **5 vad** (nedosazený záznamník, ubrání
+brány ze seznamu, neexistující soubor, prázdné tělo sekce, podpis chyby v těle) —
+**každá z nich měřidlo shodí** (`CHYBA …`) a zdravá fixtura projde.
+
+### 32.3 Úkol B — všech 30 bran spuštěno SAMOSTATNĚ (a co s tím „8")
+
+**Tvrzení P13c v §31.9:** „8 nenulových exitů je dnes správných".
+**Naměřeno 5. 10. 2026 (`p14b-exity.py`, každá brána zvlášť, `cwd` = kořen repa):**
+
+```
+brán celkem: 30, s NENULOVÝM exit: 0
+  měří   (exit 0 + vykázaný čítač)  28
+  měří?  (exit 0, čítač nemá)        2   check-schema (hra) — verdikt je TEXT
+                                          tsc (conductor)    — kompilátor mlčí
+```
+
+**Tvrzení „8" se NEPOTVRDILO a nepodařilo se dohledat, z čeho vzniklo:**
+v `_analyza/` je uložený běh `_g3-po-oprave-20261005.txt` s **0 nenulovými**,
+`§31.7` má v nadpisu **„0 nenulových exitů"** a `§31.5` popisuje opravu, po které
+**0 nastalo**. „8" je tedy **zbytek z MEZISTAVU** (po opravě cest, před opravou
+bran) a v §31.9 zůstal — **nález H75**.
+
+**A naměřil jsem přitom něco, co zadání nečekalo (a je to poučení):** při
+**prvním** průchodu daly brány **3 nenulové exity** (`C2: mutace N1` = 2,
+`n1-over-inventar` = 2, `validate-all` = 1). **Nebyly to vady orchestra** —
+způsobila je **jedna moje proměnná s diakritikou** (omyl **149**): `hl-rizika-jazyka.py`
+kvůli ní spadl a strhl s sebou `validate-all` i dvě brány. **To je nejlepší
+dostupný důkaz, že ty brány opravdu měří** — a zároveň důkaz, že **stav se nesmí
+zapisovat z jednoho průchodu**.
+
+| # | brána | exit | verdikt | co vykázala |
+|---|---|---|---|---|
+| 1 | `testy hry (Godot)` | 0 | měří | **91 kontrol / 0 selhání** (109/109) |
+| 2 | `mutace B (combat)` | 0 | měří | **2 / 2 chyceno** |
+| 3 | `C1: a3-over` | 0 | měří | 2 kontroly |
+| 4 | `C2: mutace N1 (5 běhů)` | 0 | měří | inventář 1018 souborů |
+| 5 | `C2: sebekontrola diakritiky` | 0 | měří | 23 673× náhradní znak |
+| 6 | `diakritika (brána)` | 0 | měří | 10 977 znaků, 173/217 souborů |
+| 7 | `handoff úplnost` | 0 | měří | **83 klíčů** |
+| 8 | `kronika úplnost` | 0 | měří | **143 omylů / 69 nálezů / 26 sessions** |
+| 9 | `kronika mutace (6 případů)` | 0 | měří | **8 případů** |
+| 10 | `diakritika nových souborů` | 0 | měří | 0 řádků s vadou |
+| 11 | `zadání kontrola` | 0 | měří | 273 řádků |
+| 12 | `over-dokumentaci` | 0 | měří | **67 kontrol** |
+| 13 | `over-skilly` | 0 | měří | **13 skillů** |
+| 14 | `lint-roadmapa` | 0 | měří | 8 / 22 granulí |
+| 15 | `check-schema (hra)` | 0 | měří? | **verdikt je TEXT** („Schéma je v souladu") |
+| 16 | `test-cooldown` | 0 | měří | **10 / 0** |
+| 17 | `f2 over cooldown` | 0 | měří | **10 / 0** |
+| 18 | `deploy B1` | 0 | měří | **50 úloh** |
+| 19 | `ag-over-cisla` | 0 | měří | 2026 (bez rozchodu) |
+| 20 | `ag-mutace (autorita)` | 0 | měří | **2 / 2 chyceno** |
+| 21 | `a1-a2-over` | 0 | měří | **23 kontrol** |
+| 22 | `a3-over` | 0 | měří | 2 kontroly |
+| 23 | `n8-zastarala` | 0 | měří | 6 / 7 |
+| 24 | `b5-over-tvrzeni` | 0 | měří | 13 / 18 |
+| 25 | `n1-over-inventar` | 0 | měří | **4 běhy OK** |
+| 26 | `tsc (conductor)` | 0 | měří? | kompilátor **mlčí** (nemá čítač) |
+| 27 | `validate-all (CELEK)` | 0 | měří | **`✓ VŠE V POŘÁDKU`** (aggregátor, vlastní čítač nemá) |
+| 28 | `verify-setup (struktura)` | 0 | měří | **49 kontrol** |
+| 29 | `chybějící importy (statická)` | 0 | měří | **67 souborů, 0 chyb** |
+| 30 | `CI workflow (šablona + hra)` | 0 | měří | **36 testů** |
+
+> **⚠ DVĚ BRÁNY NEMAJÍ ČÍTAČ A JE TO TAK SPRÁVNĚ** — `p14b` to **vypíše**
+> (`měří?`), nikdy nezamlčí. `check-schema` má **textový verdikt**, `tsc`
+> **na úspěch nemá co vypsat**; obojí je **stav, ne ticho**.
+> A **třetí stav** (`overovani` §7.13) jsem v tomhle kole **nemusel použít ani
+> jednou**: všech 30 bran **proběhlo** (`exit` je výsledek, ne „nezačalo").
+> Ve **prvním** kole ale nastal — a to na `C2: mutace N1` (viz §32.5, H71).
+
+### 32.4 Úkol C — VLASTNÍ mutační testy PĚTI oprav (`p14c-mutace-oprav.py`)
+
+**Proč vlastní:** `_analyza/test-p13c-oprav.py` (27 kontrol) psal **autor oprav**;
+`AGENTS.md` říká, že autor není nezávislý reviewer. Každá mutace proto:
+
+1. **spočítá výskyty kotvy** a `assert`uje **1×** (jinak by trefila docstring — §9.8),
+2. ověří, že se změna **propsala na disk** (čtení zpět, ne z proměnné),
+3. ověří, že **měřená PODMÍNKA přestala platit** (kotva v souboru není) — §7.14,
+4. spustí bránu a **požaduje její exit i text s předponou `CHYBA`** (jinak by test
+   prošel na popisku kontroly — to byl **můj omyl 150**),
+5. soubor vrátí v `finally` a **na konci ověří všech 5 souborů proti SHA-256**.
+
+```
+python _analyza\p14c-mutace-oprav.py   -> 55 kontrol, 1 chyba   (a ta 1 = NÁLEZ H70)
+```
+
+| # | Oprava (nález P13c) | Zdravý stav | Vrácená vada | Verdikt |
+|---|---|---|---|---|
+| **C1** | **H48** — `g3` dosazuje záznamníky cest | 0 nedosazených, 0 nezačatých | **substituce vypnuta** (`if False and znacka in cast:`) → `NEDOSAZENÉ CESTY (29)` **a** `BRÁNY, KTERÉ VŮBEC NEZAČALY` | **MĚŘÍ** |
+| **C2** | **H49** — `.gitignore` generátor chrání `.env` | `VÝSLEDEK: 15 kontrol, 0 chyb`, `exit 0` | z generátoru zmizí řádek `.env` → **`CHYBA generátor: '.env'`**, `exit 1` | **MĚŘÍ** |
+| **C3** | **H50** — `verify-setup.py` měří DNEŠNÍ kořen | `ZMĚŘENO: 49 kontrol, 0 chyb`, `exit 0` | kořen stanice přepsán na neexistující → **`CHYBA: kořen stanice … neexistuje`**, `exit 1` | **MĚŘÍ** |
+| **C3b** | (Úkol D) je seznam dokumentů ruční? | — | **celý seznam vyprázdněn** → brána **exit 0** a jen `43 kontrol` místo 49; **úbytek pokrytí nikdo nehlásí** | **NÁLEZ H72** |
+| **C4a** | **H53** — `zadani-kontrola.py` porovnává i orchestra | živý HEAD → `exit 0` | do hlavičky vrácen **starý sha `dbe4e4e`** → **`zadání tvrdí … skutečný HEAD je …`**, `exit 1` | **MĚŘÍ** |
+| **C4b** | **H53** — nová pojistka „nepřiřazené tvrzení se VYPÍŠE" | (nedá se spustit ve zdravém stavu — je to záchranná větev) | hlavička tvrdí `neznamy-repo = c620a06` → brána **SPADNE na `ValueError`** místo výpisu | **NÁLEZ H70** |
+| **C5** | **H52** — skener čte i NETRACKOVANÉ, vylučuje jen artefakty | **286** zpracovaných, **39** netrackovaných, **14** vyloučených | 3 sondy: netrackovaný kód v kořeni **JE v nálezech**, `_*.py` v `_analyza/` **JE v nálezech**, `_analyza/_*.json` **NENÍ** (a vyloučených je **o 1 víc**) | **MĚŘÍ** |
+
+**Všechny soubory vráceny bajt na bajt:** `NEXT-SESSION-INSTRUKCE.md`,
+`_analyza/g3-brany.py`, `install-into-repo.ps1`, `tools/verify-setup.py`
+a `_analyza/g3-brany-vystup.txt` — ten soubor obsahuje **běh P14**
+(sha256 `f846464919e6e87f`), protože **na konci session se `g3` spouštěl znovu**;
+**záznam P13c je proto ZÁLOHOVANÝ ZVLÁŠŤ** jako
+`_analyza/_p14-g3-vystup-p13c-zaloha.txt` (sha256 `7d791e7b38f244bf`,
+129 982 B) a **není přepsaný**.
+
+### 32.5 NÁLEZ H70 (NOVÝ, a je to vada MĚŘIDLA): bezpečnostní síť z H53 spadne
+
+**Co je naměřeno:** `zadani-kontrola.py` má od P13c **novou větev** — „tvrzení
+z hlavičky, která se nepodařilo přiřadit k repu, se **VYPÍŠOU jako varování**
+(nesmí tiše zmizet)". **Ta větev se ve zdravém stavu nikdy nespustí** (všechna
+tvrzení se přiřadí) — a **při prvním skutečném použití spadne**:
+
+```
+  File "E:\Workspaces\forge-orchestra\_analyza\zadani-kontrola.py", line 196, in <module>
+    if not any(k in _mozna_jmena(j) or j in k for j, _ in zivy)}
+ValueError: too many values to unpack (expected 2)
+```
+
+**Proč:** `zivy` je **slovník** (klíč → stav repa); iterace přes něj dává **klíče**
+(řetězce), ale kód je rozbaluje jako **dvojice** `for j, _ in zivy`. Ve zdravém
+stavu se sem kód nedostane, protože `nenalezene` je prázdné.
+
+**Co to znamená (a proč je to nález, ne kosmetika):** porucha, kvůli které ta
+větev existuje (**H53: orchestra se vůbec neporovnala**), se **znovu neohlásí** —
+místo varování je **traceback**. Brána sice skončí `exit 1`, ale **ze špatného
+důvodu a bez hlášení** — což je přesně past `overovani` §10.1 („`exit 1` ze
+špatného důvodu") a §7.10 („brána je zelená nad dokumentem, který neotevřela" —
+tady obráceně: **červená, ale nic neřekne**).
+
+**Reprodukce (jedním krokem):** v `NEXT-SESSION-INSTRUKCE.md` nahraď v řádku
+`Stav obou repů při psaní:` jméno `forge-orchestra` za `neznamy-repo`
+a spusť `python _analyza\zadani-kontrola.py` → `ValueError` na řádku 196.
+
+**Proč to P13c neodhalila:** její mutační test (`test-p13c-oprav.py`) mutoval
+**hlavičku zadání** (starý sha) — a to je **jiná** větev než „nepřiřazené
+tvrzení". **Nová větev nebyla nikdy ZAVOLÁNA**, takže o ní test netvrdil nic
+(`overovani` §7.15: „co je »zavolala«, se musí DOKÁZAT").
+
+**Náprava (pro příští session):** `zivy` je slovník → `for j in zivy:` (nebo
+`for j, _ in zivy.items():`), **a k tomu mutační test, který tu větev ZAVOLÁ**
+(cíl: `exit 1` **a** text „nepodařilo se přiřadit"— **ne** traceback).
+
+### 32.6 NÁLEZ H71 (NOVÝ): `g3` umí FALEŠNĚ říct „brána vůbec nezačala"
+
+`g3` rozhoduje „brána nezačala" podle trojice `exit=2` + **žádný čítač** +
+**výstup < 500 B**. **Naměřeno, že to je falešný poplach:** `C2: mutace N1`
+**proběhla**, **řekla to** (`→ brána neprojde ani ve zdravém stavu; končím`)
+a skončila `exit=2` — má 476 B, tedy **pod hranicí**, a `g3` ji zařadil do
+**„BRÁNY, KTERÉ VŮBEC NEZAČALY (1)"**.
+
+**Proč je to nález i přes to, že to spustil můj omyl (149):** *co* brána řekla,
+bylo **správné** (zdravý inventář neprošel) — chybný byl **klasifikátor**.
+Mechanismus je obecný: **každá brána, která legitimně končí `exit 2` s krátkým
+vysvětlením, bude v `g3` vykázána jako „neběžela".** To je **druhá strana téže
+mince** než past `can't open file` (H48): tam se „neběželo" **nevidělo**, tady se
+**vidí něco, co běželo**.
+
+**Náprava (návrh, ne provedeno):** rozlišovat **podle obsahu** — brána, která
+vypíše **vlastní** hlášení (např. „končím", „očekáváno", „CHYBA:"), **běžela**;
+„neběželo" je jen `exit=2` **s prázdným nebo jednořádkovým** výstupem interpretu.
+
+### 32.7 Úkol D — `verify-setup.py`: seznam je RUČNÍ (H72) a čítač podpočítává (H73)
+
+```
+python _analyza\p14d-verify-setup-sonda.py   -> ZMĚŘENO: 14 kontrol, 2 NÁLEZY
+```
+
+- **H72 — seznam je ruční literál, a komentář tvrdí opak.** `DOKUMENTY_STANICE`
+  (6) a `SLOZKY_STANICE` (5) jsou **literály v kódu** (AST), ale komentář o dva
+  řádky výš píše: *„Píše se do `AGENTS.md` v kořeni stanice — seznam se proto
+  čte z něj, ne z ruky (jinak by zastaral)."* **Nic se nečte** (před seznamem
+  není žádné `read_text`/`open`) a seznamy se s `AGENTS.md` **neshodují**:
+  **7 dokumentů** z `AGENTS.md` brána **nehlídá** (`ANALYZA-EFEKTIVITY-DSH.md`,
+  `DEPLOY-VYLEPSENI.md`, `RESEARCH-public-repos.md`,
+  `ANALYZA-VYVOJ-APLIKACI-A-HER.md`, `ZADANI-CREATOR-INDIKATORY.md`,
+  `token-saving-*.md`, `sdxl-*.md`) a u **složek** se množiny liší **na 4 místech**
+  (brána navíc: `research`, `_retired`; `AGENTS.md` navíc: `dsh-plugins`,
+  `dsh-consolidation`).
+- **H72b — falešný poplach na SPRÁVNÉM stavu (fixtura).** Nad falešným kořenem
+  stanice brána projde (`exit 0`); když se v něm `README.md` **legitimně
+  přejmenuje** na `README-INDEX.md`, brána zčervená (`CHYBI stanice/README.md`).
+  **Každé CHYBI má odůvodnění** („hledáno na: …") — to je v pořádku.
+- **H73 — čítač započítá kontroly z §5/§6 JEN když spadnou.** Naměřeno mutací:
+  rozbitý `README.md` (neplatné UTF-8) → čítač **49 → 50** a `chyb 1`. Zdravý běh
+  tedy hlásí **49**, ale kontrol se provede **64** (5× JSON + 8× UTF-8 + 2× git
+  se do čítače nedostanou). Není to lež, ale **„ZMĚŘENO: 49 kontrol" není počet
+  provedených kontrol** — a **úbytek pokrytí** (C3b: `DOKUMENTY_STANICE = []`)
+  **nikdo nehlásí**.
+- **Rozhodnutí (návrh NA27 v kronize):** seznam **odvodit z `AGENTS.md`** (nebo
+  aspoň **hlásit úbytek** — „dokumentů zkontrolováno: 6 z 12").
+
+### 32.8 Úkol E — skener: 278 z 1010 vysvětleno, artefakty jsou úzké správně
+
+```
+python _analyza\p14e-inventar-analyza.py   -> ZMĚŘENO: 9 kontrol, 0 chyb, exit 0
+```
+
+| Otázka | Naměřeno |
+|---|---|
+| netrackovaných v inventáři vs. **živý** `git ls-files --others` | **31 = 31** (množiny **shodné** — nic se cestou neztratilo) |
+| jsou to **kód**? | **31 z 31** — všechny jsou `.py`/`.mjs` skripty v `_analyza/`; **neParsovaných: 0** |
+| má se někdo z nich **vylučovat**? | **NE** — a `_analyza/_*.py` se **nevylučuje** (mutačně doloženo: sonda `_p14-sonda-kod-v-analyze.py` **je v nálezech**) |
+| **1010** (otisk) = | **278 parsovaných** + **571 assetů** + **120 dokumentů** + **41 ostatních** (součet **1010**, nic nezmizelo) |
+| z toho assety | `.png` **285**, `.import` **284** — a **569 z 571** je ve HŘE (ne v orchestra) |
+| **278** parsovaných | `.py` 107, `.mjs` 67, `.gd` 44, `.json` 36, `.yml` 12, zbytek 12 |
+| **NEPOKRYTO** | **0** |
+
+**Rozdíl 732 souborů tedy není „slepota" — je to strom souborů, který skener
+vidí a neparsuje**, protože v něm **není co měřit** (binární assety, Godot
+`.import`, dokumenty). **Co je na tom podstatné:** skener **vypisuje**, co
+vyloučil, a **NEPOKRYTO** je **0** — takže „278" je **doložené číslo**, ne mezera.
+
+**Poznámka k pořadí měření (aby číslo nebylo zaměněné):** za **P13c** byl otisk
+**1010** a netrackovaných **31**; **po mé session** je otisk **1018**, zpracováno **286** a
+netrackovaných **39** (přibylo **8 mých měřidel** v `_analyza/` a **2 vyloučené mezivýstupy**
+`p14b`). **Obě čísla jsou správná, každé pro jiný strom** — a to je přesně to,
+před čím varuje `AGENTS.md`: „číslo bez času je dvě pravdy".
+
+### 32.9 Úkol F — záznamy: co sedí a co ne
+
+```
+python _analyza\handoff-kontrola-uplnost.py   -> 83/83, CHYBÍ 0, exit 0
+python _analyza\kronika-kontrola.py           -> 143 omylů, 69 nálezů, 26 sessions, exit 0
+git diff HEAD -- KRONIKA-PROJEKTU.md          -> JEN přidání (ř. 27, H57–H69, blok 8s)
+```
+
+**Nic nezmizelo** — a ověřeno **hledáním**, ne pamětí: `§31.9` vypisuje otevřené
+body z **§2**, **§29.7** a **§30.18** a všechny je nechává platné. **Ale tři
+nesrovnalosti v záznamech jsem naměřil (H74–H77)** — a **žádnou z nich
+nepřepisuji**; jsou zapsané jako nález a opraví se **přidáním**:
+
+| # | Co je naměřeno |
+|---|---|
+| **H74** | **Souhrnný řádek `celkem` v kronize §3 je zastaralý.** Tvrdí `16 bloků, 24 sessions / 129 / 107 = 83 % / 34`; **změřeno z řádků tabulky**: `19 bloků, 26 sessions / 143 / 119 = 83 % / 40`. P13c připsala blok `8s`, ale **souhrn nedoplnila** (a stejně tak dřív `8p`–`8r`) |
+| **H75** | **§31.9 si odporuje s §31.7.** §31.9: „**8 nenulových exitů** je dnes správných"; §31.7 (nadpis i tabulka), §31.1, §31.5 **i uložený běh** `_g3-po-oprave-20261005.txt` říkají **0**. „8" je **zbytek z mezistavu**, nepodařilo se dohledat, ze kterého běhu |
+| **H76** | **Čísla v §31.7 nejsou z běhu, který je uložený.** `_g3-po-oprave-20261005.txt` dává `279 / 273 / 143` a `a3-over 0`, `C2: mutace N1 —`; tabulka §31.7 má `270 / 265 / 138`, `a3-over 2`, `C2: mutace N1 4 běhy OK`. **Tabulka je z jiného (staršího) běhu, než jaký je uložený jako doklad** — číslo bez svého běhu |
+| **H77** | **Řádek 27 kroniky zmiňuje jen `H57–H67`**, ale §2 kroniky má **H57–H69** (H68/H69 přidala P13c-b). Chybí **odkaz**, ne obsah |
+| **H78** | **Zadání pro tuhle session bylo psané proti MEZISTAVU:** tvrdí `28 = 28` (správně **30 = 30**), „8 nenulových exitů" (správně **0**), „řádek 27: omylů 138, nálezů 56" (naměřeno **143 / 69**). **Není to lež** — je to **číslo bez času** (`overovani` §9.7) |
+
+### 32.10 Úkol G — stav repů a rozhodnutí o pushi (na uživateli)
+
+```
+git -C E:\Workspaces\forge-orchestra status --porcelain        -> 102 řádků
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD  -> 8
+git -C E:\Workspaces\uo-shadows      rev-list --count origin/main..HEAD  -> 1
+git -C E:\Workspaces\forge-orchestra diff --stat HEAD          -> 61 files souborů, 39239 insertions(+), 13038 deletions(-)
+```
+
+**Nic se nepushlo.** Uživatel rozhoduje; kdyby push, pak **třemi kroky**
+(`DSH_HOME\AGENTS.md`, „Jak ověřit nasazení"): push dorazil → build na
+**SPRÁVNÉM** commitu → server posílá **NOVÝ** artefakt.
+
+### 32.11 Vlastní omyly této session
+
+Viz **§8t** (omyl **149–155**) — a jejich nejcennější polovina je ta, že
+**omyl 149 odhalila brána projektu**, ne já: **jedna proměnná s diakritikou**
+v mém ověřovacím nástroji vyrobila **tři červené brány** a málem se to zapsalo
+jako stav orchestra.
+
+### 32.12 Co zůstává OTEVŘENÉ (nové z 5. 10. 2026, po P14)
+
+- **H70 opravit** — `zadani-kontrola.py:196` (`for j, _ in zivy` nad slovníkem)
+  **a k tomu mutační test, který tu větev ZAVOLÁ**. **Neopravoval jsem to sám:**
+  opravu měřidla, které právě ověřuji, **nesmí dělat ověřovatel** (to je důvod,
+  proč tahle session vznikla) — patří do zadání pro **akční** session.
+- **H71 rozhodnout** — `g3` a falešné „brána vůbec nezačala" (exit=2 + krátký výstup).
+- **H72/H73 opravit nebo přiznat** — ruční seznamy ve `verify-setup.py` a čítač,
+  který nepočítá provedené kontroly.
+- **H74–H78 doplnit PŘIDÁNÍM** (kronika §3 `celkem`, §31.9, §31.7, řádek 27,
+  zadání) — **historická čísla se nepřepisují**, doplní se vedle.
+- **`_analyza/_archiv/` (333+ souborů) stále NENÍ zálohovaný** (§29.7, §30.18) —
+  **jediná cesta zpět**, gitignorovaný. **Neuzavřeno.**
+- **`g3` je přehled, ne blokující brána** (NA23b platí dál) — **a po téhle session
+  je to měřené dvakrát**: `g3` dá `0 nenulových` a **samostatné spuštění všech 30
+  bran** dá totéž.
+- **6 mých měřidel zůstává v `_analyza/`** (`p14a`–`p14f`, `test-p14a-mutace.py`,
+  `_sonda-identifikatory.py`) — **netrackovaných je proto 41 (a skener jich měří 39; dva jsou vyloučené artefakty), ne 31**. Rozhodnout:
+  **zařadit `p14a` + jeho mutační test do `g3`** (je to jediné měřidlo `g3`, které
+  `g3` neměří), nebo je nechat jen jako doklad.
+- **`mutace A` a `C1: důkaz selhání` jsou mimo `g3`** — nejsou to brány, ale
+  měřidla jednorázových oprav (nástroje v `_analyza/_archiv/`).
+- **H79 opravit** — tři docstringy s neplatnou escape sekvencí
+  (`_analyza/p1-inventura-cest.py`, `ps1-bom-crlf.py`, `sken-vazeb.py`)
+  a **předat `filename` do `ast.parse`** ve skeneru, aby varování
+  ukazovalo soubor.
+- **`docs/`, `README.md` projektu** a další dokumenty nebyly měněny — **otevřené
+  body z §2, §29.7 a §30.18 platí dál**; tahle sekce je **nemaže**.
+
+### 32.13 NÁLEZ H79 (nový, drobný): neplatné escape sekvence a netrasovatelné varování
+
+**Naměřeno:** při každé regeneraci inventáře vypíše skener na stderr **tři
+`SyntaxWarning: invalid escape sequence`** — a **u žádného neřekne, ze kterého
+souboru je** (`<unknown>:21`, `<unknown>:7`, `<unknown>:15`), protože
+`python_nalezy()` volá `ast.parse(text)` **bez `filename`**.
+
+**Které soubory to jsou** (dohledáno zvlášť, `python -W error::SyntaxWarning`
+nad oběma repy): `_analyza/p1-inventura-cest.py:21`, `_analyza/ps1-bom-crlf.py:7`
+a `_analyza/sken-vazeb.py:15` — všechny v **docstringu** (popis cesty
+s jedním zpětným lomítkem).
+
+**Proč to není kosmetika:** Python 3.12 to **hlásí** a některá příští verze
+z toho udělá **chybu**; a hlavně — **varování bez jména souboru se nedá
+dohledat**, což je táž třída jako „čítač s cizím jménem". **Náprava:** docstring
+na **raw string** (`r"""…"""`) — **obsah se nesmí změnit** (u `sken-vazeb.py`
+jde o **VZOREK regexu** s `Local-Deepseek`, který je správně a nemazat) —
+a zvážit předání `filename` do `ast.parse`.
+
+---
+
+## 33. PROVEDENO 5. 10. 2026 (konec 20:2x UTC = 22:2x +02:00) — AKČNÍ session P15: OPRAVA NÁLEZŮ H70–H79 Z P14
+
+> **Co tahle sekce JE:** **záznam o provedení** akční session podle
+> `NEXT-SESSION-INSTRUKCE.md` z 5. 10. 2026 (Úkoly **A–I**). Není to stav —
+> stav je v **§2** a v novém zadání. **Co se změnilo v souborech:** `git status`.
+> **Vlastní omyly:** **§8u** (omyl **156–159**). **Nové nálezy:** **H80–H82**.
+> **Datum spotřeby:** všechny údaje o stavu níž jsou **k 5. 10. 2026, 23:0x UTC**.
+
+### 33.1 Výsledek v jedné větě
+
+**Pět vad měřidel je opraveno a každá je doložená testem, který tu opravu
+ZAVOLÁ** — a **první spuštěný test hned našel vadu, kterou neznal ani P14, ani
+zadání** (`zadani-kontrola.py` měl **dva** výskyty téhož `for j, _ in zivy`,
+ne jeden). Záznamy (H74–H77) jsou doplněné **jen přidáním** a `_archiv`
+je **poprvé zálohovaný** (347 souborů, SHA-256 manifest, jiný disk).
+
+| # | Úkol | Stav | Doklad (spuštěním) |
+|---|---|---|---|
+| **A** | H70 — `zadani-kontrola.py` spadne | **HOTOVO — a našel se DRUHÝ výskyt** | `_analyza/test-h70-vetev.py` → **18 kontrol, 0 chyb**. Opraveny **dva** řádky (196 **a 210**); s vrácenou vadou test **zčervená** (18 kontrol, 4 chyby) |
+| **B** | H72+H73 — `verify-setup.py` | **HOTOVO — (A) ODVOZENÍ z `AGENTS.md`** | seznam se **čte z dokumentu** (12 dokumentů + 5 nástrojů místo ručních 6+5), vzor bez shody i prázdný seznam **shodí bránu**; čítač **49 → 74** a už nezávisí na tom, jestli kontrola spadla. `_analyza/test-h72-h73.py` → **38 kontrol, 0 chyb** (3 mutace) |
+| **C** | H71 — `g3` umí falešně „nezačala" | **HOTOVO** | klasifikátor `je_neotevrena()` rozhoduje **podle obsahu**; `_analyza/test-h71-klasifikator.py` → **15 kontrol, 0 chyb** (běžící brána se nezařadí, chybějící soubor ano; s vrácenou vadou 3 místo 2) |
+| **D** | H74–H77 — záznamy | **HOTOVO — jen PŘIDÁNÍM** | kronika: souhrn `celkem` přepočten (+ blok `8u`), **nový odstavec** k řádku 27 (H68/H69); `HANDOFF.md`: **nový odstavec** k §31.9 (H75) a **řádek s během** k §31.7 (H76). `git diff` u kroniky = **jen přidání** |
+| **E** | H79 — escape sekvence | **HOTOVO** | tři řetězce převedeny na **raw string** a `ast.parse(..., filename=…)`; `_analyza/h79-escape-sken.py` → **0**; `_analyza/test-h79-escape.py` → **18 kontrol, 0 chyb** (konstanty **shodné s `HEAD`**, varování má jméno souboru) |
+| **F** | měřidla z P14 | **ROZHODNUTO — viz 33.6** | `p14a` **NEPATŘÍ** do `g3` (čte `g3-brany-vystup.txt`, který je během běhu **z předchozího běhu** → samoodkaz); do `g3` místo toho **čtyři nová** měřidla P15 |
+| **G** | `_archiv` záloha | **HOTOVO — poprvé** | `_analyza/zalohuj-archiv.py` → **347 souborů, 1,58 MB** do `C:\Users\Ssevc\Local-Deepseek\_zalohy\forge-orchestra\`, **každý se shodným SHA-256** (ověřeno čtením z disku) |
+| **H** | záznamy a předání | **HOTOVO** | tato sekce, **§8u**, kronika (řádek 29, blok `8u`, §2.9, §6) a přepsané `NEXT-SESSION-INSTRUKCE.md` |
+| **I** | push | **NEPUSHNUTO — rozhodnutí je na uživateli** | `git status` v **§33.9** |
+
+### 33.2 Úkol A — H70 opraven a ZAVOLÁN (a hned našel druhý výskyt)
+
+**Reprodukce (bez sahání do živého zadání):** test si vyrobí **fixturu** —
+minimální „zadání" s hlavičkou, kde je `neznamy-repo` — a předá ji bráně
+přepínačem `--soubor`. Tím se **zavolá přesně ta větev**, kvůli které H70
+existuje, a `NEXT-SESSION-INSTRUKCE.md` zůstane netknutý.
+
+```
+python _analyza\test-h70-vetev.py     -> 18 kontrol, 0 chyb, exit 0
+                                          (s vrácenou vadou: 18 kontrol, 4 chyby, exit 1)
+```
+
+| Krok | Co se měřilo | Naměřeno |
+|---|---|---|
+| 1 | **kontrolní** fixtura (jen známé repy, živé HEADy) | `exit 0`, text „nepodařilo přiřadit" v ní **není** — proto vadu nikdo neviděl |
+| 2 | **vadná** fixtura (`neznamy-repo`) | `exit 1` **a** „nepodařilo přiřadit k repu" — **ne traceback** |
+| 3 | **mutace** (návrat `for j, _ in zivy`) | `ValueError` / traceback → hlášení **zmizí**; kontrolní případ **zůstává `exit 0`** (vada je v záchranné větvi, ne v celé bráně) |
+
+> **⚠ NÁLEZ H80 (nový, a je to ta nejcennější věta téhle session):**
+> **vada H70 byla v souboru DVAKRÁT.** Zadání i P14 znaly jen **řádek 196**;
+> **test, který větev zavolal, našel i řádek 210**
+> (`f"{', '.join(j for j, _ in zivy)})")`). První běh testu proto hlásil
+> **4 chyby** a teprve po opravě i druhého místa dal **0**. **Kdo vadu hledá
+> čtením, najde jedno místo; kdo ji zavolá, najde obě.**
+
+### 33.3 Úkol B — H72/H73: seznam se ODVOZUJE a čítač počítá VŠE
+
+**Rozhodnutí podle zadání („proveď JEDNO z"): zvoleno (A) — odvodit seznamy
+z `AGENTS.md`.** Důvod: (B) by nechalo ruční seznam na místě a jen k němu
+přidalo hlášení; **(A) odstraňuje příčinu** — druhý zdroj pravdy.
+
+| Co | Před | Po |
+|---|---|---|
+| dokumenty stanice | **ruční literál 6** (7 z `AGENTS.md` nehlídal) | **odvozeno z `AGENTS.md` → 12** (vzory `token-saving-*.md`, `sdxl-*.md` **rozvinuty**) |
+| nástroje stanice | **ruční literál 5** (rozdíl na 4 místech) | **odvozeno → 5** (`dsh-plugins`, `dsh-consolidation`, `ollama`, `router`, `obrazky`) |
+| chybějící řádek / prázdný seznam | **ticho** (`exit 0`) | **`exit 1`** s pojmenovanou chybou |
+| vzor bez shody | **ticho** | **`exit 1`** („vzor bez souboru") |
+| čítač | **49**, ale §5/§6/§7 se počítaly **jen když spadly** (`49 → 50`) | **74** = počet **opravdu provedených** kontrol |
+
+```
+python _analyza\test-h72-h73.py   -> 38 kontrol, 0 chyb, exit 0
+```
+
+**Měření (fixtura = vlastní kořen stanice, do živé stanice se nesahá):**
+seznam se do fixtury **nepřebírá opisem** — **čte se z výstupu brány**
+(`dokumenty (12): …`), takže test nemá druhou definici téhož (`overovani` §9.2).
+Tři mutace: **M1** vypnutá kontrola odvození · **M2** úspěch v §6 se nepočítá ·
+**M3** vzor bez shody se nehlásí — každá **zčervená** test (a každá je vrácena
+**bajt na bajt**).
+
+> **⚠ NÁLEZ H82 (nový): buňka „tento koren (`*.md`)" má TAKY zpětný apostrof.**
+> První verze odvození brala „buňku s nejvíc apostrofy" — a když je seznam
+> **prázdný**, vyhrála by **prostřední buňka** a `*.md` by se tvářil jako
+> deklarace → **tichý úbytek pokrytí, přesně vada H72**. Odhaleno **při psaní**
+> opravy (ne testem); náprava: buňka musí mít **aspoň 2 položky** (seznam má víc
+> než jednu; popis místa ne) a dvojznačnost → **prázdný seznam = CHYBA**.
+> Fixtura to drží případem 5.
+
+### 33.4 Úkol C — H71: `g3` už neříká „nezačala" funkční bráně
+
+**Co se změnilo:** z `spust()` se vytáhl **pojmenovaný klasifikátor**
+`je_neotevrena(exit_kod, nalezeno, vystup)` a rozhoduje **podle obsahu**:
+vlastní hlášení (`končím`, `CHYBA`, `ZMĚŘENO`, …) → **běžela**; prázdný výstup,
+podpis chybějícího souboru (`can't open file`, `Cannot find module`, `WinError 2`)
+nebo jednořádkový výstup bez hlášení → **nezačala**. **Délka výstupu z toho
+vypadla** — to bylo jádro vady (476 B < 500 B).
+
+```
+python _analyza\test-h71-klasifikator.py   -> 15 kontrol, 0 chyb, exit 0
+```
+
+**Jak se to měří (a proč se nemutuje živý soubor):** test vezme **živý
+`g3-brany.py` jako ZDROJ**, ve zkopírovaném textu nahradí **jen `BRANY`** za tři
+fixturové brány (vlastní krátké hlášení · `exit=2` bez výstupu · neexistující
+soubor) a kopii spustí. Tím se **zavolá skutečný klasifikátor**, ale
+**nezapisuje se do živého `g3-brany-vystup.txt`** (to je záznam běhu) a živý
+soubor se **nemutuje** — mutant je druhá kopie téhož zdroje s vrácenou vadou.
+
+| Fixturová brána | Správně | S vrácenou vadou (`len(v) < 500`) |
+|---|---|---|
+| vlastní krátké hlášení (`exit=2`) | **NENÍ** mezi nezačatými | **je** (to je H71) |
+| `exit=2` bez výstupu | je | je |
+| neexistující soubor | je | je |
+| **celkem nezačatých** | **2** | **3** |
+
+### 33.5 Úkol D — H74–H77 doplněno PŘIDÁNÍM (nic se nepřepisovalo)
+
+| # | Co bylo naměřeno | Co se s tím udělalo |
+|---|---|---|
+| **H74** | souhrnný řádek `celkem` v kronize §3 byl zastaralý | **P14 ho přepočetl** (20 bloků / 27 sessions / 150 / 126 = 84 % / 42) a původní čísla **nechal citovaná**; **P15 přidal řádek bloku `8u`** a souhrn **znovu přepočetl** (`_analyza/p14f-prepocet-kroniky.py`) |
+| **H75** | `§31.9` tvrdí „8 nenulových exitů je dnes správných", §31.7/§31.1/§31.5 i uložený běh říkají **0** | do §31.9 **přidán odstavec „⚠ OPRAVA 5. 10. 2026"** — původní věta **zůstává**, dnešní hodnota je **0** |
+| **H76** | čísla v §31.7 nejsou z běhu uloženého jako doklad | do §31.7 **přidána tabulka „V tabulce §31.7 vs. uložený běh"** (`270/265/138`, `a3-over 2`, `C2 4 běhy` vs. **`279/273/143`**, `a3-over 0`, `C2 —`) |
+| **H77** | řádek 27 kroniky zmiňuje jen `H57–H67`, §2 má `H57–H69` | **řádek 27 zůstává**; přidán **odstavec s odkazem na H68/H69** |
+| **H78** | zadání pro P14 bylo psané proti mezistavu | **zadání pro P15 je proti stavu** (hlavička s živými HEADy) a `zadani-kontrola.py` na to má bránu |
+
+### 33.6 Úkol F — ROZHODNUTÍ o měřidlech (a proč to není dojem)
+
+**Ověřeno čtením zdroje, ne odhadem:** `p14a-g3-nezavisle.py` čte
+`_analyza/g3-brany-vystup.txt` (**řádky 62, 143, 148**). Ten soubor zapisuje
+**sám `g3`** — a to **na konci** svého běhu. Kdyby `p14a` byl v `BRANY`:
+
+* během běhu `g3` by `p14a` četl **výstup PŘEDCHOZÍHO běhu** → `g3` by měřil
+  **sám sebe přes svůj minulý výstup** (třída **H60**, „samoodkaz měřidla"),
+* po **každé** změně `BRANY` by první běh hlásil **falešnou červenou**
+  (`AST 34` vs. výpis s 30 sekcemi).
+
+**Rozhodnutí:**
+1. **`p14a` + `test-p14a-mutace.py` zůstávají DOKLADEM, ne v `g3`.** Pouští se
+   ručně (a je to tak správně — nezávislé měřidlo má být **nezávislé**, ne
+   vnořené do měřeného).
+2. **Do `g3` jdou místo toho čtyři nová měřidla P15**, protože **mají stav
+   sama ze sebe** (fixtura / statický sken) a nic z `g3` nečtou:
+   `escape sekvence (H79, statická)`, `escape sekvence (H79, mutace)`,
+   `g3 klasifikátor nezačatých (H71)`, `verify-setup seznam+čítač (H72/H73)`.
+   **`g3` tak má 34 bran** (bylo 30).
+3. **`test-h70-vetev.py` do `g3` NEPATŘÍ** — **mutuje živý**
+   `_analyza/zadani-kontrola.py` (a vrací ho). Je to táž třída jako
+   `p14c-mutace-oprav.py`, který v seznamu taky není. Zůstává dokladem.
+4. **`p14b`/`p14c` do `validate-all.mjs` nepatří** (zadání to říká a je to
+   měřené: oba **přepisují soubory** a vracejí je; validátor takové nástroje
+   **správně odmítá spustit**).
+5. **Commitne je ta session, která bude commitovat celek.** `_analyza/` má
+   necommitnutou práci **P13c, P14 i P15** a rozdělit ji na commity podle
+   session by znamenalo tvrdit, že část práce je hotová, když ve stromě zůstává
+   nedokončený zbytek. **Rozhodnutí o commitu patří k rozhodnutí o pushi** —
+   a to je na uživateli (§33.9).
+
+> **⚠ NÁLEZ H81 (nový, drobný): `g3` tvrdil o bráně něco, co neplatilo.**
+> Sekce „BRÁNY BEZ ČÍTAČE" měla nadpis „**prošly**, ale nevíme, CO změřily" —
+> a v běhu P15 v ní stál `C2: mutace N1` s **`exit=2`**. Je to **tatáž třída
+> jako H71** (sdělení o bráně), jen o vrstvu výš. Opraveno: nadpis už netvrdí
+> „prošly" a vypisuje se **exit kód**.
+
+### 33.7 Úkol G — `_archiv` je poprvé zálohovaný
+
+**Otevřený bod z §29.7 a §30.18, který P13c ani P14 neuzavřely.**
+
+```
+python _analyza\zalohuj-archiv.py   -> 5 kontrol, 0 chyb
+                                       _archiv: 347 souborů, 1,58 MB
+```
+
+| Co | Jak |
+|---|---|
+| **Kam** | `C:\Users\Ssevc\Local-Deepseek\_zalohy\forge-orchestra\_analyza\_archiv\` — **JINÝ DISK** než repa (ta jsou na `E:`); kdyby padl `E:`, přežije kořen stanice na `C:` **i se zálohou**. Mimo git, mimo oba repy. |
+| **Čím** | `_analyza/zalohuj-archiv.py` — kopíruje **bajty**, vede **SHA-256 manifest** (`MANIFEST.json` + `MANIFEST.txt`) a po zápisu **ověří kopii čtením z disku** |
+| **Doklad** | `v záloze je všech 347 souborů` a `všechny mají SHODNÝ SHA-256 se zdrojem` |
+| **Co se NEMAŽE** | co v záloze přebývá, se jen **vypíše** — mazání do zálohy nepatří |
+| **Kontrola kdykoli** | `python _analyza\zalohuj-archiv.py --jen-kontrola` |
+
+> **Poznámka k viditelnosti:** `_zalohy` je v kořeni stanice, takže se objeví
+> v **poznámce** `verify-setup.py` („na disku, ale v `AGENTS.md` NEVYJMENOVANÉ").
+> Je to **poznámka, ne vada** — deklarace stanice se kvůli záloze nemění.
+
+### 33.8 Úkol H/I — brány po opravě
+
+```
+python _analyza\g3-brany.py                   -> 34 bran, 0 nedosazených, 0 nezačatých
+python _analyza\test-h70-vetev.py             -> 18 kontrol, 0 chyb
+python _analyza\test-h71-klasifikator.py      -> 15 kontrol, 0 chyb
+python _analyza\test-h72-h73.py               -> 38 kontrol, 0 chyb
+python _analyza\test-h79-escape.py            -> 18 kontrol, 0 chyb
+python _analyza\h79-escape-sken.py            -> 0 neplatných escape sekvencí
+python _analyza\zalohuj-archiv.py             -> 347 souborů, SHA-256 sedí
+python _analyza\zadani-kontrola.py            -> exit 0
+python _analyza\handoff-kontrola-uplnost.py   -> 83/83
+python _analyza\kronika-kontrola.py           -> exit 0
+node   tools\validate-all.mjs                 -> VŠE V POŘÁDKU
+```
+
+**Inventář se musel přegenerovat** (pravidlo NA1): `g3` v **prvním** běhu P15
+vykázal **3 nenulové exity** (`C2: mutace N1`, `n1-over-inventar`,
+`validate-all`) — a **všechny tři byly zastaralý inventář**, ne vada kódu.
+Po `python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json`
+jsou zelené. **To je přesně ten stav, před kterým varuje H60** — a je dobře, že
+to brána řekla nahlas.
+
+### 33.9 Úkol I — stav repů a rozhodnutí o pushi (na uživateli)
+
+```
+git -C E:\Workspaces\forge-orchestra status --porcelain                     -> v §33.9.1
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD     -> 8
+git -C E:\Workspaces\uo-shadows      rev-list --count origin/main..HEAD     -> 1
+git -C E:\Workspaces\forge-orchestra diff --stat HEAD                       -> v §33.9.1
+```
+
+**Nic se nepushlo.** Uživatel rozhoduje; kdyby push, pak **třemi kroky**
+(`DSH_HOME\AGENTS.md`, „Jak ověřit nasazení"): push dorazil → build na
+**SPRÁVNÉM** commitu → server posílá **NOVÝ** artefakt.
+
+### 33.10 Vlastní omyly této session
+
+Viz **§8u** (omyl **156–159**). Nejcenější je **156**: očekávaný text jsem
+**opsal ze záznamu, ne ze zdroje** — a test pak hlásil **CHYBU na správné
+bráně**. Je to stejná třída jako `overovani` §10.1 („brána čte citaci místo
+tvrzení"), jen se to stalo **mně v testu**.
+
+### 33.11 Co zůstává OTEVŘENÉ (nové z 5. 10. 2026, po P15)
+
+- **Push obou repů** — **nepushnuto**, rozhodnutí je na uživateli (§33.9).
+  `orchestra` **8 commitů** + necommitnutá práce; hra **1 commit**.
+- **`_analyza/_archiv/` je zálohovaný poprvé** — ale **záloha není automatická**.
+  Kdo do `_archiv` sáhne, musí spustit `python _analyza\zalohuj-archiv.py`.
+  **Návrh NA29** (zapsán v kronize §6) je **spouštět záložní kontrolu na konci
+  session**; rozhodnutí patří do `PREDAVANI-SESSION.md`.
+- **`p14b`/`p14c` a `test-h70-vetev.py` zůstávají mimo `g3`** (§33.6) — jsou to
+  **doklady**, ne trvale zelené brány. Kdo je chce v přehledu, musí je tam
+  přidat **a vědět, že přepisují soubory**.
+- **`g3` je pořád PŘEHLED, ne blokující brána** (NA23b) — a po P15 má **34 bran**.
+  `NA23b` platí dál: přidat bránu znamená, že se její stav **objeví v přehledu**,
+  ne že něco spadne.
+- **`docs/`, `README.md` projektu** a další dokumenty nebyly měněny — **otevřené
+  body z §2, §29.7 a §30.18 platí dál**; tahle sekce je **nemaže**.
+- **`_analyza/` má necommitnutou práci P13c, P14 i P15** — commit je součást
+  rozhodnutí o pushi (§33.6 bod 5).

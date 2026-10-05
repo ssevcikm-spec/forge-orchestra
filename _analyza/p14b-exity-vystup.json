@@ -1,0 +1,493 @@
+[
+  {
+    "popis": "testy hry (Godot)",
+    "prikaz": [
+      "E:\\Tools\\godot\\Godot_v4.7.2-stable_win64_console.exe",
+      "--headless",
+      "--path",
+      "E:\\Workspaces\\uo-shadows",
+      "--script",
+      "res://tests/run_tests.gd"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "91",
+      "z_z": "109/109  (vzor nalezl 2 výskytů: ['109/109', '109/109']…)",
+      "chyb": "0  (vzor nalezl 2 výskytů: ['0', '0']…)"
+    },
+    "sekund": 0.4,
+    "bajtu_vystupu": 8318
+  },
+  {
+    "popis": "mutace B (combat)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/b-mutace.py",
+      "E:/Workspaces/forge-orchestra/_analyza/a-ukol-scratch"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "91  (vzor nalezl 5 výskytů: ['91', '91', '91', '91']…)",
+      "z_z": "2/2",
+      "chyb": "4  (vzor nalezl 5 výskytů: ['0', '5', '4', '5']…)"
+    },
+    "sekund": 1.5,
+    "bajtu_vystupu": 11130
+  },
+  {
+    "popis": "C1: a3-over (náhrada za a3-kontrola.mjs)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/a3-over.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "2",
+      "chyb": "0"
+    },
+    "sekund": 0.2,
+    "bajtu_vystupu": 412
+  },
+  {
+    "popis": "C2: mutace N1 (5 běhů)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/c2-mutace.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "souboru": "1018  (vzor nalezl 4 výskytů: ['1018', '1018', '1018', '1018']…)"
+    },
+    "sekund": 5.7,
+    "bajtu_vystupu": 3303
+  },
+  {
+    "popis": "C2: sebekontrola diakritiky",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/g1-mutace-diakritika.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "znaku": "23673  (vzor nalezl 3 výskytů: ['23673', '23673', '23673']…)"
+    },
+    "sekund": 0.6,
+    "bajtu_vystupu": 1018
+  },
+  {
+    "popis": "diakritika (brána)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/kontrola-diakritiky.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "z_z": "173/217",
+      "znaku": "10977  (vzor nalezl 173 výskytů: ['16418', '17338', '12098', '449759']…)",
+      "souboru": "217  (vzor nalezl 3 výskytů: ['93', '44', '217']…)"
+    },
+    "sekund": 0.3,
+    "bajtu_vystupu": 13052
+  },
+  {
+    "popis": "handoff úplnost",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/handoff-kontrola-uplnost.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrolovanych_klice": "83"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 339
+  },
+  {
+    "popis": "kronika úplnost",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/kronika-kontrola.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "omylu_celkem": "150",
+      "nalezu_v_kronice": "79",
+      "sessions_v_kronice": "27"
+    },
+    "sekund": 12.3,
+    "bajtu_vystupu": 5641
+  },
+  {
+    "popis": "kronika mutace (6 případů)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/t3-kronika-mutace.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "omylu_celkem": "106",
+      "testu_celkem": "8"
+    },
+    "sekund": 0.6,
+    "bajtu_vystupu": 4525
+  },
+  {
+    "popis": "diakritika nových souborů",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "radku": "0  (vzor nalezl 3 výskytů: ['1', '2', '0']…)"
+    },
+    "sekund": 0.3,
+    "bajtu_vystupu": 19910
+  },
+  {
+    "popis": "zadání kontrola",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "znaku": "15486",
+      "radku": "280"
+    },
+    "sekund": 0.6,
+    "bajtu_vystupu": 1514
+  },
+  {
+    "popis": "over-dokumentaci",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/over-dokumentaci.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "Kontrol:": "67"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 5119
+  },
+  {
+    "popis": "over-skilly",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/over-skilly.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "skilly": "13",
+      "znaku": "268  (vzor nalezl 13 výskytů: ['382', '453', '190', '365']…)"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 787
+  },
+  {
+    "popis": "lint-roadmapa",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/lint-roadmapa.py",
+      "E:/Workspaces/uo-shadows"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "z_z": "8/22",
+      "souboru": "3",
+      "radku": "60",
+      "granuli": "22  (vzor nalezl 14 výskytů: ['8', '10', '6', '9']…)"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 3138
+  },
+  {
+    "popis": "check-schema (hra)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/repo/.forge/check-schema.py",
+      "E:/Workspaces/uo-shadows"
+    ],
+    "exit": 0,
+    "stav": "měří?",
+    "duvod": "exit 0, ale BEZ čítače (ticho, ne zelená)",
+    "citace": {},
+    "sekund": 0.1,
+    "bajtu_vystupu": 718
+  },
+  {
+    "popis": "test-cooldown",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/test-cooldown.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "10",
+      "chyb": "0",
+      "radku": "7  (vzor nalezl 2 výskytů: ['7', '7']…)"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 1512
+  },
+  {
+    "popis": "f2 over cooldown",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/f2-over-cooldown.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "10",
+      "chyb": "0"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 472
+  },
+  {
+    "popis": "deploy B1",
+    "prikaz": [
+      "node",
+      "E:/Workspaces/forge-orchestra/_analyza/f3-over-deploy.mjs",
+      "7c11b2d"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "radku": "21  (vzor nalezl 2 výskytů: ['21', '21']…)",
+      "uloh": "50  (vzor nalezl 4 výskytů: ['50', '145', '146', '50']…)"
+    },
+    "sekund": 1.8,
+    "bajtu_vystupu": 1181
+  },
+  {
+    "popis": "ag-over-cisla",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/ag-over-cisla.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "z_z": "547270/7624114",
+      "znaku": "16418  (vzor nalezl 2 výskytů: ['17338', '16418']…)",
+      "radku": "182"
+    },
+    "sekund": 1.1,
+    "bajtu_vystupu": 1274
+  },
+  {
+    "popis": "ag-mutace (autorita)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/ag-mutace.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "mutaci_chyceno": "2/2"
+    },
+    "sekund": 4.7,
+    "bajtu_vystupu": 1357
+  },
+  {
+    "popis": "a1-a2-over",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/a1-a2-over.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "Kontrol:": "23"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 96
+  },
+  {
+    "popis": "a3-over",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/a3-over.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "2",
+      "chyb": "0"
+    },
+    "sekund": 0.2,
+    "bajtu_vystupu": 412
+  },
+  {
+    "popis": "n8-zastarala",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/n8-zastarala-analyza.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "z_z": "6/7",
+      "znaku": "34323"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 1799
+  },
+  {
+    "popis": "b5-over-tvrzeni",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/b5-over-tvrzeni.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "2",
+      "z_z": "5/7  (vzor nalezl 2 výskytů: ['5/5', '5/7']…)"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 1221
+  },
+  {
+    "popis": "n1-over-inventar",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/n1-over-inventar.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "souboru": "1018  (vzor nalezl 2 výskytů: ['1018', '1018']…)"
+    },
+    "sekund": 3.0,
+    "bajtu_vystupu": 1640
+  },
+  {
+    "popis": "tsc (conductor)",
+    "prikaz": [
+      "node",
+      "E:/Workspaces/forge-orchestra/conductor/node_modules/typescript/bin/tsc",
+      "--noEmit",
+      "--project",
+      "E:/Workspaces/forge-orchestra/conductor/tsconfig.json"
+    ],
+    "exit": 0,
+    "stav": "měří?",
+    "duvod": "exit 0, ale BEZ čítače (ticho, ne zelená)",
+    "citace": {},
+    "sekund": 0.8,
+    "bajtu_vystupu": 0
+  },
+  {
+    "popis": "validate-all (CELEK)",
+    "prikaz": [
+      "node",
+      "E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "2  (vzor nalezl 4 výskytů: ['15', '10', '2', '2']…)",
+      "Kontrol:": "23",
+      "z_z": "5/7  (vzor nalezl 3 výskytů: ['6/7', '5/5', '5/7']…)",
+      "chyb": "0  (vzor nalezl 3 výskytů: ['0', '0', '0']…)",
+      "testu_ok": "24  (vzor nalezl 4 výskytů: ['16', '36', '36', '24']…)",
+      "znaku": "34323",
+      "souboru": "23  (vzor nalezl 3 výskytů: ['100', '1018', '23']…)",
+      "radku": "7  (vzor nalezl 2 výskytů: ['7', '7']…)"
+    },
+    "sekund": 11.3,
+    "bajtu_vystupu": 24588
+  },
+  {
+    "popis": "verify-setup (struktura)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/tools/verify-setup.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "kontrol": "49",
+      "chyb": "0",
+      "granuli": "22  (vzor nalezl 2 výskytů: ['0', '22']…)"
+    },
+    "sekund": 0.3,
+    "bajtu_vystupu": 3342
+  },
+  {
+    "popis": "chybějící importy (statická)",
+    "prikaz": [
+      "python",
+      "E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "chyb": "0",
+      "souboru": "67"
+    },
+    "sekund": 0.3,
+    "bajtu_vystupu": 107
+  },
+  {
+    "popis": "CI workflow (šablona + hra)",
+    "prikaz": [
+      "node",
+      "E:/Workspaces/forge-orchestra/tools/test-ci-workflow.mjs"
+    ],
+    "exit": 0,
+    "stav": "měří",
+    "duvod": "exit 0 + vykázaný čítač",
+    "citace": {
+      "testu_ok": "36"
+    },
+    "sekund": 0.1,
+    "bajtu_vystupu": 1788
+  }
+]
