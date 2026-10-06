@@ -710,9 +710,20 @@ print("VÝSLEDEK g3: %s" % {0: "PŘEHLED JE ÚPLNÝ (každá brána začala a vy
 # doklady a mutační testy, které si `BRANY` ve svém harnessu MĚNÍ. Kdyby registr
 # zapsaly ony, uložil by se **zmrzačený seznam z mutace** (a příští session by
 # se podle něj řídila). Proto: plný běh → zapiš; `--soubor` → nezapisuj.
-if not _POUZE_VYSTUP:
+if not _POUZE_VYSTUP and not os.environ.get("FORGE_BEZ_REGISTRU"):
     import json as _json
     import time as _time
+    # ⚠ CÍL SE DÁ PŘEBÍT (`FORGE_REGISTR`). Naměřeno 6. 10. 2026: i s pojistkou
+    # `_POUZE_VYSTUP` se **živý registr přepsal** — uložila se do něj **jedna
+    # fixtura** (`A1: zdravá`, `bran_celkem: 1`), protože si nějaký harness staví
+    # **kopii `g3` s vlastním `BRANY`** a pouští ji bez `--soubor`.
+    # **Poznalo se to jen měřením OBSAHU souboru** (`bran_celkem`), ne podle
+    # `exit` kódu: běh byl „zelený" a registr přitom lhal. Je to táž třída jako
+    # „brána, která se neptá na to, co je rozbité".
+    # Proto: kdo si staví harness, ať dá `FORGE_REGISTR=<scratch cesta>`
+    # (nebo `FORGE_BEZ_REGISTRU=1`); plný běh bez těch proměnných zapíše živý registr.
+    _cil = (pathlib.Path(os.environ["FORGE_REGISTR"])
+            if os.environ.get("FORGE_REGISTR") else REGISTR)
     _registr = {
         "co_to_je": ("REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. "
                      "Zdroj: `python _analyza/g3-brany.py` (plný běh). "
@@ -745,10 +756,10 @@ if not _POUZE_VYSTUP:
             "ma_citac": _p not in {x for x, _, _ in bez_citace},
             "prikaz": _prikaz_s,
         })
-    REGISTR.write_bytes((_json.dumps(_registr, ensure_ascii=False, indent=2) + "\n")
-                        .encode("utf-8"))
+    _cil.write_bytes((_json.dumps(_registr, ensure_ascii=False, indent=2) + "\n")
+                     .encode("utf-8"))
     print("registr zapsán: %s (%d bran, %d B)"
-          % (REGISTR.name, _registr["bran_celkem"], REGISTR.stat().st_size))
+          % (_cil.name, _registr["bran_celkem"], _cil.stat().st_size))
 
 # Viz komentář u `_POUZE_VYSTUP`: doklad si návratový kód přečte odsud a sám
 # zůstane `exit 0` (jinak by nemohl rozlišit „správně promluvil“ od „spadl“).

@@ -1,21 +1,276 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-06 22:29:50",
-  "bran_celkem": 1,
-  "s_nenulovym_exit": [],
+  "kdy": "2026-10-06 22:56:23",
+  "bran_celkem": 37,
+  "s_nenulovym_exit": [
+    "zadání kontrola"
+  ],
   "ocekavane_nenulove": {
-    "A1: zdravá": 1,
-    "A9: nikdy nebyla": 1
+    "zadání kontrola": 1
   },
-  "bez_citace": [],
+  "bez_citace": [
+    "C2: mutace N1 (5 běhů)"
+  ],
   "neotevrene": [],
   "brany": [
     {
-      "nazev": "A1: zdravá",
+      "nazev": "testy hry (Godot)",
       "exit": 0,
-      "otevrela": "3",
+      "otevrela": "91 / 0",
       "ma_citac": true,
-      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/p20-scratch/a-fixtury/a-zdrava.py"
+      "prikaz": "E:\\Tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path E:\\Workspaces\\uo-shadows --script res://tests/run_tests.gd"
+    },
+    {
+      "nazev": "mutace B (combat)",
+      "exit": 0,
+      "otevrela": "2 / 2",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b-mutace.py E:/Workspaces/forge-orchestra/_analyza/a-ukol-scratch"
+    },
+    {
+      "nazev": "C1: a3-over (náhrada za a3-kontrola.mjs)",
+      "exit": 0,
+      "otevrela": "2",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/a3-over.py"
+    },
+    {
+      "nazev": "C2: mutace N1 (5 běhů)",
+      "exit": 0,
+      "otevrela": "—",
+      "ma_citac": false,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/c2-mutace.py"
+    },
+    {
+      "nazev": "C2: sebekontrola diakritiky",
+      "exit": 0,
+      "otevrela": "127",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-mutace-diakritika.py"
+    },
+    {
+      "nazev": "diakritika (brána)",
+      "exit": 0,
+      "otevrela": "10977",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/kontrola-diakritiky.py"
+    },
+    {
+      "nazev": "handoff úplnost",
+      "exit": 0,
+      "otevrela": "83",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/handoff-kontrola-uplnost.py"
+    },
+    {
+      "nazev": "kronika úplnost",
+      "exit": 0,
+      "otevrela": "208",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/kronika-kontrola.py"
+    },
+    {
+      "nazev": "kronika mutace (6 případů)",
+      "exit": 0,
+      "otevrela": "8",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/t3-kronika-mutace.py"
+    },
+    {
+      "nazev": "diakritika nových souborů",
+      "exit": 0,
+      "otevrela": "379",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
+    },
+    {
+      "nazev": "zadání kontrola",
+      "exit": 1,
+      "otevrela": "278",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
+    },
+    {
+      "nazev": "over-dokumentaci",
+      "exit": 0,
+      "otevrela": "67",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-dokumentaci.py"
+    },
+    {
+      "nazev": "over-skilly",
+      "exit": 0,
+      "otevrela": "13",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
+    },
+    {
+      "nazev": "lint-roadmapa",
+      "exit": 0,
+      "otevrela": "8 / 22",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/lint-roadmapa.py E:/Workspaces/uo-shadows"
+    },
+    {
+      "nazev": "check-schema (hra)",
+      "exit": 0,
+      "otevrela": "Schéma je v souladu",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/repo/.forge/check-schema.py E:/Workspaces/uo-shadows"
+    },
+    {
+      "nazev": "test-cooldown",
+      "exit": 0,
+      "otevrela": "10 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-cooldown.py"
+    },
+    {
+      "nazev": "f2 over cooldown",
+      "exit": 0,
+      "otevrela": "10 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/f2-over-cooldown.py"
+    },
+    {
+      "nazev": "deploy B1",
+      "exit": 0,
+      "otevrela": "50",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/_analyza/f3-over-deploy.mjs 7c11b2d"
+    },
+    {
+      "nazev": "ag-over-cisla",
+      "exit": 0,
+      "otevrela": "2026",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/ag-over-cisla.py"
+    },
+    {
+      "nazev": "ag-mutace (autorita)",
+      "exit": 0,
+      "otevrela": "2 / 2",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/ag-mutace.py"
+    },
+    {
+      "nazev": "a1-a2-over",
+      "exit": 0,
+      "otevrela": "23",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/a1-a2-over.py"
+    },
+    {
+      "nazev": "a3-over",
+      "exit": 0,
+      "otevrela": "0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/a3-over.py"
+    },
+    {
+      "nazev": "n8-zastarala",
+      "exit": 0,
+      "otevrela": "6 / 7",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n8-zastarala-analyza.py"
+    },
+    {
+      "nazev": "b5-over-tvrzeni",
+      "exit": 0,
+      "otevrela": "13 / 18",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b5-over-tvrzeni.py"
+    },
+    {
+      "nazev": "n1-over-inventar",
+      "exit": 0,
+      "otevrela": "0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n1-over-inventar.py"
+    },
+    {
+      "nazev": "tsc (conductor)",
+      "exit": 0,
+      "otevrela": "— (brána nemá čítač)",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/conductor/node_modules/typescript/bin/tsc --noEmit --project E:/Workspaces/forge-orchestra/conductor/tsconfig.json"
+    },
+    {
+      "nazev": "validate-all (CELEK)",
+      "exit": 0,
+      "otevrela": "— (brána nemá čítač)",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
+    },
+    {
+      "nazev": "verify-setup (struktura)",
+      "exit": 0,
+      "otevrela": "75",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/verify-setup.py"
+    },
+    {
+      "nazev": "chybějící importy (statická)",
+      "exit": 0,
+      "otevrela": "74",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
+    },
+    {
+      "nazev": "CI workflow (šablona + hra)",
+      "exit": 0,
+      "otevrela": "36",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/tools/test-ci-workflow.mjs"
+    },
+    {
+      "nazev": "escape sekvence (H79, statická)",
+      "exit": 0,
+      "otevrela": "0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/h79-escape-sken.py"
+    },
+    {
+      "nazev": "escape sekvence (H79, mutace)",
+      "exit": 0,
+      "otevrela": "18 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-h79-escape.py"
+    },
+    {
+      "nazev": "g3 klasifikátor nezačatých (H71)",
+      "exit": 0,
+      "otevrela": "15 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-h71-klasifikator.py"
+    },
+    {
+      "nazev": "verify-setup seznam+čítač (H72/H73)",
+      "exit": 0,
+      "otevrela": "38 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-h72-h73.py"
+    },
+    {
+      "nazev": "kompilovatelnost živých .py (H85/NA32)",
+      "exit": 0,
+      "otevrela": "179 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
+    },
+    {
+      "nazev": "kompilovatelnost — mutace (NA32)",
+      "exit": 0,
+      "otevrela": "9 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-n32-mutace.py"
+    },
+    {
+      "nazev": "g3 klasifikátor podle chování (H87/NA33)",
+      "exit": 0,
+      "otevrela": "18 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-h87-klasifikator.py"
     }
   ]
 }

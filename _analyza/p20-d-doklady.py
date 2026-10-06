@@ -65,7 +65,15 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
 # ale musí to být VIDĚT — tichá změna dokumentu dávkou je nejhorší varianta.
 ZAPIS = re.compile(r"write_text|write_bytes|writeFileSync|copyfile|copy2")
 SLEDOVANE = [WS / "KRONIKA-PROJEKTU.md", WS / "HANDOFF.md",
-             WS / "NEXT-SESSION-INSTRUKCE.md"]
+             WS / "NEXT-SESSION-INSTRUKCE.md",
+             # ⚠ REGISTR BRAN (doplněno 6. 10. 2026): naměřeno, že dávka
+             # **přepsala živý registr** obsahem z fixtury (`bran_celkem: 1`,
+             # brána `A1: zdravá`) — nějaký harness si staví kopii `g3`
+             # s vlastním `BRANY`. Běh byl „zelený“ a registr přitom **lhal**;
+             # poznalo se to jen měřením obsahu. Proto se hlídá i on — a kdo
+             # si staví harness, dá `FORGE_REGISTR=<scratch>` (nebo
+             # `FORGE_BEZ_REGISTRU=1`), viz komentář v `g3-brany.py`.
+             ANALYZA / "_registr-bran.json"]
 
 
 def hash_souboru(p):

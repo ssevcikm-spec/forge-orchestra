@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 """REGISTR BRAN — kolik KONTROL hlásí která brána (živé měření, ne odhad).
 
+> ⚠ **OD 6. 10. 2026 NENÍ TENHLE SKRIPT AUTORITOU ŽIVÉHO REGISTRU.**
+> Živý `_analyza/_registr-bran.json` **generuje `g3`** (`python _analyza/g3-brany.py`)
+> — a to je rozhodnutí (§6.14): do té doby existovaly **tři seznamy živých**
+> (tenhle ruční soubor, výčet v `HANDOFF.md` §6 a devět nástrojů v `AGENTS.md`)
+> a **ani jeden se neshodoval s během**.
+>
+> **A naměřeno 6. 10. 2026 druhá věc:** tenhle skript dávka `p20-d` **spustila**
+> a on **přepsal živý registr** svým schématem (`{kdy, hodnoty, brany}` místo
+> `{bran_celkem, s_nenulovym_exit, brany}`) — což se poznalo **jen měřením
+> obsahu souboru**. Proto se dnes **nespouští v dávce** a jeho role je
+> **ZÁZNAM MĚŘENÍ POČTŮ KONTROL** (proč vznikla uzavřená množina hodnot níž);
+> **živý seznam bran vlastní `g3`**.
+>
+> **Kdo ho přesto pustí, přepíše živý registr.** Než to uděláš, zvaž, jestli
+> nechceš `python _analyza/g3-brany.py`.
+
 PROČ TENHLE SKRIPT EXISTUJE
 ===========================
 `audit2b-cisla-proti-zdroji.py` do 2. 10. 2026 srovnával **jedno** číslo
@@ -25,7 +41,7 @@ Registr je **uzavřená množina NAMĚŘENÝCH hodnot**, ne „vše, co uznám".
     v registru **zůstane jen jako komentář** (`--stare`), takže se
     dokument s `64` pořád ohlásí jako rozchod. Registr **neroste sám**.
 
-Výstup: `_analyza/_registr-bran.json` (+ lidský výpis na obrazovku).
+Výstup: `_analyza/_registr-bran.json` (**⚠ přepíše živý registr od `g3`!**)
 Použití:  $env:PYTHONIOENCODING='utf-8'; python _analyza/_registr-bran.py
 """
 import json
