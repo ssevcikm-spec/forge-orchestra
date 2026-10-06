@@ -283,6 +283,20 @@ v závislostech dál? Práce, kterou dodává `entity.player.api`, `world.map`
 se má hráč po načtení vracet na `level.spawn_cell`? **Patří to do smlouvy**
 (`ARCHITEKTURA.md` §2.1), ne do kódu potichu.
 
+### 2.10 Stav otevřených bodů po P19 (6. 10. 2026) — a co se OD TÉ DOBY ZAVŘELO
+
+> **Proč to tu je:** oddíly **2.1–2.9** jsou **záznam** (nemažou se); tenhle
+> odstavec je **stav k P19** a je **jediný, který se přepisuje**. Podrobný
+> záznam je v **§37**, rozhodovací session.
+
+| Co bylo otevřené | Stav po P19 |
+|---|---|
+| **Push orchestry (P17+P18)** z §36.12 | **VYŘEŠENO** — rozhodl uživatel, pushnuto **6 commitů** (`ce49234..19a2195`), ověřeno **třemi kroky** (§37.1) |
+| **H93** (`snapshot-*/` v NA32) | **OPRAVENO** — snapshoty i pracovní kopie se vylučují a **vykazují vlastním čítačem** (§37.2) |
+| **H94** (4 mrtvé podpisy v `g3`) | **ROZHODNUTO A OPRAVENO** — seznam zúžen na **4 živé**, odebrané **pojmenované** v komentáři (§37.3) |
+| **`g3` jako brána** | **ROZHODNUTO** — `g3` **spadne jen za sebe** (nezačatá brána / brána bez čítače mimo deklarovaný stav), o **červených nerozhoduje**; **NA23b zůstává otevřený** (§37.4) |
+| **Nová: H99 (BOM v `.py`)** | **ZAPSÁNO, nerozhodnuto** — věc konvence, dnes ho hlásí obě brány shodně (§37.6) |
+
 ## 3. Nové nálezy N1–N9 — kde jsou a co z nich plyne
 
 **Autorita:** `IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md` (každý nález má
@@ -1027,6 +1041,38 @@ naopak: rozbil jsem bránu, která do té chvíle procházela** — chytil to `g
 | **183** | „Doplním řádek 32 do tabulky sessions." | `edit` našel jako `old_string` **řádek `8x` v tabulce OMYLŮ** (§4), ne v tabulce sessions — takže **řádek 32 se vložil do tabulky omylů** (7 sloupců místo 5) **a souhrnný řádek `\| **celkem** \| …` se připojil NA KONEC řádku 32** (tedy **zmizel**) | **Dvě vady jedním zápisem** a **obojí tiché**: tabulka se nerozbila viditelně, jen měla o řádek víc a jiný počet sloupců; a `kronika-kontrola.py` to **nechytil** (počítal bloky omylů, ne řádky tabulky sessions). Našel to až **vlastní přepočet** (`| **celkem** |` se ztratilo). Oprava: `_analyza/ov-fix-kronika.py` (řádek 32 rozdělen, vrácen do tabulky sessions, `celkem` obnoven). **Poučení: `old_string` musí být na řádku JEDNOZNAČNÝ** — stejný text bývá ve dvou tabulkách |
 | **184** | „Přepíšu zadání a hotovo." | **Přepsané zadání SHODILO bránu `zadání kontrola`** (`exit=1`), která předtím procházela (**P17: `OK`, otevřela 296**) — a to je **REGRESE, kterou jsem zavedl sám**. Příčina: do řádku „Stav obou repů při psaní:" jsem napsal `` `origin/main` = ce49234 ``, a parser té brány čte z TOHO řádku dvojice **`repo = <sha>`** → vylovil **vymyšlený repozitář `main`** a ohlásil „tvrzení, které se nepodařilo přiřadit k repu" | Chytil to **`g3`**, ne já — a to je přesně to, k čemu brány jsou. Oprava: řádek přeformulován (žádné `= <sha>` u `origin/main`); brána je **zase `OK`** a parsuje **právě dva** repy (`forge-orchestra`, `uo-shadows`). **Poučení: text, který vypadá jako strojově čitelný, strojově čitelný JE** — a vymyšlené jméno v něm brána vidí jako tvrzení o repu |
 | **185** | „Vrátím zadání na stav z HEAD, aby byl strom konzistentní a ověřený." | `git checkout -- NEXT-SESSION-INSTRUKCE.md` **ZAHODIL EDITaci, která byla lepší než stav v HEAD** — přeformulované místo **„ověř `origin/main..HEAD` ŽIVĚ"** (to je ta verze, která **nestárne**) zpět na **„`origin/main..HEAD = 4`"** (to je ta, která **zastará dalším commitem**). Zahodil jsem tedy **správnou** verzi a nechal **zastaralou** | **Záměna „necommitnuté" za „throwaway".** `git checkout --` je **destruktivní**: neřeší, jestli je ta změna lepší nebo horší — jen ji smaže. Vzniklo to honbou za **konzistencí inventáře** (která je **obnovitelná** jedním příkazem), obětovanou za **ztrátu lepší formulace** (která obnovitelná nebyla). **Poučení: než zahodíš necommitnutou změnu, zeptej se, čím je ta změna HORŠÍ — a když není, commitni ji a přegeneruj inventář.** Cena konzistence je jeden příkaz; cena ztracené formulace je přemýšlet znovu |
+
+### 8y. Omyly 186–193 — ROZHODOVACÍ session 6. 10. 2026 (P19: PUSH, H93, H94, ROZHODNUTÍ O `g3`)
+
+**Devět omylů a VŠECHNY jsou v MĚŘIDLE, které jsem si psal sám** (proto je sloupec
+„vypadalo jako nález o cizím kódu" nulový — nikoho cizího jsem neobvinil).
+Záznam: **§37**. Podpis je stejný jako u §8v–§8x: **nezkontroloval jsem, co moje
+vlastní měřidlo doopravdy dělá** — a tentokrát to bylo dražší, protože celá
+session byla *měření cizí práce*. Tři věci stojí za zmínku zvlášť:
+**`187` je přesně ta vada, kterou jsem v P18 kritizoval u P17** (kategorie
+„tiše prázdná" → číslo vypadá jako měření), **`189` vyrobil soubor, který
+nešel zkompilovat — a odhalila to brána NA32, kterou jsem měřil** — a **`194`
+je táž vada zápisu, jakou má P18 zapsanou jako omyl 183** (edit trefil jinou
+tabulku / jiný řádek, než měl).
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **186** | „Orchestra NEMÁ Pages — kontrola to potvrdí." | Kontrola hlásila **CHYBA**, i když orchestra Pages skutečně nemá: v **těle** odpovědi GitHubu je `status` **řetězec** (`"404"`), kdežto HTTP stav je **číslo**. Porovnání `body.status === 404` je proto **vždy nepravdivé** | **Falešný nález o cizím repu** (a nejcennější druhý půl: vypadal jako vada nasazení, ne měřidla). Oprava: rozhoduje **HTTP status z `fetch`**, ne pole v JSONu; tělo se vypisuje jako doplněk |
+| **187** | „Kategorie `*-scratch` je prázdná — v pracovních kopiích žádné `.py` nejsou." | Bylo jich **19**. Vzor `-scratch$` přes **`re.match`** nesedne NIKDY ( `match` kotví na **začátek** ), takže kategorie zůstala prázdná a **19 souborů se tiše počítalo jako ŽIVÉ** | **Tichý falešný negativ uvnitř mého vlastního měřidla** — a to jsem v P18 u P17 kritizoval. Odhalilo to **křížové měření jiným nástrojem** (`Get-ChildItem … -Filter *.py` dal 18, můj skript 0). Oprava: `re.search` s explicitní kotvou; **a číslo kategorie se porovnává s nezávislým walkem** |
+| **188** | „Kopie v scratchi se od živého souboru LIŠÍ (13 783 B vs 14 096 B)." | **Obsah je SHODNÝ** — rozdíl **313 bajtů = 313 konců řádků** (LF vs CRLF); `sha256` po sjednocení konců je **totožný** (`f67d2309e057f92b`). `git diff --no-index` byl **tichý**, což bylo první vodítko | **„Kdo měří na disku, najde vady, které neexistují"** — táž past, kterou má `AGENTS.md` u `core.autocrlf` („autorita je blob, ne velikost souboru"). Oprava: porovnávat **obsah s `\r\n` → `\n`** a rozdíl konců řádků **vypsat jako vysvětlení**, ne jako nález |
+| **189** | „Odstraním z skriptu nepoužitý `import shutil`." | PowerShellové `Set-Content -Encoding utf8` zapsalo do **`.py` BOM** → soubor přestal být zkompilovatelný (`invalid non-printable character U+FEFF`) a **NA32 ho právem vykázala jako živý nekompilovatelný soubor**. Navíc můj regex na odstranění řádku **nesedl**, protože soubor má konce řádků LF a vzor měl `\r\n` (řádek tam zůstal) | **Nástroj na editaci se stal zdrojem vady kódu.** Pravidlo „do `.ps1` patří BOM" platí **obráceně pro `.py`** — a `Set-Content` **není** bezpečný editor kódu. Oprava: zápis zpět přes `edit` (bez BOM) + **sonda na první tři bajty**. **A je to důkaz, že NA32 funguje** — chytila to hned |
+| **190** | „Vložím mutant za první řádek, který nezačíná `#` ani třemi uvozovkami." | Mutace se vložila **DOVNITŘ docstringu** (řádek uvnitř řetězce taky nezačíná `#`) → `compile()` ji **přijal**, tj. **mutace se vůbec neprovedla** a test „prošel" ze špatného důvodu | Pojistka `compile` musí mutant **ODMÍTNOUT** to zachytila (`compile odmítne=False`). Oprava: brát **první TOP-LEVEL příkaz z `ast`** a vkládat za jeho `end_lineno` |
+| **191** | „Vygenerovaný harness dám do `_analyza/p19-scratch/`." | Harness si cesty odvozuje z **umístění souboru** (`WS = parents[1]`), takže v podadresáři ukazovalo `WS` na `_analyza` a souhrn spadl na `FileNotFoundError` → **klasifikace vyšla PRÁZDNÁ** a **každá mutace pak vypadala „odhalená"** | Táž past, kterou má **P18** zapsanou u izolace („worktree musí ležet ve správné hloubce, jinak se změní `_REPO.parent`"). Zachytil to **guard „čtení výstupu funguje"**, který jsem si tam dal — bez něj bych zapsal, že mutace měření prokázaly |
+| **192** | „Porovnám výsledek mutace se zdravým stavem." | Porovnával jsem **`sorted(list) != set`**, což je **VŽDY pravda** → „mutace odhalena" prošlo i tam, kde se nic nezměnilo. Druhá polovina téhož: smyčka pro M2/M3 měla **jeden** prvek se dvěma jmény, takže kontrolovala **jen M3** a M2 se nezměřila vůbec | **Dvě vady v jednom testu**, obě tiché. Oprava: uvnitř držet **množiny** (tisknout setříděné seznamy) a smyčku psát po jednom jménu |
+| **193** | „Do generovaného harnessu vložím vzor čítače `r\"(\\d+) kontrol\"`." | Do kopie se zapsalo `r"(\\d+) kontrol"` — vzor na **literální zpětné lomítko**, který nikdy nesedne. Zdravá brána s čítačem pak vypadala jako **brána bez čítače** a `g3` (správně, podle nového pravidla) skončil `exit 1` | **Tři úrovně escapování** (Python řetězec → zápis do souboru → regex). Zachytil to **test sám** (kontrola „zdravý stav → exit 0" zčervenala). Oprava: vzor skládat z **raw** řetězce, kde je vidět, kolik lomítek vznikne |
+
+| **194** | „Doplním řádek 33 do tabulky sessions v kronize." | Místo **vložení nového řádku** jsem **nahradil začátek řádku 32** — čímž vznikl **jeden obří řádek** (33 + zbytek 32) a **řádek 32 zmizel**; navíc vyšlo pořadí **33 před 32** | **Táž třída jako omyl P18 `183`** (edit trefil jinou tabulku / jiný řádek). Zachytil to **vlastní přepočet** (`| **32** | …` na řádku chybělo a řádek měl 8 sloupců místo 7). Oprava: **nejdřív vrátit prefix řádku 32**, pak **vložit 33 ZA jeho konec** (kotva = unikátní konec předchozího řádku). **Poučení: „vložit řádek" není „nahradit řádek" — a kotva musí být KONEC předchozího, ne začátek následujícího** |
+
+> **⚠ A co omyl NENÍ, i když to tak vypadá:** `zadání kontrola` končí v `g3`
+> **`exit=1`** — a **není to vada**: zadání je **záměrně zakotvené na commitu,
+> na kterém se měřilo** (nález **NA31**), takže po každém novém commitu hlásí
+> „přibylo commitů". Zapsáno jako **očekávaný nenulový exit** (a je to přesně
+> ten případ, kvůli kterému `g3` o červených branách **nerozhoduje** — §37.4).
 
 ## 9. Co už otevřené NENÍ
 
@@ -7482,4 +7528,234 @@ také výsledek, jen se musí přiznat**.
   uživatele 6. 10. 2026: **zůstávají doklady**, protože `ov-a` je **stavová**
   brána (závisí na nasazení) a `ov-f` je jednorázová diagnostika. Jejich seznam
   a důvod je v **§36.10**.
+
+---
+
+## 37. ROZHODOVACÍ session 6. 10. 2026 — P19: PUSH P17+P18, H93, H94 A ROZHODNUTÍ O `g3`
+
+**Co tenhle oddíl JE:** **záznam o provedení** rozhodovací session **P19**.
+**Nejde z něj číst dnešní stav** — stav je v **§1–§2** a v **§37.8**.
+**Navazuje na:** **§36** (P18). **Datum spotřeby:** údaje níž jsou k
+**6. 10. 2026, 07:0x–09:0x UTC**; co je starší, je **záznam**.
+
+**Zadání:** `NEXT-SESSION-INSTRUKCE.md` z 6. 10. 2026 (Úkoly **A–E**).
+**Vstupní stav (měřeno ŽIVĚ před prací):** `forge-orchestra` = **`19a2195`**,
+`origin/main` = **`ce49234`** → **`origin/main..HEAD = 6`** (P17, P18, P18b–P18e),
+strom **čistý**; `uo-shadows` = **`44dd454`**, `origin/main` **shodná**, strom
+**čistý**. **Zadání hlásilo `origin/main..HEAD = 4`** (stav v čase psaní) — dva
+commity přibyly **po** jeho zapsání (P18d, P18e). To je **správně**: hlavička
+zadání se **neopisuje**, přeměřuje se.
+
+### 37.1 Úkol A — PUSH: ROZHODNUTÍ UŽIVATELE „ANO" A OVĚŘENÍ TŘEMI KROKY
+
+**Rozhodnutí uživatele (dotázán před akcí, `AGENTS.md`: nepushovat bez vyžádání):
+„Ano, pushnout všech 6 commitů."** Ukázáno předem: `git status` (**0 řádků**)
+a `git diff --stat`, pak rozpis po commitech (86 souborů, +11 371/−46 380).
+
+| Krok | Naměřeno |
+|---|---|
+| **push** | `ce49234..19a2195  HEAD -> main`, **`exit 0`** (PAT ze souboru, do výstupu se nedostal — skript `_analyza/p19-scratch/push-orchestra.py`, gitignorovaný) |
+| **1. push dorazil** | `git ls-remote origin refs/heads/main` = **`19a2195`** = `HEAD`; `origin/main..HEAD` = **0**; pushnuto **6 commitů** nad `ce49234` |
+| **2. build na SPRÁVNÉM commitu** | **Žádný workflow se nespouští** — a je to **dokázané**, ne předpokládané: `deploy.yml` má filtr `paths: conductor/**` (čteno **ze souboru**) a diff pushnutých commitů má v `conductor/` **0 souborů z 86**. **Pozitivní kontrola:** API orchestry vrací **10 běhů** (celkem 32), z toho **0** s `head_sha = 19a2195` |
+| **3. server posílá artefakt** | **Orchestra žádné Pages NEMÁ** (HTTP **404**) a publikovaný obsah se **tímto pushem nezměnil** (do hry se nepushovalo). Ověřeno: `uo-shadows` je **`44dd454`** = commit, ze kterého staví `release.yml` **`#78 completed/success`** (runner `GitHub Actions 1000001168/1170`, **ne** prázdný) a `index.html` i `index.png` mají `last-modified` **`Mon, 05 Oct 2026 21:38:16 GMT`** — **shodné s P18**, tedy **neovlivněné** (což je správně: nepushovalo se do hry) |
+
+* Doklad: **`_analyza/p19-a-push-overeni.mjs`** (vlastní skript, **15 kontrol,
+  0 chyb**) → `p19-a-push-vystup.txt`, `p19-a-push-vysledky.json`.
+* **`HTTP 200` není důkaz** — u orchestry rozhodlo, že **není co publikovat**
+  (a to je doložené pushem i filtrem), u hry **`last-modified`**.
+* **Vlastní omyl 186** (JSON `status` vs HTTP status) — §8y.
+
+### 37.2 Úkol B — H93: `snapshot-*/` (a co se u toho našlo: H97, H98)
+
+**Zadání říkalo „přeměř to sám a hledej SOUBOR PO SOUBORU, ne jen součty"** —
+a to se ukázalo jako rozhodující, protože **P18 to zapsala špatně**.
+
+**Naměřeno soubor po souboru** (`_analyza/p19-b-h93-snapshot.py`): NA32 dnes
+hlásí **178 živých `.py`**, ale živý kód to není:
+
+| Kategorie | Počet | Co to je |
+|---|---|---|
+| živý kód | **157** | orchestra 143 + hra 14 |
+| `_analyza/snapshot-*/**` | **2** | zmrazené kopie skills (`…181237/skill/overovani/zmen.py`, `…183213/…`), **gitignorované** (`.gitignore:65`), **bez živého protějšku** |
+| `_analyza/*-scratch/**` | **19** | pracovní kopie: `a-ukol-scratch/**` (18) + `p19-scratch/**` (1) |
+
+* **13 z 19 scratch souborů je BAJT NA BAJT shodných s živými soubory HRY**
+  (`.forge/*`, `tools/*`); **1 se liší JEN konci řádků** (LF vs CRLF — omyl 188);
+  **4 jsou fixtury** (`ov-d-fixtury/`) a **1 je můj** push skript.
+* **Nález H97 — P18 zapsala čísla, která její VLASTNÍ doklad vyvrací.**
+  `HANDOFF` §36.9 tvrdí u H93 „**ZMĚŘENO: 176 vs vlastní skener 162 → rozdíl 14**
+  (2 jsou snapshoty, **zbytek dělá jiný filtr `_archiv`**)". P18 přitom **měla
+  a uložila doklad** `_analyza/ov-f-rozdil-vystup.txt` (běh 06:52:24), který říká
+  **`živých 177` vs `175` → `ROZDÍL: 2`** a jmenovitě **oba snapshoty**.
+  A `_archiv` **nemůže** rozdíl živých počtů způsobit — **oba filtry ho z živých
+  vylučují**. (Doklad je navíc v **UTF-16** — PowerShell přesměroval výstup —
+  takže ho `read` odmítl jako binární; kdo ho neotevře s kódováním, ten ho
+  nepřečte. To je část důvodu, proč ta čísla nikdo nezkřížil.)
+* **Nález H98 — stejnou dírou trpí i `h79-escape-sken.py`** (počítal 179 živých,
+  tj. i snapshoty a scratch). Obě brány se opravily **stejným vzorem**: kategorie
+  se **vylučují a KAŽDÁ má VLASTNÍ ČÍTAČ** + své nálezy vypisuje jako **poznámku**
+  (vzor, který `_archiv` měl od H86). **Nebylo to „rovnou při tom":** nechat
+  jednu bránu opravenou a druhou ne by znamenalo, že se **dvě brány rozcházejí
+  v témž souboru** — což je dražší než obojí nechat.
+* **Nový stav:** NA32 `ZMĚŘENO: 158 souborů, 0 nekompilovatelných, 260 vyloučeno
+  (_archiv), 2 vyloučeno (snapshot-*), 19 vyloučeno (*-scratch)` · H79
+  `ZMĚŘENO: 0 neplatných escape sekvencí ve SKENOVANÝCH 158 živých souborech
+  (… snapshot-* 2/0, *-scratch 19/0)`. **Začátek souhrnu zůstal na znaku shodný**
+  — čte ho `g3` vzorem (`ZMĚŘENO:\s*(\d+) souborů, (\d+) nekompilovatelných`
+  resp. `ZMĚŘENO:\s*(\d+) neplatných`), takže se **čítač nerozbil**.
+* **Doklady:** `p19-b-h93-snapshot.py` (soubor po souboru + protějšky),
+  **`p19-b-kontroly.py` (29 kontrol, 0 chyb** — mutace ve **snapshotu**
+  i ve **scratchi** bránu **nezčervenají** a nález je **vidět**, mutant v **živém**
+  stromě **zčervená** a je **pojmenovaný**, návrat **bajt na bajt**),
+  **`p19-b2-kontroly-h79.py` (23 kontrol, 0 chyb** — totéž pro H79, vada =
+  neplatná escape sekvence; navíc **nezávislé měřidlo**: `python -W
+  error::SyntaxWarning` na tom souboru skutečně spadne).
+* **Vedlejší nález, který mě potrestal:** do docstringu nové NA32 jsem napsal
+  vzor s `\s` v **normálním** (ne raw) řetězci → **neplatná escape sekvence**;
+  odhalil to skener jazykové brány (`SyntaxWarning` od `n32-kompilovatelnost.py:37`)
+  a **H79 by ji vykázal jako vadu živého stromu**. Opraveno na `r"""…"""`.
+  (A hned nato jsem si **vyrobil druhou**: `Set-Content -Encoding utf8` přidal
+  do téhož souboru **BOM** — omyl **189**, viz §8y.)
+
+### 37.3 Úkol C — H94: čtyři mrtvé podpisy (a jeden, který mrtvý NENÍ)
+
+**Zadání: „Nevěř P18."** Neuvěřil jsem — a **P18 měla v jednom bodu nepřesnost**.
+
+Naměřeno spuštěním **skutečných** příkazů nad neexistující cestou
+(`_analyza/p19-c-h94-podpisy.py`):
+
+| Podpis | Kdo ho vydává | Živý? |
+|---|---|---|
+| `can't open file` | **Python** | ✅ (týž případ jako další řádek — oba v JEDNOM výstupu) |
+| `No such file or directory` | **Python** | ✅ (redundance k předchozímu — odebrat JEN JEDEN nic nezmění, naměřeno M2 i M3) |
+| `Cannot find module` | **Node** | ✅ |
+| `MODULE_NOT_FOUND` | **Node** | ✅ |
+| `is not recognized` | **PowerShell a cmd** | ⚠ **vydávají ho** (P18 ho měla za mrtvý — testovala jen `python` a `node`), ale **pro `g3` je mrtvý**, protože `g3` **shell NEPOUŽÍVÁ** (spouští `python`/`node`/Godot **seznamem argumentů**, žádné `shell=True`) |
+| `no such file or directory` (malá písmena) | nikdo na této stanici | ❌ |
+| `WinError 2` | je to text **výjimky**, kterou `spust()` chytá zvlášť | ❌ (do zachyceného výstupu se nedostane) |
+| `The system cannot find the file` | shell Windows (ten `g3` nepoužívá) | ❌ |
+
+**Rozhodnutí:** seznam **zúžen na 4 živé** a **4 odebrané jsou v komentáři
+POJMENOVANÉ** i s důvodem a s odkazem na měření. Argument pro zúžení: **mrtvá
+položka vypadá jako pokrytí a nechytá nic** — a u klasifikátoru, který rozhoduje
+mezi „nezačala" a „běžela", je to slepé místo. **Bezpečnost zúžení je doložená:**
+kdyby se text interpretu změnil, pozná to **`test-h87-klasifikator.py`** (fixtura
+`neexistuje`), který je **v `g3`**. A do komentáře je vepsané i to, že kdyby do
+`BRANY` někdy přibyla `.cmd`/`.ps1` brána, patří `is not recognized` **zpátky**.
+
+* Doklad: **`p19-c-h94-podpisy.py` → 25 kontrol, 0 chyb.** Mutace: **M1** (odebrat
+  VŠECHNY živé) → fixtura D propadne mezi „běžela" (**seznam je nosný**);
+  **M2** i **M3** (odebrat jeden z dvojice) → **klasifikace se nezmění**
+  (redundance je naměřená, ne domnělá). Invariant po rozhodnutí: **v seznamu
+  není ani jeden mrtvý podpis** (a odebrané texty **jsou** v komentáři) —
+  obojí se kontroluje **zvlášť**: kód vs. text.
+
+### 37.4 Úkol D — MÁ BÝT `g3` BLOKUJÍCÍ? **ROZHODNUTO: SPADNE, ALE JEN ZA SEBE**
+
+**Naměřeno nejdřív:** `g3`'s `exit` **nikdo nečte** — není v žádném CI workflow
+a nevolá ho žádný nástroj (`verify-setup.py` ho jen **vypisuje** v seznamu
+souborů). Dnes je tedy jeho návratový kód **signál pro člověka/agenta**.
+
+**Rozhodnutí (zapsané i v `g3-brany.py`):**
+1. **`g3` má `sys.exit`** — protože do P19 **neměl žádný**, takže kdyby přestal
+   měřit (rozbil by se klasifikátor, zmizely by `BRANY`), **nikdo by to
+   nepoznal**. To je přesně past S27/H71/H87.
+2. **Spadne ale jen za to, co SÁM TVRDÍ:** `exit 1`, když některá brána
+   **vůbec nezačala**, nebo **běžela bez čítače** a není v deklarovaném
+   `OCEKAVANE_BEZ_CITACE` (dnes **1** položka: `C2: mutace N1 (5 běhů)` —
+   přiznaný stav z **NA23b**); `exit 2`, když **neproběhla ani jedna brána**.
+3. **O ČERVENÝCH branách NEROZHODUJE** — vypíše je jako **„k rozhodnutí"**.
+   Důvod je naměřený: **dnes jeden legitimně nenulový exit JE** —
+   `zadání kontrola → exit=1` (zadání je záměrně zakotvené na commitu měření,
+   nález **NA31**). Verdikt nad červenými by tedy byl **hned teď červený**
+   a nutil by buď zapsat baseline, nebo bránu vypnout. **NA23b zůstává otevřený**
+   jako rozhodnutí, zda má `g3` soudit i červené (a s jakým seznamem).
+* **Důkaz, že umí spadnout:** `_analyza/p19-d-kontroly.py` → **16 kontrol,
+  0 chyb**: zdravá brána → **`exit 0`** · brána, která **nezačala** → **`exit 1`**
+  · brána **bez čítače** (nedeklarovaná) → **`exit 1`** · **táž** brána
+  **deklarovaná** → **`exit 0`** · **červená** brána s čítačem → **`exit 0`**
+  a je vypsaná jako „k rozhodnutí" · **prázdné `BRANY`** → **`exit 2`**.
+  Živý `g3` se přitom **nezměnil** (kontrola hashe) — test staví **kopii**.
+* **Nález H100 — `HANDOFF` §36.8 tvrdí „37 bran, 0 s nenulovým `exit`", ale
+  P18's VLASTNÍ doklad `ov-g3-vystup.txt` má `brán celkem: 37, s nenulovým
+  exit: 1` a `CHYBA zadání kontrola → exit=1`.** Dnešní běh dává **totéž**
+  (1 nenulový). Je to **druhý případ téhož vzoru jako H97**: tvrzení, které
+  šlo vyvrátit **vlastním uloženým výstupem** — a nikdo ho nezkřížil.
+
+### 37.5 Brány a záznamy po P19
+
+* **`python _analyza\g3-brany.py`** → **37 bran**, **0 nezačatých**,
+  **0 bran bez čítače mimo deklarovaný stav**, `záznamníky cest: všechny dosazené`,
+  **`VÝSLEDEK g3: PŘEHLED JE ÚPLNÝ`**, **`exit 0`** (nový návratový kód),
+  běh **172 s**. Nové brány P17/P18 jsou zelené: NA32 **`161 / 0`**,
+  `kompilovatelnost — mutace` **`9 / 0`**, `escape sekvence (H79, statická)`
+  **`0`**, `(H79, mutace)` **`18 / 0`**, `g3 klasifikátor podle chování`
+  **`18 / 0`**, `nezačatých (H71)` **`15 / 0`**.
+* **⚠ NENULOVÝCH EXITŮ: 0 na konci session, ale 1 v jejím průběhu — a je to
+  poučné.** Při **prvním** běhu (před přepsáním zadání) hlásil `g3`
+  **`s nenulovým exit: 1` → `zadání kontrola`**: zadání tehdy bylo **kotvené na
+  `8011f83`** (commit měření P18, nález NA31), takže po dalších commitech
+  správně hlásilo „přibylo commitů". Po **přepsání zadání** (kotva = `19a2195`
+  = živý `HEAD`) je **`zadání kontrola` zelená** a `g3` hlásí **0 nenulových**.
+  **Poučení:** ten „červený" exit **nebyl vada**, byl to **stav zadání** — a to
+  je přesně důvod, proč `g3` o červených branách **nerozhoduje** (§37.4), jen je
+  pojmenuje. Zítra, po commitu P19, bude `zadání kontrola` **zase `exit 1`** —
+  a **to je správně** (zadání se záměrně neopravuje na dnešek).
+* **`node tools\validate-all.mjs`** → **`✓ VŠE V POŘÁDKU`**, **`exit 0`** (35 s).
+* **`python _analyza\zadani-kontrola.py`** → **`exit 1` s JEDNÍM varováním**
+  (`přibylo commitů`) — **očekávané** (zadání je kotvené na commitu měření, NA31).
+* **`python _analyza\kronika-kontrola.py`** → **`KRONIKA SEDÍ`** (po P19:
+  **189 omylů / 100 nálezů / 32 sessions**).
+* **`python _analyza\handoff-kontrola-uplnost.py`** → **83/83**, `CHYBÍ: 0`
+  (nic se neubralo — `HANDOFF` se **jen doplňoval**).
+* **Inventář přegenerován** (NA1/H60) — **naposledy jako POSLEDNÍ krok**
+  (po všech zápisech), protože **otisk vstupů počítá i `.md`**.
+* **Návrhy a nálezy ve stavu `NEOVĚŘENO`: 0** — ověřeno **vlastním skriptem**
+  `_analyza/ov-g-neovereno.py` (P18) **znovu po P19**.
+* **`kronika-kontrola.py` — rozšířen slovník typů session o `rozhodovací`**
+  (do P19 uměla jen `akční`/`plánovací`/`ověřovací`/`analýza`, takže rozhodovací
+  session se musela vydávat za jinou). **Brána, které se jen přidá povolená
+  hodnota, se snadno stane bránou, která nic nehlídá** — proto je k tomu důkaz
+  mutací: `_analyza/p19-kronika-typy.py` → **9 kontrol, 0 chyb** (zdravý stav
+  `bez typu: 0`; s **vymyšleným** typem v řádku 33 brána hlásí **1** a skončí
+  `exit 1`; kronika vrácena **bajt na bajt**).
+
+### 37.6 Nové nálezy P19 (H97–H100, zapsané i v kronice §2.13)
+
+| # | Nález | Doklad (měřením) | Stav |
+|---|---|---|---|
+| **H97** | **H93 byl zapsán s čísly a důvodem, které P18 sama vyvrátila.** `HANDOFF` §36.9: „176 vs 162 → rozdíl 14, zbytek dělá jiný filtr `_archiv`"; P18's uložený doklad `ov-f-rozdil-vystup.txt`: **`ROZDÍL: 2`** a jsou to **oba snapshoty** | přečtení **uloženého** výstupu (UTF-16!) + vlastní soubor-po-souboru sken; `_archiv` **nemůže** měnit počet živých (oba filtry ho vylučují) | **VYSVĚTLENO A OPRAVENO** — správná čísla i důvod jsou v §37.2 |
+| **H98** | **Pracovní kopie a zmrazené snapshoty se počítaly jako ŽIVÝ kód** — nejen v NA32 (H93), ale i v **H79**: `_analyza/a-ukol-scratch/**` (18 `.py`) + `snapshot-*` (2) = **20 souborů**, u H79 **21**. 13 z nich je **bajt na bajt shodných s živými soubory hry** | `p19-b-h93-snapshot.py` (protějšky se hledají ve všech třech stromech, obsah po sjednocení konců řádků), `p19-b-kontroly.py` **29/0**, `p19-b2-kontroly-h79.py` **23/0** | **OPRAVENO v obou bránách** (vyloučeno + **vlastní čítač** + poznámka) |
+| **H99** | **BOM na začátku `.py`: „jde spustit?" a „jde zkompilovat?" jsou DVĚ RŮZNÉ OTÁZKY.** `python soubor.py` s BOM **funguje** (`exit 0`), ale `compile()` nad načteným textem **spadne** (`invalid non-printable character U+FEFF`) → NA32 (i H79) takový soubor vykáže jako vadu živého stromu | `p19-b-kontroly.py` sekce 6: fixtura s BOM **spuštěna** (`exit 0`, výstup ověřen) a **tentýž** soubor branou vykázán jako nekompilovatelný | **ZAPSÁNO, NEMĚNÍ SE** — rozhodnutí „má být BOM v `.py` vada?" je **věc projektu** (dnes ho hlásí **obě** brány, takže se nerozcházejí); dnes **žádný živý `.py` s BOM není** (jediný je v `_archiv`) |
+| **H100** | **§36.8 tvrdí „37 bran, 0 s nenulovým `exit`", ale P18's vlastní `ov-g3-vystup.txt` má `s nenulovým exit: 1`** (`zadání kontrola → exit=1`) | přečtení uloženého výpisu + **dnešní běh dává totéž** (1 nenulový) | **VYSVĚTLENO** — a je to **druhý případ vzoru H97** (tvrzení vyvrácené vlastním dokladem); `g3` dnes ten exit **pojmenuje jako „k rozhodnutí"** |
+
+### 37.7 Vlastní omyly této session
+
+Viz **§8y** (**186–194**) — **devět, a VŠECHNY v mém vlastním měřidle**. Nejcenější
+jsou **187** (kategorie tiše prázdná kvůli `re.match` — a to jsem v P18 kritizoval
+u P17), **189** (`Set-Content` zapsal do `.py` BOM a vyrobil „nekompilovatelný
+živý soubor" — odhalila to **NA32**), **191** (harness v podadresáři → prázdné
+výsledky a „každá mutace odhalena") a **194** (edit kroniky **nahradil** řádek 32
+místo vložení řádku 33 — táž třída jako omyl P18 **183**). **Ani jeden neobvinil
+cizí kód** — celá session byla měření a rozhodování, ne vývoj.
+
+### 37.8 Co zůstává OTEVŘENÉ (po P19)
+
+* **`g3` a červené brány (NA23b)** — `g3` dnes **nesoudí** červené exity, jen je
+  pojmenuje. **Otevřená otázka:** chceme verdikt nad červenými? Pak je potřeba
+  **seznam očekávaně nenulových exitů** (dnes je legitimně nenulový **jeden**:
+  `zadání kontrola`). Rozhodnutí P19 je zapsané v `g3-brany.py`.
+* **BOM v `.py` (H99)** — dnes ho **obě** brány hlásí jako vadu; `python` takový
+  soubor přesto spustí. **Zapsáno, nerozhodnuto** (věc konvence projektu).
+* **`is not recognized` v klasifikátoru `g3`** — dnes **odebraný** (g3 shell
+  nepoužívá). Kdyby do `BRANY` přibyla `.cmd`/`.ps1` brána, patří **zpátky**
+  (i `The system cannot find the file`).
+* **Šest ověřovacích skriptů P18 (`ov-*`) a pět P19 (`p19-*`) NENÍ v `g3`** —
+  zůstávají **doklady**. Kdyby se měly zařadit, patří tam **jen opakovatelné**
+  (`ov-b1`, `ov-e`, `ov-g-*`, `p19-b-kontroly`, `p19-b2-kontroly-h79`,
+  `p19-c-h94-podpisy`, `p19-d-kontroly`).
+* **`p19-scratch/` je gitignorované** (drží push skript a fixtury) — soubory
+  v něm **nejsou** v repu; kdyby měly být dokladem, patří do `_analyza/`.
+* **Push orchestry i hry** — po P19 je **oba v sync** (viz §37.1 a hlavička
+  nového zadání).
 

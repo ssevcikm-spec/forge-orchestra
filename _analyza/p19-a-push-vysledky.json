@@ -1,0 +1,94 @@
+{
+  "kdy": "2026-10-06T09:47:22.227Z",
+  "head": "19a21957158f8269e5d2f7f7e079c56789f5914f",
+  "lsRemote": "19a21957158f8269e5d2f7f7e079c56789f5914f",
+  "pred": "0",
+  "rozsah": [
+    "19a2195",
+    "0207cf5",
+    "4506b2c",
+    "4db8cdd",
+    "233e502",
+    "8011f83"
+  ],
+  "zmeneneSouboru": 86,
+  "conductorZmen": 0,
+  "vysledky": [
+    {
+      "nazev": "ls-remote origin/main == HEAD (živě, ne tracking ref)",
+      "ok": true,
+      "detail": "HEAD=19a2195 ls-remote=19a2195"
+    },
+    {
+      "nazev": "origin/main..HEAD == 0",
+      "ok": true,
+      "detail": "origin/main..HEAD = 0"
+    },
+    {
+      "nazev": "pushnuto 6 commitů nad ce49234",
+      "ok": true,
+      "detail": "6 commitů: 19a2195 0207cf5 4506b2c 4db8cdd 233e502 8011f83"
+    },
+    {
+      "nazev": "kotva měření je ověřená přes `~1` (ne `^`)",
+      "ok": true,
+      "detail": "ce49234~1 = c620a06 (kdyby vyšlo ce49234, bylo by to o měřidle)"
+    },
+    {
+      "nazev": "push se NEDOTKL conductor/** (filtr deploy.yml)",
+      "ok": true,
+      "detail": "conductor/** = 0 souborů z 86 změněných"
+    },
+    {
+      "nazev": "deploy.yml skutečně filtruje na conductor/**",
+      "ok": true,
+      "detail": "nalezen filtr: paths:       - 'conductor/**'   workflow_dispatch:  jobs:   deploy"
+    },
+    {
+      "nazev": "API orchestry vrací běhy (pozitivní kontrola)",
+      "ok": true,
+      "detail": "10 běhů v odpovědi"
+    },
+    {
+      "nazev": "na tomto commitu NEBĚŽÍ žádný workflow (a je to správně)",
+      "ok": true,
+      "detail": "0 běhů s head_sha=19a2195 — protože conductor/** se nezměnil"
+    },
+    {
+      "nazev": "hra je v sync (nic k pushi)",
+      "ok": true,
+      "detail": "origin/main..HEAD = 0"
+    },
+    {
+      "nazev": "release.yml na commitu hry je completed/success",
+      "ok": true,
+      "detail": "#78 attempt=3 2026-10-05T20:39:54Z"
+    },
+    {
+      "nazev": "runner_name NENÍ prázdný",
+      "ok": true,
+      "detail": "Build a vydání: completed/success runner=GitHub Actions 1000001168 | Nasazení webu: completed/success runner=GitHub Actions 1000001170"
+    },
+    {
+      "nazev": "orchestra NEMÁ Pages (třetí krok se ho netýká)",
+      "ok": true,
+      "detail": "GET /repos/ssevcikm-spec/forge-orchestra/pages → HTTP 404 (tělo: status=\"404\" Not Found)"
+    },
+    {
+      "nazev": "GET (root) → 200",
+      "ok": true,
+      "detail": "status=200"
+    },
+    {
+      "nazev": "GET index.html → 200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT",
+      "ok": true,
+      "detail": "last-modified=Mon, 05 Oct 2026 21:38:16 GMT | P18 naměřila Mon, 05 Oct 2026 21:38:16 GMT → NEOVLIVNĚNO (správně: do hry se nepushovalo)"
+    },
+    {
+      "nazev": "GET index.png → 200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT",
+      "ok": true,
+      "detail": "last-modified=Mon, 05 Oct 2026 21:38:16 GMT | P18 naměřila Mon, 05 Oct 2026 21:38:16 GMT → NEOVLIVNĚNO (správně: do hry se nepushovalo)"
+    }
+  ],
+  "chyb": 0
+}

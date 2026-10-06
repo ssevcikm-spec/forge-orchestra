@@ -44,11 +44,36 @@ REPA = [("orchestra", WS), ("hra", WS.parent / "uo-shadows")]
 # ⚠ `_archiv` tu ZÁMĚRNĚ NENÍ (H86): skenuje se taky, ale jeho nálezy jdou
 # do jiné přihrádky. Kdyby tu zůstal, vyloučení by bylo zase tiché.
 SKIP = {".git", "node_modules", "__pycache__"}
+# ⚠ P19 (6. 10. 2026), nález **H98**: stejná díra jako v `n32-kompilovatelnost.py`.
+# `snapshot-*/` (zmrazené doklady) a `*-scratch/` (pracovní kopie pro mutace)
+# se počítaly jako ŽIVÝ strom — takže vada v KOPII by zčervenala jako vada kódu.
+# Vylučují se proto taky, ale KAŽDÁ kategorie má VLASTNÍ ČÍTAČ a vlastní
+# poznámku: vyloučení nesmí být tiché (vzor, který má `_archiv` od H86).
+import re  # noqa: E402  (drženo u seznamu, ať je vidět, k čemu patří)
+SNAP_RE = re.compile(r"^snapshot-\d")
+SCRATCH_RE = re.compile(r".*-scratch$")
+
+
+def _kategorie(p: pathlib.Path):
+    """`archiv` / `snapshot` / `scratch` / `zive` — podle CESTY, ne podle obsahu."""
+    casti = p.parts
+    if "_archiv" in casti:
+        return "archiv"
+    if any(SNAP_RE.search(c) for c in casti):
+        return "snapshot"
+    if any(SCRATCH_RE.search(c) for c in casti):
+        return "scratch"
+    return "zive"
+
 
 zive: list[tuple[str, int, str]] = []
 archiv: list[tuple[str, int, str]] = []
+snapshot: list[tuple[str, int, str]] = []
+scratch: list[tuple[str, int, str]] = []
 souboru = 0
 souboru_archiv = 0
+souboru_snapshot = 0
+souboru_scratch = 0
 chyb_parsovani = 0
 chyb_parsovani_archiv = 0
 
@@ -60,9 +85,13 @@ for jmeno, koren in REPA:
     for p in sorted(koren.rglob("*.py")):
         if any(cast in SKIP for cast in p.parts):
             continue
-        do_archivu = "_archiv" in p.parts
-        if do_archivu:
+        kat = _kategorie(p)
+        if kat == "archiv":
             souboru_archiv += 1
+        elif kat == "snapshot":
+            souboru_snapshot += 1
+        elif kat == "scratch":
+            souboru_scratch += 1
         else:
             souboru += 1
         try:
@@ -77,19 +106,21 @@ for jmeno, koren in REPA:
             try:
                 ast.parse(text, filename=str(p))
             except SyntaxError as e:
-                # ⚠ Nálezy v `_archiv` `exit` NEMĚNÍ (H86): archiv se nespouští,
-                # takže nesoubor s vadnou syntaxí je POZNÁMKA, ne vada živého
-                # stromu. Do opravy tohle rozlišení chybělo a jediný archívní
-                # soubor (BOM `U+FEFF`) shazoval `exit` celého skenu.
-                if do_archivu:
+                # ⚠ Nálezy MIMO ŽIVÝ strom `exit` NEMĚNÍ (H86 + H98): archiv
+                # ani zmrazené/pracovní kopie se nespouští, takže soubor
+                # s vadnou syntaxí je POZNÁMKA, ne vada živého kódu.
+                if kat == "archiv":
                     chyb_parsovani_archiv += 1
+                elif kat != "zive":
+                    print(f"  poznámka ({kat}, nespouští se): {p} — {e}")
                 else:
                     print(f"  CHYBA syntaxe: {p} — {e}")
                     chyb_parsovani += 1
                 continue
         for z in zaznamy:
             if issubclass(z.category, SyntaxWarning):
-                cil = archiv if do_archivu else zive
+                cil = {"archiv": archiv, "snapshot": snapshot,
+                       "scratch": scratch, "zive": zive}[kat]
                 cil.append((str(p.relative_to(koren.parent)), z.lineno or 0,
                             str(z.message)))
 
@@ -115,6 +146,18 @@ if archiv:
         print(f"  {cesta}:{radek}   {text}")
     print()
 
+# ⚠ H98: i zmrazené a pracovní kopie se VYKAZUJÍ, jen nemění verdikt.
+for nazev, obsah, pocet in (("snapshot-*", snapshot, souboru_snapshot),
+                            ("*-scratch", scratch, souboru_scratch)):
+    if obsah:
+        print(f"--- POZNÁMKA: `{nazev}` má {len(obsah)} neplatných sekvencí "
+              f"({pocet} souborů) ---")
+        print("    Je to KOPIE (doklad / pracovní strom), nespouští se → "
+              "poznámka, ne vada (H98).")
+        for cesta, radek, text in obsah:
+            print(f"  {cesta}:{radek}   {text}")
+        print()
+
 if chyb_parsovani_archiv:
     print(f"  poznámka: {chyb_parsovani_archiv} souborů v `_archiv` se nedalo "
           f"zpracovat (archiv se nespouští)")
@@ -123,9 +166,12 @@ if chyb_parsovani:
     print(f"  + {chyb_parsovani} ŽIVÝCH souborů se nedalo zpracovat")
 
 # JEDEN kanonický čítač pro `g3` (ten bere POSLEDNÍ výskyt vzoru). Nese MEZ
-# (H86): kolik ŽIVÝCH souborů prošlo a kolik jich je v `_archiv`.
+# (H86 + H98): kolik ŽIVÝCH souborů prošlo a kolik jich je v každé vyloučené
+# kategorii. Začátek řádku se NESMÍ změnit — `g3` ho čte vzorem
+# `ZMĚŘENO:\s*(\d+) neplatných`.
 print(f"ZMĚŘENO: {len(zive)} neplatných escape sekvencí ve SKENOVANÝCH "
-      f"{souboru} živých souborech (mimo `_archiv`: {souboru_archiv} souborů, "
-      f"{len(archiv)} sekvencí)")
+      f"{souboru} živých souborech (mimo živý strom: `_archiv` {souboru_archiv} "
+      f"souborů/{len(archiv)} sekvencí, `snapshot-*` {souboru_snapshot}/"
+      f"{len(snapshot)}, `*-scratch` {souboru_scratch}/{len(scratch)})")
 
 sys.exit(1 if (zive or chyb_parsovani) else 0)

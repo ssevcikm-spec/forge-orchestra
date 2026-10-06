@@ -1,37 +1,31 @@
-# ZADÁNÍ PRO DALŠÍ SESSION — rozhodnout, co s ověřenou prací (P17 + P18)
+# ZADÁNÍ PRO DALŠÍ SESSION — rozhodnout tři otevřené věci a vrátit se k práci na projektu
 
-**Zkontrolováno při:** `8011f83` (orchestra — **měření P18 proběhlo na tomto commitu P17**) a `44dd454` (hra) · **6. 10. 2026, 05:23:39 UTC**
-**Stav obou repů při psaní:** `forge-orchestra` = `8011f83`, vzdálená `origin/main` je o **4 commity zpět** na `ce49234` (**nepushnuto: P17 + P18, P18b, P18c**) · `uo-shadows` = `44dd454`, vzdálená `origin/main` je **shodná**, strom **čistý**
-**Ověřeno živě:** `git ls-remote origin refs/heads/main` → orchestra **`ce49234`**, hra **`44dd454`**
-**GIT (živě, při předání):** `HEAD` = **`4506b2c`**, `origin/main..HEAD` = **4 commity** (P17 `8011f83` + **P18, P18b, P18c** — všechny tři jsou záznamy/doklady, ne kód navíc), pracovní strom **čistý (0 řádků)**
+**Zkontrolováno při:** `19a2195` (orchestra — **commit, na kterém měřila P19**, a zároveň její rodič) · hra `44dd454` · **6. 10. 2026, 10:1x UTC**
+**Stav obou repů při psaní:** `forge-orchestra` = `19a2195`, `origin/main` = **`19a2195`** (push P19 proběhl v **§A**) — po commitu P19 se `HEAD` posune o **1** · `uo-shadows` = `44dd454`, `origin/main` **shodná**, strom **čistý**
+**Ověřeno živě:** `git ls-remote origin refs/heads/main` — orchestra **`19a2195`**, hra **`44dd454`** (měřeno před commitem P19; po něm viz „přibylo commitů" níž)
+**GIT (živě, při předání):** `HEAD` orchestry je **`19a2195`** + **1 commit P19** (záznamy + doklady `p19-*` + opravené brány) — **pushnutý**, takže `origin/main..HEAD` je **0** (měřeno po pushi)
 
-> **⚠ P18 JE COMMITNUTÁ — a `zadani-kontrola.py` proto SPRÁVNĚ VARUJE.**
-> Uživatel 6. 10. 2026 rozhodl **„commitni vše, co můžeš"**, takže záznamy
-> (`HANDOFF.md` §36 + §8x, `KRONIKA-PROJEKTU.md` řádek 32 a §2.12), **doklady
-> `_analyza/ov-*`**, opravené nástroje i **tohle zadání** jsou **v jednom
-> commitu P18** (vznikl nad `8011f83`). **Tím vzniká `přibylo commitů: 1`** —
-> a to **není vada zadání ani session**: je to **vlastnost odkazu na vlastní
-> commit** (SHA commitu závisí na jeho obsahu). `zadani-kontrola.py` to hlásí
-> jako **varování** a **právě to má dělat** — nutí příští session **přeměřit
-> stav živě** místo věřit hlavičce. **Historie to má stejně** (P15, P16 i P17
-> commitly zadání; u P16 to bylo součástí nálezu **H88**).
-> **Co z toho plyne pro tebe:** než začneš pracovat, udělej
-> **`git status --porcelain` + `git fetch`** a **přeměř `origin/main..HEAD`** —
-> číslo v hlavičce je **stav v čase měření**, ne dnešek.
+> **⚠ P19 JE COMMITNUTÁ I PUSHNUTÁ — a `zadani-kontrola.py` proto SPRÁVNĚ VARUJE.**
+> Uživatel 6. 10. 2026 rozhodl **„commitnout i pushnout"**. Záznamy
+> (`HANDOFF.md` **§37** + **§8y** + **§2.10**, `KRONIKA-PROJEKTU.md` řádek **33**,
+> §2.13 a §3), doklady **`_analyza/p19-*`**, opravené brány (**`n32`**, **`h79`**,
+> **`g3`**) i **tohle zadání** jsou v **jednom commitu P19** nad `19a2195`.
+> **Tím vzniká `přibylo commitů: 1`** — a to **není vada zadání ani session**:
+> je to **vlastnost odkazu na vlastní commit** (SHA commitu závisí na jeho obsahu).
+> `zadani-kontrola.py` to hlásí jako **varování** a **právě to má dělat** — nutí
+> příští session **přeměřit stav živě** místo věřit hlavičce (nález **NA31**).
 
-> **⚠ PROČ JE V HLAVIČCE `8011f83`, A NE COMMIT P18 — a je to ZÁMĚR.**
-> `8011f83` je **commit, na kterém P18 SKUTEČNĚ MĚŘILA** (a je to i **rodič**
-> commitu P18), takže je to **správná kotva měření** — ne omyl v zápisu.
-> Kdyby tu stálo SHA commitu P18, odkazovalo by dokument na commit, jehož obsah
-> **závisí na tomhle textu** — a `zadani-kontrola.py` by po každé opravě zadání
-> hlásil jiné číslo. **Jednou to tak je a bude** (`přibylo commitů: 1`), a je to
-> **vidět**: hlavička se **neopravuje na dnešek**, protože pak by přestala být
-> záznamem o tom, **proti čemu se měřilo** (nález **NA31**).
+> **⚠ PROČ JE V HLAVIČCE `19a2195`, A NE COMMIT P19 — a je to ZÁMĚR.**
+> `19a2195` je **commit, na kterém P19 SKUTEČNĚ MĚŘILA** (a je to i **rodič**
+> commitu P19), takže je to **správná kotva měření**. Kdyby tu stálo SHA commitu
+> P19, odkazovalo by dokument na commit, jehož obsah **závisí na tomhle textu**.
+> **Hlavička se NEOPRAVUJE na dnešek** — pak by přestala být záznamem o tom,
+> **proti čemu se měřilo** (nález **NA31**).
 
-**Co je v `HANDOFF.md`:** **§36 = P18** (Úkoly A–G + nálezy H93–H96 + rozhodnutí otevřených bodů P17 + omyly **173–184** v **§8x**) · §35 = P17 · §34 = P16 · **§2 = co je otevřené**
-**Co je v `KRONIKA-PROJEKTU.md`:** řádek **32** (P18) · nálezy **H93–H96** v **§2.12** · blok omylů **8x** · **souhrn: 24 bloků, 31 sessions, 178 omylů (152 = 85 %), 52 nálezů**
-**Co tenhle dokument JE:** **zadání pro ROZHODOVACÍ session** — P18 byla **ověřovací** a **všechna tvrzení P17 potvrdila**; nic k opravě po ní **nezbylo povinného**. Zbývá **rozhodnout**, co s ověřenou prací (push) a co s **dvěma neškodnými, ale matoucími** nálezy.
-**Datum spotřeby:** údaje o stavu níž jsou **k 6. 10. 2026, 05:23:39 UTC**; co je starší, je v `HANDOFF.md` **§36** a je to **záznam**, ne stav.
+**Co je v `HANDOFF.md`:** **§37 = P19** (Úkoly A–E + nálezy **H97–H100** + rozhodnutí + omyly **186–194** v **§8y**) · **§2.10 = stav otevřených bodů po P19** · §36 = P18 · §35 = P17 · **§2 = co je otevřené**
+**Co je v `KRONIKA-PROJEKTU.md`:** řádek **33** (P19) · nálezy **H97–H100** v **§2.13** · blok omylů **8y** · **souhrn: 25 bloků, 32 sessions, 189 omylů (163 = 86 %), 54 nálezů**
+**Co tenhle dokument JE:** **zadání pro ROZHODOVACÍ session P20** — P19 **rozhodla a provedla** všechno povinné (push, H93, H94, `g3`, záznamy). **Technický dluh z ověřovacích sessions je tím vyčerpaný**; zbývají **tři rozhodnutí** a pak je na řadě **práce na projektu** (hra, conductor), ne na měřidlech.
+**Datum spotřeby:** údaje o stavu níž jsou **k 6. 10. 2026, 10:1x UTC**; co je starší, je v `HANDOFF.md` **§37** a je to **záznam**, ne stav.
 
 > **⚠ PRVNÍ VĚC, KTEROU UDĚLEJ:** `git status --porcelain` a **`git fetch`**
 > v obou repech — a **ověř `origin/main..HEAD` ŽIVĚ** (`git ls-remote`), ne
@@ -40,126 +34,113 @@
 > **⚠ A DRUHÁ:** **`git.cmd` ŽERE `^`** — `git show <sha>^` tiše vrátí stav **PO**
 > commitu. Používej **`~1`**, nebo **`git.exe`**. Naměřeno P17: `git.cmd … 'ce49234^'`
 > → **`ce49234`** (sám sebe), `~1` → `c620a06`. Detail: skill `dsh-prostredi` **§5c**.
+>
+> **⚠ A TŘETÍ (nově z P19):** **`Set-Content -Encoding utf8` v PowerShellu přidá
+> do `.py` BOM** → soubor přestane být zkompilovatelný a **NA32 ho právem vykáže**
+> (omyl **189**). Kód edituj **`edit`/`write` toolem**, ne `Set-Content`; a po
+> zápisu zkontroluj **první tři bajty** (`.py` **NESMÍ** mít BOM, `.ps1` **MUSÍ**).
 
 ---
 
-## 0. Co P18 naměřila a co je HOTOVÉ (neopakuj to znovu)
+## 0. Co P19 naměřila a co je HOTOVÉ (neopakuj to znovu)
 
-**Všechna tvrzení P17 byla přeměřena VLASTNÍM měřidlem a VŠECHNA POTVRZENA.**
-Tabulka je tu proto, aby se **nemuselo měřit znovu** — a aby bylo vidět, **co
-za tím tvrzením stojí**. Kdo chce přeměřovat, ať **použije jiný nástroj**, než
-jaký je v posledním sloupci.
-
-| # | Co P18 naměřila | Čím (doklad v `_analyza/`) |
+| # | Co P19 udělala | Výsledek (doklad v `_analyza/`) |
 |---|---|---|
-| **A** | **`VERDIKT: NASAZENO`** — 10 kontrol, 0 chyb. `origin/main..HEAD = 0` (hra) · běh **`#78`** na `44dd454` **`completed/success`** s **NEprázdným `runner_name`** (`GitHub Actions 1000001168`/`1170`) · `index.html` **i** `index.png` `last-modified` = **`Mon, 05 Oct 2026 21:38:16 GMT`** (po `20:39Z`) | `ov-a-nasazeni.mjs`, `ov-a-vystup.txt`, `ov-a-vysledky.json` |
-| **A′** | **Změna stavu:** `githubstatus.com` hlásí u **všech pěti** sledovaných složek **`operational`** — P17 měřila **`degraded_performance`** | totéž |
-| **B** | **0 živých nekompilovatelných**; **6/6 opravených souborů SPUŠTĚNO** (`traceback=0`, `exit=0`) v **izolaci** (`git worktree` + **junction na hru**); živý `baseline.json` **bajt na bajt shodný** (`1FE321FA37A80FBD…`) | `ov-b1-compile.py`, `ov-b2-spusteni.py`, `ov-b2-spusteni.json` |
-| **C** | **NA32 umí spadnout** — 18 kontrol, 0 chyb: vlastní mutant (`ov-b1-compile.py:12`) bránu **zčervenal**, nález **pojmenovala**, `ast.parse` ho **přijal** a `compile()` **odmítl**, návrat **bajt na bajt** | `ov-c-n32-mutant.py`, `ov-c-vysledky.json` |
-| **D** | **Klasifikátor `g3` je zpevněný** — 38 kontrol, 0 chyb: fixtura **bez markeru** NENÍ „nezačala", `exit=2` **bez výstupu** a **neexistující soubor** **JSOU**; `_VLASTNI_HLASENI` **0× v KÓDU**; **tři mutace** odhaleny | `ov-d-klasifikator.py`, `ov-d-vysledky.json` |
-| **E** | **Mez skenu H79 sedí** — 17 kontrol, 0 chyb: vlastní počet souborů **souhlasí** (**173** živých / **260** `_archiv`), vlastní sken **0 / 5** souhlasí, a **mutace OBĚMA SMĚRY**: vadný soubor v `_archiv` `exit` **NEMĚNÍ** (a je vidět), **totéž** v živém stromě `exit` **MĚNÍ** | `ov-e-h79-mez.py`, `ov-e-vysledky.json` |
-| **F** | **Záznamy:** `KRONIKA SEDÍ` · `handoff-kontrola` **83/83** · HANDOFF má **5 ubraných řádků**, ale **nic se neztratilo** (tatáž věta je v novém na ř. 6675 jako „**PŮVODNÍ STAV: nepushnuto**") | `git diff --numstat 8011f83~1 8011f83` |
-| **G** | **H92 tři přeživší OPRAVENY** (naměřeno: cesta vedla na **neexistující** `…\forge-orchestra\uo-shadows`; po opravě všechny tři **exit 0**) · **trackované-gitignorované soubory UŽ NEJSOU** (P17 je untrackla) · **`ZÁLOHA SEDÍ`** (347 souborů, shodný SHA-256) | `ov-g-h92-sken.py`, `ov-g-neovereno.py` |
-| **brány** | `g3` **37 bran, 0 nenulových, 0 nezačatých, 0 nedosazených** · `validate-all` **`✓ VŠE V POŘÁDKU`** · inventář přegenerován | `ov-g3-vystup.txt`, `ov-validate-all-vystup.txt` |
-| **NEOVĚŘENO** | **0** — ověřeno vlastním skriptem: **35 návrhů** (NA1–NA35) má stav a **83 nálezů** v HANDOFF žádné `NEOVĚŘENO` | `ov-g-neovereno.py`, `ov-g-neovereno-vystup.txt` |
+| **A** | **PUSH** (rozhodl uživatel) | `ce49234..19a2195` — **6 commitů** (P17, P18, P18b–P18e), `exit 0`; `ls-remote` = `HEAD`, `origin/main..HEAD` = **0**. **Build na správném commitu:** žádný workflow se nespouští a je to **dokázané** (`deploy.yml` filtruje `conductor/**`, diff má 0 souborů v `conductor/`, + pozitivní kontrola API). **Artefakt:** orchestra **Pages nemá** (HTTP 404), hra je `44dd454` = commit stavby `release.yml #78 completed/success`, `last-modified` **`21:38:16 GMT`** (nezměněno — do hry se nepushovalo) — `p19-a-push-overeni.mjs` (**15/0**) |
+| **B** | **H93** — a co se u toho našlo | NA32 počítal **178 živých**, z toho **2** zmrazené snapshoty a **19** pracovních kopií. **Opraveno v OBOU branách** (NA32 i H79): kategorie se **vylučují** a **každá má vlastní čítač**; nové souhrny `158 živých / 2 snapshot-* / 19 *-scratch`. Doklady **29/0** a **23/0** (mutace v kopii bránu **nezčervení**, v živém stromě **zčervení**) — `p19-b-kontroly.py`, `p19-b2-kontroly-h79.py` |
+| **C** | **H94** — a P18 to měřila neúplně | Živých podpisů je **5** (ne 4): `is not recognized` **PowerShell i cmd vydávají**. Pro `g3` je ale mrtvý (`g3` **shell nepoužívá**) → seznam **zúžen na 4 živé**, 4 odebrané **pojmenované v komentáři**. Invariant: **v seznamu není mrtvý podpis** — `p19-c-h94-podpisy.py` (**25/0**) |
+| **D** | **`g3` je NYNÍ BRÁNA — ale soudí jen sebe** | `exit 1`, když brána **nezačala** nebo **běžela bez čítače mimo `OCEKAVANE_BEZ_CITACE`**; `exit 2` při **nulovém počtu bran**. **O červených nerozhoduje** — jen je vypíše jako „k rozhodnutí". Důkaz **16/0** — `p19-d-kontroly.py` |
+| **E** | **Brány a záznamy** | `g3` **37 bran, 1 nenulový** (`zadání kontrola` — **očekávaný**), 0 nezačatých, **`exit 0`** · `validate-all` **✓ VŠE V POŘÁDKU** · `KRONIKA SEDÍ` · handoff **83/83** · inventář přegenerován **jako poslední krok** |
+| **nálezy** | **H97** (H93 měl vyvrácená čísla), **H98** (kopie jako živý kód v obou branách), **H99** (BOM: spustit vs zkompilovat), **H100** (§36.8 tvrdil 0 nenulových exitů, doklad má 1) | `HANDOFF.md` §37.6, `KRONIKA-PROJEKTU.md` §2.13 |
 
 ---
 
 ## 1. Cíl (jedna věta)
 
-**Rozhodnout, co s ověřenou prací P17 + P18 — pushnout commity, a rozhodnout
-dva neškodné nálezy P18 (H93, H94) a otázku blokujícího `g3` — a zapsat rozhodnutí.**
+**Rozhodnout tři zbývající věci z P19 (verdikt `g3` nad červenými branami, BOM
+v `.py`, zařazení opakovatelných ověřovacích skriptů do `g3`) — a pak se vrátit
+k práci na projektu místo k měřidlům.**
 
 ---
 
 ## 2. Úkoly (v tomto pořadí)
 
-### 2.1 Úkol A — PUSH (rozhodnutí uživatele; bez něj je všechno jen lokálně)
+### 2.1 Úkol A — verdikt `g3` nad ČERVENÝMI branami (nález NA23b)
 
-1. **Nejdřív `git status --porcelain` a `git diff --stat`** v obou repech a **ukázat
-   je uživateli** — pravidlo `AGENTS.md`: *nepushovat bez vyžádání*.
-2. **Co je k pushi:** `forge-orchestra` má **`origin/main..HEAD = 4`** — commit
-   `8011f83` (**P17**, 66 souborů), **`233e502`** (**P18**: záznamy + doklady +
-   opravené nástroje + tohle zadání) a **dva navazující `P18b`/`P18c`** (poučení
-   o inventáři). Hra je **v sync** (`44dd454`), **nic k pushi**.
-3. **P18 JE UŽ COMMITNUTÁ** (rozhodnutí uživatele 6. 10. 2026: „commitni vše,
-   co můžeš") — takže **k pushi jsou všechny čtyři commity** a **žádné rozhodování
-   o commitu už nezbývá**. Zkontroluj jen, že ve stromě **nezůstalo nic
-   necommitnutého** kromě případných nových změn.
-4. **Push přes PAT ze souboru** (`.secrets/github_pat.txt`) — **nikdy ho nevypisuj**
-   ani nepiš do historie příkazů. Git přes schannel padá → `orchestra\tools\git.cmd`.
-5. **Po pushi ověř TŘEMI kroky** (`DSH_HOME\AGENTS.md`, „Jak ověřit nasazení"):
-   push dorazil (`ls-remote` = `HEAD`, `origin/main..HEAD = 0`) → build na
-   **správném** commitu → server posílá **nový** artefakt (`last-modified` **po**
-   čase pushi). **`HTTP 200` není důkaz.**
+**Stav:** `g3` od P19 **spadne jen za sebe** (nezačatá brána / brána bez čítače
+mimo deklarovaný stav) a **o červených nerozhoduje** — jen je vypíše jako
+„k rozhodnutí". **Při měření P19 byl nenulový PRÁVĚ JEDEN:** `zadání kontrola`
+(`exit=1`, protože zadání bylo kotvené na commitu měření P18 — NA31). **Po
+přepsání zadání (kotva = živý `HEAD`) je nenulových `0`** — a **po commitu P20
+bude zase `1`**, protože si zadání **schválně** drží kotvu měření. To je
+**očekávaný případ**, ne vada.
 
-**Hotovo, když:** je **rozhodnuto** (pushnuto, nebo výslovně NE s důvodem)
-a stav je **přeměřený živě**.
+1. **Přeměř, které brány končí nenulově** a **proč** (`_analyza/_g3-*.txt` nebo
+   nový běh) — a **u každé napiš, jestli je to stav, nebo vada**.
+2. **Rozhodni:** má `g3` soudit i červené? Když ano, musí vzniknout
+   **`OCEKAVANE_NENULOVE`** (deklarovaný seznam očekávaných nenulových exitů —
+   dnes `{"zadání kontrola"}`), a `g3` musí **umět spadnout i na nečekaném**.
+3. **Když zavedeš nový `sys.exit`, DOLOŽ, že umí spadnout** — vzorem je
+   `_analyza/p19-d-kontroly.py` (fixtury, kopie živého `g3`, žádná mutace živého
+   souboru). **A dolož i opak:** že **očekávaný** nenulový exit `g3` **neshodí**
+   (jinak by brána padala po každém commitu).
 
-### 2.2 Úkol B — H93: `snapshot-*/` ve vylučovacím seznamu brány NA32
+### 2.2 Úkol B — BOM v `.py`: vada, nebo ne? (nález H99)
 
-**Nález (zapsaný, NEopravený):** `_analyza/n32-kompilovatelnost.py` vylučuje
-`.git` a `_archiv`, ale **ne** archivní snapshoty — takže
-**`_analyza/snapshot-20261002-181237/skill/overovani/zmen.py`** a
-**`…-183213/…`** se počítají jako **ŽIVÝ kód**.
+**Stav:** `python soubor.py` s BOM **funguje**, ale `compile()` ho **odmítne** →
+**NA32 i H79** takový soubor hlásí jako vadu živého stromu. Dnes **žádný živý
+`.py` s BOM není**.
 
-1. **Přeměř to sám:** spočítej `.py` v orchestra s vylučovacím seznamem NA32
-   a bez snapshotů. P18 naměřila **176** vs **162** (rozdíl **14**; **2** jsou
-   snapshoty, zbytek dělá jiný filtr `_archiv`). Hledej **soubor po souboru**,
-   ne jen součty.
-2. **Rozhodni:** přidat `snapshot-*` do vylučovacího seznamu, nebo to nechat
-   a **jen to vykázat**? Argumenty: oba snapshoty jsou **zmrazené kopie**
-   (needitují se), takže „vadný živý soubor" v nich je **falešný poplach** —
-   ale taky **neškodí**, protože `n32` **vykazuje**, kolik souborů zkontroloval.
-3. **Když budeš měnit bránu, dolož to mutantem** (vlož vadný `.py` **do snapshotu**
-   → brána **nesmí** zčervenat; vlož ho **do živého stromu** → **musí**).
-   **A vrať to bajt na bajt.**
-4. **Po každé změně souboru ve stromě přegeneruj inventář** (NA1/H60).
+1. **Přeměř to** (fixtura s BOM: spuštění vs `compile()` vs obě brány).
+2. **Rozhodni**, co je správně, a **zapiš to jako pravidlo**:
+   * buď je BOM v `.py` **zakázaný** (pak je dnešní chování obou bran správné
+     a patří to do `AGENTS.md` jako konvence),
+   * nebo je **povolený** (pak ho obě brány musí přestat hlásit — a **obě
+     NARÁZ**, protože dvě brány, které se o témž souboru rozcházejí, jsou dražší
+     než ta nepřesnost).
+3. **Ať rozhodneš jakkoli:** dolož to **mutací oběma směry** (soubor s BOM
+   v živém stromě vs. bez BOM) a **nezapomeň, že `.ps1` BOM MÍT MÁ** — pravidlo
+   se týká **`.py`**.
 
-### 2.3 Úkol C — H94: čtyři mrtvé podpisy v klasifikátoru `g3`
+### 2.3 Úkol C — mají opakovatelné ověřovací skripty vstoupit do `g3`?
 
-**Nález (zapsaný, NEopravený):** `_PODPIS_CHYBEJICIHO_SOUBORU` má **8 podpisů**,
-ale na této stanici mohou zabrat **jen 4**:
-`can't open file`, `Cannot find module`, `MODULE_NOT_FOUND`,
-`No such file or directory`. **Mrtvé jsou:** `no such file or directory`
-(malá písmena), `WinError 2`, `The system cannot find the file`, `is not recognized`.
+**Stav:** doklady **`ov-*` (P18)** i **`p19-*` (P19)** zůstaly **mimo `g3`**
+(rozhodnutí uživatele u P18). **Opakovatelné** z nich jsou:
+`ov-b1-compile.py`, `ov-e-h79-mez.py`, `ov-g-h92-sken.py`, `ov-g-neovereno.py`,
+`p19-b-kontroly.py`, `p19-b2-kontroly-h79.py`, `p19-c-h94-podpisy.py`,
+`p19-d-kontroly.py`. **Jednorázové/stavové** (`ov-a` závisí na nasazení,
+`ov-f` je diagnostika, `p19-a`, `p19-b-h93-snapshot.py`) tam **nepatří**.
 
-1. **Přeměř to sám** — spusť `python` **i** `node` nad neexistující cestou
-   a porovnej **skutečný** výstup se seznamem. **Nevěř P18.**
-2. **Pozor na klíčovou věc:** `can't open file` a `No such file or directory`
-   chytají **TENTÝŽ případ** (oba jsou ve výstupu Pythonu). Odebrat **jeden**
-   tedy **nic nezmění** — P18 to naměřila. Když budeš mutovat, **uber všechny živé**.
-3. **Rozhodni:** nechat (obrana do budoucna, kdyby se text interpretu změnil),
-   nebo **zúžit na živé** a **mrtvé pojmenovat**? Argument pro zúžení: **mrtvá
-   položka v seznamu je slepé místo** — vypadá jako pokrytí, ale nechytá nic.
-   Argument proti: jsou to **jiné texty**, ne záloha — při změně Pythonu/Node
-   by pomohly jen náhodou.
-4. **Ať rozhodneš jakkoli, napiš k seznamu, KTERÉ podpisy jsou na této stanici
-   živé a čím to bylo naměřeno** — dnes to v kódu není.
+1. **U každého kandidáta změř, jak dlouho běží** a **co měří** (stav? mutaci? obojí?).
+2. **Rozhodni a zapiš:** které se zařazují (a s jakým čítačem do `BRANY`), které
+   zůstávají doklady a **proč**. **Brána bez čítače = `g3` dnes spadne** — takže
+   každý zařazený skript musí **vykazovat číslo**.
+3. **Po každé změně `BRANY` spusť `g3`** (a ověř, že nová brána **něco otevřela**).
 
-### 2.4 Úkol D — má `g3` být BLOKUJÍCÍ brána?
-
-`g3-brany.py` **nemá `sys.exit`** — je to **přehled**, ne brána (ví to i komentář
-v něm). Nález **NA23b** říká, že kdyby se měl stát blokujícím, musí znát **které**
-nenulové exity jsou **správné** (dnes `C2: mutace N1` končí `exit=0`, ale
-`? BRÁNY, KTERÉ BĚŽELY, ALE NEVYKÁZALY ČÍTAČ (1)` je **přiznaný** stav).
-
-1. **Přečti si, co dnes `g3` vykazuje** a **co z toho je „správně nenulové"**.
-2. **Rozhodni:** nechat jako přehled (a **napsat to do dokumentace**), nebo
-   zavést **baseline očekávaných exitů** a `sys.exit` doplnit.
-3. **Když zavedeš `sys.exit`, MUSÍŠ doložit, že umí spadnout** — jinak je to
-   „brána, která nemá jak selhat".
-
-### 2.5 Úkol E — ZÁZNAMY A OVĚŘENÍ STAVU (povinné na konci)
+### 2.4 Úkol D — ZÁZNAMY A OVĚŘENÍ STAVU (povinné na konci)
 
 1. **Přepiš `NEXT-SESSION-INSTRUKCE.md`** pro další session.
 2. **Zapiš výsledky a omyly do `HANDOFF.md`** (nový oddíl; **jen přidávej**).
-3. **Doplň řádek do `KRONIKA-PROJEKTU.md`** (tabulka sessions + tabulka omylů
-   + její `celkem` — **všechny tři**, jinak se součet rozejde).
+3. **Doplň řádek do `KRONIKA-PROJEKTU.md`** (tabulka sessions + tabulka omylů +
+   její `celkem` — **všechny tři**, jinak se součet rozejde).
 4. **Ověř, že nezůstalo `NEOVĚŘENO`** — vlastním skriptem, ne grepem.
 5. **Přegeneruj inventář** a spusť `g3` **a pak** `validate-all`
    (**NE SOUČASNĚ** — oba sahají na `_inventar.json`).
+   **⚠ Inventář přegeneruj jako POSLEDNÍ krok** (jeho otisk počítá **i `.md`**,
+   takže každý zápis do dokumentace ho invaliduje).
 6. **Do chatu vlož prompt pro uživatele i se STAVOVÝM ŘÁDKEM.**
+
+### 2.5 Úkol E — až budou A–D hotové: **práce na projektu, ne na měřidlech**
+
+**P19 dočerpala frontu technického dluhu z ověřovacích sessions.**
+Další session by se měla vrátit k **věcné práci** — nabídka z `HANDOFF.md` **§2**
+(a je na uživateli, kterou vybere):
+
+* **hra:** pozice hráče ve smlouvě (`save.gd` ji dnes přepíše spawnem — §2.9 B),
+  DAG u `entity.player`, další granule z roadmapy;
+* **conductor:** **O3** (opravit vady conductoru a nasadit), **O10**, **N0.2**
+  (brána na závislosti bran), **N0.3** (stav CI cílové hry v `/health`);
+* **orchestra:** otevřené otázky **O5–O8** z `PLAN-ROZVOJ-ORCHESTRA.md` §6.
 
 ---
 
@@ -167,99 +148,85 @@ nenulové exity jsou **správné** (dnes `C2: mutace N1` končí `exit=0`, ale
 
 | # | Podmínka | Jak se to pozná |
 |---|---|---|
-| 1 | **O pushi je ROZHODNUTO** | buď `origin/main..HEAD = 0` u obou repů (a **přeměřeno živě**), nebo zapsané NE s důvodem |
-| 2 | **H93 rozhodnutý** | `snapshot-*` buď vyloučen (s mutantem), nebo výslovně ponechán s důvodem |
-| 3 | **H94 rozhodnutý** | seznam podpisů buď zúžen, nebo ponechán — a **vždy** s vypsanými živými podpisy a jejich měřením |
-| 4 | **`g3` má rozhodnutí** | přehled vs. blokující, zapsané v dokumentaci |
-| 5 | **Záznamy sedí** | `kronika-kontrola.py` → **`KRONIKA SEDÍ`**; `handoff-kontrola-uplnost.py` → **83/83** |
-| 6 | **Brány zelené** | `g3` → **0 nenulových, 0 nezačatých**; `validate-all` → **`✓ VŠE V POŘÁDKU`** |
-| 7 | **Žádné `NEOVĚŘENO`** | ověřeno skriptem, ne dojmem |
-| 8 | V chatu je **prompt pro uživatele** i **stavový řádek** | ke zkopírování |
+| 1 | **NA23b rozhodnutý** | buď `g3` soudí i červené (s `OCEKAVANE_NENULOVE` a **důkazem, že umí spadnout i nezhavarovat na očekávaném**), nebo je zapsané, že nesoudí a proč |
+| 2 | **BOM rozhodnutý** | pravidlo je **v `AGENTS.md`** a **obě brány se chovají shodně** (doloženo mutací) |
+| 3 | **Zařazení skriptů rozhodnuté** | každý kandidát má verdikt (do `g3` / zůstává doklad) **a důvod**; brány v `g3` mají **čítač** |
+| 4 | **Záznamy sedí** | `kronika-kontrola.py` → **`KRONIKA SEDÍ`**; `handoff-kontrola-uplnost.py` → **83/83** |
+| 5 | **Brány zelené** | `g3` → **`exit 0`** (a výslovně: co je nenulové a proč); `validate-all` → **`✓ VŠE V POŘÁDKU`** |
+| 6 | **Žádné `NEOVĚŘENO`** | ověřeno skriptem, ne dojmem |
+| 7 | V chatu je **prompt pro uživatele** i **stavový řádek** | ke zkopírování |
 
 ---
 
 ## 4. Co NEDĚLAT
 
-- **Nepushovat bez vyžádání** — P17 ani P18 nepushovaly; rozhodnutí je na uživateli.
+- **Nepushovat bez vyžádání** — P19 pushla **na výslovné rozhodnutí uživatele**;
+  další push je **zase rozhodnutí**, ne automatika.
 - **Nepřepisovat `HANDOFF.md` ani `KRONIKU`** — jen **přidávat**; historická čísla
-  se **nechávají citovaná** (a staví se **vedle** nich dnešní).
-- **Nemazat `_analyza/p16*`, `p17*` ani `ov-*`** — jsou to **doklady**.
+  se **nechávají citovaná** (a staví se **vedle** nich dnešní). **Konkrétně:**
+  řádky **H93/H94** v kronize **§2.12** zůstávají ve znění P18 (i s čísly, která
+  P19 vyvrátila) — oprava je ve **§2.13**.
+- **Nemazat `_analyza/p16*`, `p17*`, `ov-*` ani `p19-*`** — jsou to **doklady**.
 - **Nepřesouvat nic zpátky na `C:`**; `_archiv` a zálohu v
   `C:\Users\Ssevc\Local-Deepseek\_zalohy\` **nemařit** (jsou to cesty zpět).
 - **Nespouštět `g3` a `validate-all` SOUČASNĚ** — oba sahají na `_inventar.json`.
-- **Po každé změně souboru ve stromě přegeneruj inventář** (NA1/H60):
-  `python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json`
-  — jinak `n1-over-inventar`, `C2: mutace N1` i `validate-all` **správně zčervenají**
-  a vypadá to jako vada kódu (P16 to málem zapsala jako nález, omyl **166**;
-  **P18 to zažila taky** a vyřešilo to druhé přegenerování).
-- **Nepsát české uvozovky do zdrojáků** — `„…“` v řetězci je `SyntaxError`.
-  Po každém zápisu spusť `ast.parse`.
+- **⚠ Needitovat `.py` přes `Set-Content`** (přidá BOM — omyl **189**); a **nikdy
+  nepsat české uvozovky do zdrojáků** (`„…“` v řetězci je `SyntaxError`).
+  Po každém zápisu `.py` spusť `ast.parse` **a zkontroluj první tři bajty**.
 - **Nepoužívat `python - <<'PY'`** (heredoc v PowerShellu **neexistuje**) ani
   `python -c` s regexy/`$()` — **piš skript do souboru** (`dsh-prostredi` §3d/§3e/§3f).
-- **Nespoléhat na to, „co P18 tvrdí"** — **každé tvrzení přeměř**; autor není
-  nezávislý reviewer. **A platí to i na tenhle dokument.**
+- **Nespoléhat na to, „co P19 tvrdí"** — **každé tvrzení přeměř**; autor není
+  nezávislý reviewer. **A platí to i na tenhle dokument.** P19 přitom **dvakrát
+  vyvrátila tvrzení P18 jejím vlastním uloženým výstupem** (H97, H100) — což je
+  přesně to, co má příští session dělat taky.
 
 ---
 
 ## 5. Naměřená východiska (aby se nemusela měřit znovu)
 
 ```
-# hlavička a stav (6. 10. 2026, 05:23:39 UTC — PŘED commitem P18)
-#   ⚠ hodnoty níž jsou STAV V ČASE MĚŘENÍ; po commitu P18 se HEAD posunul.
-git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD      -> 8011f83  (commit P17 = kotva měření P18)
-git -C E:\Workspaces\forge-orchestra rev-parse --short origin/main -> ce49234
-git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 1   (NEPUSHNUTO)  [po commitu P18: 2]
-git -C E:\Workspaces\forge-orchestra status --porcelain (radku)  -> 21  (doklady a zaznamy P18)  [po commitu P18: 0]
-git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD      -> 44dd454
+# hlavička a stav (6. 10. 2026, 10:1x UTC — PŘED commitem P19)
+#   ⚠ hodnoty níž jsou STAV V ČASE MĚŘENÍ; po commitu P19 se HEAD posunul o 1.
+git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD        -> 19a2195  (kotva měření P19)
+git -C E:\Workspaces\forge-orchestra rev-parse --short origin/main -> 19a2195  (po pushi P19)
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 0   (PŘED commitem P19)  [po něm: 1]
+git -C E:\Workspaces\forge-orchestra status --porcelain (radku)    -> 10  (3 opravene brany + 7 dokladu p19-*)  [po commitu: 0]
+git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD        -> 44dd454
 git -C E:\Workspaces\uo-shadows      rev-list --count origin/main..HEAD -> 0   (v sync)
-git -C E:\Workspaces\uo-shadows      status --porcelain (radku)  -> 0   (cisty)
-git ls-remote (orchestra) -> ce4923436…   (git ls-remote (hra) -> 44dd45446…)
+git ls-remote (orchestra) -> 19a21957158f8269e5d2f7f7e079c56789f5914f   (git ls-remote (hra) -> 44dd4544…)
 
-# PO COMMITU P18 (naměřeno 6. 10. 2026 před zápisem tohohle zadání)
-git -C E:\Workspaces\forge-orchestra log --oneline -2
-  -> <P18> P18: ověření práce P17 vlastním měřidlem, oprava H92 a nálezy H93–H96
-  -> 8011f83 P17: oprava nálezů H84–H89, dokončení nasazení hry a zpevnění bran
-git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 2   (NEPUSHNUTO)
-git -C E:\Workspaces\forge-orchestra status --porcelain -> 0 radku (cisto)
-
-# P18: co se měřilo a jak to vyšlo  (doklady: _analyza/ov-*)
-node   _analyza\ov-a-nasazeni.mjs          -> 10 kontrol, 0 chyb, VERDIKT NASAZENO
-python _analyza\ov-b1-compile.py           -> 163 zivych precteno, 0 nekompilovatelnych (260 _archiv, 4 nalezy)
-python _analyza\ov-b2-spusteni.py          -> 6/6 spusteno, 0 tracebacku, baseline.json shodny
-python _analyza\ov-c-n32-mutant.py         -> 18 kontrol, 0 chyb
-python _analyza\ov-d-klasifikator.py       -> 38 kontrol, 0 chyb
-python _analyza\ov-e-h79-mez.py            -> 17 kontrol, 0 chyb
-python _analyza\ov-g-h92-sken.py           -> 57 SPRÁVNĚ, 0 RIZIKO (1 falesny poplach = lint-roadmapa fallback)
-python _analyza\ov-g-neovereno.py          -> 35 navrhu a 83 nalezu, 0 NEOVĚŘENO
-python _analyza\n32-kompilovatelnost.py    -> ZMERENO: 176 souboru, 0 nekompilovatelnych, 260 vylouceno
-python _analyza\g3-brany.py                -> 37 bran, 0 nenulovych, 0 nezacatych, 0 nedosazenych
-node   tools\validate-all.mjs              -> VSE V PORADKU, exit 0
-python _analyza\kronika-kontrola.py        -> KRONIKA SEDI, 178 omylu / 96 nalezu / 31 sessions
+# P19: co se měřilo a jak to vyšlo  (doklady: _analyza/p19-*)
+node   _analyza\p19-a-push-overeni.mjs      -> 15 kontrol, 0 chyb (push dorazil; build se nespouští; artefakt hry neovlivněn)
+python _analyza\p19-b-h93-snapshot.py       -> 178 živých = 157 živý kód + 2 snapshot-* + 19 *-scratch (soubor po souboru)
+python _analyza\p19-b-kontroly.py           -> 29 kontrol, 0 chyb  (NA32: mutant v kopii nezčervení, v živém zčervení)
+python _analyza\p19-b2-kontroly-h79.py      -> 23 kontrol, 0 chyb  (H79: totéž, vada = neplatná escape sekvence)
+python _analyza\p19-c-h94-podpisy.py        -> 25 kontrol, 0 chyb  (5 živých podpisů obecně, 4 pro g3; M1 změní, M2/M3 ne)
+python _analyza\p19-d-kontroly.py           -> 16 kontrol, 0 chyb  (g3 umí spadnout: 0/1/2 + červená s čítačem = 0)
+python _analyza\n32-kompilovatelnost.py     -> ZMERENO: 158 souboru, 0 nekompilovatelnych, 260 (_archiv), 2 (snapshot-*), 19 (*-scratch)
+python _analyza\h79-escape-sken.py          -> ZMERENO: 0 neplatnych v 158 zivych (… snapshot-* 2/0, *-scratch 19/0)
+python _analyza\g3-brany.py                 -> 37 bran, 1 nenulovy (zadani kontrola — ocekavany), 0 nezacatych, exit 0
+node   tools\validate-all.mjs               -> VSE V PORADKU, exit 0
+python _analyza\kronika-kontrola.py         -> KRONIKA SEDI (189 omylu / 100 nalezu / 32 sessions)
 python _analyza\handoff-kontrola-uplnost.py -> 83/83
-python _analyza\zalohuj-archiv.py --jen-kontrola -> ZALOHA SEDI (347 souboru, shodny SHA-256)
+python _analyza\zadani-kontrola.py          -> exit 1 s 1 varovanim ("pribylo commitu") — OCEKAVANE (NA31)
 
 # inventar se MUSI pregenerovat po kazde zmene souboru ve stromu (H60/NA1)
+#   a jako POSLEDNI krok (otisk pocita i .md):
 python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 
-# ⚠ IZOLACE: `git worktree` MUSÍ ležet uvnitř `E:\Workspaces` (jinak se změní
-# `_REPO.parent` a `baseline-poznamka.py` spadne na FileNotFoundError), a MUSÍ
-# mít junction `uo-shadows` na živou hru. A NESMÍ ležet v měřeném stromě
-# (kontaminuje počty) — patří do gitignorované `_analyza/*-scratch/`.
+# ⚠ IZOLACE (z P18, plati dal): `git worktree` MUSÍ ležet uvnitř `E:\Workspaces`
+# a MUSÍ mít junction `uo-shadows` na živou hru; a NESMÍ ležet v měřeném stromě.
+# ⚠ A P19 k tomu přidala: GENEROVANÝ HARNESS si nesmí odvozovat cesty z umístění
+# — v podadresáři se `WS = parents[1]` posune a výsledky vyjdou PRÁZDNÉ (omyl 191).
+#   Do kopie se vkládá ABSOLUTNÍ root (viz `p19-c-h94-podpisy.py` a `p19-d-kontroly.py`).
 ```
 
-**Uložené doklady (ne rekonstrukce):** `_analyza/ov-a-nasazeni.mjs`, `ov-a-vystup.txt`,
-`ov-a-vysledky.json`, `ov-a-index.html`, `ov-b1-compile.py`, `ov-b1-vystup.txt`,
-`ov-b2-spusteni.py`, `ov-b2-vystup.txt`, `ov-b2-spusteni.json`, `ov-c-n32-mutant.py`,
-`ov-c-vystup.txt`, `ov-c-vysledky.json`, `ov-d-klasifikator.py`, `ov-d-vystup.txt`,
-`ov-d-vysledky.json`, `ov-e-h79-mez.py`, `ov-e-vystup.txt`, `ov-e-vysledky.json`,
-`ov-f-rozdil-poctu.py`, `ov-f-rozdil-vystup.txt`, `ov-g-h92-sken.py`, `ov-g-h92-vystup.txt`,
-`ov-g-neovereno.py`, `ov-g-neovereno-vystup.txt`, `ov-g3-vystup.txt`,
-`ov-validate-all-vystup.txt`.
-
-**⚠ Šest ověřovacích skriptů `ov-*` NENÍ zařazeno do `g3`** — rozhodnutí uživatele
-6. 10. 2026: **zůstávají doklady** (`ov-a` je **stavová** brána, `ov-f` je
-jednorázová diagnostika). Kdyby se měly zařadit, patří tam **jen ty opakovatelné**
-(`ov-b1`, `ov-e`, `ov-g-h92-sken`, `ov-g-neovereno`).
+**Uložené doklady (ne rekonstrukce):** `_analyza/p19-a-push-overeni.mjs`,
+`p19-a-push-vysledky.json`, `p19-b-h93-snapshot.py`, `p19-b-kontroly.py`,
+`p19-b2-kontroly-h79.py`, `p19-c-h94-podpisy.py`, `p19-d-kontroly.py`,
+`p19-kronika-typy.py`
+(+ gitignorované výstupy `p19-*-vystup.txt`) a **`p19-scratch/`** (gitignorovaný:
+push skript a fixtury — **není v repu**).
 
 ---
 
@@ -273,27 +240,31 @@ Jsi ROZHODOVACÍ session. Repa jsou na E:
 Zadání pro tebe je v E:\Workspaces\forge-orchestra\NEXT-SESSION-INSTRUKCE.md
 — přečti ho CELÝ.
 
-Kontext: ověřovací session P18 (HANDOFF.md §36) PŘEMĚŘILA práci P17 vlastním
-měřidlem a VŠECHNA její tvrzení POTVRDILA: nasazení hry je dokončené (běh #78 na
-44dd454 completed/success s reálným runnerem, artefakt na Pages z 21:38:16 GMT),
-0 živých nekompilovatelných souborů a všech 6 opravených se i SPUSTÍ, brána NA32
-umí spadnout vlastním mutantem, klasifikátor g3 rozhoduje podle chování, mez
-skenu H79 sedí (mutace oběma směry), záznamy jsou v commitu a KRONIKA SEDÍ.
-P18 navíc OPRAVILA tři přeživší z H92 a zjistila, že trackované-gitignorované
-soubory už P17 untrackla. Push P17 ANI P18 NEPROBĚHL (origin/main..HEAD = 4 —
-P17 i P18 JSOU COMMITNUTÉ, jen nepushnuté).
-P18 odhalila dva neškodné, ale matoucí nálezy: H93 (brána NA32 nezná snapshot-*/)
-a H94 (klasifikátor g3 má 8 podpisů, ale živé jsou jen 4).
+Kontext: P19 (HANDOFF.md §37) dokončila frontu technického dluhu. Pushnuto
+(6 commitů P17+P18, ověřeno třemi kroky: orchestra žádný workflow nespouští —
+conductor/** se nezměnil — a hra má artefakt z 44dd454 neovlivněný).
+H93 opraveno V OBOU branách: NA32 i H79 teď nepočítají snapshot-* ani *-scratch
+jako živý kód a každá kategorie má vlastní čítač (dřív 178 "živých", z toho
+2 zmrazené snapshoty a 19 pracovních kopií, 13 z nich bajt na bajt shodných
+s živými soubory hry). H94 zúženo na 4 ŽIVÉ podpisy (is not recognized je živý
+obecně, ale ne pro g3 — g3 shell nepoužívá). g3 je NYNÍ BRÁNA: spadne, když
+brána nezačala nebo běžela bez čítače mimo deklarovaný stav, a o červených
+NEROZHODUJE (dnes je legitimně nenulový jeden: zadání kontrola).
+Navíc P19 vyvrátila DVĚ tvrzení P18 jejím vlastním uloženým výstupem: H97
+(H93 měl rozdíl 2, ne 14) a H100 (§36.8 tvrdil 0 nenulových exitů, doklad má 1).
 
-Pořadí: A (rozhodnout push a ověřit ho třemi kroky) → B (H93: snapshot-*/) →
-C (H94: mrtvé podpisy) → D (má být g3 blokující?) → E (záznamy a ověření stavu).
+Pořadí: A (verdikt g3 nad červenými / NA23b) → B (BOM v .py, H99) →
+C (mají opakovatelné ověřovací skripty do g3?) → D (záznamy a ověření stavu) →
+E (návrat k věcné práci: hra / conductor).
 
 Než začneš: `git status --porcelain` a `git fetch` v obou repech, a NEpoužívej
-`git show <sha>^` — git.cmd žere `^` (H89), používej `~1`.
+`git show <sha>^` — git.cmd žere `^` (H89), používej `~1`. A needituj .py přes
+Set-Content (přidá BOM → omyl 189); kontroluj první tři bajty.
 
-Nepřepisuj HANDOFF.md ani KRONIKU (jen přidávej), nemaž _analyza/p16*, p17*
-ani ov-* (jsou to doklady), nepřesouvej nic zpátky na C:, nepushuj bez vyžádání.
-Po každé změně souboru ve stromě přegeneruj inventář (NA1/H60).
+Nepřepisuj HANDOFF.md ani KRONIKU (jen přidávej), nemaž _analyza/p16*, p17*,
+ov-* ani p19-* (jsou to doklady), nepřesouvej nic zpátky na C:, nepushuj bez
+vyžádání. Po každé změně souboru ve stromě přegeneruj inventář (NA1/H60) —
+a naposledy až jako POSLEDNÍ krok (otisk počítá i .md).
 
 Na konci povinně: přepiš NEXT-SESSION-INSTRUKCE.md pro další session, zapiš
 výsledky a omyly do HANDOFF.md, doplň řádek do KRONIKA-PROJEKTU.md (včetně

@@ -364,9 +364,16 @@ else:
 if len(radky) < 10:
     chyby.append("tabulka sessions má jen %d řádků — projekt měl víc session" % len(radky))
 # každá session musí mít typ
-typy = {"akční", "plánovací", "ověřovací", "analýza"}
+# ⚠ P19 (6. 10. 2026): přidán typ **`rozhodovací`**. Do té doby tu byly jen
+# `akční`/`plánovací`/`ověřovací`/`analýza` — a session, jejímž obsahem je
+# **rozhodnutí o nálezech** (P19: push, H93, H94, `g3`), se musela vydávat za
+# něco jiného. Zadání i `HANDOFF` ji jmenují **„ROZHODOVACÍ session"**, takže
+# je to **rozšíření slovníku o deklarovaný typ**, ne oslabení kontroly:
+# kontrola pořád vyžaduje, aby typ byl **uvedený**, a `bez_typu` se počítá dál.
+# (Ověřeno mutací: řádek s vymyšleným typem kontrola pořád hlásí.)
+typy = {"akční", "plánovací", "ověřovací", "analýza", "rozhodovací"}
 bez_typu = [r for r in radky if not any(t in r for t in typy)]
-print("  bez typu (akční/plánovací/ověřovací/analýza): %d" % len(bez_typu))
+print("  bez typu (akční/plánovací/ověřovací/analýza/rozhodovací): %d" % len(bez_typu))
 if bez_typu:
     chyby.append("%d řádků session nemá uvedený typ" % len(bez_typu))
 

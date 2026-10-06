@@ -8,6 +8,14 @@ brány hledá ve výstupu **počet kontrol / souborů / granulí** a ten vypíš
 Píše se i do souboru `_analyza/g3-brany-vystup.txt`, aby se dal zápis ověřit
 bez opakovaného běhu.
 
+⚠ NÁVRATOVÝ KÓD (od P19, 6. 10. 2026 — rozhodnutí Úkolu D):
+  0 = přehled je ÚPLNÝ (každá brána začala a vykázala, co otevřela),
+  1 = NĚCO SE NEMĚŘILO (brána vůbec nezačala, nebo běžela bez čítače a není
+      v deklarovaném `OCEKAVANE_BEZ_CITACE`),
+  2 = neproběhla ANI JEDNA brána.
+**O červených branách se tím nerozhoduje** — které nenulové exity jsou správné,
+není sepsané (nález NA23b); g3 je jen vypíše jako „k rozhodnutí“.
+
 Použití: python _analyza/g3-brany.py
 """
 
@@ -184,9 +192,14 @@ BRANY = [
     # a přesně proto jeho `exit 1` nikdo neviděl: skript hledal kotvu
     # `39 sloupců`, ta v `AGENTS.md` **není ani jednou**, obě mutace se tiše
     # neprovedly a test hlásil `2 problem`. Vada měřidla bez čtenáře.
-    # ⚠ POZOR na vyklad: `g3-brany.py` sám **nemá `sys.exit`** — je to
-    # PŘEHLED, ne brána (a dobře tak: dva jeho řádky končí nenulově SPRÁVNĚ).
-    # Viditelnost tady dělá sloupec `exit=` a `otevřela:`, ne návratový kód.
+    # ⚠ POZOR na vyklad: do P19 (6. 10. 2026) `g3-brany.py` **neměl `sys.exit`
+    # VŮBEC** — byl to jen PŘEHLED. To je ale past „brána, která nemá jak
+    # selhat“ (S27/H71/H87): kdyby g3 přestal měřit (rozbil by se klasifikátor,
+    # zmizely by `BRANY`), **nikdo by to nepoznal**. Od P19 proto `exit` MÁ —
+    # ale jen za to, co g3 SÁM TVRDÍ: že každá brána začala a řekla, kolik toho
+    # otevřela (viz `OCEKAVANE_BEZ_CITACE` a `sys.exit` na konci souboru).
+    # O ČERVENÝCH branách g3 NEROZHODUJE: které nenulové exity jsou správné,
+    # dnes sepsané není (nález **NA23b**) a g3 to nepředstírá.
     ("ag-mutace (autorita)", ["python", "<ANALYZA>/ag-mutace.py"],
      r"mutací=(\d+), chyceno=(\d+)"),
     ("a1-a2-over", ["python", "<ANALYZA>/a1-a2-over.py"], r"Kontrol: (\d+)"),
@@ -337,10 +350,37 @@ bez_citace = []
 # (Past `overovani` §7.13: „neproběhlo" je TŘETÍ stav vedle zelené a červené.)
 # Slova jako „CHYBA" nebo „končím" v seznamu být NESMÍ — spolkla by i cizí
 # nástroje a **falešný nález o funkční bráně je dražší než slepé místo**.
+# ⚠ NÁLEZ H94 (P18) — PŘEMĚŘENO A ROZHODNUTO P19 (6. 10. 2026): ze **8 podpisů**
+# mohou v TOMHLE klasifikátoru zabrat **čtyři**. Mrtvé položky jsou ODEBRANÉ
+# (mrtvý podpis vypadá jako pokrytí a nechytá nic) a jsou tu POJMENOVANÉ
+# s důvodem — kdyby se změnilo, co `g3` spouští, patří zpátky:
+#
+#   ŽIVÉ (naměřeno spuštěním interpretů nad NEEXISTUJÍCÍ cestou):
+#     * `can't open file`           — Python; TÝŽ případ jako `No such file…`
+#     * `No such file or directory` — Python; oba jsou v JEDNOM výstupu, takže
+#       odebrat JEN JEDEN z nich nic nezmění (naměřeno mutací M2 i M3)
+#     * `Cannot find module`        — Node
+#     * `MODULE_NOT_FOUND`          — Node; týž případ jako `Cannot find module`
+#   MRTVÉ PRO `g3` (a proč):
+#     * `no such file or directory` (malá písmena) — žádný interpret na této
+#       stanici tenhle text nevydá (Python píše `No such file or directory`)
+#     * `WinError 2` — je to text VÝJIMKY, kterou `spust()` chytá zvlášť;
+#       do zachyceného výstupu se nikdy nedostane
+#     * `The system cannot find the file` — text shellu Windows; `g3` shell
+#       NEPOUŽÍVÁ (`subprocess.run` se seznamem argumentů, žádné `shell=True`)
+#     * `is not recognized` — text PowerShellu/cmd; `g3` shell nepoužívá.
+#       ⚠ POZOR, měřeno: PowerShell i cmd tenhle text SKUTEČNĚ vydávají —
+#       mrtvý je jen PRO TENHLE KLASIFIKÁTOR, ne obecně. Kdyby do `BRANY`
+#       někdy přibyl `.cmd`/`.ps1` brána, patří sem zpátky i tenhle podpis.
+#
+# Měření (dá se zopakovat): `python _analyza/p19-c-h94-podpisy.py`
+#   → vypíše, který podpis se v kterém výstupu objevuje, a mutacemi ověří,
+#     že seznam je nosný (odebrání všech živých změní klasifikaci fixtury D).
+# Kdyby se text interpretu změnil, pozná to `test-h87-klasifikator.py`
+# (fixtura `neexistuje`) — ten je v `g3`, proto je zúžení bezpečné.
 _PODPIS_CHYBEJICIHO_SOUBORU = (
     "can't open file", "Cannot find module", "MODULE_NOT_FOUND",
-    "No such file or directory", "no such file or directory",
-    "WinError 2", "The system cannot find the file", "is not recognized",
+    "No such file or directory",
 )
 
 
@@ -516,3 +556,49 @@ if bez_citace:
           % len(bez_citace))
     for p, k, d in bez_citace:
         print("   %s → exit=%s, %s" % (p, k, d))
+
+# ── ROZHODNUTÍ P19 (Úkol D / nález NA23b): `g3` SMÍ SPADNOUT — ALE JEN ZA SEBE ─
+# `g3` tvrdí jednu věc: **každá brána začala a řekla, kolik toho otevřela**.
+# Když to neplatí, je to vada MĚŘENÍ (ne výsledek brány), a proto `exit != 0`.
+# O červených branách nerozhoduje: seznam „očekávaně nenulových exitů“ neexistuje
+# (NA23b) a g3 ho nepředstírá — jen je VYPÍŠE a pojmenuje jako k rozhodnutí.
+#
+# `OCEKAVANE_BEZ_CITACE` je deklarovaný výjimečný stav: brána, o které VÍME, že
+# čítač nemá (a víme proč). Nová taková brána = `exit 1`, dokud se nerozhodne.
+# ⚠ Záznam, který už není potřeba, se VYPÍŠE jako „už není potřeba“ — zastaralý
+# baseline by jinak tiše krýval novou bránu se stejným jménem.
+OCEKAVANE_BEZ_CITACE = {"C2: mutace N1 (5 běhů)"}
+
+print()
+print("─" * 78)
+if selhalo:
+    print("NENULOVÉ EXITY: %d — které z nich jsou SPRÁVNÉ, rozhoduje člověk "
+          "(NA23b); g3 je neposuzuje:" % len(selhalo))
+    for p, k in selhalo:
+        print("   k rozhodnutí: %s → exit=%s" % (p, k))
+else:
+    print("NENULOVÉ EXITY: 0 — každá brána doběhla s exit 0")
+
+nove_bez_citace = sorted(p for p, _, _ in bez_citace
+                         if p not in OCEKAVANE_BEZ_CITACE)
+uz_neni_potreba = sorted(OCEKAVANE_BEZ_CITACE
+                         - {p for p, _, _ in bez_citace})
+print("BRÁNY BEZ ČÍTAČE mimo deklarovaný stav: %d%s"
+      % (len(nove_bez_citace), (" → " + ", ".join(nove_bez_citace))
+         if nove_bez_citace else ""))
+if uz_neni_potreba:
+    print("   (poznámka: v `OCEKAVANE_BEZ_CITACE` už není potřeba: %s — "
+          "brána teď čítač vykazuje)" % ", ".join(uz_neni_potreba))
+
+kod = 0
+if not vse:
+    print("CHYBA: neproběhla ANI JEDNA brána — to není zelená, to je neměření.")
+    kod = 2
+elif neotevrene or nove_bez_citace:
+    kod = 1
+print("VÝSLEDEK g3: %s" % {0: "PŘEHLED JE ÚPLNÝ (každá brána začala a vykázala, "
+                              "co otevřela)",
+                           1: "NĚCO SE NEMĚŘILO — viz výše (vady MĚŘENÍ, ne "
+                              "výsledky bran)",
+                           2: "NEMĚŘILO SE VŮBEC"}[kod])
+sys.exit(kod)
