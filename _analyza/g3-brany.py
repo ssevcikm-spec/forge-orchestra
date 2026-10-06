@@ -45,8 +45,14 @@ if hasattr(sys.stdout, "reconfigure"):
 #   STANICE   = kořen stanice          (dokumenty, které zůstaly stanici, D6)
 #   GODOT     = obecný nástroj stanice (D7), s override přes `FORGE_GODOT`
 WS = pathlib.Path(__file__).resolve().parent.parent
-HRA = WS.parent / "uo-shadows"
-STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
+# ⚠ PŘENOSITELNOST (P22, 6. 10. 2026): `STANICE` a `HRA` byly ZAPEČENÉ absolutní
+# cesty (`C:\Users\Ssevc\Local-Deepseek`, `WS.parent / "uo-shadows"`). Vzor pro
+# override v repu UŽ BYL (`FORGE_GODOT`, `FORGE_STANICE` v `test-h72-h73.py`
+# a `verify-setup.py`) — `g3` ho ale nepoužíval, takže sám blokoval zobecnění
+# celého rámce bran. Defaulty zůstávají STEJNÉ, takže chování se nemění.
+STANICE = pathlib.Path(os.environ.get("FORGE_STANICE")
+                       or r"C:\Users\Ssevc\Local-Deepseek")
+HRA = pathlib.Path(os.environ.get("FORGE_HRA") or (WS.parent / "uo-shadows"))
 ANALYZA = WS / "_analyza"
 TOOLS = WS / "tools"
 FORGE = WS / "repo" / ".forge"
