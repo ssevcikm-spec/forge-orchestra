@@ -30,7 +30,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 WS = pathlib.Path(__file__).resolve().parents[1]
 ANALYZA = WS / "_analyza"
-VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[01]-)")
+VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[012]-)")
 
 # Sonda `p20-sonda-*` a `p20-c-kandidati` jsou JEDNORÁZOVÉ diagnostiky —
 # spouštět je znovu nemá smysl (a `p20-c-kandidati` pouští ostatní doklady).
