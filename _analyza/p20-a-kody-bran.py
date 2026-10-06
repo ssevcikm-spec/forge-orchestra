@@ -55,6 +55,20 @@ def git(repo: pathlib.Path, *args: str) -> str:
     return (r.stdout or "").strip()
 
 
+def git_kod(repo: pathlib.Path, *args: str) -> int:
+    """Týž git, ale vrací NÁVRATOVÝ KÓD (potřeba pro `merge-base --is-ancestor`).
+
+    ⚠ `shell=True` zůstává (git.cmd je batka) — proto se sem NESMÍ dostat `^`:
+    `cmd.exe` ho bere jako escape znak a tiše ho zahodí (skill `dsh-prostredi`
+    §5c). Ověření existence commitu se proto dělá přes `cat-file -t`, ne přes
+    `rev-parse <sha>^{commit}`.
+    """
+    r = subprocess.run([GIT, "-C", str(repo), *args], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace",
+                       shell=True, timeout=120)
+    return r.returncode
+
+
 def spust(nad: pathlib.Path):
     r = subprocess.run([sys.executable, "-B", str(BRANA), "--soubor", str(nad)],
                        capture_output=True, text=True, encoding="utf-8",
@@ -114,9 +128,23 @@ zk(_m is not None,
    "hledám `forge-orchestra` = `<sha>` na řádku se stavem repů")
 KOTVA_SHA = _m.group(1) if _m else ""
 print(f"  kotva orchestry v zadání: {KOTVA_SHA}   (živý HEAD: {HEAD_WS})")
-zk(KOTVA_SHA == HEAD_WS,
-   "kotva zadání = živý HEAD (zadání je aktuální, ne zastaralé)",
-   f"zadání={KOTVA_SHA} HEAD={HEAD_WS}")
+# ⚠ H107 (P21, 6. 10. 2026): tady stálo `KOTVA_SHA == HEAD_WS` — a ta kontrola
+# byla ZELENÁ JEN PROTO, že práce P20 **NEBYLA COMMITNUTÁ**. Zadání se ale píše
+# PŘED commitem, takže po každém commitu se rovnost s `HEAD` **NUTNĚ** rozbije —
+# ačkoli je zadání v pořádku (kotva pořád ukazuje na commit, na kterém se měřilo).
+# Správná otázka tedy není „je kotva dnešní `HEAD`?", ale **„JE KOTVA SKUTEČNÝ
+# COMMIT, KTERÝ NENÍ NOVĚJŠÍ NEŽ `HEAD`?"** — přesně to potřebuje `zadani-kontrola.py`,
+# aby mohla tvrdit „přibylo commitů: N".
+typ = git(WS, "cat-file", "-t", KOTVA_SHA) if KOTVA_SHA else ""
+zk(typ == "commit",
+   "kotva zadání je SKUTEČNÝ commit v repu",
+   f"git cat-file -t {KOTVA_SHA} → {typ or '(nic)'}")
+_kotva_neni_novejsi = bool(KOTVA_SHA) and (
+    KOTVA_SHA == HEAD_WS
+    or git_kod(WS, "merge-base", "--is-ancestor", KOTVA_SHA, "HEAD") == 0)
+zk(_kotva_neni_novejsi,
+   "kotva zadání není NOVĚJŠÍ než živý HEAD (je to předek, nebo sám HEAD)",
+   f"kotva={KOTVA_SHA} HEAD={HEAD_WS}")
 
 pripady = [
     ("kotva = ŽIVÝ HEAD (obojí)", HEAD_WS, HEAD_HRA, 0),

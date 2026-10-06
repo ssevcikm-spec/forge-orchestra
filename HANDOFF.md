@@ -314,6 +314,23 @@ se má hráč po načtení vracet na `level.spawn_cell`? **Patří to do smlouvy
 | **Nové: H103 (H92 sken = falešný poplach)** | **DOLOŽENO, NEopravováno** — `lint-roadmapa.py:30` je **premisa fallbacku**, nástroj funguje; **neopravovat** (§38.6) |
 | **Push orchestry (P20)** | **NEPUSHNUTO** — P20 se **nepushovala** (push je rozhodnutí uživatele); hra **nedotčená** (`44dd454`) |
 
+### 2.12 Stav otevřených bodů po DOKONČENÍ P20 (6. 10. 2026) — **TADY JE DNEŠNÍ STAV**
+
+> **⚠ §2.11 VÝŠ JE ZÁZNAM K P20, NE STAV.** Jedna jeho položka (**push P20**)
+> tam stojí jako nepushnutá — a **session P21 ji zavřela**. Nechává se
+> (historie se nepřepisuje), ale **kdo hledá dnešní stav, čte tuhle tabulku.**
+> Podrobný záznam je v **§39**.
+
+| Co bylo otevřené | Stav po dokončení P20 (6. 10. 2026) |
+|---|---|
+| **Push orchestry (P20)** | **VYŘEŠENO** — P20 byla nejdřív **commitnuta** (`b2fd758`, 23 souborů, +2327/−296), pak **pushnuta** (`b781c84..b2fd758`); **živě ověřeno** `ls-remote` → `b2fd758`, `origin/main..HEAD` = **0**. Push **vyžádal uživatel** |
+| **H104 (zadání P20 tvrdilo, že P20 je commitnutá)** | **VYŘEŠENO** — nález i doklad v **§39.1**; čísla a postup v **§39.4** |
+| **H105 (nabídka H1 stojí na neplatném předpokladu)** | **OTEVŘENO** — `save.gd` se ve hře **nikdy nevolá** (jediný volající je test), takže „spawn přepíše pozici" **nenastává**. H1 je odteď **„zapojit persist do hry"**, ne „opravit spawn" |
+| **Věcná práce (co dál)** | **NEVYBRÁNA** — uživatel zvolil **orchestra + conductor**; nabídka a zadání jsou v **`NEXT-SESSION-INSTRUKCE.md`** |
+| **Hra (`uo-shadows`)** | **ZÁMĚRNĚ POZASTAVENA** (rozhodnutí uživatele: chystá **přepis architektury zadání hry**) → nabídky **H1/H2 nejsou na řadě**. Hra je `44dd454`, **nedotčená** a v sync s `origin/main` |
+| **Brány po commitu P20** | naměřeno **§39.7**: `g3` → **37 bran, 1 nenulový** (`zadání kontrola` = **DEKLAROVANÝ**, protože po commitu hlásí „přibylo commitů"), `exit 0`; `validate-all` → **`✓ VŠE V POŘÁDKU`** |
+| **H103** | **neopravovat** — `ov-g-h92-sken.py` je **doložený falešný poplach** (`tools/lint-roadmapa.py:30` je premisa fallbacku) |
+
 ## 3. Nové nálezy N1–N9 — kde jsou a co z nich plyne
 
 **Autorita:** `IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md` (každý nález má
@@ -8050,4 +8067,139 @@ dokumentu, **táž třída jako H102**). **Ani jeden neobvinil cizí kód.**
   `origin/main`** (P20 se nepushovala; push je **rozhodnutí uživatele**).
   Hra je **nedotčená** (`44dd454`, v sync) — do hry se **nepsalo**, jen se v ní
   na dobu měření zakládaly a hned mazaly fixtury (`git status` před i po prázdný).
+  ⚠ **Tenhle odstavec byl nepřesný: P20 nebyla ani commitnutá** — viz **§39.1**
+  a nález **H104**. Dnešní stav je v **§2.12**.
+
+---
+
+## 39. DOKONČENÍ P20 — ověření bran, commit a push (6. 10. 2026)
+
+**Co je tenhle oddíl:** **záznam o provedení**. Vznikl v session, která měla
+podle `NEXT-SESSION-INSTRUKCE.md` z P20 začít **věcnou prací**; uživatel ale
+rozhodl **nejdřív dokončit P20** (ta zůstala **necommitnutá**, nález **H104**)
+a **pushnout ji**. Věcná práce se tím posunula na další session a je zapsaná
+v novém `NEXT-SESSION-INSTRUKCE.md` (zaměření: **conductor**).
+
+### 39.1 Vstupní stav byl JINÝ, než tvrdilo zadání (nález H104)
+
+| Tvrzení zadání P20 (hlavička) | Naměřeno živě |
+|---|---|
+| „`HEAD` orchestry je `b781c84` **+ 1 commit P20** (záznamy + doklady `p20-*` …) — **NEPUSHNUTÝ**" | **Žádný commit P20 neexistoval.** `HEAD` = `origin/main` = **`b781c84`**, `reflog HEAD@{0}` = commit **P19**, a **23 souborů** P20 leželo **necommitnutých** v pracovním stromě (`git status --porcelain`: 14× `M`, 9× `??`) |
+| „po commitu P20 se `HEAD` posune o **1** a `origin/main..HEAD` bude **1**" | `origin/main..HEAD` bylo **0** — nebylo co pushovat |
+
+**Proč to je nález, a ne kosmetika:** zadání stavělo na tom, že práce P20 **už
+je v gitu** a jen čeká na push. Kdo by mu věřil, **pushoval by něco, co
+neexistuje** — a `zadání kontrola` by čítala jiný počet commitů, než zadání
+tvrdilo. Je to **táž třída jako H100/H103**: *dokument tvrdí stav, který
+nenastal* — a pozná se to **jen živým měřením**, ne čtením.
+
+### 39.2 Ověření bran PŘED commitem (na necommitnuté P20)
+
+Vše spuštěno **po sobě** (ne současně) v `E:\Workspaces\forge-orchestra`:
+
+| Brána | Výsledek | Poznámka |
+|---|---|---|
+| `python _analyza\g3-brany.py` | **37 bran, 0 s nenulovým `exit`, 0 nezačatých, 0 bez čítače mimo deklaraci — `exit 0`** | ⚠ **`zadání kontrola` dnes končí `0`** — protože je kotvené na `b781c84` a **živý `HEAD` byl `b781c84`** (po commitu se to **změní na `1`**, a to je správně — NA31) |
+| `node tools\validate-all.mjs` | **`✓ VŠE V POŘÁDKU`**, `exit 0` | |
+| `python _analyza\kronika-kontrola.py` | **`KRONIKA SEDÍ`**, 205 omylů / 103 nálezů / 33 sessions | |
+| `python _analyza\handoff-kontrola-uplnost.py` | **83/83**, `CHYBÍ: 0` | |
+| `python _analyza\ov-g-neovereno.py` | **0** ve stavu `NEOVĚŘENO` | ověřeno **skriptem**, ne grepem |
+| `python _analyza\p20-d-doklady.py` | **21 dokladů**, **1 s nenulovým `exit`** = `ov-g-h92-sken.py` — **doložený falešný poplach H103** | očekávané, **neopravovat** |
+
+**Inventář byl přegenerován** (`hl-neanglicky-v-kodu.py --json _analyza\_inventar.json`
+→ **6 809 nálezů**) a **po něm** znovu `g3` (**37 bran, 0 nenulových**, `exit 0`)
+a `validate-all` (**`✓ VŠE V POŘÁDKU`**).
+
+> **⚠ Poznámka k prostředí (není to omyl, ale stálo to kolo):** první běh `g3`
+> v **omezeném** sandboxu spadl na `PermissionError` při `shutil.copyfile` do
+> `_analyza\a-ukol-scratch\` — brány si staví **pracovní kopie** a ty leží mimo
+> povolený workspace. S plným oprávněním proběhl bez chyby. Je to **tatáž mez
+> jako v `dsh-prostredi` §4** („výstup nástrojů mimo workspace") — **není to
+> vada brány**.
+
+### 39.3 Commit a push
+
+| Krok | Co se stalo | Doklad |
+|---|---|---|
+| **commit** | **23 souborů** (14 změněných + 9 nových dokladů `p20-*`), `2327 insertions(+), 296 deletions(-)` | commit **`b2fd758`** — *„P20: g3 soudi cervene (OCEKAVANE_NENULOVE s kodem), BOM v .py zakazan, H101 ticha dira v H79, H102/H103"* |
+| **kontrola před commitem** | ve stage **žádné tajemství** (`.secrets`, `.env`, `_archiv`, `_zaloha`, `scratch` — **0 nálezů**) | `git diff --cached --name-only` |
+| **push** | `b781c84..b2fd758  HEAD -> main`, `exit 0` | PAT ze souboru šel **do gitu přes `GIT_CONFIG_VALUE_0`** (env), **ne do argumentů** — do výstupu nepronikl |
+| **1. krok ověření pushi** | `git ls-remote origin refs/heads/main` → **`b2fd758…`** (živě) | `origin/main..HEAD` = **0** |
+
+**Hra zůstala nedotčená** (`44dd454` = `origin/main`, strom čistý) — do hry se
+**nepsalo**; jediné, co se jí týkalo, bylo **čtení** kvůli nálezu **H105**.
+
+### 39.4 Nové nálezy této session (H104, H105, H106)
+
+| # | Nález | Doklad | Stav |
+|---|---|---|---|
+| **H104** | **Zadání P20 tvrdilo, že P20 je commitnutá** („`HEAD` + 1 commit P20, NEPUSHNUTÝ"); **nebyla** — všech 23 souborů leželo v pracovním stromě a `HEAD` = `origin/main` = `b781c84` | `git status --porcelain` (23 položek), `git reflog -10` (`HEAD@{0}` = commit **P19**), `git rev-parse HEAD` == `git rev-parse origin/main` | **VYŘEŠENO** — P20 commitnuta (`b2fd758`) a **pushnuta**; tvrzení o stavu je **jen historické** (a nepřepisuje se) |
+| **H105** | **Nabídka H1 (`save.gd`) stojí na neplatném předpokladu.** Zadání tvrdilo: *„`save()` uloží pozici, ale **spawn ji přepíše**"*. Naměřeno: **`save.gd` se ve hře NIKDY nevolá** — `main.tscn` má **jediný uzel** (`game.gd`), ten `save.gd` nezná a jeho **vlastní** `_save_state()`/`_load_state()` (přes `user://sandbox.cfg`) **taky nikdo nevolá**. Hra tedy **neukládá nic** → spawn nemá co přepsat | **statická analýza** (NEspuštěno): `main.tscn` (6 řádků), `grep` přes **celý** rep hry (`*.gd`, `*.tscn`) → jediný volající `save.gd` je **`tests/run_tests.gd:849`**; `_save_state`/`_load_state`/`sandbox.cfg` se vyskytují **jen ve svých definicích** v `game.gd:355–377` | **OTEVŘENO** — mění obsah nabídky H1: nejde o „opravit spawn", ale o **zapojit persist do hry** (nebo rozhodnout, že hra ukládat nemá) |
+| **H106** | **Hlavička zadání P20 udávala čas jako UTC, ale byl to čas LOKÁLNÍ.** Stojí tam *„6. 10. 2026, 13:2x UTC"*; `mtime` téhož souboru je **13:30 +02:00 = 11:30 UTC**. Rozdíl je přesně offset pásma — **nezapsal se špatný okamžik, ale špatné pásmo**, a kdo porovná `mtime` souboru s hlavičkou, dostane **dvouhodinový rozpor** a hledá změnu, která se nestala | `(Get-Date).ToUniversalTime()` vs. `(Get-Date)` v témž okamžiku (**12:10 UTC = 14:10 +02:00**), `mtime` souboru `NEXT-SESSION-INSTRUKCE.md`, a **vlastní řádek kroniky P20**, který pásma uvádí správně („10:2x–13:2x UTC = 12:2x–15:2x +02:00") | **ZAPSÁNO** — pravidlo pro příští session: **čas vždy s pásmem**; historický údaj se **nepřepisuje** |
+| **H107** | **Doklad P20 `p20-a-kody-bran.py` měřil ROVNOST kotvy zadání s živým `HEAD` — a zelený byl JEN PROTO, že práce P20 nebyla commitnutá.** Zadání se ale píše **PŘED commitem**, takže po každém commitu se rovnost **nutně** rozbije, ačkoli je zadání v pořádku (kotva pořád ukazuje na commit, na kterém se měřilo). Doklad tedy netvrdil „zadání je v pořádku", ale „nikdo od měření necommitnul" — **a to je jiná věta** | `python _analyza\p20-a-kody-bran.py` **po** commitu P20 (`b2fd758`): **`exit 1`** se dvěma `CHYBA` („v ŽIVÉM zadání se našla kotva orchestry", „kotva zadání = živý HEAD"); **před** commitem byl týž doklad **8/0**. Odhalilo to `p20-d-doklady.py`, který ho pouští v dávce | **OPRAVENO (P21)** — kontrola se ptá, co má: **„je kotva skutečný commit v repu a není novější než `HEAD`?"** (`cat-file -t` + `merge-base --is-ancestor`; obojí **bez `^`** — `shell=True` by ho zahodil, past §5c). Fixtury na `zadani-kontrola.py` (kotva = živý `HEAD` → `exit 0`; kotva = nedostupný commit → `exit 1`) zůstávají **beze změny** |
+
+### 39.5 Vlastní omyly této session
+
+**Žádné.** Postup bylo možné zopakovat bez korekce: nejdřív živé přeměření
+stavu (odhalilo **H104**), pak brány, pak commit s kontrolou tajemství, pak push
+s ověřením `ls-remote`. Nový blok omylů v kronice proto **nevznikl** — a to je
+vidět i v souhrnu §3 (počet omylů **205 zůstává**).
+
+### 39.6 Co zůstává OTEVŘENÉ (po této session)
+
+* **Věcná práce** — **nevybrána**: uživatel rozhodl nejdřív dokončit P20 a pak
+  se věnovat **orchestře a conductorovi**. Nabídka je v **§2.12** a v novém
+  `NEXT-SESSION-INSTRUKCE.md`.
+* **H105** — nabídka H1 (`save.gd`) je **přerámovaná**; hru chce uživatel
+  **záměrně pozdržet** (chystá přepis architektury zadání hry), takže H1/H2
+  **nejsou na řadě**.
+* **H103** — `ov-g-h92-sken.py` zůstává **červený jako doložený falešný
+  poplach**; **neopravovat** `tools/lint-roadmapa.py:30`.
+* **O3 / O10 / N0.3 / O5–O8** — beze změny otevřené (§2.2 a §2.5).
+* **Odložené, ne zrušené:** `p20-scratch/`, `p19-scratch/` jsou gitignorované
+  (doklady to nejsou); kdo z nich chce doklad, přenese ho do `_analyza/`
+  **a přidá do `p20-d-doklady.py`**.
+
+### 39.7 Ověření PO zápisech (finální stav této session)
+
+Naměřeno **po** všech zápisech (kronika, §39, §2.12, nové zadání) — inventář
+**přegenerován jako POSLEDNÍ krok** (H60/NA1), pak obě hlavní brány **po sobě**
+(ne současně, obě sahají na `_inventar.json`):
+
+| Brána | Výsledek |
+|---|---|
+| `python _analyza\g3-brany.py` | **37 bran, 0 nezačatých, 0 NEDEKLAROVANÝCH** → **`exit 0`**. ⚠ **Nenulový exit se v této session měnil DVAKRÁT — a to je doklad, ne rozpor** (viz odstavec pod tabulkou): **před** přepsáním zadání (kotva `b781c84`, živý `HEAD` `b2fd758`) hlásila `zadání kontrola` **`exit 1`** → `g3` **1 nenulový, DEKLAROVANÝ**; **po** přepsání zadání (kotva = živý `HEAD`) je **zelená** → **0 nenulových**. Po commitu záznamů bude zase **1 (deklarovaný)** |
+| `node tools\validate-all.mjs` | **`✓ VŠE V POŘÁDKU`**, `exit 0` |
+| `python _analyza\kronika-kontrola.py` | **`KRONIKA SEDÍ`** — **205 omylů / 107 nálezů / 34 sessions** |
+| `python _analyza\handoff-kontrola-uplnost.py` | **83/83**, `CHYBÍ: 0` |
+| `python _analyza\ov-g-neovereno.py` | **0** ve stavu `NEOVĚŘENO` |
+| `python _analyza\p20-d-doklady.py` | **22 dokladů, 1 s nenulovým `exit`** = `ov-g-h92-sken.py` (**H103**, doložený falešný poplach) |
+
+> **⚠ A JE TO ZÁROVEŇ PRVNÍ ŽIVÝ DŮKAZ, ŽE ROZHODNUTÍ P20 FUNGUJE.** Do P20
+> `g3` o červených branách **nesoudil**; P20 to zavedla a doložila
+> **syntetickými fixturami** (`p20-a-kontroly.py`, **18/0**). **Tady se obojí
+> stalo na živém stromě** — a to je silnější doklad než fixtura, protože strom
+> se nehlídá:
+>
+> | Běh | Kotva zadání | Živý `HEAD` | `zadání kontrola` | `g3` |
+> |---|---|---|---|---|
+> | **po commitu P20** | `b781c84` | `b2fd758` | **`exit 1`** („přibylo commitů: 1“) | **1 nenulový — DEKLAROVANÝ, `exit 0`** |
+> | **po přepsání zadání** | `b2fd758` | `b2fd758` | **`exit 0`** | **0 nenulových, `exit 0`** |
+> | **po commitu záznamů P21** | `b2fd758` | *nový* | **`exit 1`** (očekáváno) | **1 deklarovaný, `exit 0`** |
+>
+> **Týž strom, táž brána, dva různé exity — a `g3` je v obou případech zelené.**
+> Přesně to P20 naměřila jako „brána `zadání kontrola` umí `0` i `1`“ a přesně
+> proto je v `OCEKAVANE_NENULOVE` **i s kódem**, ne jen se jménem. Kdyby
+> deklarace neexistovala, `g3` by padalo po **každém** commitu.
+
+**Doklady, které k tomu patří:**
+
+* `_analyza/p21-zapis-kroniky.py` — **19/0**, idempotentní zápis řádku session,
+  nálezů H104–H107 a souhrnu do kroniky (řádek bere **z disku**, ne z načteného
+  zkráceného textu — omyl **206**).
+* `_analyza/p20-a-kody-bran.py` — **OPRAVEN** (nález **H107**): kontrola
+  „kotva = živý `HEAD`" nahrazena za „kotva je **skutečný commit** a **není
+  novější** než `HEAD`". **Mutační test:** zdravý stav **9/0**; mutant
+  (kotva = `deadbee`) → **2 chyby a `exit 1`**; návrat zadání **bajt na bajt**
+  (SHA-256 shodný).
 

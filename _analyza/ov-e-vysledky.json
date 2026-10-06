@@ -3,7 +3,7 @@
   "chyb": 0,
   "vlastni_pocty": {
     "orchestra": {
-      "zive": 157,
+      "zive": 158,
       "archiv": 262,
       "snapshot": 2,
       "scratch": 27
@@ -19,21 +19,21 @@
   "vlastni_archiv_sekvence": 5,
   "citac_zdravy": {
     "zive_sekvence": 0,
-    "zive_souboru": 171,
+    "zive_souboru": 172,
     "archiv_souboru": 262,
     "archiv_sekvence": 5,
     "nectenych": 0
   },
   "citac_archiv_mutant": {
     "zive_sekvence": 0,
-    "zive_souboru": 171,
+    "zive_souboru": 172,
     "archiv_souboru": 263,
     "archiv_sekvence": 5,
     "nectenych": 0
   },
   "citac_zivy_mutant": {
     "zive_sekvence": 0,
-    "zive_souboru": 172,
+    "zive_souboru": 173,
     "archiv_souboru": 263,
     "archiv_sekvence": 5,
     "nectenych": 0

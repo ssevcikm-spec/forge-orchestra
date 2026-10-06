@@ -8,17 +8,17 @@
   "exit_mutant": 1,
   "exit_zpet": 0,
   "cisla_zeleny": {
-    "zkontrolovano": 171,
+    "zkontrolovano": 172,
     "zive": 0,
     "vyloucene": 262
   },
   "cisla_mutant": {
-    "zkontrolovano": 171,
+    "zkontrolovano": 172,
     "zive": 1,
     "vyloucene": 262
   },
   "cisla_zpet": {
-    "zkontrolovano": 171,
+    "zkontrolovano": 172,
     "zive": 0,
     "vyloucene": 262
   }

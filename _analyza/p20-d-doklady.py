@@ -10,6 +10,11 @@ důvodu vypadá jako správný nález).
 které v `g3` záměrně nejsou (jsou jednorázové nebo stavové) — proto se výsledek
 nevydává za stav bran.
 
+⚠ ROZŠÍŘENO P21 (6. 10. 2026): vzor bere i `p21-*` — session P21 přidala
+`_analyza/p21-zapis-kroniky.py`, a **doklad, který není v tomhle seznamu,
+shnije** (`HANDOFF.md` §38.8). Skript je **idempotentní**, takže v dávce
+jen ověří, že řádek session i nálezy v kronice jsou.
+
 Použití: python _analyza/p20-d-doklady.py
 """
 
@@ -24,7 +29,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 WS = pathlib.Path(__file__).resolve().parents[1]
 ANALYZA = WS / "_analyza"
-VZOR = re.compile(r"^(ov-|p1[6-9]-|p20-)")
+VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[01]-)")
 
 # Sonda `p20-sonda-*` a `p20-c-kandidati` jsou JEDNORÁZOVÉ diagnostiky —
 # spouštět je znovu nemá smysl (a `p20-c-kandidati` pouští ostatní doklady).
