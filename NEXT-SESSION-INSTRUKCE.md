@@ -1,9 +1,9 @@
 # ZADÁNÍ PRO DALŠÍ SESSION — rozhodnout, co s ověřenou prací (P17 + P18)
 
 **Zkontrolováno při:** `8011f83` (orchestra — **měření P18 proběhlo na tomto commitu P17**) a `44dd454` (hra) · **6. 10. 2026, 05:23:39 UTC**
-**Stav obou repů při psaní:** `forge-orchestra` = `8011f83`, vzdálená `origin/main` je o **2 commity zpět** na `ce49234` (**P17 ani P18 nepushovaly**) · `uo-shadows` = `44dd454`, vzdálená `origin/main` je **shodná**, strom **čistý**
+**Stav obou repů při psaní:** `forge-orchestra` = `8011f83`, vzdálená `origin/main` je o **4 commity zpět** na `ce49234` (**nepushnuto: P17 + P18, P18b, P18c**) · `uo-shadows` = `44dd454`, vzdálená `origin/main` je **shodná**, strom **čistý**
 **Ověřeno živě:** `git ls-remote origin refs/heads/main` → orchestra **`ce49234`**, hra **`44dd454`**
-**Pracovní strom orchestra:** při psaní zadání **21 řádků** `git status --porcelain` (6 změněných + 15 nových dokladů `_analyza/ov-*`); ** všechny byly následně COMMITNUTY** (commit P18) — viz rámeček níž
+**GIT (živě, při předání):** `HEAD` = **`4506b2c`**, `origin/main..HEAD` = **4 commity** (P17 `8011f83` + **P18, P18b, P18c** — všechny tři jsou záznamy/doklady, ne kód navíc), pracovní strom **čistý (0 řádků)**
 
 > **⚠ P18 JE COMMITNUTÁ — a `zadani-kontrola.py` proto SPRÁVNĚ VARUJE.**
 > Uživatel 6. 10. 2026 rozhodl **„commitni vše, co můžeš"**, takže záznamy
@@ -67,7 +67,7 @@ jaký je v posledním sloupci.
 
 ## 1. Cíl (jedna věta)
 
-**Rozhodnout, co s ověřenou prací P17 + P18 — pushnout oba commity, a rozhodnout
+**Rozhodnout, co s ověřenou prací P17 + P18 — pushnout commity, a rozhodnout
 dva neškodné nálezy P18 (H93, H94) a otázku blokujícího `g3` — a zapsat rozhodnutí.**
 
 ---
@@ -78,13 +78,14 @@ dva neškodné nálezy P18 (H93, H94) a otázku blokujícího `g3` — a zapsat 
 
 1. **Nejdřív `git status --porcelain` a `git diff --stat`** v obou repech a **ukázat
    je uživateli** — pravidlo `AGENTS.md`: *nepushovat bez vyžádání*.
-2. **Co je k pushi:** `forge-orchestra` má **`origin/main..HEAD = 2`** — commit
-   `8011f83` (**P17**, 66 souborů) **a commit P18** (záznamy + doklady + opravené
-   nástroje + tohle zadání). Hra je **v sync** (`44dd454`), **nic k pushi**.
+2. **Co je k pushi:** `forge-orchestra` má **`origin/main..HEAD = 4`** — commit
+   `8011f83` (**P17**, 66 souborů), **`233e502`** (**P18**: záznamy + doklady +
+   opravené nástroje + tohle zadání) a **dva navazující `P18b`/`P18c`** (poučení
+   o inventáři). Hra je **v sync** (`44dd454`), **nic k pushi**.
 3. **P18 JE UŽ COMMITNUTÁ** (rozhodnutí uživatele 6. 10. 2026: „commitni vše,
-   co můžeš") — takže **k pushi jsou oba commity** a **žádné rozhodování o commitu
-   už nezbývá**. Zkontroluj jen, že ve stromě **nezůstalo nic necommitnutého**
-   kromě případných nových změn.
+   co můžeš") — takže **k pushi jsou všechny čtyři commity** a **žádné rozhodování
+   o commitu už nezbývá**. Zkontroluj jen, že ve stromě **nezůstalo nic
+   necommitnutého** kromě případných nových změn.
 4. **Push přes PAT ze souboru** (`.secrets/github_pat.txt`) — **nikdy ho nevypisuj**
    ani nepiš do historie příkazů. Git přes schannel padá → `orchestra\tools\git.cmd`.
 5. **Po pushi ověř TŘEMI kroky** (`DSH_HOME\AGENTS.md`, „Jak ověřit nasazení"):
@@ -279,7 +280,7 @@ měřidlem a VŠECHNA její tvrzení POTVRDILA: nasazení hry je dokončené (b�
 umí spadnout vlastním mutantem, klasifikátor g3 rozhoduje podle chování, mez
 skenu H79 sedí (mutace oběma směry), záznamy jsou v commitu a KRONIKA SEDÍ.
 P18 navíc OPRAVILA tři přeživší z H92 a zjistila, že trackované-gitignorované
-soubory už P17 untrackla. Push P17 ANI P18 NEPROBĚHL (origin/main..HEAD = 2 —
+soubory už P17 untrackla. Push P17 ANI P18 NEPROBĚHL (origin/main..HEAD = 4 —
 P17 i P18 JSOU COMMITNUTÉ, jen nepushnuté).
 P18 odhalila dva neškodné, ale matoucí nálezy: H93 (brána NA32 nezná snapshot-*/)
 a H94 (klasifikátor g3 má 8 podpisů, ale živé jsou jen 4).
