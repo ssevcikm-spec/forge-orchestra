@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-06 22:56:23",
+  "kdy": "2026-10-06 23:09:35",
   "bran_celkem": 37,
   "s_nenulovym_exit": [
     "zadání kontrola"
@@ -79,7 +79,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "379",
+      "otevrela": "380",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
