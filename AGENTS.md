@@ -110,6 +110,25 @@ stav, ne pravidlo, takže se přeměřuje s každou session.
   přesune, **musí upravit i ji** — jinak hlásí chybu u souboru, který je
   v pořádku (naměřeno 4. 10. 2026 při přesunu obecných pravidel: 13 z 15
   textů bydlelo v přesouvaných sekcích).
+- **⚠ MUTUJ PŘES `_analyza\_mutace.py` — NE vlastním `replace()`.** Naměřeno
+  6. 10. 2026 (klasifikace **205 omylů**): **15 omylů** je „mutace se tiše
+  neprovedla / nezměnila měřenou podmínku — a prošla"; dva z nich (omyly
+  **#18** a **#106**) jsou **tentýž omyl dvakrát** (nové jméno obsahovalo staré
+  jako **podřetězec**) a další čtyři (#138, #173, #190, #198) jsou čtyři různé
+  způsoby, jak mutace „prošla" bez provedení. **Dřív mělo každé měřidlo vlastní
+  opis — proto se vada opakovala.** Knihovna hlídá pět věcí: kotva je v souboru
+  **právě 1×**, text se **skutečně změnil**, nový text **neobsahuje starý jako
+  podřetězec**, soubor se **vždy vrátí** (`try/finally`) a návrat je
+  **bajt na bajt** (`sha256`):
+  ```python
+  import sys; sys.path.insert(0, str(WS / "_analyza"))
+  from _mutace import mutuj
+  with mutuj(SOUBOR, "stary text", "novy text") as m:
+      ...   # spustit bránu a ověřit, že SPADLA
+  ```
+  Použití je předvedené (a sabotáží ověřené, že měří) v
+  `_analyza\p22-test-mutace.py` — **19/0**; test **zmutuje živou bránu**
+  a ověří, že se její **verdikt změnil**.
 
 ## Jak dokumentovat (dokumenty tohoto projektu)
 
