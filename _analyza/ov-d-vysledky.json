@@ -1,0 +1,36 @@
+{
+  "kontrol": 38,
+  "chyb": 0,
+  "n_nezacaly": 2,
+  "n_bez_citace": 2,
+  "mutace": {
+    "M1: délka místo obsahu": {
+      "nezacaly": [
+        "D-fixtura A",
+        "D-fixtura C",
+        "D-fixtura D"
+      ],
+      "bez_citace": [
+        "D-fixtura E"
+      ],
+      "exit": 0
+    },
+    "M2: exit 1 místo exit 2": {
+      "nezacaly": [],
+      "bez_citace": [
+        "D-fixtura A",
+        "D-fixtura C",
+        "D-fixtura D",
+        "D-fixtura E"
+      ],
+      "exit": 0
+    },
+    "M3: odebrány živé podpisy": {
+      "nezacaly": [
+        "D-fixtura C"
+      ],
+      "exit": 0
+    }
+  },
+  "hash_g3": "d12035b4fc9ff522f210cf245f42fce1b280a893e8a25f2a298438f9c82c8499"
+}

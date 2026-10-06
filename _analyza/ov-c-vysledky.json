@@ -1,0 +1,25 @@
+{
+  "kontrol": 18,
+  "chyb": 0,
+  "hash_puvodni": "d8411ee74670008cf2d67dc3f0db7e429f57f93ed8a6f879c58a051d46ec565e",
+  "hash_mutovany": "e78614514f5c0815534ca107e80e5d2b371da12bd2644d17dbabb012bf35c7bd",
+  "hash_zpet": "d8411ee74670008cf2d67dc3f0db7e429f57f93ed8a6f879c58a051d46ec565e",
+  "exit_zeleny": 0,
+  "exit_mutant": 1,
+  "exit_zpet": 0,
+  "cisla_zeleny": {
+    "zkontrolovano": 167,
+    "zive": 0,
+    "vyloucene": 260
+  },
+  "cisla_mutant": {
+    "zkontrolovano": 167,
+    "zive": 1,
+    "vyloucene": 260
+  },
+  "cisla_zpet": {
+    "zkontrolovano": 167,
+    "zive": 0,
+    "vyloucene": 260
+  }
+}

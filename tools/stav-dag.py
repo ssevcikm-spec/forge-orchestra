@@ -1,7 +1,9 @@
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
-# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+# Soubor je v `tools/`, takze `parents[1]` = `tools/..` = **ROOT REPA**.
+# ⚠ H92/P18: `_PARENT` je tedy ROOT REPA (ne jeho rodič) — sourozenec repa
+# (hra) se bere jako `_PARENT.parent / 'uo-shadows'`, NE `_PARENT / 'uo-shadows'`.
 _PARENT = _pl.Path(__file__).resolve().parents[1]
 """Stav DAG: co je hotové, co je připravené, co blokují závislosti a model.
 
@@ -13,7 +15,11 @@ import json
 import pathlib
 
 ROADMAP = pathlib.Path(
-    _PARENT / 'uo-shadows' / '.forge' / 'roadmap.json')
+    _PARENT.parent / 'uo-shadows' / '.forge' / 'roadmap.json')
+# ⚠ H92 (opraveno P18, 6. 10. 2026): `_PARENT` je u souboru v `tools/` ROOT REPA,
+# takže `_PARENT / 'uo-shadows'` mířilo na `...\forge-orchestra\uo-shadows`
+# (NEEXISTUJE) → `FileNotFoundError` a nástroj vůbec neměřil. SOUROZENEC repa
+# je `_PARENT.parent / 'uo-shadows'`. Táž oprava jako v `tools/lint-roadmapa.py`.
 PROVIDERS = pathlib.Path(
     _PARENT / 'repo' / '.forge' / 'providers.json')
 

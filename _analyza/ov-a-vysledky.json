@@ -1,0 +1,60 @@
+{
+  "kdy": "2026-10-06T04:39:27.295Z",
+  "head": "44dd45446ed1ce4a418902eb4e81c50a8c2d5694",
+  "lsRemote": "44dd45446ed1ce4a418902eb4e81c50a8c2d5694",
+  "pred": "0",
+  "kontrolaPo": "2026-10-05T20:39:00Z",
+  "vysledky": [
+    {
+      "nazev": "ls-remote origin/main == HEAD",
+      "ok": true,
+      "detail": "HEAD=44dd454 ls-remote=44dd454"
+    },
+    {
+      "nazev": "origin/main..HEAD == 0",
+      "ok": true,
+      "detail": "origin/main..HEAD = 0"
+    },
+    {
+      "nazev": "HEAD == 44dd454 (commit, na kterém P17 stavěla)",
+      "ok": true,
+      "detail": "HEAD=44dd45446ed1ce4a418902eb4e81c50a8c2d5694"
+    },
+    {
+      "nazev": "existuje běh release.yml na commitu 44dd454",
+      "ok": true,
+      "detail": "nalezeno 1 běhů na tomto commitu"
+    },
+    {
+      "nazev": "takový běh je completed/success",
+      "ok": true,
+      "detail": "#78 attempt=3"
+    },
+    {
+      "nazev": "runner_name NENÍ prázdný",
+      "ok": true,
+      "detail": "Build a vydání: completed/success runner=GitHub Actions 1000001168 | Nasazení webu: completed/success runner=GitHub Actions 1000001170"
+    },
+    {
+      "nazev": "GET (root) → 200",
+      "ok": true,
+      "detail": "status=200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT len=2189 etag=W/\"6ac418c8-1541\""
+    },
+    {
+      "nazev": "GET index.html → 200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT",
+      "ok": true,
+      "detail": "status=200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT len=2189 etag=W/\"6ac418c8-1541\" | po 2026-10-05T20:39Z: true"
+    },
+    {
+      "nazev": "GET index.png → 200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT",
+      "ok": true,
+      "detail": "status=200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT len=21443 etag=\"6ac418c8-53c3\" | po 2026-10-05T20:39Z: true"
+    },
+    {
+      "nazev": "GET index.wasm → 200",
+      "ok": true,
+      "detail": "status=200 last-modified=Mon, 05 Oct 2026 21:38:16 GMT len=10248949 etag=W/\"6ac418c8-25af282\""
+    }
+  ],
+  "chyb": 0
+}

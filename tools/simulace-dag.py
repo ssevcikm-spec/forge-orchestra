@@ -1,7 +1,9 @@
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
-# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+# Soubor je v `tools/`, takze `parents[1]` = `tools/..` = **ROOT REPA**.
+# ⚠ H92/P18: `_PARENT` je tedy ROOT REPA (ne jeho rodič) — sourozenec repa
+# (hra) se bere jako `_PARENT.parent / 'uo-shadows'`, NE `_PARENT / 'uo-shadows'`.
 _PARENT = _pl.Path(__file__).resolve().parents[1]
 """Simulace DAG: co odblokuje dokončení které granule.
 
@@ -15,7 +17,13 @@ import pathlib
 import sys
 
 ROADMAP = pathlib.Path(
-    _PARENT / 'uo-shadows' / '.forge' / 'roadmap.json')
+    _PARENT.parent / 'uo-shadows' / '.forge' / 'roadmap.json')
+# ⚠ H92 (opraveno P18, 6. 10. 2026): tady stálo `_PARENT / 'uo-shadows'`.
+# `_PARENT` je u souboru v `tools/` **ROOT REPA** (`parents[1]` = `tools/..`),
+# takže cesta mířila na `...\forge-orchestra\uo-shadows` — a ta **NEEXISTUJE**
+# (naměřeno P18: `FileNotFoundError`, nástroj tedy **vůbec neměřil**).
+# SOUROZENEC repa je `_PARENT.parent / 'uo-shadows'` = `E:\Workspaces\uo-shadows`.
+# Je to táž vada a táž oprava jako v `tools/lint-roadmapa.py` (H61).
 
 # Hotovo podle conductora (D1) – granule, jejichž PR se sloučil.
 HOTOVE_V_D1 = {"core.attributes", "entity.item", "sim.economy", "world.map"}

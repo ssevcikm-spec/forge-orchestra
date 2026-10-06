@@ -2,7 +2,9 @@
 import pathlib as _pl
 
 # P8 (presun na E:, 4. 10. 2026): cesta se ODVOZUJE z umisteni skriptu.
-# `tools/` je primo v koreni repa, takze _PARENT = root repa.
+# Soubor je v `tools/`, takze `parents[1]` = `tools/..` = **ROOT REPA**.
+# ⚠ H92/P18: `_PARENT` je tedy ROOT REPA (ne jeho rodič) — sourozenec repa
+# (hra) se bere jako `_PARENT.parent / 'uo-shadows'`, NE `_PARENT / 'uo-shadows'`.
 _PARENT = _pl.Path(__file__).resolve().parents[1]
 r"""Najde v `run:` blocích workflowů echo, které bash NEBEZPEČNĚ vyhodnotí.
 
@@ -59,8 +61,12 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 WF = [
+    # `_PARENT` je ROOT REPA (`tools/..`), takže šablona repa je POD ním…
     pathlib.Path(_PARENT / 'repo' / '.github' / 'workflows'),
-    pathlib.Path(_PARENT / 'uo-shadows' / '.github' / 'workflows'),
+    # …ale hra je SOUROZENEC repa, tedy o úroveň VÝŠ (H92, opraveno P18
+    # 6. 10. 2026). Dřív tu stálo `_PARENT / 'uo-shadows'` = cesta
+    # `...\forge-orchestra\uo-shadows`, která NEEXISTUJE.
+    pathlib.Path(_PARENT.parent / 'uo-shadows' / '.github' / 'workflows'),
 ]
 
 # Neescapovaný zpětný apostrof: není před ním liché množství zpětných lomítek.

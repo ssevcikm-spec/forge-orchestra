@@ -1,0 +1,88 @@
+P18: ověření práce P17 vlastním měřidlem, oprava H92 a nálezy H93–H96
+
+Ověřovací session P18 (NEXT-SESSION-INSTRUKCE.md z 5. 10. 2026, Úkoly A–G).
+Záznam: HANDOFF.md §36 + blok omylů §8x (173–184); KRONIKA řádek 32, §2.12.
+VŠECHNA TVRZENÍ P17 PŘEMĚŘENA VLASTNÍM MĚŘIDLEM A POTVRZENA (autor není
+nezávislý reviewer, takže se neměřilo skripty P17 — viz _analyza/ov-*).
+
+A) NASAZENÍ HRY — PŘEMĚŘENO TŘEMI KROKY, JINÝM NÁSTROJEM (10 kontrol, 0 chyb)
+   git ls-remote = HEAD, origin/main..HEAD = 0 (hra); běh #78 na 44dd454
+   completed/success s NEprázdným runner_name (GitHub Actions 1000001168/1170);
+   index.html i index.png last-modified = Mon, 05 Oct 2026 21:38:16 GMT
+   (po 20:39Z). Artefakt je SHODNÝ s P17, tedy není co opravovat.
+   ZMĚNA STAVU: githubstatus.com hlásí všech 5 složek operational (P17 měřila
+   degraded_performance) — nasazení prošlo i pod degradací.
+
+B) ŠEST OPRAVENÝCH SOUBORŮ — compile() I SPUŠTĚNÍ (v izolaci)
+   Vlastní compile() nad oběma repy: 163 živých přečteno, 0 nekompilovatelných
+   (260 v _archiv se 4 nálezy — vypisují se, ale nemění verdikt).
+   6/6 spuštěno, 0 tracebacků; živý baseline.json bajt na bajt shodný
+   (1FE321FA37A80FBD...) a žádný ze 3 hlídaných souborů se nezměnil.
+   Izolace = git worktree UVNITŘ E:\Workspaces + junction uo-shadows na živou
+   hru; worktree mimo Workspaces změní _REPO.parent a shodí baseline-poznamka.py
+   (naměřeno), worktree uvnitř měřeného stromu zase kontaminuje počty.
+
+C) BRÁNA NA32 — VLASTNÍ MUTANT (jiný soubor, jiné místo než P17) — 18/0
+   Mutant (from __future__ za import hashlib v ov-b1-compile.py:12) bránu
+   zčervenal (exit 1, ne 2), nález pojmenovala; ast.parse ho PŘIJAL a compile()
+   ODMÍTL; návrat bajt na bajt. Čítač nese DVĚ čísla a vykazuje 260 vyloučených.
+
+D) KLASIFIKÁTOR g3 — VLASTNÍ FIXTURY A–E A TŘI MUTACE — 38/0
+   Živý g3 jako ZDROJ, vyměněné jen BRANY. Fixtura bez markeru NENÍ "nezačala"
+   (třetí stav), exit=2 bez výstupu a neexistující soubor JSOU.
+   _VLASTNI_HLASENI je 0x v KÓDU (1x v komentáři, který vadu popisuje).
+   Mutace M1 (len(radky)<=1 = vada H87), M2 (exit 1 místo 2) a M3 (odebrat
+   všechny ŽIVÉ podpisy) jsou všechny odhaleny.
+
+E) MEZ SKENU H79 — MUTACE OBĚMA SMĚRY — 17/0
+   Vlastní počet souborů (173 živých / 260 _archiv) i vlastní sken sekvencí
+   (0 / 5) souhlasí s čítačem. Vadný soubor v _archiv exit NEMĚNÍ (a je vidět),
+   totéž v živém stromě exit MĚNÍ na 1; BOM v živém stromě je vada.
+
+F) ZÁZNAMY — KRONIKA SEDÍ, handoff 83/83, git status jen necommitnuté zadání.
+   HANDOFF má 5 ubraných řádků (stavová část §33) a KRONIKA 1 (nahrazený
+   souhrn) — NIC se neztratilo: táž věta je v novém HANDOFFu jako
+   "PŮVODNÍ STAV: nepushnuto". ~1 ověřeno jako SKUTEČNĚ jiný commit (H89).
+
+G) OTEVŘENÉ BODY P17 — ROZHODNUTY
+   H92: TŘI PŘEŽIVŠÍ OPRAVENY (simulace-dag.py, stav-dag.py,
+   kontrola-echo-substituci.py): _PARENT/'uo-shadows' -> _PARENT.parent/...
+   Naměřeno: _PARENT je u tools/ ROOT REPA, takže cesta mířila na neexistující
+   E:\Workspaces\forge-orchestra\uo-shadows; před opravou FileNotFoundError,
+   po opravě všechny tři exit 0. Opraveny i zavádějící komentáře v preludiích.
+   Trackované-gitignorované soubory: VYŘEŠENO UŽ V P17 (untrackla je).
+   Záloha _archiv: ZÁLOHA SEDÍ (347 souborů, shodný SHA-256).
+
+NOVÉ NÁLEZY P18 (H93–H96, zapsané i v kronize §2.12)
+   H93 Vylučovací seznam NA32 nezná snapshot-*/ -> 2 soubory ze snapshotů
+       skills se počítají jako živý kód (neškodné, ale matoucí).
+   H94 Klasifikátor g3 má 8 podpisů chybějícího souboru, ale na této stanici
+       jsou živé jen 4; can't open file a No such file or directory navíc
+       chytají TENTÝŽ případ. 4 mrtvé položky = slepé místo.
+   H95 H92 byl SKUTEČNÁ vada — P17 ho popsala správně (doloženo měřením).
+   H96 Komentář v preludiu se dá vyložit opačně, než co kód dělá — a pak se
+       podle něj "ověří" nesmysl (stalo se, omyl 175). Komentáře opraveny.
+
+DVANÁCT VLASTNÍCH OMYLŮ (173–184), deset z nich v MĚŘIDLE — mj. mutace, která
+se neprovedla; porovnávání SOUČTŮ místo PRVKŮ; falešně zelený i falešně červený
+sken H92 (pět verzí, čtyři neměřily nic); parsování tabulky podle sloupce, jehož
+buňky obsahují '|'; a REGRESE: přepsané zadání shodilo bránu zadání kontrola
+(vymyšlený repo "main" z řádku s origin/main = <sha>) — chytil to g3.
+
+BRÁNY PO P18
+   g3 37 bran, 0 nenulových, 0 nezačatých, 0 nedosazených; validate-all
+   "✓ VŠE V POŘÁDKU"; inventář přegenerován; NEOVĚŘENO: 0 (35 návrhů, 83 nálezů).
+   Šest ověřovacích skriptů ov-* NENÍ zařazeno do g3 (rozhodnutí uživatele) —
+   zůstávají doklady; důvod je v HANDOFFu §36.12.
+
+ZÁZNAM A ROZHODNUTÍ O COMMITU
+   Uživatel 6. 10. 2026 rozhodl "commitni vše, co můžeš", takže tenhle commit
+   nese i záznamy P18 a přepsané zadání pro další session. ZADÁNÍ JE ZÁMĚRNĚ
+   ZAKOTVENÉ NA 8011f83 (commit, na kterém se měřilo) — což je i rodič tohohle
+   commitu, takže zadani-kontrola.py hlásí "přibylo commitů: 1". To je SPRÁVNÉ
+   a očekávané: SHA commitu závisí na jeho obsahu, takže zadání zapsané UVNITŘ
+   commitu se s ním nemůže přesně shodovat (vlastnost odkazu na vlastní commit,
+   ne vada; historie to má stejně — P15, P16 i P17). Nutí to příští session
+   přeměřit stav živě, což je přesně účel té brány.
+
+NEPUSHNUTO — oba commity (P17 i P18) jsou jen lokálně; rozhodnutí je na uživateli.

@@ -1,0 +1,37 @@
+{
+  "kontrol": 17,
+  "chyb": 0,
+  "vlastni_pocty": {
+    "orchestra": {
+      "zive": 159,
+      "archiv": 260
+    },
+    "hra": {
+      "zive": 14,
+      "archiv": 0
+    }
+  },
+  "vlastni_zive_sekvence": 0,
+  "vlastni_archiv_sekvence": 5,
+  "citac_zdravy": {
+    "zive_sekvence": 0,
+    "zive_souboru": 173,
+    "archiv_souboru": 260,
+    "archiv_sekvence": 5
+  },
+  "citac_archiv_mutant": {
+    "zive_sekvence": 0,
+    "zive_souboru": 173,
+    "archiv_souboru": 261,
+    "archiv_sekvence": 5
+  },
+  "citac_zivy_mutant": {
+    "zive_sekvence": 0,
+    "zive_souboru": 174,
+    "archiv_souboru": 261,
+    "archiv_sekvence": 5
+  },
+  "exit_zdravy": 0,
+  "exit_archiv_mutant": 0,
+  "exit_zivy_mutant": 1
+}
