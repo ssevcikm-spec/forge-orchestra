@@ -1,85 +1,21 @@
 {
-  "kdy": "2026-10-02 22:06:06",
-  "hodnoty": [
-    65,
-    63,
-    61,
-    59,
-    23,
-    10
-  ],
-  "brany": {
-    "testy hry (Godot)": {
-      "kontrol": 65,
-      "poznamka": "exit=0",
-      "prikaz": "C:\\Users\\Ssevc\\Local-Deepseek\\orchestra\\tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path …",
-      "doklad": "[test] 65 kontrol"
-    },
-    "a1-a2-over": {
-      "kontrol": 23,
-      "poznamka": "exit=0",
-      "prikaz": "python _analyza/a1-a2-over.py",
-      "doklad": "Kontrol: 23"
-    },
-    "test-neanglicky-skener": {
-      "kontrol": 23,
-      "poznamka": "exit=0",
-      "prikaz": "python _analyza/test-neanglicky-skener.py",
-      "doklad": "23 kontrol"
-    },
-    "over-dokumentaci": {
-      "kontrol": 63,
-      "poznamka": "exit=0",
-      "prikaz": "python orchestra/tools/over-dokumentaci.py",
-      "doklad": "Kontrol: 63"
-    },
-    "test-cooldown": {
-      "kontrol": 10,
-      "poznamka": "exit=0",
-      "prikaz": "python orchestra/tools/test-cooldown.py",
-      "doklad": "10 kontrol"
-    },
-    "b5-over-tvrzeni": {
-      "kontrol": null,
-      "poznamka": "exit=0, ale výstup NEOBSAHUJE hledaný čítač (brána přestala měřit?)",
-      "prikaz": "python _analyza/b5-over-tvrzeni.py",
-      "doklad": ""
-    },
-    "vision.test.mjs": {
-      "kontrol": null,
-      "poznamka": "exit=1 a výstup neobsahuje hledaný čítač",
-      "prikaz": "node orchestra/repo/.forge/node/vision.test.mjs",
-      "doklad": ""
-    },
-    "baseline.py testy": {
-      "kontrol": null,
-      "poznamka": "exit=1 a výstup neobsahuje hledaný čítač",
-      "prikaz": "python orchestra/repo/.forge/baseline.py testy",
-      "doklad": ""
-    },
-    "mutace A (5 běhů)": {
-      "kontrol": 59,
-      "poznamka": "z dřívějšího běhu",
-      "prikaz": "_analyza/a-mutace-run.py pred-opravou → g3-brany-vystup.txt",
-      "doklad": ""
-    },
-    "mutace A: pres-level": {
-      "kontrol": 61,
-      "poznamka": "z dřívějšího běhu",
-      "prikaz": "_analyza/a-mutace-run.py pres-level → g3-brany-vystup.txt",
-      "doklad": ""
-    },
-    "mutace B (combat)": {
-      "kontrol": 65,
-      "poznamka": "z dřívějšího běhu",
-      "prikaz": "_analyza/b-mutace.py → g3-brany-vystup.txt",
-      "doklad": ""
-    },
-    "f2 over cooldown": {
-      "kontrol": 10,
-      "poznamka": "z dřívějšího běhu",
-      "prikaz": "_analyza/f2-over-cooldown.py → g3-brany-vystup.txt",
-      "doklad": ""
+  "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
+  "kdy": "2026-10-06 22:29:50",
+  "bran_celkem": 1,
+  "s_nenulovym_exit": [],
+  "ocekavane_nenulove": {
+    "A1: zdravá": 1,
+    "A9: nikdy nebyla": 1
+  },
+  "bez_citace": [],
+  "neotevrene": [],
+  "brany": [
+    {
+      "nazev": "A1: zdravá",
+      "exit": 0,
+      "otevrela": "3",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/p20-scratch/a-fixtury/a-zdrava.py"
     }
-  }
+  ]
 }

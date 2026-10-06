@@ -361,6 +361,20 @@ console.log('\n════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ═══�
     ['hl-rizika-jazyka.py',
      'N1: inventář se hlásí stářím a otiskem vstupů; zastaralý SHODÍ nástroj',
      ['python', `${ANALYZA}/hl-rizika-jazyka.py`]],
+    // ROZHODNUTÍ 6. 10. 2026 (drobnost z otevřených bodů): `ag-over-cisla.py`
+    // PATŘÍ do validátoru. Přečte **tvrzení z `AGENTS.md`** a porovná je se
+    // ZDROJEM (`schema.sql`, `ci.yml`, skener) — mutačně ověřeno 5/5. Důvod, proč
+    // tam patří: `AGENTS.md` je **autorita pro VŠECHNY session**, takže chybné
+    // číslo v něm se neprojeví jako chyba, ale jako **důsledek na pěti místech**
+    // (naměřeno: „32 sloupců" místo 39, chybné už při zápisu, šest session to
+    // nevidělo). ⚠ JEHO MEZ, PŘIZNANÁ: pokrývá **5 čísel** (`schema.sql` ×3,
+    // non-ASCII názvy, `ci.yml`) + 2 historická; **zbytek nehlídá**. Proto se
+    // u něj nesmí číst zelená jako „všechna čísla sedí" — jen jako „ta měřená
+    // sedí". Kdo do `AGENTS.md` přidá číslo, **přidá i kontrolu** (jinak si
+    // příště přečte zastaralé číslo jako fakt).
+    ['ag-over-cisla.py',
+     'trvalá pravidla: čísla v AGENTS.md proti ZDROJI (5 měřených; zbytek NEhlídá)',
+     ['python', `${ANALYZA}/ag-over-cisla.py`]],
     // POZOR: `c2-mutace.py` sem NEPATŘÍ, i když je to brána k N1. Sama
     // přepisuje `_inventar.json` (a vrací ho) — přesně to pojistka níž hlídá.
     // Pouští se ručně; výsledek je v `HANDOFF.md` §16.

@@ -386,7 +386,15 @@ sessions = int(m2.group(1)) if m2 else None
 print()
 print(f"  (brána: omylů celkem {nalezeno}, sessions {sessions}, exit {r.returncode})")
 k(nalezeno == 208, f"brána počítá 208 omylů (naměřeno {nalezeno})")
-k(sessions == 35, f"brána vidí 35 sessions (naměřeno {sessions})")
+# ⚠ SESSIONS SE NEKOTVÍ NA PEVNÉ ČÍSLO (opraveno 6. 10. 2026 večer):
+# doklad vznikl, když bylo sessions **35**; o hodinu později přibyl **řádek 37**
+# (schválené práce P23k) a kontrola spadla — na **správném** dokumentu.
+# Je to táž třída jako omyl **209** („doklad s kotvou natvrdo“): doklad závislý
+# na STAVU dokumentu zastará **spolu s ním**. Kontroluje se proto jen to, co má
+# smysl: **že se řádek P22 (session 36) počítá** — ne kolik jich je dnes.
+k(sessions is not None and sessions >= 36,
+  f"brána vidí aspoň 36 sessions (naměřeno {sessions})")
+k(bool(re.search(r"^\|\s*\*\*36\*\*\s*\|", t2, re.M)), "kronika §1 obsahuje řádek 36")
 
 for radek in v.splitlines():
     if "8za" in radek and "kronika tvrdí" in radek:

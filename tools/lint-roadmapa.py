@@ -45,6 +45,11 @@ def main() -> int:
     grains = data["grains"]
     podle_id = {g["id"]: g for g in grains}
     problemy = []
+    # ⚠ PORADNÍ vs. BLOKUJÍCÍ (6. 10. 2026): `poradni` je kategorie pro nálezy,
+    # které **závisí na datech, jež sama nejsou spolehlivá** (`done`, `size_lines`).
+    # Vypisují se ZVLÁŠŤ a **nepočítají se do „Nalezeno problémů"** — jinak se
+    # z čísla stane stav, který nikdo neumí opravit, a brána se začne ignorovat.
+    poradni = []
 
     # 1) závislosti na neexistující granuli
     for g in grains:
@@ -87,6 +92,17 @@ def main() -> int:
                 problemy.append(f"[4] {g['id']}: owns '{f}', soubor neexistuje a žádná granule ho nevytváří")
 
     # 5) done: true granule, na kterou se odvolávají jiné
+    # ⚠ ROZHODNUTÍ 6. 10. 2026: tenhle bod je **PORADNÍ, ne blokující** — a je to
+    # rozhodnutí, ne opomenutí. Naměřeno: hlásí **13 z 16** položek lintu
+    # (`core.attributes` 8 závislých, `core.skills` 10, …), protože `done: true`
+    # je v roadmapě **NESPOLEHLIVÉ** (nález H105: u `persist.save` je `done`
+    # zapsané, ale kód se ve hře nevolá). Kdyby `[5]` shazoval lint (`exit 1`),
+    # padal by na **13 místech, která jsou v pořádku** — a to je brána, která
+    # nutí „opravovat" správná data (třída H103).
+    # **Kdy se to smí stát blokujícím:** až bude `done` bráno z reálného stavu
+    # (`awaiting_human` / `ok && merged` z A1) — pak je to nález, ne šum.
+    # Do té doby patří do `poradni`, aby se **nezapočítával do „Nalezeno problémů"**
+    # (jinak se číslo 13 čte jako stav kódu, ne stav dat).
     hotove = {g["id"] for g in grains if g.get("done")}
     zavislych = {}
     for g in grains:
@@ -94,7 +110,7 @@ def main() -> int:
             zavislych.setdefault(d, []).append(g["id"])
     for gid in sorted(hotove):
         if gid in zavislych:
-            problemy.append(
+            poradni.append(
                 f"[5] {gid} je 'done: true' a čeká na ni {len(zavislych[gid])} granulí "
                 f"({', '.join(zavislych[gid])}) – musí mít řádek v D1, jinak závislosti "
                 f"zůstanou viset")
@@ -133,6 +149,16 @@ def main() -> int:
     for p in problemy:
         print("  " + p)
 
+    # Poradní nálezy (neblokující) — MUSÍ být vidět, ale nesmí se míchat s vadami.
+    # `g3` čte verdikt z „Nalezeno problémů", takže kdyby `[5]` bylo mezi nimi,
+    # hlásil by lint 16 problémů nad roadmapou, která má vady 3.
+    print()
+    print(f"=== PORADNÍ (neblokující, {len(poradni)}): závisí na datech, která nejsou spolehlivá ===")
+    print("  (`done: true` je v roadmapě naměřeno jako NESPOLEHLIVÉ — nález H105;")
+    print("   do blokujících to patří až ve chvíli, kdy `done` pochází z reálného stavu)")
+    for p in poradni:
+        print("  " + p)
+
     # Přehled zámků: kolik granulí se může rozběhnout paralelně.
     print()
     print("=== SOUBORY Vlastněné VÍC GRANULEMI (brzdí paralelismus) ===")
@@ -153,7 +179,8 @@ def main() -> int:
     # u zdravé roadmapy zůstal sloupec `otevřela:` prázdný (a prázdno se čte
     # jako „brána neměřila" — past S27).
     print(f"ZMĚŘENO: {len(grains)} granulí zkontrolováno, "
-          f"{len(problemy)} problémů, {len(kolize)} kolizí souborů")
+          f"{len(problemy)} problémů (+{len(poradni)} poradních), "
+          f"{len(kolize)} kolizí souborů")
     return 0
 
 

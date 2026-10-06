@@ -84,6 +84,10 @@ def _najdi_godot() -> pathlib.Path:
 GODOT = _najdi_godot()
 USER_DIR = ANALYZA / "a-godot-user"
 VYSTUP = ANALYZA / "g3-brany-vystup.txt"
+# Registr živých bran — GENEROVANÝ `g3` (rozhodnutí 6. 10. 2026, §6.14).
+# Do té doby to byl ruční soubor z 2. 10. s předpřesunovými cestami; dnes je to
+# výstup běhu, takže se nemůže rozejít s tím, co se skutečně spouští.
+REGISTR = ANALYZA / "_registr-bran.json"
 
 # (popis, příkaz, co hledat ve výstupu jako "kolik otevřela")
 #
@@ -689,6 +693,63 @@ print("VÝSLEDEK g3: %s" % {0: "PŘEHLED JE ÚPLNÝ (každá brána začala a vy
                               "viz výše (vady MĚŘENÍ a neočekávané exity, ne "
                               "výsledky bran)",
                            2: "NEMĚŘILO SE VŮBEC"}[kod])
+# ══ REGISTR ŽIVÝCH BRAN — JEDNA AUTORITA (rozhodnutí 6. 10. 2026, §6.14) ══════
+# PROČ: do 6. 10. 2026 existovaly **tři seznamy živých** a ANI JEDEN se neshodoval
+# s během: `_analyza\_registr-bran.json` (ruční, `"kdy": "2026-10-02 22:06"`,
+# s PŘEDPŘESUNOVOU cestou `C:\Users\Ssevc\Local-Deepseek\orchestra`), ruční výčet
+# v `HANDOFF.md` §6 a devět nástrojů v `AGENTS.md`, z nichž tři nikde neběžely.
+# Skutečná autorita (`BRANY` tady + `spust()` ve `validate-all.mjs` + `VZOR`
+# v `p20-d`) nebyla v `AGENTS.md` **jmenovaná vůbec**.
+#
+# Náprava: `g3` — který brány **skutečně spouští** — zapíše seznam, jaký NAMĚŘIL.
+# Registr tím přestává být tvrzení a stává se **výstupem běhu**; kdo ho chce
+# aktualizovat, **pustí `g3`** (ne že ho přepíše rukou).
+#
+# ⚠ PÍŠE SE JEN V PLNÉM BĚHU. `_POUZE_VYSTUP` (řádek 321, `--soubor`) je režim,
+# ve kterém `g3` jen **vypíše, co naměřil** a sám skončí `exit 0` — používají ho
+# doklady a mutační testy, které si `BRANY` ve svém harnessu MĚNÍ. Kdyby registr
+# zapsaly ony, uložil by se **zmrzačený seznam z mutace** (a příští session by
+# se podle něj řídila). Proto: plný běh → zapiš; `--soubor` → nezapisuj.
+if not _POUZE_VYSTUP:
+    import json as _json
+    import time as _time
+    _registr = {
+        "co_to_je": ("REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. "
+                     "Zdroj: `python _analyza/g3-brany.py` (plný běh). "
+                     "Autorita je `BRANY` v `g3-brany.py` + `spust()` ve "
+                     "`tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`."),
+        "kdy": _time.strftime("%Y-%m-%d %H:%M:%S"),
+        "bran_celkem": len(vse),
+        "s_nenulovym_exit": sorted(p for p, k, _, _ in vse if k not in (0,)),
+        "ocekavane_nenulove": OCEKAVANE_NENULOVE,
+        "bez_citace": sorted(p for p, _, _ in bez_citace),
+        "neotevrene": sorted(p for p, _ in neotevrene),
+        "brany": [],
+    }
+    _podle_jmena = {p: (k, n) for p, k, n, _v in vse}
+    for _p, _prikaz, _vzor in BRANY:
+        _k, _n = _podle_jmena.get(_p, (None, None))
+        # ⚠ `dosad()` bere SEZNAM a vrací SEZNAM — první verze tu psala
+        # `" ".join(dosad(pri) for pri in _prikaz)` a spadla na
+        # `TypeError: sequence item 0: expected str instance, list found`
+        # (`_prikaz` je seznam, ne řetězec). **A ta chyba byla TICHÁ:** `g3`
+        # mezitím vypsal celý přehled i verdikt, `sys.exit(kod)` se ale
+        # neprovedl a proces spadl s `exit 1` — což je NEROZEZNATELNÉ od
+        # „deklarovaný nenulový exit". Registr se proto nezapsal a nikdo to
+        # neviděl; odhalilo to až **měření obsahu souboru**, ne `exit` kódu.
+        _prikaz_s = " ".join(dosad(_prikaz))
+        _registr["brany"].append({
+            "nazev": _p,
+            "exit": _k,
+            "otevrela": _n,
+            "ma_citac": _p not in {x for x, _, _ in bez_citace},
+            "prikaz": _prikaz_s,
+        })
+    REGISTR.write_bytes((_json.dumps(_registr, ensure_ascii=False, indent=2) + "\n")
+                        .encode("utf-8"))
+    print("registr zapsán: %s (%d bran, %d B)"
+          % (REGISTR.name, _registr["bran_celkem"], REGISTR.stat().st_size))
+
 # Viz komentář u `_POUZE_VYSTUP`: doklad si návratový kód přečte odsud a sám
 # zůstane `exit 0` (jinak by nemohl rozlišit „správně promluvil“ od „spadl“).
 if _POUZE_VYSTUP:
