@@ -1,0 +1,24 @@
+P18b: commit P18 a poučení, že commit invaliduje inventář
+
+Dokončení P18 po rozhodnutí uživatele "commitni vše, co můžeš".
+
+Commit P18 (233e502) nese záznamy, doklady ov-*, opravené nástroje i přepsané
+zadání pro další session (22 souborů). Tenhle navazující commit doplňuje jednu
+věc, která se ukázala AŽ PO commitu:
+
+  ⚠ INVENTÁŘ SLEDUJE I "JE SOUBOR TRACKOVANÝ?"
+  _inventar.json má v otisku vstupu slovník `netrackovane`, takže commit,
+  který untracknuté soubory ZATRACKUJE, inventář INVALIDUJE — i když se obsah
+  žádného souboru nezměnil. Naměřeno: před commitem měl netrackovane.orchestra
+  15 položek (všechny ov-*), po commitu 1; validate-all správně ohlásil
+  "otisk VSTUPŮ se rozešel" (1098 -> 1099) a n1-over-inventar skončil exit=2.
+  Řešení: PŘEGENEROVAT INVENTÁŘ PO COMMITU. Je to pravidlo NA1/H60 na místě,
+  kde se nečeká — nešlo o editaci souboru, ale o změnu STAVU GITU.
+
+Zapsáno v HANDOFF.md §36.10 (rámeček) a §36.12 (co zůstává otevřené).
+
+STAV: strom ČISTÝ, g3 zelený (jediný nenulový exit je zadání kontrola = 1,
+což je očekávané a zdokumentované: zadání je zakotvené na commitu, na kterém
+se měřilo, a to je rodič commitu P18).
+
+NEPUSHNUTO — k pushi jsou DVA commity (P17 8011f83 + P18).

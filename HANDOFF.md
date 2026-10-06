@@ -7427,8 +7427,23 @@ míří **na existující** `E:\Workspaces\uo-shadows`.
   `ov-f-rozdil-poctu.py`, `ov-f-rozdil-vystup.txt`, `ov-g-h92-sken.py`,
   `ov-g-h92-vystup.txt`, `ov-g-neovereno.py`, `ov-g-neovereno-vystup.txt`,
   `ov-g3-vystup.txt`, `ov-validate-all-vystup.txt`.
-* **Commitnuto** (viz `git log`) — **push jen na vyžádání**; P18 **nepushovala**
-  (`origin/main..HEAD` = **1** před zápisem zápisů).
+* **Commitnuto** — **rozhodnutí uživatele 6. 10. 2026**: „**commitni vše, co
+  můžeš**". Vznikl **jeden commit P18** nad `8011f83`: záznamy (`HANDOFF.md`,
+  `KRONIKA-PROJEKTU.md`), **přepsané zadání**, **doklady `_analyza/ov-*`**
+  a opravené nástroje (**22 souborů**). **Push se NEstal** — oba commity
+  (P17 i P18) jsou **jen lokálně**; rozhodnutí je na uživateli.
+
+> **⚠ POUČENÍ Z COMMITU — INVENTÁŘ SLEDUJE I „JE SOUBOR TRACKOVANÝ?"**
+> `_inventar.json` má v `otisk_vstupu` i slovník **`netrackovane`**, takže
+> **commit, který untracknuté soubory ZATRACKUJE, inventář INVALIDUJE** — i když
+> se obsah žádného souboru nezměnil. Naměřeno přesně tady: před commitem měl
+> `netrackovane.orchestra` **15 položek** (všechny `ov-*`), po commitu **1**;
+> `validate-all` správně ohlásil **`otisk VSTUPŮ se rozešel`** (`1098 → 1099`)
+> a `n1-over-inventar` skončil **`exit=2`**. **Řešení je jediné: přegenerovat
+> inventář PO commitu** — a to je přesně pravidlo **NA1/H60**, jen na místě, kde
+> se nečeká (nešlo o editaci souboru, ale o **změnu stavu gitu**).
+> **Příští session: po každém commitu, který přidává dřív netracknuté soubory,
+> přegeneruj inventář — jinak `validate-all` i `n1` správně zčervenají.**
 
 ### 36.11 Vlastní omyly této session
 
@@ -7441,10 +7456,14 @@ také výsledek, jen se musí přiznat**.
 
 ### 36.12 Co zůstává OTEVŘENÉ (po P18)
 
-* **Push obou repů** — `forge-orchestra` má **nepushnutý** commit P17 **i** práci
-  P18; hra je **v sync** (`44dd454`). Rozhodnutí je na uživateli.
-* **`NEXT-SESSION-INSTRUKCE.md` je necommitnutý** — a je to **záměr** (SHA
-  commitu závisí na jeho obsahu; rámeček v zadání).
+* **Push obou repů** — `forge-orchestra` má **nepushnuté DVA commity** (**P17**
+  `8011f83` i **P18**); hra je **v sync** (`44dd454`). Rozhodnutí je na uživateli.
+* **`NEXT-SESSION-INSTRUKCE.md` JE commitnutý** (v commitu P18) — a je
+  **záměrně zakotvený na `8011f83`** (commit, na kterém P18 měřila), takže
+  `zadani-kontrola.py` hlásí **`přibylo commitů: 1`**. To je **správné
+  a očekávané** — SHA commitu závisí na jeho obsahu (vlastnost odkazu na vlastní
+  commit, ne vada; historie to má stejně). **Nutí to příští session přeměřit
+  stav živě**, což je účel té brány.
 * **H93** (`snapshot-*/` ve vylučovacím seznamu NA32) a **H94** (4 mrtvé podpisy
   v klasifikátoru) jsou **zapsané, neopravené** — obojí **neškodné, ale matoucí**.
 * **`g3` nemá `sys.exit`** — je to **přehled**, ne brána. Kdyby se měl stát
