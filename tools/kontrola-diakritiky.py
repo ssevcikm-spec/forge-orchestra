@@ -130,6 +130,8 @@ SOUBORY = [
     # soubor s KOLIDUJICIM JMENEM (orchestra ma zive zadani stejneho nazvu) —
     # a prave proto se hlida: kdo ho otevre, ma poznat, ze prazdny byt MA.
     STANICE / "NEXT-SESSION-INSTRUKCE.md",
+    # 6. 10. 2026 (P22): zadani pro session, ktera dokonci optimalizaci KB.
+    STANICE / "ZADANI-OPTIMALIZACE-KB.md",
     REPO / "repo" / ".forge" / "check-schema.py",
     REPO / "repo" / ".forge" / "vision-profile.json",
     REPO / "repo" / ".forge" / "baseline.py",
