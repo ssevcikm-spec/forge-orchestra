@@ -120,6 +120,12 @@ SOUBORY = [
     # brána neviděla, mohla by v něm být rozbitá diakritika a nikdo by si toho
     # nevšiml právě ve chvíli, kdy se podle něj rozhoduje.
     STANICE / "PREDAVANI-SESSION.md",   # D6: zustal stanici
+    # 6. 10. 2026 (P22): dva nove dokumenty stanice — NAVRHY k rozhodnuti.
+    # ⚠ Pridany proto, ze tenhle seznam je RUCNI a novy dokument by jinak prosel
+    # zeleně, aniz by ho kontrola otevrela (vada S27). Presne to se stalo
+    # u techto dvou: vznikly a v seznamu nebyly.
+    STANICE / "REVIZE-PRACOVNIHO-RITUALU.md",
+    STANICE / "OPTIMALIZACE-KNOWLEDGE-BASE.md",
     REPO / "repo" / ".forge" / "check-schema.py",
     REPO / "repo" / ".forge" / "vision-profile.json",
     REPO / "repo" / ".forge" / "baseline.py",
