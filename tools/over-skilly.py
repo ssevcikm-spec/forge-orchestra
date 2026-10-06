@@ -1,4 +1,19 @@
-"""Ověří, že se všechny skilly načítají: frontmatter je platný YAML a má name+description."""
+r"""Ověří, že se všechny skilly načítají: frontmatter je platný YAML a má name+description.
+
+⚠ ROZŠÍŘENO 6. 10. 2026 (P22) — PRAVDIVOST CEST. Do té doby brána měřila jen
+front-matter, počet řádků a délku description, a proto byla ZELENÁ nad skilly,
+ve kterých **23 cest v 10 ze 17 souborů neexistovalo** (audit KB, `_tools\over-cesty-v-kb.mjs`):
+např. `orchestra\tools\godot\` (Godot je `E:\Tools\godot\`), `_analyza\hl-bom.py`
+(přesunut do `_analyza\_archiv\`), `E:\DSH\data\sessions` (dnes `E:\DeepSeekHarness-data\`).
+Skill, který má učit pasti prostředí a sám posílá agenta k nástroji, který není,
+vyrábí falešný závěr „nástroj neexistuje".
+
+⚠ KONTROLUJÍ SE JEN CESTY K NÁSTROJŮM PROJEKTU (`_analyza\…`, `tools\…`) — a to
+záměrně: systémové cesty a **historické zmínky** („cesta X už neexistuje",
+přeškrtnuté) jsou legitimní a jejich plošná kontrola vyrábí **falešné poplachy**,
+které nutí „opravovat" správný text. Naměřeno: plošný sken hlásil 45 „mrtvých"
+cest, z toho po filtraci zůstalo 7 a **všechny byly legitimní**.
+"""
 
 import pathlib
 import re
@@ -7,6 +22,22 @@ import sys
 import yaml
 
 SKILLS = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+
+# Kořeny, proti kterým se cesta k nástroji zkouší (projekt orchestra a hra).
+KORENY = [pathlib.Path(r"E:\Workspaces\forge-orchestra"),
+          pathlib.Path(r"E:\Workspaces\uo-shadows")]
+
+# Cesty k nástrojům projektu v backticích (např. `_analyza\g3-brany.py`, `tools\over-skilly.py`).
+VZOR_CESTY = re.compile(r"`((?:_analyza|tools)[\\/][^\s`\"']+)`")
+
+# ⚠ DEKLAROVANÉ VÝJIMKY: cesty, které v textu být MOHOU, i když soubor neexistuje.
+# Každá má důvod; NOVÁ mrtvá cesta bránu SHODÍ (to je smysl kontroly).
+OCEKAVANE = {
+    # příklad: (jmeno_skillu, "cesta"): "důvod",
+}
+vsech_cest = 0
+mrtvych = 0
+podezrele = []
 
 chyb = 0
 for d in sorted(SKILLS.iterdir()):
@@ -40,9 +71,40 @@ for d in sorted(SKILLS.iterdir()):
         print(f"  CHYBA {d.name}: chybí description")
         chyb += 1
         continue
-    print(f"  OK   {d.name:16} řádků={telo:4} description={len(desc)} znaků")
+
+    # --- PRAVDIVOST CEST (nové, P22) ------------------------------------------
+    radky = t.splitlines()
+    mrtve_tady = []
+    for i, radek in enumerate(radky, 1):
+        for mm in VZOR_CESTY.finditer(radek):
+            cesta = mm.group(1).rstrip(".,;:")
+            # Vzory s `*` nejsou cesty (např. `tools/blender/sprites/body_d0_f*.png`).
+            if "*" in cesta or "?" in cesta:
+                continue
+            vsech_cest += 1
+            if (d.name, cesta) in OCEKAVANE:
+                continue
+            if any((k / cesta).exists() for k in KORENY):
+                continue
+            # Zmínka o neexistující cestě, kterou text SÁM přiznává, není vada.
+            if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
+                continue
+            mrtve_tady.append((i, cesta))
+    if mrtve_tady:
+        mrtvych += len(mrtve_tady)
+        podezrele.append((d.name, mrtve_tady))
+        chyb += 1
+
+    stav = "" if not mrtve_tady else f"  ⚠ MRTVÝCH CEST: {len(mrtve_tady)}"
+    print(f"  OK   {d.name:16} řádků={telo:4} description={len(desc)} znaků{stav}")
+
+for jmeno, mrtve in podezrele:
+    print(f"  CHYBA {jmeno}: odkazuje na {len(mrtve)} cest, které NEEXISTUJÍ:")
+    for i, cesta in mrtve:
+        print(f"        ř. {i}: {cesta}")
 
 print()
 print(f"Skillů: {len([x for x in SKILLS.iterdir() if x.is_dir()])}, chyb: {chyb}")
+print(f"Cesty k nástrojům: {vsech_cest} zmínek, {mrtvych} mrtvých")
 print("VŠE OK" if chyb == 0 else "NALEZENY CHYBY")
 sys.exit(0 if chyb == 0 else 1)
