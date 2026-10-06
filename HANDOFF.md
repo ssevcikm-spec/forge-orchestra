@@ -993,9 +993,9 @@ opravená**, ačkoli opravená byla.
 > **přiznaný stav**, ne vada (nález NA23 z 2. 10. 2026) — a do třetího stavu
 > proto **nepatří**. Rozdíl je ve **definici**, ne ve stavu projektu.
 
-### 8x. Omyly 173–184 — OVĚŘOVACÍ session 6. 10. 2026 (P18: PŘEMĚŘENÍ PRÁCE P17)
+### 8x. Omyly 173–185 — OVĚŘOVACÍ session 6. 10. 2026 (P18: PŘEMĚŘENÍ PRÁCE P17)
 
-**Dvanáct omylů a DESET z nich je v MĚŘIDLE, které jsem si psal sám** — a pět
+**Třináct omylů a DESET z nich je v MĚŘIDLE, které jsem si psal sám** — a pět
 z nich v **jednom** souboru (`_analyza/ov-g-h92-sken.py`, který měl pět verzí).
 Záznam: **§36**. Podpis je stejný jako u §8v a §8w: **nezkontroloval jsem, co
 moje vlastní měřidlo doopravdy dělá.** Dva z nich (`174`, `181`) málem vedly
@@ -1026,6 +1026,7 @@ naopak: rozbil jsem bránu, která do té chvíle procházela** — chytil to `g
 |---|---|---|---|
 | **183** | „Doplním řádek 32 do tabulky sessions." | `edit` našel jako `old_string` **řádek `8x` v tabulce OMYLŮ** (§4), ne v tabulce sessions — takže **řádek 32 se vložil do tabulky omylů** (7 sloupců místo 5) **a souhrnný řádek `\| **celkem** \| …` se připojil NA KONEC řádku 32** (tedy **zmizel**) | **Dvě vady jedním zápisem** a **obojí tiché**: tabulka se nerozbila viditelně, jen měla o řádek víc a jiný počet sloupců; a `kronika-kontrola.py` to **nechytil** (počítal bloky omylů, ne řádky tabulky sessions). Našel to až **vlastní přepočet** (`| **celkem** |` se ztratilo). Oprava: `_analyza/ov-fix-kronika.py` (řádek 32 rozdělen, vrácen do tabulky sessions, `celkem` obnoven). **Poučení: `old_string` musí být na řádku JEDNOZNAČNÝ** — stejný text bývá ve dvou tabulkách |
 | **184** | „Přepíšu zadání a hotovo." | **Přepsané zadání SHODILO bránu `zadání kontrola`** (`exit=1`), která předtím procházela (**P17: `OK`, otevřela 296**) — a to je **REGRESE, kterou jsem zavedl sám**. Příčina: do řádku „Stav obou repů při psaní:" jsem napsal `` `origin/main` = ce49234 ``, a parser té brány čte z TOHO řádku dvojice **`repo = <sha>`** → vylovil **vymyšlený repozitář `main`** a ohlásil „tvrzení, které se nepodařilo přiřadit k repu" | Chytil to **`g3`**, ne já — a to je přesně to, k čemu brány jsou. Oprava: řádek přeformulován (žádné `= <sha>` u `origin/main`); brána je **zase `OK`** a parsuje **právě dva** repy (`forge-orchestra`, `uo-shadows`). **Poučení: text, který vypadá jako strojově čitelný, strojově čitelný JE** — a vymyšlené jméno v něm brána vidí jako tvrzení o repu |
+| **185** | „Vrátím zadání na stav z HEAD, aby byl strom konzistentní a ověřený." | `git checkout -- NEXT-SESSION-INSTRUKCE.md` **ZAHODIL EDITaci, která byla lepší než stav v HEAD** — přeformulované místo **„ověř `origin/main..HEAD` ŽIVĚ"** (to je ta verze, která **nestárne**) zpět na **„`origin/main..HEAD = 4`"** (to je ta, která **zastará dalším commitem**). Zahodil jsem tedy **správnou** verzi a nechal **zastaralou** | **Záměna „necommitnuté" za „throwaway".** `git checkout --` je **destruktivní**: neřeší, jestli je ta změna lepší nebo horší — jen ji smaže. Vzniklo to honbou za **konzistencí inventáře** (která je **obnovitelná** jedním příkazem), obětovanou za **ztrátu lepší formulace** (která obnovitelná nebyla). **Poučení: než zahodíš necommitnutou změnu, zeptej se, čím je ta změna HORŠÍ — a když není, commitni ji a přegeneruj inventář.** Cena konzistence je jeden příkaz; cena ztracené formulace je přemýšlet znovu |
 
 ## 9. Co už otevřené NENÍ
 
@@ -7412,11 +7413,11 @@ míří **na existující** `E:\Workspaces\uo-shadows`.
 
 ### 36.10 Záznamy a commit (P18)
 
-* **`HANDOFF.md`** — přidán **§36** (tenhle oddíl), blok omylů **§8x** (173–184)
+* **`HANDOFF.md`** — přidán **§36** (tenhle oddíl), blok omylů **§8x** (173–185)
   a **přeznačeny otevřené body P17** v **§35.14**; **nic se nepřepisovalo**.
 * **`KRONIKA-PROJEKTU.md`** — nový **řádek 32** (tabulka §1), nálezy **H93–H96**
   do **§2.12**, nový blok omylů **8x** v §4 a **přepočítaný souhrn** (24 bloků,
-  31 sessions, **179 omylů**).
+  31 sessions, **180 omylů**).
 * **`NEXT-SESSION-INSTRUKCE.md`** — **přepsané** zadání pro další session.
 * **Doklady P18** v `_analyza/`: `ov-a-nasazeni.mjs`, `ov-a-vystup.txt`,
   `ov-a-vysledky.json`, `ov-a-index.html`, `ov-b1-compile.py`, `ov-b1-vystup.txt`,
@@ -7456,7 +7457,7 @@ míří **na existující** `E:\Workspaces\uo-shadows`.
 
 ### 36.11 Vlastní omyly této session
 
-Viz **§8x** (**173–184**) — **dvanáct**, a **deset z nich je v mém vlastním
+Viz **§8x** (**173–185**) — **třináct**, a **deset z nich je v mém vlastním
 měřidle**. Nejcenější jsou **175** a **181**: v **175** jsem **přečetl komentář
 místo abych změřil hodnotu** a málem zapsal, že **P17 má vadu, kterou nemá**;
 v **181** měl sken **pět verzí** a **čtyři z nich neměřily nic** (jedna byla

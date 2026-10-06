@@ -414,8 +414,8 @@ vidět, **jestli se podíl vad měřidla zlepšuje**.
 | **8u** | akční (opravná) **5. 10. 2026** (P15: **oprava nálezů H70–H79 z P14**) | **4** | **4** | **1** |
 | **8v** | ověřovací **5. 10. 2026** (P16: **přeměření oprav P15 vlastním měřidlem**) | **9** | **8** | **3** |
 | **8w** | akční (opravná) **5. 10. 2026** (P17: **oprava nálezů H84–H89 a dokončení nasazení hry**) | **4** | **4** | **0** |
-| **8x** | ověřovací **6. 10. 2026** (P18: **přeměření práce P17 vlastním měřidlem**) | **12** | **11** | **5** |
-| **celkem** | **24 bloků, 31 sessions** | **179** | **153 = 85 %** | **53** |
+| **8x** | ověřovací **6. 10. 2026** (P18: **přeměření práce P17 vlastním měřidlem**) | **13** | **12** | **5** |
+| **celkem** | **24 bloků, 31 sessions** | **180** | **154 = 86 %** | **54** |
 
 > **⚠ SOUHRNNÝ ŘÁDEK BYL DO 5. 10. 2026 ZASTARALÝ — a je to nález H74.**
 > Do té doby tu stálo **`16 bloků, 24 sessions` / `129` / `107 = 83 %` / `34`**,
