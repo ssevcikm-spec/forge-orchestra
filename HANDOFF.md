@@ -7437,13 +7437,22 @@ míří **na existující** `E:\Workspaces\uo-shadows`.
 > `_inventar.json` má v `otisk_vstupu` i slovník **`netrackovane`**, takže
 > **commit, který untracknuté soubory ZATRACKUJE, inventář INVALIDUJE** — i když
 > se obsah žádného souboru nezměnil. Naměřeno přesně tady: před commitem měl
-> `netrackovane.orchestra` **15 položek** (všechny `ov-*`), po commitu **1**;
-> `validate-all` správně ohlásil **`otisk VSTUPŮ se rozešel`** (`1098 → 1099`)
-> a `n1-over-inventar` skončil **`exit=2`**. **Řešení je jediné: přegenerovat
-> inventář PO commitu** — a to je přesně pravidlo **NA1/H60**, jen na místě, kde
-> se nečeká (nešlo o editaci souboru, ale o **změnu stavu gitu**).
-> **Příští session: po každém commitu, který přidává dřív netracknuté soubory,
-> přegeneruj inventář — jinak `validate-all` i `n1` správně zčervenají.**
+> `netrackovane.orchestra` **15 položek** (všechny `ov-*`), po commitu **1**
+> (a po druhém commitu **0**); `validate-all` správně ohlásil
+> **`otisk VSTUPŮ se rozešel`** (`1098 → 1099`) a `n1-over-inventar` skončil
+> **`exit=2`**. **Řešení je jediné: přegenerovat inventář PO commitu.**
+>
+> **A druhá, dražší polovina téhož — naměřená až napodruhé:** otisk počítá
+> **i `.txt`** (39 souborů), takže ho invaliduje **KAŽDÝ commit zprávy**
+> (`_analyza/p18*-commit-msg.txt`). P18b proto **znovu** rozbila inventář
+> (přesně **jeden** soubor, `1099 → 1100`), ačkoli předchozí regenerace byla
+> „po commitu" — byla totiž po commitu **PŘEDCHOZÍM**. **Praktický důsledek:
+> dokud v repu žije zvyk commitovat `*-commit-msg.txt`, je inventář po každém
+> commitu zastaralý o jedničku. Buď přegenerovat **jako POSLEDNÍ krok** (a pak
+> už necommitovat), nebo zprávu commitu neukládat do stromu.**
+> **Stav při předání:** regenerováno po **posledním** commitu, `otisk` =
+> `108039afad52271e` / **1100 souborů** / `netrackovane: {}` — a `validate-all`
+> je **zelený**.
 
 ### 36.11 Vlastní omyly této session
 
