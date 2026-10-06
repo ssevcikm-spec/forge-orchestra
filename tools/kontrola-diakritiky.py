@@ -126,6 +126,10 @@ SOUBORY = [
     # u techto dvou: vznikly a v seznamu nebyly.
     STANICE / "REVIZE-PRACOVNIHO-RITUALU.md",
     STANICE / "OPTIMALIZACE-KNOWLEDGE-BASE.md",
+    # 6. 10. 2026 (P22): tombstone v koreni stanice. Do te doby to byl prazdny
+    # soubor s KOLIDUJICIM JMENEM (orchestra ma zive zadani stejneho nazvu) —
+    # a prave proto se hlida: kdo ho otevre, ma poznat, ze prazdny byt MA.
+    STANICE / "NEXT-SESSION-INSTRUKCE.md",
     REPO / "repo" / ".forge" / "check-schema.py",
     REPO / "repo" / ".forge" / "vision-profile.json",
     REPO / "repo" / ".forge" / "baseline.py",
