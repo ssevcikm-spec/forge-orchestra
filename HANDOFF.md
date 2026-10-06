@@ -297,6 +297,23 @@ se má hráč po načtení vracet na `level.spawn_cell`? **Patří to do smlouvy
 | **`g3` jako brána** | **ROZHODNUTO** — `g3` **spadne jen za sebe** (nezačatá brána / brána bez čítače mimo deklarovaný stav), o **červených nerozhoduje**; **NA23b zůstává otevřený** (§37.4) |
 | **Nová: H99 (BOM v `.py`)** | **ZAPSÁNO, nerozhodnuto** — věc konvence, dnes ho hlásí obě brány shodně (§37.6) |
 
+### 2.11 Stav otevřených bodů po P20 (6. 10. 2026) — **TADY JE DNEŠNÍ STAV**
+
+> **⚠ §2.10 VÝŠ JE ZÁZNAM K P19, NE STAV.** Dvě jeho položky (**`g3` jako brána**
+> a **H99**) tam stojí jako **otevřené** — a **P20 je zavřela**. Nechávají se
+> (historie se nepřepisuje), ale **kdo hledá dnešní stav, čte tuhle tabulku.**
+> Podrobný záznam je v **§38**.
+
+| Co bylo otevřené | Stav po P20 |
+|---|---|
+| **`g3` a červené brány (NA23b)** | **VYŘEŠENO** — `g3` **soudí i červené**: `OCEKAVANE_NENULOVE = {"zadání kontrola": 1}`; nedeklarovaný nenulový exit = `exit 1`, deklarovaný = projde, visutý záznam = `exit 1` (§38.1) |
+| **BOM v `.py` (H99)** | **VYŘEŠENO — ZAKÁZÁN**, pravidlo v `AGENTS.md` (`.ps1` BOM **mít musí**, `.py` **nesmí**); obě brány se **nerozcházejí**, ověřeno fixturou v živém stromě (§38.2) |
+| **Zařazení ověřovacích skriptů do `g3`** | **ROZHODNUTO** — **ani jeden** z 8 kandidátů tam nejde (dva nemají čítač, pět zapisuje do stromu); zůstávají **doklady** a hlídá je `_analyza/p20-d-doklady.py` (§38.4) |
+| **Nové: H101 (tichá díra v H79)** | **OPRAVENO** — nečitelné `.py` se počítají a pojmenovávají; mrtvý `utf-8-sig` fallback odebraný (§38.3) |
+| **Nové: H102 (doklad P18 tvrdil `>= 6` podpisů)** | **OPRAVENO** — `ov-d-klasifikator.py` **40/0** (§38.6) |
+| **Nové: H103 (H92 sken = falešný poplach)** | **DOLOŽENO, NEopravováno** — `lint-roadmapa.py:30` je **premisa fallbacku**, nástroj funguje; **neopravovat** (§38.6) |
+| **Push orchestry (P20)** | **NEPUSHNUTO** — P20 se **nepushovala** (push je rozhodnutí uživatele); hra **nedotčená** (`44dd454`) |
+
 ## 3. Nové nálezy N1–N9 — kde jsou a co z nich plyne
 
 **Autorita:** `IMPLEMENTACE-NOVE-NALEZY-Z-UKOTVENI.md` (každý nález má
@@ -1073,6 +1090,52 @@ tabulku / jiný řádek, než měl).
 > na kterém se měřilo** (nález **NA31**), takže po každém novém commitu hlásí
 > „přibylo commitů". Zapsáno jako **očekávaný nenulový exit** (a je to přesně
 > ten případ, kvůli kterému `g3` o červených branách **nerozhoduje** — §37.4).
+
+### 8z. Omyly 195–210 — ROZHODOVACÍ session 6. 10. 2026 (P20: `g3` SOUDÍ ČERVENÉ, BOM V `.py`, TICHÁ DÍRA V H79)
+
+**Jedenáct omylů a DESET z nich je v MĚŘIDLE, které jsem si psal sám** (sloupec
+„vypadalo jako nález o cizím kódu" je proto **nulový** — nikoho cizího jsem
+neobvinil). Záznam: **§38**. Podpis je stejný jako u §8v–§8y: **nezkontroloval
+jsem, co moje vlastní měřidlo doopravdy dělá** — a tentokrát se to projevilo
+**čtyřikrát na TÉŽE věci**: neshodě mezi tím, co jsem si myslel, že brána měří,
+a tím, co měřila.
+
+**Tři věci stojí za zmínku zvlášť:**
+
+* **`195` je PŘEDPOKLAD místo měření** — do měřidla jsem napsal, že
+  `ast.parse()` BOM **přijme**, protože to „přece dělá tokenizér jinak než
+  `compile()`“. Naměřeno: **odmítne ho stejně**. Kdybych to nechal projít,
+  zapsal bych do projektu nepravdu o chování Pythonu a příští session by
+  hledala rozdíl mezi NA32 a H79 na **špatném místě**.
+* **`201` je vada, kterou našel STARŠÍ doklad, ne můj nový test** — do svého
+  verdiktu nad červenými jsem započítal i brány **deklarované** jako „běžela bez
+  čítače“. Odhalil to `p19-d-kontroly.py` (P19). **To je přesně důvod, proč se
+  doklady nemažou** — a proč má smysl, že je P20 musela opravit, ne zahodit.
+* **`206` je TÁŽ VADA ZÁPISU, jakou má P19 zapsanou jako omyl `194`** (a P18
+  jako `183`): do kroniky jsem vkládal řádek **přes kotvu, která se mi načetla
+  ZKRÁCENÁ** (2000 znaků), takže jsem **nahradil celý řádek 33 zkráceným textem**
+  a pak do něj „vrátil“ druhý výskyt téhož (řádek narostl z **4286 na 6149**
+  znaků). Opraveno **programově z blobu v `HEAD`** — a to je poučení: **když je
+  řádek delší, než se vejde do kontextu, nesmí se použít jako kotva.**
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **195** | „`ast.parse()` BOM PŘIJME, jen `compile()` ho odmítne — v tom je rozdíl mezi NA32 a H79." | **Obě ho odmítnou** (`invalid non-printable character U+FEFF`) — jdou přes **týž tokenizér** (`ast.parse` = `compile(..., PyCF_ONLY_AST)`). Rozdíl mezi branami tedy **nevzniká tam** | **Předpoklad zapsaný jako kontrola** (`zk(chyba_ast is None, …)`) — spadla mi vlastní kontrola (1 chyba z 9). Oprava: tvrzení **přeměřit** a teprve pak zapsat; rozdíl se hledá ve **ČTENÍ souboru** (`utf-8` vs `utf-8-sig`), ne v parseru |
+| **196** | „Zkontroluju, že je fixtura vykázaná v kategorii `*-scratch`." | `„*-scratch“ in zmineno`, kde `zmineno` byl **SEZNAM** (`[l for l in …]`) — test na **prvek seznamu**, který **nemůže projít** | **Kontrola, která nemá jak projít** (obráceně S27). Vypadala jako nález o správném kódu. Oprava: `in` nad **řádkem**, ne nad seznamem |
+| **197** | „Fixturu zadání složím v `python -c`." | **Zpětný apostrof je v PowerShellu ESCAPE znak** — z `` `forge-orchestra` `` se stalo `orge-orchestra`, takže brána **správně** hlásila „zadání netvrdí žádný commit“ | **Vada ZÁPISU, která vypadá jako vada BRÁNY.** Dvě kola jsem hledal chybu v kódu, který fungoval. Pravidlo `dsh-prostredi`: skript patří do **SOUBORU** |
+| **198** | „Vzor na kotvu napíšu jako `r\"\\`\"`." | Zpětný apostrof **žádnou escape sekvenci NEMÁ** → v řetězci zůstaly **dva znaky** a vzor hledal text, který v dokumentu není; `re.sub` **nic nenahradil** a měřil se ORIGINÁL | **Tichá nula uvnitř mutačního testu.** Zachytila to až kontrola „mutace se SKUTEČNĚ provedla“ |
+| **199** | „Změním kotvu na živý `HEAD`." | Změnil jsem jen **PRVNÍ** výskyt na řádku — ale ten řádek nese i `origin/main` = **`19a2195`**, takže vzniklo zadání s **dvěma rozcházejícími se tvrzeními** | Opět bych „opravoval“ bránu, která měřila správně. Fixtura musí být **CELÁ a vlastní** |
+| **200** | „V testu nahradím blok `BRANY` svými fixturami." | Nahradil jsem `BRANY`, ale **nechal deklaraci** `OCEKAVANE_NENULOVE` s `zadání kontrola` → ta se stala **VISUTOU** a `g3` skončil `exit 1` **z jiného důvodu, než test měří** | `overovani` §10.1: `exit 1` ze špatného důvodu. Opraveno v `p20-a-kontroly.py` **i ve třech dokladech P19** |
+| **201** | „Verdikt nad červenými postavím nad `selhalo`." | `selhalo` je **KAŽDÝ** nenulový exit — takže sem spadne i brána **deklarovaná** (`OCEKAVANE_BEZ_CITACE`) a brána, která **vůbec nezačala**; `g3` pak padal **za to, co sám deklaroval** | **Vada v PRODUKČNÍM kódu** — a našel ji **starší doklad P19**, ne můj nový test. Oprava: brány pokryté jinou sekcí se z posuzování **odečítají** |
+| **202** | „Jméno brány do deklarace opíšu." | Jméno se **programově vytahovalo z téhož literálu** — a přesto nesedělo (dvě kola hledání). Řešení: klíč brát **z téhož literálu, který jde do `BRANY`**, a porovnávat **po kódových bodech** | **Dva řetězce, které vypadají stejně, stejné nejsou.** „Vypadá to stejně“ není měření |
+| **203** | „Opravím řádek v `.py` přes `Set-Content`." | Zastavil jsem se **v poslední chvíli** — zadání to výslovně zakazuje a je to **omyl 189 z P19** (BOM → nekompilovatelný živý soubor) | Omyl **„v poslední chvíli“**; zapsaný proto, že pravidlo bylo **v zadání, ne v hlavě** |
+| **204** | „Sloupec ‚kontroly‘ v přehledu dokladů se načte vzorem." | Vzor `VÝSLEDEK: N kontrol, M chyb` **neodpovídá** formátu `VÝSLEDEK D: kontrol 39, chyb 0` → u **všech 19** dokladů vyšlo `—` | **Metrika, která tiše nic neměří, vypadá jako naměřená nula.** Oprava: číst POSLEDNÍ výskyt kteréhokoli ze známých tvarů |
+| **205** | „Porovnám klíče tím, že si je vypíšu vedle sebe." | Dvě kola jsem je porovnával **OČIMA** (`repr` vedle sebe). Teprve výpis **kódových bodů** (`U+%04X`) ukázal, že klíče jsou **SHODNÉ** — a vada je jinde | **„Vypadá to stejně“ není měření.** Porovnání řetězců patří programátorovi, ne oku |
+| **206** | „Vložím řádek 34 do kroniky s kotvou na řádek 33." | Řádek 33 se mi načetl **ZKRÁCENÝ** (2000 znaků), takže jsem **nahradil celý řádek** zkráceným textem a „vrácením“ do něj vložil **druhý výskyt téhož** (4286 → **6149** znaků) | **Táž třída jako P19 `194` a P18 `183`.** Oprava: řádek vzít **z blobu v `HEAD`** a vložit programově; **kotva nesmí být řádek delší, než se vejde do kontextu** |
+| **207** | „Řádek 33 je `head_lines[32]` — vždyť je to session 33." | `head_lines[32]` je **session 2**. **Číslo session NENÍ číslo řádku** | **Táž třída jako „různé čítače nesou stejné jméno“** (`dsh-prostredi` §5). Zastavil to **assert uvnitř skriptu**. Oprava: hledá se **podle OBSAHU** |
+| **208** | „Zkontroluju, že se změnil jen řádek 33 — porovnám `soucasne[i]` s `po[i]`." | Hlásilo **650 změněných řádků**. Řádky se nezměnily — byly **POSUNUTÉ** o vložený řádek; indexové srovnání je mimo o jedna | **Hromadné „poškození dokumentu“, které neexistuje** — a kdybych mu uvěřil, „opravoval“ bych zdravou kroniku. Oprava: srovnávat se **správným posunem** |
+| **209** | „Kotvu zadání do dokladu napíšu natvrdo (`19a2195`)." | Po přepsání zadání na nový živý `HEAD` (`b781c84`) doklad spadl **na SPRÁVNĚ aktualizovaném dokumentu** | **Táž třída jako H102** (doklad tvrdící zastaralé číslo). Oprava: kotva se **VYTAHUJE Z DOKUMENTU**, neopisuje. Doklad **8/0** |
+| **210** | „Doklad je hotový, když projde." | Po přepisu zadání hlásil `p20-d-doklady.py` **2 červené místo 1** — a ten druhý byl **můj vlastní doklad** (209), ne H103 | Doklad závislý na **STAVU dokumentu** zastará **spolu s ním**. To se má **čekat**, ne „opravovat“ dokument zpátky |
 
 ## 9. Co už otevřené NENÍ
 
@@ -7758,4 +7821,233 @@ cizí kód** — celá session byla měření a rozhodování, ne vývoj.
   v něm **nejsou** v repu; kdyby měly být dokladem, patří do `_analyza/`.
 * **Push orchestry i hry** — po P19 je **oba v sync** (viz §37.1 a hlavička
   nového zadání).
+
+---
+
+## 38. ROZHODOVACÍ session 6. 10. 2026 — P20: `g3` SOUDÍ ČERVENÉ, BOM V `.py` ZAKÁZÁN, TICHÁ DÍRA V H79
+
+**Co je tenhle oddíl:** **záznam o provedení** (ne stav — ten je v §2 a §6).
+Vznikl podle `NEXT-SESSION-INSTRUKCE.md` z 6. 10. 2026 (Úkoly **A–D**);
+Úkol **E** (návrat k věcné práci) je **na uživateli**, kterou práci vybere.
+
+**Vstupní stav (živě přeměřen, ne z hlavičky zadání):** orchestra
+`b781c84` = `origin/main`, `origin/main..HEAD` = **0** · hra `44dd454`,
+v sync, strom **čistý**. ⚠ **Zadání tvrdilo 1 nenulový exit v `g3`; živý běh
+jich měl 3** (`zadání kontrola`, `n1-over-inventar`, `validate-all`) — dva
+z nich byly **následek zastaralého inventáře**, ne vada bran (viz §38.1).
+
+### 38.1 Úkol A — VERDIKT `g3` NAD ČERVENÝMI: **NA23b VYŘEŠEN**
+
+**Zadání:** „Rozhodni: má `g3` soudit i červené? Když ano, musí vzniknout
+`OCEKAVANE_NENULOVE` — a `g3` musí umět spadnout i na nečekaném. A dolož
+i opak: že OČEKÁVANÝ nenulový exit `g3` NEshodí.“
+
+**1) Přeměřeno, KTERÉ brány končí nenulově a PROČ** (zadání to žádalo jako
+první krok). Naměřeny **tři**, a každý měl jinou příčinu:
+
+| Brána | exit | Je to stav, nebo vada? |
+|---|---|---|
+| `zadání kontrola` | 1 | **STAV** — zadání je záměrně kotvené na commitu měření P19 (`19a2195`), živý `HEAD` je `b781c84` → hlásí „přibylo commitů: 1“ (nález **NA31**). **Po každém commitu bude zase 1** a je to správně |
+| `n1-over-inventar` | 2 | **VADA PROSTŘEDÍ, ne brány** — inventář byl **zastaralý**, protože jsem do stromu přidal soubory. Náprava je regenerace (a je to přesně to, co dělá §6 `AGENTS.md`) |
+| `validate-all (CELEK)` | 1 | **TOTÉŽ** — jeho sekce N1 shodí nástroj nad zastaralým inventářem. Po regeneraci **zelený** |
+
+**Po regeneraci inventáře zbyly `1` nenulový (`zadání kontrola`)** — tedy
+přesně ten, který P19 zapsala jako legitimní.
+
+**2) Rozhodnuto: `g3` ČERVENÉ SOUDÍ.** Zavedeno
+**`OCEKAVANE_NENULOVE = {"zadání kontrola": 1}`** — a ⚠ **KÓD v deklaraci je
+proto, že se to NAMĚŘILO, ne že by to bylo hezčí**:
+
+> `_analyza/p20-a-kody-bran.py` → **7/0**. Brána `zadání kontrola` umí **`0`
+> i `1`**: `0`, když je zadání kotvené na **živý `HEAD`**, `1`, když je
+> zastaralé. Dokázáno **syntetickými fixturami** (živý dokument se nemutoval):
+> kotva = živý `HEAD` (obojí: `HEAD` i `origin/main`) → **`exit 0`**;
+> kotva = nedostupný commit → **`exit 1`**. **Kdyby deklarace nesla jen JMÉNO,
+> `g3` by nerozlišil „tatáž brána, jiný důvod“.**
+
+**3) Důkaz, že nový `sys.exit` umí spadnout I nespadnout** —
+`_analyza/p20-a-kontroly.py` → **18/0**. Staví **kopii** živého `g3`
+(živý soubor se **nemutuje**; hash před/po se porovnává):
+
+| Stav | Očekáváno | Naměřeno |
+|---|---|---|
+| jedna zelená brána | `exit 0` | **0** |
+| **NEDEKLAROVANÁ** červená | `exit 1` + `NEOČEKÁVANÝ: A2` | **1** ✔ |
+| táž červená **DEKLAROVANÁ** | **`exit 0`** (g3 nepadá po commitu) | **0** ✔ |
+| stejné jméno, **jiný kód** (2 místo 1) | `exit 1` | **1** ✔ |
+| deklarováno, ale dnes **zelená** | **`exit 0`** + poznámka „už není potřeba“ | **0** ✔ |
+| **VISUTÝ** záznam (deklarace bez brány) | `exit 1` | **1** ✔ |
+| prázdné `BRANY` | `exit 2` | **2** ✔ |
+
+**Tři stavy, které z toho plynou — a každý se VYPISUJE (žádný není ticho):**
+`exit` = deklarovaný → neposuzuje se dál; `exit` ≠ deklarovaný → **`exit 1`**;
+deklarováno, ale dnes `0` → **poznámka, NE pád** (zadání se na dnešek
+neopravuje, §37.5). **Visutý záznam je `exit 1`** — kdyby brána z `BRANY`
+zmizela a jiná dostala stejné jméno, záznam by ji tiše kryl.
+
+**4) ⚠ VLASTNÍ VADA V PRODUKČNÍM KÓDU (omyl 201) — a našel ji STARŠÍ DOKLAD.**
+První verze počítala „neočekávané červené“ ze **všech** nenulových exitů, takže
+mezi ně spadla i brána **deklarovaná** jako „běžela bez čítače“
+(`OCEKAVANE_BEZ_CITACE`) → `g3` padal **za to, co sám deklaroval**. Odhalil to
+**`p19-d-kontroly.py` (P19)**, ne můj nový test. Oprava: brány pokryté jinou
+sekcí (`bez_citace`, `neotevrene`) se z posuzování **odečítají**.
+
+### 38.2 Úkol B — BOM V `.py`: **ZAKÁZÁN** (a P19 měla nepřesný DŮVOD, ne výsledek)
+
+**Zadání:** „Přeměř to (fixtura s BOM: spuštění vs `compile()` vs obě brány)
+a rozhodni, co je správně; ať rozhodneš jakkoli, dolož to mutací oběma směry.“
+
+**Naměřeno** (`_analyza/p20-b-bom-mereni.py` → **16/0**):
+
+| Otázka | Odpověď |
+|---|---|
+| `python soubor.py` s BOM | **funguje** (`exit 0`, i něco vypíše) |
+| `compile(text)` s BOM | **spadne** — `invalid non-printable character U+FEFF` |
+| `ast.parse(text)` s BOM | **spadne TAKY** — týž tokenizér (`ast.parse` = `compile(..., PyCF_ONLY_AST)`) |
+| `compile()` po `utf-8-sig` | projde (BOM byl jediná příčina) |
+
+> **⚠ KOREKCE P19 (H99) — a je to poučení, ne kosmetika.** P19 zapsala, že
+> „`compile()` ho odmítne, ale `ast.parse()` ne“. **Naměřeno: obě ho odmítnou.**
+> Kdyby to zůstalo, příští session by hledala rozdíl mezi NA32 a H79
+> **ve špatné funkci**. Skutečný rozdíl je ve **ČTENÍ SOUBORU**: H79 má fallback
+> `utf-8` → `utf-8-sig` — jenže **BOM se v `utf-8` dekóduje na `U+FEFF` a
+> NEPADÁ**, takže fallback se **nikdy nespustí** a je to **mrtvá větev**
+> (ověřeno na **pěti vzorcích**).
+
+**ROZHODNUTÍ: BOM v `.py` je ZAKÁZANÝ** a je zapsaný v **`AGENTS.md`**
+(„KÓDOVÁNÍ SOUBORŮ: `.ps1` BOM MÍT MÁ, `.py` NESMÍ“) i s důvodem a s odkazem
+na měření. Zdůvodnění: **`compile()` je přesně ta operace, kterou dělá
+import** — soubor s BOM je pro nástroje nekompilovatelný, a to je vada
+(soubor se sice spustí, ale „jde spustit?“ není „je v pořádku“).
+
+**Obě brány se NEROZCHÁZEJÍ — a je to ověřené, ne odvozené:** fixtura s BOM
+položená do **živého stromu hry** → **NA32 `exit 1`** (`1 nekompilovatelných`)
+**i H79 `exit 1`** (`CHYBA syntaxe`). Fixtura se hned uklidila a `git status`
+hry byl **před i po prázdný**.
+
+### 38.3 Úkol B2 — NAVÍC: **H101, TICHÁ DÍRA V H79** (nový nález)
+
+Při měření BOM se ukázalo něco horšího než BOM. **`h79-escape-sken.py` nečitelný
+`.py` TIŠE VYNECHAL** (fallback selhal → `continue`), takže soubor nebyl ani
+v číslech, ani ve výstupu — a brána o něm tvrdila „0 neplatných sekvencí“.
+**Dvě brány, dva verdikty o témž stromě:** NA32 tentýž soubor **vykázal**
+(`1 nepřečteno`) a skončil **`exit 1`**, H79 skončila **`exit 0`** a soubor
+**vůbec nezmínila**. Doklad: `_analyza/p20-b2-necitelne.py` → **12/0**.
+
+**Opraveno:** nečitelné soubory se **POČÍTAJÍ a jsou POJMENOVANÉ**, mrtvá větev
+fallbacku je **odebraná**. `exit` se **nemění** (doklad se neopravuje — stejná
+konvence jako `_archiv`/`snapshot-*`/`*-scratch`), ale **tichý být nesmí**.
+Nové pole jde **NA KONEC souhrnu**, takže starší doklady P19 na týž řádek
+**pořád sedí** — ověřeno **jejich vlastním vzorem** (`p20-b2-kontroly.py`
+**12/0**).
+
+### 38.4 Úkol C — 8 KANDIDÁTŮ: **DO `g3` NEVSTOUPIL ANI JEDEN** (a proč)
+
+**Naměřeno** (`_analyza/p20-c-kandidati.py`): exit, doba běhu, čítač, zápis.
+
+| Kandidát | exit | doba | čítač | zápis | Verdikt |
+|---|---|---|---|---|---|
+| `ov-b1-compile.py` | 0 | 1,1 s | **— žádný** | čte | **zůstává doklad** — bez čítače by `g3` spadl |
+| `ov-e-h79-mez.py` | 0 | 9,7 s | `ZMĚŘENO: N` | **zapisuje** | doklad (mutuje strom) |
+| `ov-g-h92-sken.py` | 1 | 0,8 s | — | čte | **diagnostický sken** (a viz H103) |
+| `ov-g-neovereno.py` | 0 | 1,2 s | **— žádný** | čte | **zůstává doklad** — bez čítače by `g3` spadl |
+| `p19-b-kontroly.py` | 0 | 10,8 s | 29/0 | **zapisuje** | doklad k jednorázové opravě H93 |
+| `p19-b2-kontroly-h79.py` | 0 | 10,4 s | 23/0 | **zapisuje** | doklad k jednorázové opravě H98 |
+| `p19-c-h94-podpisy.py` | 0 | 14,0 s | 28/0 | **zapisuje** | doklad (staví kopii `g3`) |
+| `p19-d-kontroly.py` | 0 | 8,6 s | 18/0 | **zapisuje** | doklad (staví kopii `g3`) |
+
+**Zdůvodnění rozhodnutí:** do `g3` patří **měřidla, která měří STAV nebo si stav
+sama vyrobí** (§ P15). **Dva kandidáti nevykazují čítač** → podle pravidla
+z P19 by na nich `g3` **spadl**; **pět z nich ZAPISUJE do stromu** (jsou to
+mutace, tedy doklady o jednorázové opravě, ne stavová měřidla). `g3` proto
+**zůstává na 37 branách** a **žádná nová nemá čítač mimo deklaraci**.
+
+**⚠ ALE ROZHODNUTÍ MÁ DRUHOU POLOVINU, KTERÁ SE NESMÍ VYNECHAT:** „zůstává
+dokladem“ znamená **musí být opakovatelný a zelený** — jinak je to hromada
+shnilých důkazů. Proto vzniklo `_analyza/p20-d-doklady.py`, které pouští
+**VŠECHNY** doklady `_analyza/` (19 skriptů): **17 zelených, 4 opravené,
+1 doložený falešný poplach** (H103).
+
+**⚠ A ROZHODNUTÍ A PŘITOM ROZBILO TŘI STARŠÍ DOKLADY** — což je **správně
+a je to poučení**: stavěly kopii `g3` s vlastními fixturami, takže deklarace
+`OCEKAVANE_NENULOVE` v nich zůstala a stala se **VISUTOU**. Nejsou to nálezy
+o cizím kódu — jsou to **doklady, které zestaraly spolu se smlouvou**:
+
+| Doklad | Co bylo špatně | Oprava | Stav |
+|---|---|---|---|
+| `ov-e-h79-mez.py` | četl **starý formát souhrnu** H79 a měl **vlastní filtr bez vyloučených kategorií** → srovnával jablka s hruškami (`sken=168 vs vlastní=197`) | vzor po **pojmenovaných skupinách**, walk se **stejným filtrem** jako sken | **17/0** |
+| `p19-d-kontroly.py` | případ 5 tvrdil P19's „červenou NEposuzuje“ — **P20 to rozhodla opačně**; a deklarace bez fixtury = visutá | přepsán na „**MUSÍ spadnout**“ + přidán **opak** pro deklarovanou; deklarace se v kopii vyprazdňuje | **18/0** |
+| `p19-c-h94-podpisy.py` | deklarace fixtury bez čítače se **opisovala ručně** (a tiše nesedla); test navíc tvrdil `exit == 0`, což procházelo **jen proto, že `g3` do P19 neměl `sys.exit`** | klíč se vytahuje **programově** z téhož literálu; test nově ověřuje, že `g3` **promluvil**, ne že „nespadl“ | **28/0** |
+| `ov-d-klasifikator.py` | tvrdil **`>= 6` podpisů**, ale **P19 seznam zúžila na 4 živé** (H94) → spadl na **správně opraveném kódu** | rozděleno na dvě kontroly (`>= 4` přečteno, `== 4` zúženo) | **40/0** |
+
+> **⚠ POUČENÍ Z `p19-c`:** jeho kontrola „harness doběhl bez chyby“ (`exit == 0`)
+> procházela **jen proto, že `g3` do P19 NEMĚL ŽÁDNÝ `sys.exit`** — tedy
+> klasická **brána, která nemá jak selhat**. P20 `sys.exit` zavedla a kontrola
+> se okamžitě ukázala jako **měřící něco jiného, než si myslela**. Pro tenhle
+> doklad je totiž **správný výsledek `exit 1`** (fixtury mají „vůbec nezačaly“).
+
+### 38.5 Úkol D — BRÁNY A ZÁZNAMY PO P20
+
+* **`python _analyza\g3-brany.py`** → **37 bran, 1 nenulový** (`zadání kontrola`
+  → **deklarovaný/očekávaný**), **0 nezačatých**, **0 bran bez čítače mimo
+  deklarovaný stav**, `exit 0`, **`VÝSLEDEK g3: PŘEHLED JE ÚPLNÝ (… žádný
+  NEOČEKÁVANÝ nenulový exit)`**. Nové hodnoty čítačů po P20:
+  NA32 **`171 / 0`**, `escape sekvence (H79, statická)` **`0`** (souhrn nově nese
+  i `0 nečitelných`), `kompilovatelnost — mutace` **`9 / 0`**,
+  `g3 klasifikátor podle chování` **`18 / 0`**.
+* **`node tools\validate-all.mjs`** → **`✓ VŠE V POŘÁDKU`**, `exit 0`.
+* **`python _analyza\kronika-kontrola.py`** → **`KRONIKA SEDÍ`** po P20:
+  **205 omylů / 103 nálezů / 33 sessions / 26 bloků**.
+* **`python _analyza\handoff-kontrola-uplnost.py`** → **83/83**, `CHYBÍ: 0`.
+* **`NEOVĚŘENO`: 0** — ověřeno **vlastním skriptem** `_analyza/ov-g-neovereno.py`
+  (`s textem NEOVĚŘENO na tom řádku: 0`), **ne grepem**.
+* **Inventář přegenerován** (NA1/H60) — **naposledy jako POSLEDNÍ krok**.
+
+### 38.6 Nové nálezy P20 (H101–H103, zapsané i v kronice §2.14)
+
+| # | Nález | Doklad (měřením) | Stav |
+|---|---|---|---|
+| **H101** | **H79 měla TICHOU DÍRU: nečitelný `.py` tiše vynechala** (`continue`), takže o něm tvrdila „0 neplatných sekvencí“ — a NA32 tentýž soubor vykázal a skončil `exit 1`. **Dvě brány, dva verdikty o témž stromě.** Navíc její fallback `utf-8-sig` **nemá co zachránit** (je striktní nadmnožina `utf-8`) | `p20-b2-necitelne.py` **12/0** (fixtura s neplatným UTF-8 v živém stromě), `p20-b2-kontroly.py` **12/0** | **OPRAVENO** — počítá a pojmenovává; `exit` se nemění; mrtvá větev odebraná |
+| **H102** | **Doklad P18 `ov-d-klasifikator.py` tvrdil `>= 6` podpisů, ale P19 seznam zúžila na 4 živé** (H94) → **spadl na správně opraveném kódu** („brána na nastraženém poplachu“) | 40 kontrol, 1 chyba `seznam podpisů se ze zdroje přečetl`, `4 podpisů: […]` | **OPRAVENO** — dvě kontroly: `>= 4` přečteno a `== 4` zúženo |
+| **H103** | **Sken H92 hlásí `tools/lint-roadmapa.py:30` jako RIZIKO, ale ten řádek je ZÁMĚRNĚ MRTVÝ** — je to **premisa fallbacku** na sourozence repa, který se hned níž použije a **funguje** | `ov-g-h92-sken.py` → `exit 1` s tím jediným rizikem; týž nástroj **ručně** → `ZMĚŘENO: 22 granulí zkontrolováno, …`, **`exit 0`** | **NEOpravováno — doložený FALEŠNÝ POPLACH.** Sken hledá rizikový TVAR a neptá se, jestli za ním následuje fallback |
+
+### 38.7 Vlastní omyly této session
+
+Viz **§8z** (**195–210**) — **šestnáct, a patnáct z nich v mém vlastním
+měřidle**. Nejcenější jsou **195** (do měřidla jsem napsal **PŘEDPOKLAD** místo
+měření — a byl opačný, než skutečnost), **201** (vada v **produkčním** kódu,
+kterou našel **starší doklad**, ne můj nový test), **202** a **205** (dvě kola
+ztracená porovnáváním řetězců **očima**), **206** (do kroniky jsem vložil řádek
+přes kotvu, která se načetla **zkrácená** → **táž třída jako P19 `194`**)
+a **209** (**doklad s kotvou natvrdo** — spadl na správně aktualizovaném
+dokumentu, **táž třída jako H102**). **Ani jeden neobvinil cizí kód.**
+
+### 38.8 Co zůstává OTEVŘENÉ (po P20)
+
+* **`g3` a červené brány (NA23b)** — **VYŘEŠENO** v P20 (§38.1). Deklarace je
+  v `g3-brany.py`; **kdo přidá bránu, která má legitimně nenulový exit, musí ji
+  tam přidat i s KÓDEM** — jinak `g3` spadne (a to je **správně**: je to
+  ochrana, ne obtíž).
+* **BOM v `.py` (H99)** — **VYŘEŠENO** v P20: **zakázán**, pravidlo
+  v `AGENTS.md`. U `.ps1` je to **naopak** — BOM **mít musí**.
+* **`is not recognized` v klasifikátoru `g3`** — **odebraný** (g3 shell
+  nepoužívá). Kdyby do `BRANY` přibyla `.cmd`/`.ps1` brána, patří **zpátky**
+  (i `The system cannot find the file`).
+* **Osm ověřovacích skriptů (`ov-*`, `p19-*`) NENÍ v `g3`** — **ROZHODNUTO
+  v P20** (§38.4): zůstávají **doklady** a **každý je opakovatelný a zelený**;
+  hlídá to `_analyza/p20-d-doklady.py`. **Kdo přidá doklad, přidá ho i tam** —
+  jinak zůstane mimo dosah a shnije.
+* **`ov-g-h92-sken.py` je ČERVENÝ a je to FALEŠNÝ POPLACH** (H103) — **není to
+  vada stromu**; kdo ho uvidí červený, ať neopravuje `lint-roadmapa.py`.
+  Přesnost skenu (ptát se na fallback) je **otevřená, ne naléhavá**.
+* **`p19-scratch/` a `p20-scratch/` jsou gitignorované** (drží fixtury
+  a harnessy) — soubory v nich **nejsou** v repu; kdyby měly být dokladem,
+  patří do `_analyza/`. **Jednorázové diagnostiky** z P20
+  (`p20-sonda-jmena.py`, `p20-sonda-klicu.py`) jsou v **`_analyza/_archiv/`** —
+  nejsou to opakovatelné brány, takže v `_analyza/` by vypadaly jako měřidla,
+  která nikdo nepouští.
+* **Push orchestry i hry** — po P20 je orchestra **o N commitů před
+  `origin/main`** (P20 se nepushovala; push je **rozhodnutí uživatele**).
+  Hra je **nedotčená** (`44dd454`, v sync) — do hry se **nepsalo**, jen se v ní
+  na dobu měření zakládaly a hned mazaly fixtury (`git status` před i po prázdný).
 

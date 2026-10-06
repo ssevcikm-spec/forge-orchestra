@@ -54,13 +54,22 @@ def spust_sken() -> tuple:
 
 
 def vytahni(out: str) -> dict:
-    m = re.search(r"ZMĚŘENO:\s*(\d+)\s*neplatných escape sekvencí ve SKENOVANÝCH\s*"
-                  r"(\d+)\s*živých souborech \(mimo `_archiv`:\s*(\d+)\s*souborů,\s*"
-                  r"(\d+)\s*sekvencí\)", out)
+    # ⚠ OPRAVENO V P20 (6. 10. 2026): formát kanonického čítače se ZMĚNIL.
+    # Do P20 zněl `… (mimo \`_archiv\`: N souborů, M sekvencí)`; P20 k němu
+    # přidal `snapshot-*`, `*-scratch` (H98, už v P19) a **`nečitelných`**
+    # (H101 — do P20 se nečitelné soubory tiše vynechávaly). Tenhle doklad
+    # proto na nový řádek NESEDL a hlásil `sken=None` u pěti kontrol —
+    # což vypadá jako vada skenu, ale byla to vada DOKLADU (vzor, který usnul;
+    # táž třída jako S27). Bere se proto po JMENOVANÝCH skupinách, ne po
+    # pořadí — kdyby se pole přeházela, `group(2)` by tiše vrátil jiné číslo.
+    m = re.search(r"ZMĚŘENO:\s*(?P<zive_sekvence>\d+)\s*neplatných escape "
+                  r"sekvencí ve SKENOVANÝCH\s*(?P<zive_souboru>\d+)\s*živých "
+                  r"souborech \(mimo živý strom:\s*`_archiv`\s*"
+                  r"(?P<archiv_souboru>\d+)\s*souborů/(?P<archiv_sekvence>\d+)\s*"
+                  r"sekvencí.*?(?P<nectenych>\d+)\s*nečitelných\)", out, re.S)
     if not m:
         return {}
-    return {"zive_sekvence": int(m.group(1)), "zive_souboru": int(m.group(2)),
-            "archiv_souboru": int(m.group(3)), "archiv_sekvence": int(m.group(4))}
+    return {k: int(v) for k, v in m.groupdict().items()}
 
 
 print("=" * 88)
@@ -68,19 +77,31 @@ print("E — MEZ SKENU H79 (P18, vlastní měřidlo)")
 print("=" * 88)
 
 # ── 1) VLASTNÍ POČET SOUBORŮ ──────────────────────────────────────────────
+# ⚠ OPRAVENO V P20 (6. 10. 2026): tenhle walk počítal do „živých“ i
+# `snapshot-*/` a `*-scratch/` — tedy přesně to, co sken od H98 vylučuje.
+# Srovnání „sken vs. vlastní počet“ tím bylo **jablka s hruškami**: rozdíl
+# nedělala vada skenu, ale jiný filtr. Bere se proto TÝŽ filtr jako ve skenu
+# (a kdyby se rozešel, je to vidět tady — ne až v ručním dohledávání).
+SNAP_RE = re.compile(r"^snapshot-\d")
+SCRATCH_RE = re.compile(r".*-scratch$")
 print("\n--- 1) VLASTNÍ POČET SOUBORŮ (Python walk, stejný filtr jako sken) ---")
 vlastni = {}
 for jm, koren in [("orchestra", WS), ("hra", HRA)]:
-    z = a = 0
+    z = a = sn = sc = 0
     for p in koren.rglob("*.py"):
         if any(c in SKIP for c in p.parts):
             continue
         if "_archiv" in p.parts:
             a += 1
+        elif any(SNAP_RE.search(c) for c in p.parts):
+            sn += 1
+        elif any(SCRATCH_RE.search(c) for c in p.parts):
+            sc += 1
         else:
             z += 1
-    vlastni[jm] = {"zive": z, "archiv": a}
-    print(f"    {jm:10} živých {z:4}   v _archiv {a:4}")
+    vlastni[jm] = {"zive": z, "archiv": a, "snapshot": sn, "scratch": sc}
+    print(f"    {jm:10} živých {z:4}   v _archiv {a:4}   "
+          f"snapshot {sn:3}   scratch {sc:3}")
 v_zive = sum(v["zive"] for v in vlastni.values())
 v_arch = sum(v["archiv"] for v in vlastni.values())
 print(f"    CELKEM     živých {v_zive:4}   v _archiv {v_arch:4}")
@@ -97,8 +118,9 @@ kont("počet ŽIVÝCH souborů ve skenu == VLASTNÍ počet", c0.get("zive_soubor
 kont("počet souborů v _archiv == VLASTNÍ počet", c0.get("archiv_souboru") == v_arch,
     f"sken={c0.get('archiv_souboru')} vlastní={v_arch}")
 kont("mez je VIDĚT ve výstupu (vyloučení není tiché)",
-    "mimo `_archiv`" in out0 and "živých souborech" in out0,
-    "hlášení obsahuje obě čísla")
+    "mimo živý strom" in out0 and "živých souborech" in out0
+    and "nečitelných" in out0,
+    "hlášení obsahuje živé soubory, vyloučené kategorie i nečitelné (H101)")
 
 # ── 2) VLASTNÍ SKEN ESCAPE SEKVENCÍ ───────────────────────────────────────
 print("\n--- 2) VLASTNÍ SKEN (ast.parse + warnings) ---")

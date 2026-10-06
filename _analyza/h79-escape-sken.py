@@ -76,6 +76,20 @@ souboru_snapshot = 0
 souboru_scratch = 0
 chyb_parsovani = 0
 chyb_parsovani_archiv = 0
+# ⚠ NÁLEZ H101 (P20, 6. 10. 2026): NEPŘEČTENÉ soubory se do P20 **TIŠE
+# VYNECHÁVALY** (`continue`). Naměřeno: nečitelný `.py` v živém stromě →
+# H79 `exit 0` **a soubor ve výstupu vůbec nebyl**, kdežto `n32-kompilovatelnost.py`
+# tentýž soubor vykázal (`1 nepřečteno`) a skončil `exit 1`. Dvě brány tedy
+# vydaly o TÉMŽ stromě RŮZNÝ verdikt — a to je horší než nepřesnost, protože
+# „0 neplatných sekvencí“ se čte jako změřená nula, i když se část nezměřila.
+# Nově se počítají a jsou POJMENOVANÉ (vzor, který má `_archiv` od H86).
+nectene: list[tuple[str, str]] = []
+# ⚠ A druhá polovina téhož nálezu: fallback `utf-8` → `utf-8-sig` **nemá co
+# zachránit**. `utf-8-sig` je striktní NADMNOŽINA `utf-8` (BOM se v `utf-8`
+# dekóduje na U+FEFF, nepadá), takže každý soubor, který přečte `utf-8-sig`,
+# přečte i `utf-8`. Ověřeno na pěti vzorcích (`_analyza/p20-b2-necitelne.py`):
+# ani jeden případ, kde by fallback pomohl. Je proto ODEBRANÝ — mrtvá větev
+# vypadá jako pokrytí a nechytá nic (táž třída jako H94 v klasifikátoru `g3`).
 
 for jmeno, koren in REPA:
     if not koren.is_dir():
@@ -96,11 +110,13 @@ for jmeno, koren in REPA:
             souboru += 1
         try:
             text = p.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError):
-            try:
-                text = p.read_text(encoding="utf-8-sig")
-            except (UnicodeDecodeError, OSError):
-                continue
+        except (UnicodeDecodeError, OSError) as e:
+            # ⚠ H101 (P20): dřív tu byl `continue` a fallback na `utf-8-sig`.
+            # Fallback je pryč (nemá co zachránit — viz komentář u `nectene`)
+            # a nečitelný soubor se VYKÁŽE. `exit` se nemění: je to DOKLAD,
+            # ne živý kód k opravě — ale tichý být nesmí.
+            nectene.append((kat, f"{p} — {type(e).__name__}: {e}"))
+            continue
         with warnings.catch_warnings(record=True) as zaznamy:
             warnings.simplefilter("always")
             try:
@@ -165,13 +181,30 @@ if chyb_parsovani_archiv:
 if chyb_parsovani:
     print(f"  + {chyb_parsovani} ŽIVÝCH souborů se nedalo zpracovat")
 
+# ⚠ H101 (P20): NEČITELNÉ soubory se VYPISUJÍ — do P20 zmizely bez slova a brána
+# o nich tvrdila „0 neplatných sekvencí“. Vypisují se VŠECHNY kategorie, protože
+# i nečitelný doklad je něco, o čem se má vědět.
+if nectene:
+    print()
+    print(f"--- POZNÁMKA: {len(nectene)} souborů se NEDALO PŘEČÍST "
+          f"(nejsou v číslech výš!) ---")
+    for kat, popis in nectene:
+        print(f"  ({kat}) {popis}")
+    print("    Nezměřeno NENÍ nula: soubor se nenačetl, takže o jeho escape")
+    print("    sekvencích tahle brána NETVRDÍ NIC. Když je v živém stromě,")
+    print("    je to vada k opravě — a uvidí ji `n32-kompilovatelnost.py`.")
+
 # JEDEN kanonický čítač pro `g3` (ten bere POSLEDNÍ výskyt vzoru). Nese MEZ
-# (H86 + H98): kolik ŽIVÝCH souborů prošlo a kolik jich je v každé vyloučené
-# kategorii. Začátek řádku se NESMÍ změnit — `g3` ho čte vzorem
-# `ZMĚŘENO:\s*(\d+) neplatných`.
+# (H86 + H98 + H101): kolik ŽIVÝCH souborů prošlo, kolik jich je v každé
+# vyloučené kategorii a kolik se jich NEDALO PŘEČÍST. Začátek řádku se NESMÍ
+# změnit — `g3` ho čte vzorem `ZMĚŘENO:\s*(\d+) neplatných`.
+# ⚠ POLE `nečitelných` JE ZÁMĚRNĚ NA KONCI: `p19-b2-kontroly-h79.py` (a starší
+# doklady) matchují tentýž řádek vzorem, který končí na `*-scratch`; vložení
+# doprostřed by je rozbilo a doklad by přestal měřit.
 print(f"ZMĚŘENO: {len(zive)} neplatných escape sekvencí ve SKENOVANÝCH "
       f"{souboru} živých souborech (mimo živý strom: `_archiv` {souboru_archiv} "
       f"souborů/{len(archiv)} sekvencí, `snapshot-*` {souboru_snapshot}/"
-      f"{len(snapshot)}, `*-scratch` {souboru_scratch}/{len(scratch)})")
+      f"{len(snapshot)}, `*-scratch` {souboru_scratch}/{len(scratch)}, "
+      f"{len(nectene)} nečitelných)")
 
 sys.exit(1 if (zive or chyb_parsovani) else 0)

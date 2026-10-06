@@ -84,6 +84,25 @@ stav, ne pravidlo, takže se přeměřuje s každou session.
   **Kdo přidá dokument, přidá ho i do seznamu.**
 - **Drift mezi šablonou a hrou** hlídá `node tools\kontrola-driftu.mjs`
   a **známý rozdíl je jeden** (šablona má o tři kroky víc). Není to regrese.
+- **⚠ KÓDOVÁNÍ SOUBORŮ: `.ps1` BOM MÍT MÁ, `.py` NESMÍ.** Není to vkus, je to
+  **naměřené** (`_analyza/p20-b-bom-mereni.py`, P20 6. 10. 2026) — a každá
+  polovina má jiný důvod:
+
+  | Soubor | BOM | Proč |
+  |---|---|---|
+  | `.ps1` | **MUSÍ** | Bez BOM čte PowerShell soubor jako cp1252, české znaky se rozbijí a parser hlásí chybu na řádku, který je správně |
+  | `.py` | **NESMÍ** | `compile()` ho odmítne (`invalid non-printable character U+FEFF`) → soubor je pro brány nekompilovatelný |
+
+  **Past, která to spojuje:** `python soubor.py` s BOM **funguje** (`exit 0`),
+  ale `compile()` nad týmž textem **spadne** — „jde spustit?" a „jde
+  zkompilovat?" jsou **dvě různé otázky** (nález **H99**). Spustitelnost tedy
+  **není** důkaz, že je soubor v pořádku.
+  **Kdo zapíše `.py` přes `Set-Content -Encoding utf8`, vyrobí vadu** (omyl
+  **189**, naměřeno v P19) — a odhalí ji **NA32**. Piš `edit`/`write` toolem
+  a po zápisu zkontroluj **první tři bajty** (`EF BB BF` = BOM).
+  **A ověřeno je i to, že se obě brány nerozcházejí:** tentýž `.py` s BOM
+  položený do živého stromu hry vykázaly **NA32 i H79** (`exit 1`) — naměřeno,
+  ne odvozeno. Kdyby se někdy rozešly, je to vada brány, ne detail.
 - **Dokumenty, které se kontrolují:** `kontrola-diakritiky.py`,
   `over-dokumentaci.py`, `over-skilly.py` — **po každé editaci je spusť.**
   Brána `over-dokumentaci.py` má **pevný seznam požadovaných textů**, a to

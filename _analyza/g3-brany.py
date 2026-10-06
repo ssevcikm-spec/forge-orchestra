@@ -8,13 +8,16 @@ brány hledá ve výstupu **počet kontrol / souborů / granulí** a ten vypíš
 Píše se i do souboru `_analyza/g3-brany-vystup.txt`, aby se dal zápis ověřit
 bez opakovaného běhu.
 
-⚠ NÁVRATOVÝ KÓD (od P19, 6. 10. 2026 — rozhodnutí Úkolu D):
-  0 = přehled je ÚPLNÝ (každá brána začala a vykázala, co otevřela),
+⚠ NÁVRATOVÝ KÓD (od P19, 6. 10. 2026 — rozhodnutí Úkolu D; ⚠ ROZŠÍŘENO V P20):
+  0 = přehled je ÚPLNÝ (každá brána začala a vykázala, co otevřela) **a žádný
+      nenulový exit není mimo `OCEKAVANE_NENULOVE`**,
   1 = NĚCO SE NEMĚŘILO (brána vůbec nezačala, nebo běžela bez čítače a není
-      v deklarovaném `OCEKAVANE_BEZ_CITACE`),
+      v deklarovaném `OCEKAVANE_BEZ_CITACE`) **NEBO se brána rozešla s deklarací
+      (NEOČEKÁVANÝ nenulový exit / visutý záznam)**,
   2 = neproběhla ANI JEDNA brána.
-**O červených branách se tím nerozhoduje** — které nenulové exity jsou správné,
-není sepsané (nález NA23b); g3 je jen vypíše jako „k rozhodnutí“.
+⚠ P19 o červených NEROZHODOVAL (nález NA23b) — **P20 to rozhodla**: seznam
+`OCEKAVANE_NENULOVE` je níž a `g3` podle něj červené soudí. Důvod, proč to dřív
+nešlo: „které nenulové exity jsou správné“ nebylo sepsané.
 
 Použití: python _analyza/g3-brany.py
 """
@@ -297,6 +300,20 @@ BRANY = [
 vse = []
 radky_vypisu = []
 
+# ⚠ `--soubor <cesta>` (P20): přepínač pro DOKLADY, které stavějí KOPII tohohle
+# skriptu a čtou její VÝSTUP. Od P20 totiž `g3` **skončí nenulově i tehdy, když
+# si jen dělá svou práci** (brána, která vůbec nezačala / běžela bez čítače /
+# neočekávaný nenulový exit). Doklad, který si ověřuje KLASIFIKACI, tím dostane
+# `exit 1` z legitimního důvodu — a nemůže rozlišit „harness promluvil správně“
+# od „harness spadl“.
+# ⚠ PROČ TO NENÍ „vypnutí brány“: přepínač NEMĚNÍ žádné rozhodnutí — jen
+# **přesune návratový kód do jiné přihrádky** (do mezerou odděleného řádku
+# `NAVRATOVY_KOD=<n>`), který si doklad přečte. Čtecí kód v CI ani v `g3` ho
+# nepoužívá, takže se jím nedá nic obejít. Bez něj by se musel důkaz dělat
+# HÁDÁNÍM, který z pěti důvodů nastal — a to je přesně chyba, kterou má
+# `overovani` §10.1 zakázanou.
+_POUZE_VYSTUP = "--soubor" in sys.argv
+
 # Nahrazení záznamníků ODVOZENÝMI cestami. Kdyby se něco nenahradilo, je to
 # vidět na `can't open file` s ostrými závorkami v cestě — a `nedosazene`
 # to navíc pojmenuje ve souhrnu (aby to nebylo jen v plném výpisu).
@@ -560,8 +577,8 @@ if bez_citace:
 # ── ROZHODNUTÍ P19 (Úkol D / nález NA23b): `g3` SMÍ SPADNOUT — ALE JEN ZA SEBE ─
 # `g3` tvrdí jednu věc: **každá brána začala a řekla, kolik toho otevřela**.
 # Když to neplatí, je to vada MĚŘENÍ (ne výsledek brány), a proto `exit != 0`.
-# O červených branách nerozhoduje: seznam „očekávaně nenulových exitů“ neexistuje
-# (NA23b) a g3 ho nepředstírá — jen je VYPÍŠE a pojmenuje jako k rozhodnutí.
+# O červených branách do P20 nerozhodoval — seznam „očekávaně nenulových exitů“
+# neexistoval (nález NA23b). ⚠ OD P20 SE ROZHODUJE: viz `OCEKAVANE_NENULOVE` níž.
 #
 # `OCEKAVANE_BEZ_CITACE` je deklarovaný výjimečný stav: brána, o které VÍME, že
 # čítač nemá (a víme proč). Nová taková brána = `exit 1`, dokud se nerozhodne.
@@ -569,15 +586,74 @@ if bez_citace:
 # baseline by jinak tiše krýval novou bránu se stejným jménem.
 OCEKAVANE_BEZ_CITACE = {"C2: mutace N1 (5 běhů)"}
 
+# ══ ROZHODNUTÍ P20 (Úkol A) — `g3` NYNÍ SOUDÍ I ČERVENÉ (NA23b VYŘEŠEN) ═══════
+# Do P20 `g3` o červených **nerozhodoval** — chyběl mu seznam „které nenulové
+# exity jsou správné“ (nález **NA23b**). Tím byla půlka jeho práce slepá:
+# brána, která přestane platit, se v přehledu **objevila** — ale `g3` kvůli ní
+# nespadl, takže `exit 0` vypadal stejně pro „všechno je v pořádku“ i pro
+# „jedna brána tiše odešla“.
+#
+# `OCEKAVANE_NENULOVE` ten seznam JE. Formát je **`{jméno brány: očekávaný exit}`**
+# a ten KÓD tam patří proto, že se to naměřilo (`_analyza/p20-a-kody-bran.py`):
+# **`zadání kontrola` umí `0` i `1`** — `0`, když je zadání kotvené na živý
+# `HEAD`, `1`, když je zastaralé (což je jeho SPRÁVNÁ práce, nález **NA31**).
+# Kdyby deklarace nesla jen jméno, `g3` by nerozlišil „tatáž brána, jiný důvod“.
+#
+# Tři stavy, které z toho plynou (a každý se VYPISUJE — žádný není ticho):
+#   * `exit` = deklarovaný    → brána je tam, kde má být, `g3` to neposuzuje dál;
+#   * `exit` ≠ deklarovaný    → **`exit 1`**: je to NEOČEKÁVANÝ nenulový exit.
+#   * deklarováno, ale `0`    → **poznámka, ne pád.** Pravidlo projektu je,
+#     že se zadání **neopravuje na dnešek** (§37.5), takže se `zadání kontrola`
+#     legitimně PŘEPÍNÁ mezi `0` a `1` podle toho, kde je `HEAD` — a `g3`
+#     nesmí spadnout za to, že předpoklad mezitím pominul. Na rozdíl od
+#     `OCEKAVANE_BEZ_CITACE` tu ale platí, že záznam, který **zmizí z `BRANY`**,
+#     je VISUTÝ (deklarace o bráně, která už není) → **`exit 1`**.
+OCEKAVANE_NENULOVE = {"zadání kontrola": 1}
+
 print()
 print("─" * 78)
+# ── VERDIKT NAD ČERVENÝMI (P20): deklarované projdou, nedeklarované shodí g3 ──
+# ⚠ OMyl P20/6 (naměřený `p19-d-kontroly.py`, případ 4): `selhalo` je KAŽDÝ
+# nenulový exit — takže sem spadne i brána, která je DEKLAROVANÁ jako
+# „běžela bez čítače“ (`OCEKAVANE_BEZ_CITACE`, dnes `C2: mutace N1`), a taky
+# brána, která VŮBEC NEZAČALA. Ani jedna z nich není „neočekávaný nenulový
+# exit“ — první je přiznaný stav a druhá je vada MĚŘENÍ, která se hlásí svou
+# vlastní sekcí. Bez tohohle odečtení by `g3` padal za to, co sám deklaroval.
+_pokryte_jinde = ({p for p, _, _ in bez_citace}
+                  | {p for p, _ in neotevrene})
+nazvy_bran = {p for p, _, _, _ in vse}
+_exity = {q: k for q, k in selhalo}
+nove_cervene = sorted((p, k) for p, k in selhalo
+                      if OCEKAVANE_NENULOVE.get(p) != k
+                      and p not in _pokryte_jinde)
+cekane_cervene = sorted((p, k) for p, k in selhalo
+                        if OCEKAVANE_NENULOVE.get(p) == k)
+# Deklarace, kterou `BRANY` vůbec neobsahují = visutý záznam (deklarace o bráně,
+# která už není). Na rozdíl od „už není potřeba“ tudy vede cesta k tichému krytí:
+# kdyby brána z `BRANY` zmizela a jiná dostala stejné jméno, záznam by ji kryl.
+visute = sorted(set(OCEKAVANE_NENULOVE) - nazvy_bran)
+# Deklarace, která dnes platí, ale `exit` je 0 → předpoklad pominul (NENÍ vada:
+# zadání se na dnešek záměrně neopravuje, §37.5).
+uz_neni_nenulova = sorted(p for p in OCEKAVANE_NENULOVE
+                          if p in nazvy_bran and _exity.get(p) is None)
+
 if selhalo:
-    print("NENULOVÉ EXITY: %d — které z nich jsou SPRÁVNÉ, rozhoduje člověk "
-          "(NA23b); g3 je neposuzuje:" % len(selhalo))
-    for p, k in selhalo:
-        print("   k rozhodnutí: %s → exit=%s" % (p, k))
+    print("NENULOVÉ EXITY: %d — z toho deklarovaných (očekávaných) %d "
+          "a NEDEKLAROVANÝCH %d:" % (len(selhalo), len(cekane_cervene),
+                                     len(nove_cervene)))
+    for p, k in cekane_cervene:
+        print("   očekávaný:   %s → exit=%s" % (p, k))
+    for p, k in nove_cervene:
+        print("   NEOČEKÁVANÝ: %s → exit=%s" % (p, k))
 else:
     print("NENULOVÉ EXITY: 0 — každá brána doběhla s exit 0")
+if uz_neni_nenulova:
+    print("   (poznámka: v `OCEKAVANE_NENULOVE` už není potřeba: %s — "
+          "brána dnes končí nulou; TO NENÍ VADA, zadání se na dnešek "
+          "neopravuje)" % ", ".join(uz_neni_nenulova))
+if visute:
+    print("   ⚠ VISUTÉ záznamy v `OCEKAVANE_NENULOVE` (brána v `BRANY` není): %s"
+          % ", ".join(visute))
 
 nove_bez_citace = sorted(p for p, _, _ in bez_citace
                          if p not in OCEKAVANE_BEZ_CITACE)
@@ -596,9 +672,20 @@ if not vse:
     kod = 2
 elif neotevrene or nove_bez_citace:
     kod = 1
+elif nove_cervene or visute:
+    # ⚠ P20: tohle je ta polovina, která do P20 chyběla (NA23b). Nenulový exit
+    # MIMO deklaraci znamená, že brána přestala platit (nebo se rozbila) —
+    # a `g3` to musí říct nahlas, ne jen vypsat řádek do přehledu.
+    kod = 1
 print("VÝSLEDEK g3: %s" % {0: "PŘEHLED JE ÚPLNÝ (každá brána začala a vykázala, "
-                              "co otevřela)",
-                           1: "NĚCO SE NEMĚŘILO — viz výše (vady MĚŘENÍ, ne "
+                              "co otevřela; žádný NEOČEKÁVANÝ nenulový exit)",
+                           1: "NĚCO SE NEMĚŘILO NEBO SE ROZEŠLO S DEKLARACÍ — "
+                              "viz výše (vady MĚŘENÍ a neočekávané exity, ne "
                               "výsledky bran)",
                            2: "NEMĚŘILO SE VŮBEC"}[kod])
+# Viz komentář u `_POUZE_VYSTUP`: doklad si návratový kód přečte odsud a sám
+# zůstane `exit 0` (jinak by nemohl rozlišit „správně promluvil“ od „spadl“).
+if _POUZE_VYSTUP:
+    print("NAVRATOVY_KOD=%d" % kod)
+    sys.exit(0)
 sys.exit(kod)

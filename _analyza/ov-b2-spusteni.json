@@ -1,5 +1,5 @@
 {
-  "kdy": "2026-10-06T06:40:54.411575",
+  "kdy": "2026-10-06T14:00:17.601951",
   "izolace": "E:\\Workspaces\\_ov-scratch\\forge-orchestra",
   "pred": {
     "baseline.json (hra)": "1FE321FA37A80FBD4847AAE6F2133079A6B2F04ED9F8C4E8D7463AEE39F2B22C",
@@ -14,45 +14,45 @@
   "vysledky": [
     {
       "skript": "_analyza\\p1-inventura-cest.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "KOD souboru s pevnou cestou: 27\n  _analyza/            23\n  root workspace       4\nrozhodnuti:\n  archivovat   17\n  opravit      10\nDOKUMENTU: 25\nzapsano: E:\\Workspaces\\_ov-scratch\\forge-orchestra\\_analyza\\P1-INVENTURA-CEST.md\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     },
     {
       "skript": "_analyza\\p1b-odvozene-cesty.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "ODVOZENYCH cest celkem: 161\n  RIZIKO (od rodice):   9\n  OK (od sebe):         152\n  _analyza/            89\n  root workspace       72\n\nzapsano: E:\\Workspaces\\_ov-scratch\\forge-orchestra\\_analyza\\P1B-ODVOZENE-CESTY.md\n\n--- RIZIKO (od rodice) ---\n  _analyza\\p16a3-mutant.py                                   gameforge\n  _analyza\\p1b-odvozene-cesty.py                             Split-Path -Parent, gameforge\n  conductor\\src\\index.ts                                     gameforge\n  install-into-repo.ps1                                      Split-Path -Parent\n  tools\\git.cmd                                              gameforge\n  tools\\over-dokumentaci.py                                  gameforge\n  tools\\repo-files.mjs                                       gameforge\n  tools\\test-local.ps1                                       Split-Path -Parent, gameforge\n  tools\\verify-setup.py                                      gameforge\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     },
     {
       "skript": "_analyza\\p3-bazline.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "orchestra       423 souboru        6.7 MB   E:\\Workspaces\\_ov-scratch\\forge-orchestra\nhra            1816 souboru       16.1 MB   E:\\Workspaces\\_ov-scratch\\uo-shadows\ngodot        NEEXISTUJE   E:\\Workspaces\\_ov-scratch\\forge-orchestra\\tools\\godot\n\nzapsano: E:\\Workspaces\\_ov-scratch\\forge-orchestra\\_analyza\\p3-bazline.json\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     },
     {
       "skript": "tools\\baseline-poznamka.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "Zapsáno: E:\\Workspaces\\_ov-scratch\\uo-shadows\\.forge\\vision\\baseline.json\n  položek 272, přepsaných záznamů 0\n  schvalil = agent-init, _ceka_na_lgtm = true\n\nAž se na arch podíváš a bude to dobré, přepiš to na lidské schválení:\n  python .forge/baseline.py init   # (nebo `schval <slozka>` po úpravách)\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     },
     {
       "skript": "tools\\diag-baseline.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "=== 1) které soubory se berou ===\n   assets/sprites/hrdina.png   (name='hrdina.png', startswith_=False)\n   assets/sprites/mince.png   (name='mince.png', startswith_=False)\n   tools/blender/sprites/body_d0_f0.png   (name='body_d0_f0.png', startswith_=False)\n\n=== 2) phash červené vs modré ===\n   červená None\n   modrá   None\n   liší se? False\n\n=== 3) co vrací kontrola pro různé stavy ===\n   zapsané klíče: ['assets/sprites/hrdina.png', 'assets/sprites/mince.png', 'tools/blender/sprites/body_d0_f0.png']\n   kontrola(hrdina)  = {'v_cache': True, 'duvod': 'schváleno a nezměněno (přesná shoda)', 'schvalil': 'clovek', 'schvaleno': '2026-10-06T04:40:52+00:00'}\n   klic(tmp, cesta)  = 'assets/sprites/hrdina.png'\n\n=== 4) co vypisuje CLI ===\n   returncode=0\n   STDOUT='{\\n  \"v_cache\": true,\\n  \"duvod\": \"schváleno a nezměněno (přesná shoda)\",\\n  \"schvalil\": \"clovek\",\\n  \"schvaleno\": \"2026-10-06T04:40:52+00:00\"\\n}\\n'\n   STDERR=''\n   tmp=C:\\Users\\Ssevc\\AppData\\Local\\Temp\\diag-97zy543y\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     },
     {
       "skript": "tools\\oprav-ps1-kodovani.py",
-      "stav": "SPUSTENO",
-      "exit": 0,
-      "traceback": 0,
-      "vystup": "  OK   test-local.ps1: 5009 → 5009 B, řádků 110 → 110, BOM=ano, zdvojené konce=0, dvojité kódování=ne\n  OK   install-into-repo.ps1: 8197 → 8197 B, řádků 195 → 195, BOM=ano, zdvojené konce=0, dvojité kódování=ne\n"
+      "stav": "NEEXISTUJE",
+      "exit": null,
+      "traceback": null,
+      "vystup": ""
     }
   ]
 }

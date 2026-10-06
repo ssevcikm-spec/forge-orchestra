@@ -198,6 +198,37 @@ zk(f'WS = pathlib.Path(r"{WS}")' in h,
 zk(h != zdroj and h.count("C-fixtura") == 3,
    "harness má MOJE tři fixtury a liší se od živého g3",
    f"fixtur: {h.count('C-fixtura')}")
+# ⚠ DOPLNĚNO V P20 (6. 10. 2026) — PŘÍMÝ DŮSLEDEK rozhodnutí Úkolu A: `g3` od
+# P20 soudí i červené, takže deklarace `OCEKAVANE_NENULOVE` s `zadání kontrola`
+# je v kopii VISUTÁ (fixtury nahrazují CELÝ blok `BRANY`, žádná `zadání kontrola`
+# tam není) → `g3` správně končí `exit 1`. Jenže tenhle test měří KLASIFIKACI,
+# ne deklaraci — a `exit 1` by mu podstrčil cizí důvod (`overovani` §10.1).
+# Deklarace se proto v kopii vyprazdňuje.
+h = h.replace('OCEKAVANE_NENULOVE = {"zadání kontrola": 1}',
+              "OCEKAVANE_NENULOVE = {}")
+zk('OCEKAVANE_NENULOVE = {}' in h,
+   "harness má VYPRÁZDNĚNOU deklaraci (měří klasifikaci, ne deklaraci)")
+# ⚠ A DRUHÁ STEJNÁ VĚC (naměřeno tady, omyl P20/7): fixtura A **ZÁMĚRNĚ**
+# běží bez čítače (to je třetí stav, který tenhle doklad zkoumá), takže musí být
+# v `OCEKAVANE_BEZ_CITACE` — jinak `g3` správně hlásí `exit 1` za bránu bez
+# čítače a test spadne na CIZÍ důvod.
+# ⚠ OMyl P20/8 (naměřeno hned nato): deklarace se NESMÍ psát opsaným literálem.
+# `g3` staví klíč **doslova z popisu brány** a stačí jiná šipka, mezera nebo
+# neviditelný znak a deklarace **tiše nesedí** — `g3` pak hlásí totéž, jako by
+# tam nebyla, a vypadá to jako vada brány. Tady se proto deklarace **vkládá
+# programově** do TÉŽE řádky, kterou `g3` čte, a klíč se bere z `ME_FIXTURY`
+# (ze stejného literálu, který jde do `BRANY`). Test tím netvrdí „opsal jsem to
+# správně“, ale „deklaroval jsem to, co opravdu běží“.
+_jm_fixtury_a = re.search(r'\("(C-fixtura A[^"]*)"', ME_FIXTURY).group(1)
+_m_dek = re.search(r"^OCEKAVANE_BEZ_CITACE = \{.*?\}$", h, re.M)
+zk(_m_dek is not None, "v harnessu je řádek `OCEKAVANE_BEZ_CITACE`")
+if _m_dek:
+    h = (h[:_m_dek.start()]
+         + "OCEKAVANE_BEZ_CITACE = {%r, %r}" % ("C2: mutace N1 (5 běhů)",
+                                                _jm_fixtury_a)
+         + h[_m_dek.end():])
+    zk(_jm_fixtury_a in h,
+       "harness deklaruje i fixturu bez čítače (měří ji záměrně)", _jm_fixtury_a)
 h = nahrad_seznam(h, podpisy)          # normalizuj formát seznamu
 ast.parse(h)
 zk(True, "harness se dá zkompilovat")
@@ -205,10 +236,57 @@ zk(True, "harness se dá zkompilovat")
 
 def spust_harness(text: str) -> dict:
     HARNESS.write_text(text, encoding="utf-8", newline="\n")
-    r = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
-                       text=True, encoding="utf-8", errors="replace",
-                       cwd=str(WS), timeout=900)
+    # ⚠ `--soubor` (P20): od P20 má `g3` `sys.exit` — takže harness, který měří
+    # KLASIFIKACI, skončí nenulově i když promluvil SPRÁVNĚ (např. „2 brány
+    # vůbec nezačaly“ je pro tenhle doklad SPRÁVNÝ výsledek, ale `g3` za něj
+    # správně vrací `1`). Doklad by pak nemohl rozlišit „promluvil“ od „spadl“.
+    # Přepínač návratový kód PŘESUNE do řádku `NAVRATOVY_KOD=<n>` (rozhodování
+    # se nemění) — a přesně to dělá `p19-d-kontroly.py` porovnáváním `exit`.
+    r = subprocess.run([sys.executable, "-B", str(HARNESS), "--soubor"],
+                       capture_output=True, text=True, encoding="utf-8",
+                       errors="replace", cwd=str(WS), timeout=900)
     o = (r.stdout or "") + (r.stderr or "")
+    m_kod = re.search(r"^NAVRATOVY_KOD=(\d+)$", o, re.M)
+    kod_g3 = int(m_kod.group(1)) if m_kod else r.returncode
+    # ⚠ DOPLNĚNO V P20: `exit` SÁM NEŘEKNE, KTERÝ stav nastal — a tenhle doklad
+    # na tom spadl po rozhodnutí Úkolu A (`exit 1` má čtyři různé důvody;
+    # `overovani` §10.1). Neúspěšný běh se proto VYPISUJE celý.
+    if r.returncode != 0 and "SOUHRN" not in o:
+        print("      --- výpis harnessu (exit=%d) ---" % r.returncode)
+        for l in o.splitlines()[-22:]:
+            print("      " + l)
+        print("      --- deklarace v harnessu ---")
+        for l in text.splitlines():
+            if "OCEKAVANE" in l and "=" in l and "#" not in l.split("=")[0]:
+                print("      " + l[:300])
+        # ⚠ DIAGNOSTIKA (P20): vypíše DOSLOVNÉ názvy klíčů, které g3 použil pro
+        # `bez_citace`, a POROVNÁ je s deklarací PO KÓDOVÝCH BODECH. Bez toho se
+        # „deklarace nesedí“ hledá očima — a přesně na tomhle se v P20 dvakrát
+        # ztratil čas: dva řetězce vypadaly stejně a stejné nebyly.
+        for l in o.splitlines():
+            if "BRÁNY BEZ ČÍTAČE mimo deklarovaný stav" in l:
+                print("      " + l.strip()[:200])
+            # ⚠ ROZHODUJÍCÍ ŘÁDEK: verdikt harnessu. Do P20 se sem nepsal a čas
+            # se ztratil hádáním, KTERÝ z pěti důvodů `exit 1` nastal.
+            if l.startswith("VÝSLEDEK g3:"):
+                print("      " + l.strip()[:200])
+        _klic = re.search(r"NEVYKÁZALY ČÍTAČ[^\n]*\n\s+([^\n]+?)(?:, běžela| → exit=)", o)
+        if _klic:
+            print("      KLÍČ g3 : " + repr(_klic.group(1)))
+            print("      DEKLAR  : " + repr(_jm_fixtury_a))
+            print("      SHODA   : %s" % (_klic.group(1) == _jm_fixtury_a))
+            if _klic.group(1) != _jm_fixtury_a:
+                a, b = _klic.group(1), _jm_fixtury_a
+                for n, (x, y) in enumerate(zip(a, b)):
+                    if x != y:
+                        print("      PRVNÍ ROZDÍL na pozici %d: g3=U+%04X %r, "
+                              "deklar=U+%04X %r" % (n, ord(x), x, ord(y), y))
+                        break
+                else:
+                    print("      ROZDÍL JE V DÉLCE: g3=%d, deklar=%d znaků"
+                          % (len(a), len(b)))
+        else:
+            print("      (řádek „BRÁNY, KTERÉ BĚŽELY…“ se ve výstupu nenašel)")
     b1 = re.search(r"BRÁNY, KTERÉ VŮBEC NEZAČALY \(\d+\)[^\n]*\n(.*?)(?=\n\n|\Z)",
                    o, re.S)
     b2 = re.search(r"NEVYKÁZALY ČÍTAČ \(\d+\)[^\n]*\n(.*?)(?=\n\n|\Z)", o, re.S)
@@ -216,7 +294,7 @@ def spust_harness(text: str) -> dict:
             if b1 else set(),
             "bez_citace": set(re.findall(r"^\s+(C-fixtura [A-D])", b2.group(1), re.M))
             if b2 else set(),
-            "exit": r.returncode, "vystup": o}
+            "exit": kod_g3, "vystup": o}
 
 
 ZDRAVY = {"nezacaly": {"C-fixtura C", "C-fixtura D"},
@@ -232,7 +310,20 @@ if not (r0["nezacaly"] or r0["bez_citace"]):
         print(f"      {l}")
 # ⚠ GUARD (past „každá mutace je odhalena, když čtení nefunguje"): nejdřív se
 # musí dokázat, že SE ČTE. Bez toho by prázdné množiny vypadaly jako nález.
-zk(r0["exit"] == 0, "harness doběhl bez chyby", f"exit={r0['exit']}")
+zk("VÝSLEDEK g3:" in r0["vystup"],
+   "harness DOBĚHL a řekl svůj verdikt (není to pád ani prázdný výstup)",
+   f"exit={r0['exit']}, {len(r0['vystup'])} B výstupu")
+# ⚠ PŘEPSÁNO V P20 (6. 10. 2026) — a je to POUČENÍ, ne kosmetika.
+# Do P20 tu stálo `r0["exit"] == 0`. To procházelo **jen proto, že `g3` do P19
+# NEMĚL ŽÁDNÝ `sys.exit`** — vždy skončil `0`, takže kontrola „harness doběhl
+# bez chyby“ nemohla nikdy selhat (brána, která nemá jak selhat).
+# P20 `sys.exit` ZAVEDLA, a tím se ukázalo, že ta podmínka **měřila něco jiného,
+# než si myslela**: pro tenhle doklad je SPRÁVNÝ výsledek `exit 1` — fixtury
+# C a D mají „vůbec nezačaly“ a A „běžela bez čítače“, což `g3` má hlásit
+# nenulově. `exit 0` by tu naopak znamenalo, že klasifikátor NIC nenašel.
+# Doklad proto nově tvrdí to, co potřebuje: **promluvil** (verdikt je ve výstupu)
+# a **vydal očekávanou klasifikaci** (kontroly níž). Návratový kód se hlásí,
+# ale nesoudí se jím — od toho je `p19-d-kontroly.py` a `p20-a-kontroly.py`.
 zk(bool(r0["nezacaly"] or r0["bez_citace"]),
    "ČTENÍ VÝSTUPU FUNGUJE — klasifikace není prázdná (jinak by každá mutace „prošla“)",
    f"nezačaly={sorted(r0['nezacaly'])}, bez_čitače={sorted(r0['bez_citace'])}")

@@ -168,6 +168,24 @@ h = h[:m2b.start()] + ME_SMYCKA + h[m2b.end():]
 # Výstup přepiš mimo živý strom, ať se nepřepíše doklad P17.
 h = h.replace('VYSTUP = ANALYZA / "g3-brany-vystup.txt"',
               'VYSTUP = ANALYZA / "ov-d-harness-vystup.txt"')
+# ⚠ DOPLNĚNO V P20 (6. 10. 2026) — PŘÍMÝ DŮSLEDEK rozhodnutí Úkolu A: `g3` od
+# P20 soudí i červené, takže deklarace `OCEKAVANE_NENULOVE` s `zadání kontrola`
+# je v kopii VISUTÁ (fixtury nahrazují CELÝ blok `BRANY`) → `g3` správně končí
+# `exit 1` z důvodu, který tenhle doklad NEZKOUMÁ (`overovani` §10.1).
+h = h.replace('OCEKAVANE_NENULOVE = {"zadání kontrola": 1}',
+              "OCEKAVANE_NENULOVE = {}")
+# ⚠ A druhá stejná věc: fixtury BĚŽÍ, ale mají `exit=2` a (záměrně) nevykazují
+# čítač, takže `g3` je právem hlásí jako „běžely bez čítače“ → další `exit 1`
+# z cizího důvodu. Deklarují se proto VŠECHNY — tenhle test měří KLASIFIKACI.
+_dek = re.search(r"^OCEKAVANE_BEZ_CITACE = \{.*?\}$", h, re.M)
+if _dek:
+    _jm = re.findall(r'\("(D-fixtura [^"]*)"', ME_FIXTURY)
+    h = (h[:_dek.start()]
+         + "OCEKAVANE_BEZ_CITACE = {%s}"
+         % ", ".join(repr(x) for x in ["C2: mutace N1 (5 běhů)"] + _jm)
+         + h[_dek.end():])
+    kont("harness deklaruje všech 5 fixtur bez čítače (měří klasifikaci)",
+         all(x in h for x in _jm), f"{len(_jm)} fixtur")
 HARNESS.write_text(h, encoding="utf-8", newline="\n")
 import ast as _ast  # noqa: E402
 _ast.parse(h)
@@ -188,7 +206,13 @@ v = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                    cwd=str(REPO), timeout=900)
 out = (v.stdout or "") + (v.stderr or "")
 print(out.rstrip())
-kont("harness doběhl bez chyby", v.returncode == 0, f"exit={v.returncode}")
+kont("harness DOBĚHL a řekl verdikt (není to pád ani prázdný výstup)",
+     "VÝSLEDEK g3:" in out, f"exit={v.returncode}, {len(out)} B výstupu")
+# ⚠ PŘEPSÁNO V P20: do P20 tu stálo `v.returncode == 0` a procházelo to JEN
+# proto, že `g3` do P19 NEMĚL ŽÁDNÝ `sys.exit` (vždy 0) — kontrola, která nemá
+# jak selhat. Správný výsledek pro tenhle doklad je naopak NENULOVÝ: fixtury
+# C a D „vůbec nezačaly“ a A/B/E „běžely bez čítače“. `exit 0` by znamenalo,
+# že klasifikátor nic nenašel. Soudí se proto KLASIFIKACE (kontroly níž), ne kód.
 
 blok_nezacaly = re.search(
     r"⚠ BRÁNY, KTERÉ VŮBEC NEZAČALY \((\d+)\).*?(?=\n\n|\nbrány, které)",
@@ -306,14 +330,25 @@ kont("M1 — A se přesune z 'bez čítače' do 'nezačalých' (změna ZAŘAZEN�
     "D-fixtura A" in r1["nezacaly"] and "D-fixtura A" not in r1["bez_citace"],
     f"nezačaly={sorted(r1['nezacaly'])} bez_čitače={sorted(r1['bez_citace'])}")
 # ── 5b) KTERÉ PODPISY V SEZNAMU JSOU NA TÉTO STANICI ŽIVÉ ─────────────────
-# Vlastní nález P18: seznam má 8 podpisů, ale NE VŠECHNY mohou na této stanici
+# Vlastní nález P18: seznam měl 8 podpisů, ale NE VŠECHNY mohou na této stanici
 # někdy zabrat. Tichý mrtvý podpis je slepé místo — a pozná se to měřením,
 # ne čtením. Měří se proti SKUTEČNÝM výstupům interpretů.
 print("\n--- 5b) ŽIVÉ vs MRTVÉ PODPISY (měřeno proti skutečným výstupům) ---")
 m_sez = re.search(r"_PODPIS_CHYBEJICIHO_SOUBORU = \((.*?)\)\n", h, re.S)
 podpisy = re.findall(r'"([^"]+)"', m_sez.group(1)) if m_sez else []
-kont("seznam podpisů se ze zdroje přečetl", len(podpisy) >= 6,
+# ⚠ PŘEPSÁNO V P20 (6. 10. 2026): do P20 tu stálo `>= 6`, protože seznam měl
+# 8 podpisů. **P19 ho zúžila na 4 ŽIVÉ** (nález H94: čtyři byly mrtvé pro `g3`
+# — `is not recognized` je živý obecně, ale `g3` shell nepoužívá) a zbytek
+# pojmenovala v komentáři. Doklad tím **zastaral**: tvrdil počet, který už
+# neplatí, a spadl na SPRÁVNĚ zúženém seznamu.
+# ⚠ POZOR NA POUČENÍ: kdyby tu zůstalo `>= 6`, doklad by hlásil vadu tam, kde
+# je oprava — tedy „brána na nastraženém poplachu“ (`overovani` §10.1 obráceně).
+# Současně se ale nesmí zkontrolovat jen „něco tam je“ — proto se ověřuje
+# i to, že **každý** podpis v seznamu je skutečně živý (níž, proti výstupům).
+kont("seznam podpisů se ze zdroje přečetl a je NEZPRÁZDNĚNÝ", len(podpisy) >= 4,
     f"{len(podpisy)} podpisů: {podpisy}")
+kont("seznam je ZÚŽENÝ na živé (H94: 4, ne původních 8)", len(podpisy) == 4,
+    "kdyby se rozšířil o mrtvý podpis, je to zase slepé místo — pozná se to níž")
 NE = FIX / "ovd-d-neexistuje.py"
 realne = {}
 for jm, cmd in [("python", [sys.executable, "-B", str(NE)]),

@@ -64,12 +64,21 @@ m = re.search(r"^BRANY = \[.*?^\]\n", zdroj, re.M | re.S)
 zk(m is not None, "v živém g3 se našel blok `BRANY`")
 
 
-def postav(fixtury: str) -> str:
+def postav(fixtury: str, deklarace: str = "OCEKAVANE_NENULOVE = {}") -> str:
     h = zdroj[:m.start()] + fixtury + zdroj[m.end():]
     h = h.replace('VYSTUP = ANALYZA / "g3-brany-vystup.txt"',
                   'VYSTUP = ANALYZA / "p19-scratch" / "p19-d-harness-vystup.txt"')
     h = h.replace("WS = pathlib.Path(__file__).resolve().parent.parent",
                   f'WS = pathlib.Path(r"{WS}")')
+    # ⚠ DOPLNĚNO V P20 (6. 10. 2026) — a je to PŘÍMÝ DŮSLEDEK rozhodnutí
+    # Úkolu A: `g3` od P20 soudí i červené, takže deklarace `OCEKAVANE_NENULOVE`
+    # (`{"zadání kontrola": 1}`) by v kopii byla **VISUTÁ** — fixtury nahrazují
+    # celý blok `BRANY`, takže v kopii žádná `zadání kontrola` není. `g3` by
+    # správně skončil `exit 1`, ale **z jiného důvodu, než tenhle test měří**
+    # (`overovani` §10.1). Deklarace se proto v kopii vyprazdňuje — test tím
+    # měří přesně to, co tvrdí. Explicitní hodnotu dostávají jen ty případy,
+    # které deklaraci ZÁMĚRNĚ zkoumají.
+    h = h.replace('OCEKAVANE_NENULOVE = {"zadání kontrola": 1}', deklarace)
     ast.parse(h)
     return h
 
@@ -93,7 +102,16 @@ def spust(text: str) -> dict:
     r = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
                        cwd=str(WS), timeout=900)
-    return {"exit": r.returncode, "vystup": (r.stdout or "") + (r.stderr or "")}
+    out = (r.stdout or "") + (r.stderr or "")
+    # ⚠ DOPLNĚNO V P20: `exit` SÁM NEŘEKNE, KTERÝ ze stavů nastal — a přesně
+    # na tomhle spadl tenhle doklad po rozhodnutí Úkolu A (`exit 1` ze čtyř
+    # různých důvodů; `overovani` §10.1). Každý neúspěch se proto dá dohledat
+    # podle výpisu harnessu, ne hádáním.
+    if r.returncode != 0:
+        print("      --- výpis harnessu (exit=%d) ---" % r.returncode)
+        for l in out.splitlines()[-18:]:
+            print("      " + l)
+    return {"exit": r.returncode, "vystup": out}
 
 
 print("\n--- 1) ZDRAVÝ stav: jedna brána s čítačem → exit 0 -----------------")
@@ -126,16 +144,33 @@ r = spust(h_dek)
 zk(r["exit"] == 0, "deklarovaný stav → exit 0 (baseline funguje)", f"exit={r['exit']}")
 zk("mimo deklarovaný stav: 0" in r["vystup"], "vykáže, že mimo baseline nic není")
 
-print("\n--- 5) ČERVENÁ brána S ČÍTAČEM → g3 NESMÍ rozhodovat (exit 0) -------")
+print("\n--- 5) ČERVENÁ brána S ČÍTAČEM → P20: MUSÍ SPADNOUT (NA23b vyřešen) ---")
+# ⚠ PŘEPSÁNO V P20 (6. 10. 2026) — a JE TO ZÁMĚR, ne oprava omylu.
+# Tenhle případ tvrdil P19's rozhodnutí: „červenou NEposuzuje (exit 0), jen ji
+# pojmenuje jako k rozhodnutí“ (nález NA23b zůstal otevřený, protože neexistoval
+# seznam očekávaně nenulových exitů). **P20 ten seznam zavedla**
+# (`OCEKAVANE_NENULOVE`), takže NEDEKLAROVANÁ červená brána už `g3` SHODÍ —
+# a to je přesně ta polovina, která do P20 chyběla: `exit 0` vypadal stejně pro
+# „vše v pořádku“ i pro „brána tiše odešla“.
+# Doklad se NEMAŽE: mění se jen to, co má měřit, protože se změnila smlouva.
 h_cerv = postav("BRANY = [\n" + brana("D4: červená, ale s čítačem", "d-cervena.py") + "]\n")
 r = spust(h_cerv)
-zk(r["exit"] == 0, "g3 → exit 0: červenou NEposuzuje (to je NA23b, ne jeho věc)",
+zk(r["exit"] == 1, "g3 → exit 1: NEDEKLAROVANOU červenou od P20 posuzuje",
    f"exit={r['exit']}")
-zk("NENULOVÉ EXITY: 1" in r["vystup"] and "k rozhodnutí" in r["vystup"],
-   "červenou ale VYPÍŠE a pojmenuje jako k rozhodnutí",
-   "hledám 'NENULOVÉ EXITY: 1' a 'k rozhodnutí'")
+zk("NENULOVÉ EXITY: 1" in r["vystup"] and "NEOČEKÁVANÝ: D4" in r["vystup"],
+   "a pojmenuje ji jako NEOČEKÁVANOU (ne už jako „k rozhodnutí“)",
+   "hledám 'NENULOVÉ EXITY: 1' a 'NEOČEKÁVANÝ: D4'")
 zk("NENULOVÉ EXITY: 1" in r["vystup"] and "D4" in r["vystup"],
    "je vidět KTERÁ brána to je", "hledám jméno brány ve výpisu")
+# A DRUHÁ POLOVINA TÉHOŽ (to je jádro Úkolu A): TÁŽ červená, ale DEKLAROVANÁ,
+# `g3` shodit NESMÍ — jinak by padal po každém commitu.
+h_cerv_dek = postav("BRANY = [\n" + brana("D4: červená, ale s čítačem", "d-cervena.py") + "]\n",
+                    'OCEKAVANE_NENULOVE = {"D4: červená, ale s čítačem": 1}')
+r = spust(h_cerv_dek)
+zk(r["exit"] == 0, "TÁŽ červená DEKLAROVANÁ → exit 0 (g3 nepadá po commitu)",
+   f"exit={r['exit']}")
+zk("očekávaný:   D4" in r["vystup"], "a je vidět, že je očekávaná",
+   "hledám 'očekávaný:   D4'")
 
 print("\n--- 6) PRÁZDNÉ BRANY → exit 2 (neměřilo se) ------------------------")
 h_prazdne = postav("BRANY = []\n")
