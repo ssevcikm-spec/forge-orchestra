@@ -1108,6 +1108,24 @@ tabulku / jiný řádek, než měl).
 > „přibylo commitů". Zapsáno jako **očekávaný nenulový exit** (a je to přesně
 > ten případ, kvůli kterému `g3` o červených branách **nerozhoduje** — §37.4).
 
+### 8za. Omyly **211–213** — ROZHODOVACÍ session 6. 10. 2026 (P22: DOPSÁNÍ ZÁZNAMŮ, KTERÉ P22 NEZAPSALA)
+
+**Tyhle tři omyly NEVZNIKLY v kódu — vznikly v ZÁPISU do kroniky** (a to je
+téma, kterým se P22 celou dobu zabývala). Všechny tři odhalila **brána**
+(`kronika-kontrola.py`), **ne autor** — a to je i důvod, proč se sem dopisují
+až teď: bez zápisu by nebyly vidět vůbec.
+
+| # | Co jsem si myslel | Naměřeno (pravda) | Jak to vzniklo |
+|---|---|---|---|
+| **211** | „Typ session `prováděcí` brána uzná.“ | `kronika-kontrola.py:374` zná **pět** typů (`akční`, `plánovací`, `ověřovací`, `analýza`, `rozhodovací`) a `prováděcí` mezi nimi **není** → `2 řádků session nemá uvedený typ`, `exit 1` | **Slovník brány jsem neotevřel.** Vymyslel jsem si typ podle sebe a zapsal ho jako fakt — táž třída jako „předpoklad zapsaný jako kontrola“ (omyl **195**) |
+| **212** | „Název sekce si v zápisovém skriptu napíšu z hlavy (`## 4. Evidence omylů`).“ | Sekce se v P19 **přečíslovala** (`§3 Počty omylů` / `§4 Evidence omylů`); skript hledal kotvu, která **v dokumentu je**, ale **ne tam, kde jsem myslel** — a zapsal jinam, než měl | **Kotva opsaná z paměti místo z dokumentu.** Naměřeno už dřív jako past „kotva, která usne“ (§21.4) — a stejně se to stalo znovu |
+| **213** | „Skript si živý soubor načte sám, je to jedno.“ | Skript dostal **cestu argumentem** (fixtura), ale **vždy četl živý soubor** — takže měřil něco jiného, než co mu bylo zadáno, a **na fixtuře by hlásil o živém stromě** | **Vstupy se mají číst TAM, KAM UKAZUJÍ, ne tam, kde je po ruce.** Táž třída jako `kronika-kontrola.py`, který bere cesty argumenty právě proto (ř. 52) |
+
+**Poučení (a je to totéž, co hlásá `REVIZE-PRACOVNIHO-RITUALU.md` §3.4):**
+**zápisy do dokumentů se dělají PROGRAMOVĚ** (`p21-zapis-kroniky.py` obstál
+napoprvé) — ruční editace řádků delších, než je okno čtení, vyrobí chybu, kterou
+**vidí jen brána**. Dvě z těch tří chyb (211, 212) jsou přesně to.
+
 ### 8z. Omyly 195–210 — ROZHODOVACÍ session 6. 10. 2026 (P20: `g3` SOUDÍ ČERVENÉ, BOM V `.py`, TICHÁ DÍRA V H79)
 
 **Jedenáct omylů a DESET z nich je v MĚŘIDLE, které jsem si psal sám** (sloupec
@@ -8203,3 +8221,83 @@ Naměřeno **po** všech zápisech (kronika, §39, §2.12, nové zadání) — i
   (kotva = `deadbee`) → **2 chyby a `exit 1`**; návrat zadání **bajt na bajt**
   (SHA-256 shodný).
 
+
+## 40. P22 — OPTIMALIZACE ZNALOSTNÍ BÁZE (6. 10. 2026, mimo zadání) — a DODATEČNÝ ZÁPIS ZÁZNAMŮ
+
+**Co tenhle oddíl JE:** **záznam o provedení** session **P22** — a zároveň
+**záznam o tom, že se P22 nevešla do záznamů** a dopisuje se dodatečně.
+**Nejde z něj číst dnešní stav** — ten je v **§2.12** (a novější body níž).
+**Datum spotřeby:** údaje jsou k **6. 10. 2026, 15:0x–17:5x +02:00
+(= 13:0x–15:5x UTC)**; co je starší, je **záznam**.
+
+**Zadání:** `NEXT-SESSION-INSTRUKCE.md` z P21 žádalo **věcnou práci na
+conductoru** (C1/C2/O1). **Uživatel to změnil** a zadal **optimalizaci
+znalostní báze** (`OPTIMALIZACE-KNOWLEDGE-BASE.md` + `REVIZE-PRACOVNIHO-RITUALU.md`).
+**Kód conductora se nedotkl ANI JEDEN soubor** — `deploy.yml` má filtr
+`paths: conductor/**`, takže **žádné nasazení živé služby se nekonalo**
+(ověřeno seznamem změněných souborů, ne odhadem).
+
+### 40.1 Co je hotové (doloženo spuštěním)
+
+| Co | Naměřeno | Kde je důkaz |
+|---|---|---|
+| **Mrtvé cesty v KB** | **45 → 23 → 7** (16 opraveno) | `_tools\over-cesty-v-kb.mjs` (nový nástroj; odlišuje **historickou zmínku** od **vady**) |
+| **Brána na PRAVDIVOST KB** | `over-skilly.py` **13/0, 0 mrtvých cest**; mutant → **`exit 1`**, zdravý stav → **`exit 0`** | `tools\over-skilly.py` — do P22 se na cesty **neptal** a byl zelený nad **23 neexistujícími** |
+| **`.py` NESMÍ BOM** | pravidlo v `DSH_HOME\AGENTS.md`; rozpočet řetězce **38 867 / 65 536 B** | `over-dokumentaci.py` **67/0**; dřív to bylo **jen** v projektovém `AGENTS.md`, kde se to čte **opačně** |
+| **Pojistka proti zápisu** | `p20-d-doklady.py` vypíše **15 zápisových skriptů** a hlídá hash **3 dokumentů**; mutant → **`⚠ ZMĚNĚN: KRONIKA-PROJEKTU.md`** | dávka dřív **spouštěla zapisovače do kroniky** bez kontroly (riziko auditu nástrojů) |
+| **Tři živě vyvrácená tvrzení** | `README.md` (cesty `E:\DSH*`), `DEPLOY-VYLEPSENI.md` (opatření **8 a 9 JSOU nasazená**), komentář ve `validate-all.mjs` | ověřeno v `package.json` profilu, ne dojmem |
+| **`_mutace.py` + sabotážní test** | `p22-test-mutace.py` **19/0**; sabotáž (vypnutá kontrola v knihovně) → **`CHYBA`, `exit 1`** | test **mutuje živou bránu** `tools\over-skilly.py`, spustí ji a ověří, že **verdikt se změnil** (ne jen text) |
+| **`g3` bere cesty z prostředí** | `FORGE_STANICE` / `FORGE_HRA` s **týmiž defaulty**; bez override **stejný běh** (`g3` 37 bran, `exit 0`; self-testy `h71` 15/0, `h87` 18/0) | vzor override **už v repu byl** (`FORGE_GODOT`, `verify-setup.py`) — `g3` ho jen nepoužíval |
+| **Rejstřík a tiché díry** | `POUCENI-A-VZORY.md` (64,7 kB, **0 odkazů ve 622 `.md`**) zaregistrován; prázdný `NEXT-SESSION-INSTRUKCE.md` v kořeni stanice → **tombstone** | obojí přidáno do kontroly diakritiky a **mutačně ověřeno**, že je vidí |
+
+### 40.2 ⚠ NÁLEZ P22-B: AUDIT PŘECENIL DUPLICITY VE TŘECH ZE TŘÍ PŘÍPADŮ
+
+Návrh `OPTIMALIZACE-KNOWLEDGE-BASE.md` chtěl **zkrátit** tři místa s odůvodněním
+„duplikuje jinde“ (dohromady ~27 kB). **Přeměřeno plošným skenem a ani jeden
+případ neobstál:**
+
+| Bod | Co audit tvrdil | Co naměřeno |
+|---|---|---|
+| **§6.8** `orchestra` skill | blok o branách hry duplikuje `uo-shadows/AGENTS.md` | **8 z 9** vzorů je **JEN ve skillu**; hra má **2**, orchestra `AGENTS.md` **0**, `HANDOFF` **1** |
+| **§6.6** `overovani` §7 | §7.1–7.14 duplikuje `dsh-prostredi` a `DSH_HOME` | **9 ze 14** pastí je **JEN v `overovani`** |
+| **§6.5** `DSH_HOME` §„Jak ověřovat“ | 7,6 kB → 2,2 kB, příklady patří do `overovani` | **15 z 18** klíčových frází je **JEN v `DSH_HOME`** |
+
+**Proč se to stalo:** audit porovnával **TÉMATA** („obě místa mluví
+o ověřování“), ne **OBSAH**. **Důsledek: ty tři body se NESMÍ dělat jako
+„zkrácení“** — jen jako **PŘESUN s ověřením, že každá věta zůstala dohledatelná**
+(zadání: `ZADANI-OPTIMALIZACE-KB.md`).
+
+### 40.3 Proč tenhle oddíl vzniká DODATEČNĚ (a co to znamená)
+
+**Naměřeno 6. 10. 2026 při dopisování:** `HANDOFF.md` **0 výskytů „P22“**,
+`KRONIKA-PROJEKTU.md` **0 výskytů „P22“**, poslední blok omylů `8z` (P20),
+poslední řádek session **35**. **Práce byla pushnutá, záznam žádný.**
+
+Zapsáno dodatečně: **řádek 36** v kronice §1, sekce **2.16**, blok omylů **`8za`**
+(omyly **211–213**, všechny tři ze **zápisu**, doložené v hlavičce
+`REVIZE-PRACOVNIHO-RITUALU.md`) a **tenhle oddíl**. Nic se nepřepisovalo.
+
+> **⚠ POUČENÍ, KTERÉ JE DRAŽŠÍ NEŽ TEN ZÁZNAM:** **brány kontrolují jen to, co je
+> ZAPSANÉ.** `kronika-kontrola.py` i `handoff-kontrola-uplnost.py` byly po celou
+> dobu P22 **zelené** (`SEDÍ`, `83/83`) — a přitom v obou dokumentech **chyběla
+> celá session**. Chybějící záznam **není rozchod**, který by brána viděla:
+> je to **ticho**. Kdo chce tuhle třídu chytit, musí se ptát **naopak** („má
+> každý pushnutý commit svůj záznam?“), jako to dělá `s24-meridla-over.py`
+> u bloků omylů.
+
+### 40.4 Co zůstává OTEVŘENÉ (po P22)
+
+* **Zbývající body KB** — `§6.4` (projektová znalost z `orchestra` skillu do
+  projektu), `§6.11` (**569 tis. znaků historie** z `HANDOFF.md`; dnes 20. oddíl
+  navíc), `§6.5`/`§6.6`/`§6.8` (jen jako **PŘESUN**), `§6.14` (jedna autorita
+  seznamu živých), `§6.15` (zobecnění měřidel) — zadání je
+  `ZADANI-OPTIMALIZACE-KB.md`.
+* **Revíze rituálu** — zavedeny **jen** body 2 a 7 (`_mutace.py`,
+  `_tools\rozpad-session.mjs`); **1, 3, 4, 5, 6 čekají na rozhodnutí**, protože
+  mění **postup předávání** nebo **trvalá pravidla** (`REVIZE-PRACOVNIHO-RITUALU.md` §5).
+* **`otevrena-temata`** — **7 nezaškrtnutých položek leží v sekci „Uzavřené“**
+  (sekce tvrdí jedno, značky druhé) a **dvě témata jsou prokazatelně vyřešená**,
+  jen neuzavřená; to je **drobnost, ale je to táž vada** jako §2.10–§2.12.
+* **Údržba měřidel** — `g3` **37 bran, 1 deklarovaný nenulový** (`zadání
+  kontrola`), `validate-all` **`✓ VŠE V POŘÁDKU`**; `ov-g-h92-sken.py` zůstává
+  **červený jako doložený falešný poplach** (H103 — **neopravovat**).

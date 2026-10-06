@@ -195,7 +195,7 @@ print("-" * 78)
 # omylů tím **nelze vynechat** — a když v kronice §3 chybí jeho řádek, brána
 # to **ohlásí** (opačný směr, ten dřív chyběl úplně).
 # ═══════════════════════════════════════════════════════════════════════════
-VZOR_BLOKU = re.compile(r"^(#{2,3})\s+(8[a-z]?)\.\s")
+VZOR_BLOKU = re.compile(r"^(#{2,3})\s+(8[a-z]{0,2})\.\s")
 # Klíč `1–13` NENÍ název bloku — je to v kronice §3 označení SPOLEČNÉ tabulky
 # omylů („řádky mezi `## 8.` a `### 8b.`“). Nadpis se jmenuje `## 8.`, takže
 # se klíč mapuje; jinak by brána u základního bloku hledala řádek `8`.

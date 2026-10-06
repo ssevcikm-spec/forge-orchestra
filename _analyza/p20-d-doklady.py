@@ -37,7 +37,21 @@ VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[012]-)")
 # ⚠ `p20-sonda-klicu.py` si navíc staví VLASTNÍ harness z živého `g3` a sahá
 # přitom na `p20-scratch`; pouštět ho v dávce je zbytečné riziko.
 PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
-             "p20-d-doklady.py"}
+             "p20-d-doklady.py",
+             # ⚠ PŘESKOČENO 6. 10. 2026 (při dopisování záznamů P22): tenhle
+             # doklad je **DOBOVÝ** — jeho kontroly tvrdí **pevná čísla**
+             # („souhrn má očekávaný tvar 33 sessions", „§1 má 34 řádků").
+             # Jenže souhrn je dnes **35 sessions / 208 omylů**, protože
+             # přibyl řádek 36 a blok `8za` — takže správně hlásí **4 CHYBY**
+             # a `exit 1`, ačkoli je kronika v pořádku.
+             # Není to vada dokladu (v době vzniku měřil správně) ani kroniky:
+             # je to **doklad, který měří STAV, ne smlouvu** — a stav se mění.
+             # Kdyby zůstal v dávce, každá příští session uvidí „červený doklad"
+             # a bude „opravovat" správná data. **Nemaže se** (je to záznam),
+             # jen se **nespouští v dávce**; jeho roli převzal
+             # `p22-zapis-zaznamu.py`, který je **idempotentní** a čísla si
+             # bere **z brány** (`kronika-kontrola.py`), ne z hlavy.
+             "p21-zapis-kroniky.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
