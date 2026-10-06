@@ -18,6 +18,7 @@ jen ověří, že řádek session i nálezy v kronice jsou.
 Použití: python _analyza/p20-d-doklady.py
 """
 
+import hashlib
 import pathlib
 import re
 import subprocess
@@ -38,13 +39,41 @@ VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[01]-)")
 PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              "p20-d-doklady.py"}
 
+# ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
+# tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
+# (`p20-oprav-kroniku.py` i `p21-zapis-kroniky.py` píšou do `KRONIKA-PROJEKTU.md`;
+# `p19-b-kontroly.py` dočasně mutuje živý soubor a vrací ho).
+# `validate-all.mjs` na to pojistku MÁ (`zapisuje = /write_text|write_bytes|…/`),
+# tenhle skript ji NEMĚL — a běží v dávce, takže ji potřebuje víc.
+# Pojistka nedělá nic záludného: (a) vytipuje zápisové skripty PŘED během,
+# (b) změří hash sledovaných dokumentů PŘED a PO a rozdíl OHLÁSÍ.
+# Když se dokument změní, není to automaticky vada (skripty jsou idempotentní),
+# ale musí to být VIDĚT — tichá změna dokumentu dávkou je nejhorší varianta.
+ZAPIS = re.compile(r"write_text|write_bytes|writeFileSync|copyfile|copy2")
+SLEDOVANE = [WS / "KRONIKA-PROJEKTU.md", WS / "HANDOFF.md",
+             WS / "NEXT-SESSION-INSTRUKCE.md"]
+
+
+def hash_souboru(p):
+    try:
+        return hashlib.sha256(p.read_bytes()).hexdigest()
+    except OSError:
+        return None
+
+
 skripty = sorted(p for p in ANALYZA.glob("*.py")
                  if VZOR.match(p.name) and p.name not in PRESKOCIT)
+
+zapisove = sorted(p.name for p in skripty
+                  if ZAPIS.search(p.read_text(encoding="utf-8", errors="replace")))
+pred = {p.name: hash_souboru(p) for p in SLEDOVANE}
 
 print("=" * 78)
 print("P20/D — všechny doklady `_analyza/`: projdou ještě?")
 print("=" * 78)
-print(f"  skriptů: {len(skripty)}\n")
+print(f"  skriptů: {len(skripty)}")
+print(f"  ⚠ z toho ZAPISUJÍCÍCH do souborů: {len(zapisove)} — {', '.join(zapisove) or '(žádný)'}")
+print(f"  hlídám změnu: {', '.join(p.name for p in SLEDOVANE)}\n")
 
 vysledky = []
 for p in skripty:
@@ -67,9 +96,21 @@ for p in skripty:
     print(f"  {stav:8} {p.name:34} {trvani:6.1f}s  kontroly: {citac}")
 
 selhale = [x for x in vysledky if x[1] != 0]
+po = {p.name: hash_souboru(p) for p in SLEDOVANE}
+zmenene = [n for n in pred if pred[n] != po[n]]
+
 print("\n" + "=" * 78)
 print(f"SOUHRN: {len(vysledky)} dokladů, {len(selhale)} s nenulovým exit")
 print("=" * 78)
+print("\nZÁPIS DO DOKUMENTŮ (pojistka, P22):")
+if zmenene:
+    for n in zmenene:
+        print(f"  ⚠ ZMĚNĚN: {n}  ({pred[n][:12] if pred[n] else '—'} → {po[n][:12] if po[n] else '—'})")
+    print("  → dávka dokladů zapsala do dokumentu; ověř, že je to zamýšlené (skripty jsou idempotentní)")
+else:
+    print(f"  žádný z {len(SLEDOVANE)} sledovaných dokumentů se nezměnil")
+    print(f"  (zápisové skripty ve dávce: {len(zapisove)} — {', '.join(zapisove) or 'žádný'})")
+
 for jmeno, kod, trvani, citac, v in selhale:
     print(f"\n--- {jmeno}  (exit={kod}) ---")
     chyby = [l.strip() for l in v.splitlines() if "CHYBA" in l]

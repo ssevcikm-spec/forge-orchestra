@@ -277,15 +277,18 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   // `CHYBA` a skončil `exit 0`. Teď SQL vytahuje **ze zdrojáku conductora**,
   // takže když se změní, test použije novou verzi.
   //
-  // POZOR – TENHLE TEST JE DNES ČERVENÝ A JE TO SPRÁVNĚ: naměřil vadu **S12**
-  // (nová granule se kvůli guardu na `updated_at` 3 h nevydá). Opravuje ji krok
-  // **B1** plánu (`naposledy_selhalo`). Až se B1 udělá, test zčervená v opačném
-  // směru a donutí scénář přepsat — takže nezůstane viset na staré pravdě.
+  // POZOR – HISTORIE, NE DNEŠNÍ STAV (ověřeno 6. 10. 2026): tenhle test byl
+  // od 1. 10. 2026 **ČERVENÝ a bylo to SPRÁVNĚ** — naměřil vadu **S12** (nová
+  // granule se kvůli guardu na `updated_at` 3 h nevydá). Opravil ji krok **B1**
+  // plánu (`naposledy_selhalo`) a **dnes je test ZELENÝ**: `10 kontrol, 0 chyb`,
+  // `python tools/test-cooldown.py` → `exit 0`, a B1 je v `conductor/src/index.ts`
+  // (ř. 430/434/543/546). Text se nechal jako záznam, protože popisuje, PROČ test
+  // vznikl — kdo uvidí zelenou, ať nehledá vadu, která je opravená.
   //
   // Kdyby to někdo potřeboval odlišit: `test-eskalace.py` je NAPROSTO V POŘÁDKU
   // (má `sys.exit(0 if vse_ok else 1)`); „lže zelenou" se týkalo JEN tohohle testu.
   const cooldown = spust('python', [`${ORCH}/tools/test-cooldown.py`]);
-  test('cooldown guard: SQL ze zdrojáku + chování (dnes nachází vadu S12 → B1)',
+  test('cooldown guard: SQL ze zdrojáku + chování',
     cooldown.stav === 0, `exit=${cooldown.stav}`);
 
   // ── BASELINE A LGTM CACHE ─────────────────────────────────────────────────
