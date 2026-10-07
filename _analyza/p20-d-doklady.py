@@ -59,6 +59,19 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # `p24-sonda-m2.py` hledala, proč mutace M2 neshodí test tiku
              # (falešný svět zacyklil dispatch smyčku → Node `exit 134`).
              # Obě jsou **jednorázové diagnostiky**, ne opakovatelné doklady.
+             # ⚠ PŘESKOČENO 7. 10. 2026 (P26): SONDY, které odpovídaly na JEDNU
+             # otázku a mají odpovězeno. `p26-sonda-zapis.py` měřila STAV
+             # SANDBOXU (zápis podprocesem do podadresářů workspace — v P26 to
+             # **ZAMRZLO**, ne `PermissionError`; nález **P26-J**) a
+             # `p26-sonda-rozsah.py` naměřila, KDE VŠUDE žijí řádky tabulek Hxx
+             # (99 živých v 2 souborech + 139 zmrazených v 7 zálohách) — to je
+             # podklad opravy brány `ov-g-neovereno.py` (nález **P25-K**).
+             # Obě jsou **jednorázové diagnostiky**, ne opakovatelné doklady.
+             "p26-sonda-zapis.py", "p26-sonda-rozsah.py",
+             # ⚠ P24 (7. 10. 2026) — NEMAŽ: `p26` výše je PŘIDÁNÍ, ne náhrada.
+             # Naměřeno P26: při vkládání sond P26 se tenhle řádek málem přepsal
+             # a `p24-sonda-*` z `PRESKOCIT` **vypadly** — chytila to až brána
+             # `p25-a-overeni.py` (A6: „sondy nejsou v PRESKOCIT“).
              "p24-sonda-site.py", "p24-sonda-m2.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:

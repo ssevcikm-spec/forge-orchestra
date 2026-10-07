@@ -1874,3 +1874,159 @@ python _analyza\p24-b-mutace.py           # 17/0
 python _analyza\g3-brany.py               # 49 bran, 1 deklarovaný exit
 node tools\validate-all.mjs               # VŠE V POŘÁDKU
 ```
+## 56. P26 — PŘEMĚŘENÍ P25, ZARÁŽKA V HANDLERU A OPRAVA ROZSAHU MĚŘIDLA (7. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P26 + stav po P26**. **Co NENÍ:**
+pravidla (`AGENTS.md`), projektová znalost (`PROVOZ-ORCHESTRA.md`), historie
+(`KRONIKA-PROJEKTU.md` — řádek **41**, nálezy **§2.19**). Zadání P26 je
+v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **7. 10. 2026, 13:1x–16:2x +02:00**. Tvrzení
+> o **stavu** (HEAD, hra, živá služba) platí k tomu okamžiku; kdo to čte
+> později, **přeměří** (`python _analyza\p26-a-overeni.py --plne`).
+>
+> **⚠ POZOR NA SOUBĚŽNOU SESSION:** do hry zapisoval **NĚKDO JINÝ** — mezi
+> 15:50 a 16:02 +02:00 přibyly v `uo-shadows` **tři commity** (`6796188`,
+> `43a2004`, `125b062`, **nepushnuté**) a netrackovaný `_acl-recovery/`.
+> **Není to práce P26** a **nesahalo se na to**.
+
+### 56.1 Co se udělalo
+
+| # | Co | Doklad |
+|---|---|---|
+| **A** | **Přeměření práce P25 VLASTNÍM měřidlem** (A1–A6, každý bod jiným postupem, než vznikl) | `_analyza/p26-a-overeni.py --plne` → **«PLNE» kontrol, 0 chyb** |
+| **A** | **Důkaz, že i tohle měřidlo umí spadnout** — tři mutace **v KOPIÍCH**, každá s **diferenciálem** (originál spadne / oslabená kopie projde) | `_analyza/p26-b-mutace.py` → **26 kontrol, 0 chyb** |
+| **B1** | **Oprava brány, která tiše zúžila rozsah z 99 řádků Hxx na 1** (nález P25-K) | `_analyza/ov-g-neovereno.py` → rozsah **1 → 99**, vypisuje KTERÉ soubory otevřel; fixtury: `NEOVĚŘENO` → `exit 1`, prázdno → `NEMĚŘENO` |
+| **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran, 1 deklarovaný nenulový exit** (`zadání kontrola`), **exit 0** · `validate-all` → **VŠE V POŘÁDKU** · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
+
+### 56.2 Nálezy P26 (každý doložený měřením)
+
+1. **P25 NETVRDILA PRAVDU O TOM, CO ZMĚŘILA — a nebyla to lež, byla to
+   MEZERA.** §55 (bod 9 i tabulka 55.1) tvrdí, že test tiku volá `POST /task`,
+   `/game` a `/game/active`. **P25 to ale nedoložila:** její jediná zarážka byla
+   v **ROUTERU** a mířila na pět **jiných** endpointů (`/poll`…`/roadmap/reset`)
+   — v jejích **42 červených kontrolách nejsou žádné `T:`/`U:`/`V:`/`W:`**.
+   P26 to změřila zarážkou **UVNITŘ HANDLERU** (tři mutace živého zdroje,
+   v `try/finally` a s ověřením hashe před i po):
+   `/task` → **9 červených `T:`** (mj. `T: /task odpoví 200`),
+   `/game` → **6 červených `U:`**,
+   `/game/active` → **5 červených `V:`** —
+   a kontrolní `A: /tick odpoví 200` zůstala **pokaždé zelená**.
+   **Poučení: „test endpoint volá" se dokazuje zarážkou V HANDLERU, ne
+   v routeru** — routerová zarážka zapne i kontroly, které s handlerem nesouvisí.
+2. **VÁZANÉ HODNOTY SE OPRAVDU MĚŘÍ.** V **KOPII** testu se vypnul záznam
+   `bind()` → **12 červených** (T: 5, V: 2), konkrétně ``T: `title` jde do
+   INSERTu`` a ``V: do DB jde `active = 0` (ne 1)``. Kdyby test tvrdil jen
+   **tvar** SQL (`log`), zůstaly by zelené — přesně past „přítomnost ≠ chování".
+3. **NÁLEZ P25-K JE PRAVDA A JE OPRAVENÝ.** Verze měřidla z `HEAD` čte
+   **1 řádek Hxx** (`HANDOFF.md`), živá po opravě **99** (1 + 98
+   z `_archiv/HANDOFF-HISTORIE.md`) → zelená byla **nad 1 % rozsahu**.
+   Oprava: zdroje se **odvozují** (ne zapečený seznam), **vypisují se po
+   souborech**, počítá se i rozsah **mimo** ně (**139** řádků v **7** zmrazených
+   kopiích — záměrně se nečtou, jinak by se týž nález počítal víckrát, past
+   H93/H98) a **prázdný rozsah je `NEMĚŘENO` (`exit 1`)**.
+4. **MĚŘIDLO MĚLO LŽIVÝ POPISEK.** `ov-g-neovereno.py` tvrdil „hledám
+   `NEOVĚŘENO` **ve sloupci Stav**" — **tabulky Hxx žádný sloupec `Stav`
+   nemají** (2 buňky v `HANDOFF.md`, 3 v archivu: `# | Nález | Doklad`).
+   Hledalo se **kdekoli na řádku**, takže by chytilo i **CITACI** („bylo
+   NEOVĚŘENO, dnes APLIKOVÁNO"). Dnes je takových řádků **0** (naměřeno ve
+   všech **9** souborech s tabulkou Hxx) — ale popisek je opravený a rozpad na
+   buňky se vypisuje.
+5. **ČÍSLA §55 SEDÍ — VŠECHNA.** Znovu naměřeno **spuštěním**, ne čtením:
+   `p25-a --plne` **53/0** · `p25-b-mutace` **27/0** · `test-tick-offline`
+   **146/0** · `tick-mutace` **20 vrat / 41/0** · `g3` **49 bran** ·
+   `p24-b-mutace` **17/0** · `handoff-kontrola-uplnost` **83/83** ·
+   `kronika-kontrola` **SEDÍ**.
+6. **JEDNO ČÍSLO NESEDÍ — A JE ZE ZADÁNÍ, NE Z §55.** Zadání P26 §2.3 tvrdilo
+   `over-dokumentaci.py -> 67 kontrol`; **živé měření je 64/0**. Příčina je
+   **naměřená, ne odhadnutá**: brána přičítá **+1 za každé volání, jehož CESTA
+   obsahuje „skills"** (frontmatter skillu); commit `92aa80a` (optimalizace KB)
+   přesunul **tři** bloky z `SKILLS/orchestra` do `PROVOZ`/`BRANY_HRY`, takže
+   `52 + 15 = 67` se změnilo na `52 + 12 = 64`. **Není to ztráta pokrytí**
+   (obsah se přesunul s blokem) — je to **číslo bez svého běhu** (past
+   `AGENTS.md`). Zadání je opravené a měřidlo P26 to číslo teď **hlídá**.
+7. **ZADÁNÍ P25 BYLO ZASTARALÉ VE STAVU.** Tvrdilo „práce P25 je v pracovním
+   stromě (necommitnutá)" a `HEAD = origin/main = 92aa80a`; **živě** bylo
+   `HEAD = ef58327` (P25 svou práci **commitla**) a `origin/main..HEAD = 1`.
+   **Hlavička zadání je SNAPSHOT, ne stav.**
+8. **NEÚSPĚŠNÝ BĚH MĚŘIDLA VYPADÁ JAKO NÁLEZ.** Můj vlastní přepínač `--vystup`
+   čtl `args` v bloku `__main__`, kde **není** (je lokální v `main()`) →
+   `NameError` → měřidlo končilo **`exit 1` i s 0 chybami**. Odhalil to až
+   **diferenciál** v `p26-b-mutace.py`. **Poučení: verdikt se čte z ČÍTAČE, ne
+   z exit kódu** — a `exit != 0` není totéž co „našlo vadu".
+9. **VLASTNÍ ÚPRAVA SEZNAMU TIŠE SMAZALA DVĚ POLOŽKY.** Při přidávání sond P26
+   do `PRESKOCIT` (`p20-d-doklady.py`) jsem **přepsal řádek s `p24-sonda-site.py`
+   a `p24-sonda-m2.py`** → z `PRESKOCIT` **vypadly**. Chytila to **cizí brána**
+   `p25-a-overeni.py` A6 („sondy nejsou v PRESKOCIT dávky") — přesně to, k čemu
+   nezávislé měřidlo je. **Poučení: seznam se PŘIDÁVÁ, nepřepisuje.**
+10. **ZASTARALÝ INVENTÁŘ SE NEDEKLARUJE — a shodí ho i JEDEN NOVÝ SOUBOR.**
+    Naměřeno ostře: po přegenerování inventáře stačilo **přidat jeden `.txt`**
+    do `_analyza/` a `n1-over-inventar` spadl (`exit 2`); v `g3` se pak
+    `C2: mutace N1` ocitl v „brány bez čítače" (správně odmítá měřit nad
+    zastaralým inventářem). **A druhý, dražší důvod:** otisk vstupů
+    (`KOREN_REPA = {"orchestra": WS, "games/uo-shadows": HRA}`) počítá **I DRUHÉ
+    REPO** — takže **zápis souběžné session do hry zneplatní inventář uprostřed
+    běhu**. Náprava je vždy **přegenerovat jako POSLEDNÍ krok** a doklady
+    pojmenovat podle vylučovacího vzoru (`_analyza/*-vystup.txt`, který
+    `ARTEFAKT_RE` vylučuje z otisku).
+11. **SANDBOX ZNOVU ODEMKL ZÁPIS PODPROCESŮM — a tentokrát to ZAMRZLO.**
+    Podproces nešel zapsat do **žádného** podadresáře workspace; `git fetch`
+    padal na `.git/FETCH_HEAD: Permission denied` a sonda nad `_analyza`
+    **čekala** (žádný `PermissionError`, jen ticho), dokud ji nástroj nepřesunul
+    na pozadí. `write` (harness) přitom do podadresáře zapsal. Pomohlo
+    **přepnutí session na plný přístup** — **stav prostředí, ne vada skriptu**
+    (skill `dsh-prostredi` §4e).
+12. **DO HRY ZAPISOVALA SOUBĚŽNÁ SESSION.** Mezi 15:50 a 16:02 +02:00 přibyly
+    v `uo-shadows` **tři commity** (`6796188`, `43a2004`, `125b062`,
+    **nepushnuté**) a netrackovaný `_acl-recovery/`. **Důsledek pro měření:**
+    `p24-a-overeni.py` má proto **99/3** (tři červené `A8`: HEAD ≠ `44dd454`,
+    strom není čistý, 3 nepushnuté commity) místo dřívějšího **99/1** — a to
+    **není vada měřidla**: A8 měří **živý stav hry** (P25 to zapsala jako
+    „dobová kotva"). **Na práci té session se nesahalo.**
+
+### 56.3 Živý stav při zápisu (7. 10. 2026, ~16:2x +02:00)
+
+```
+orchestra: HEAD ef58327 · origin/main 92aa80a · nepushnutých commitů 1 (práce P25)
+hra:       HEAD 125b062 · origin/main 932dc6f · nepushnutých 3 (SOUBĚŽNÁ session,
+           15:50/15:58/16:02) · strom není čistý (netrackovaný `_acl-recovery/`)
+živá služba: /health → ok=true ready=1 running=0 games=1 · targets[0] forge.ok=false,
+             selhani_v_rade=20, poslední běh run_number 323 (failure, 12:16:33Z)
+             /tick → spusteno: 0 úloh; watchdog: 0 ohlášeno (prah 3)
+brány:     g3 → 49 bran, 1 deklarovaný nenulový exit (zadání kontrola), exit 0
+           (naměřeno po přegenerování inventáře; viz nález 10 výše)
+p24-a:     99/3 — všechny tři červené jsou `A8` (dobový stav hry), 99/2 pokud
+           souběžná session svou práci pushne
+```
+
+### 56.4 Co čeká na tebe (uživatel)
+
+- **PUSH — rozhodnutí uživatele.** P26 **commitla, nepushla**; `origin/main..HEAD`
+  bude **2** (P25 + P26). P26 měnila **jen `_analyza/` a dokumenty**, žádný
+  soubor pod `conductor/**` — **deploy živé služby to tedy nemění** (ověř
+  `git diff --name-only origin/main..HEAD`). Cesta zpět: `git reset --soft`.
+- **`_acl-recovery/` v `uo-shadows`** je **cizí, netrackovaný** artefakt
+  souběžné session (ACL oprava, 15:41). **Nemažu ho** a **necommituju** —
+  patří té session.
+- **`HANDOFF.md` §6 je ZÁZNAM z 2. 10. 2026**, ne seznam živých bran
+  (má předpřesunové cesty `orchestra\tools\…` a čísla 63/12). Autorita je
+  `BRANY` v `_analyza\g3-brany.py`.
+- **B4 na živé službě** (`/game/active {active:false}` → `games=0`, žádný
+  dispatch) — čeká na výslovné **„ano"**, protože **dočasně zastaví orchestra**.
+
+### 56.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p26-a-overeni.py --plne   # A1-A6: zarážky v handleru, vazby, g3
+python _analyza\p26-b-mutace.py           # umí to spadnout? 26 kontrol, 0 chyb
+python _analyza\ov-g-neovereno.py         # rozsah 99 řádků Hxx, 0 NEOVĚŘENO
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json  # POSLEDNÍ
+python _analyza\g3-brany.py               # 49 bran, 1 deklarovaný exit, exit 0
+node tools\validate-all.mjs               # VŠE V POŘÁDKU
+python _analyza\p25-a-overeni.py --plne   # 53/0
+python _analyza\p25-b-mutace.py           # 27/0
+python _analyza\p24-a-overeni.py          # 99/3 (A8 = stav hry, 99/2 po pushi)
+node tools\test-tick-offline.mjs          # 146/0
+python _analyza\tick-mutace.py            # 20 vrat / 41/0
+```
