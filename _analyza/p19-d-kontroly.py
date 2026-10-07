@@ -19,6 +19,7 @@ Použití: python _analyza/p19-d-kontroly.py
 
 import ast
 import hashlib
+import os
 import pathlib
 import re
 import subprocess
@@ -99,9 +100,20 @@ def brana(popis: str, soubor: str) -> str:
 
 def spust(text: str) -> dict:
     HARNESS.write_text(text, encoding="utf-8", newline="\n")
+    # ⚠ POJISTKA PROTI PŘEPSÁNÍ ŽIVÉHO REGISTRU (nález P24, 7. 10. 2026):
+    # tenhle harness je KOPIE `g3` s VLASTNÍMI fixturami a běží **bez
+    # `--soubor`** — takže si `g3` na konci **zapsal registr živých bran**.
+    # Naměřeno: po dávce `p20-d-doklady.py` měl `_analyza/_registr-bran.json`
+    # **`bran_celkem: 1`** a jedinou bránu **`A1: zdravá`** (fixtura), přitom
+    # živých bran je **48** — a `validate-all` kvůli tomu čte lež
+    # („bran v registru = 48“). Je to přesně vada z `AGENTS.md`/§6.14
+    # („kdo si staví harness z `g3`, musí dát `FORGE_REGISTR` / `FORGE_BEZ_REGISTRU`“),
+    # kterou `p20-d-doklady.py` sice OHLÁSÍ, ale neopraví.
+    env = dict(os.environ)
+    env["FORGE_BEZ_REGISTRU"] = "1"
     r = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
-                       cwd=str(WS), timeout=900)
+                       cwd=str(WS), timeout=900, env=env)
     out = (r.stdout or "") + (r.stderr or "")
     # ⚠ DOPLNĚNO V P20: `exit` SÁM NEŘEKNE, KTERÝ ze stavů nastal — a přesně
     # na tomhle spadl tenhle doklad po rozhodnutí Úkolu A (`exit 1` ze čtyř

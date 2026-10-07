@@ -1,5 +1,5 @@
 {
-  "kontrol": 40,
+  "kontrol": 39,
   "chyb": 0,
   "n_nezacaly": 2,
   "n_bez_citace": 2,
@@ -32,5 +32,5 @@
       "exit": 1
     }
   },
-  "hash_g3": "f3ed8b960955a9cfd8e89b946aa7483d13aa9678e609355f8c98afd41c0ceec1"
+  "hash_g3": "b5fbadd507d72bd6e1087eb15e6aa97d098a7598ffb1dd15717f6e4cc55c9020"
 }

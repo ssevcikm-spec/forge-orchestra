@@ -83,6 +83,58 @@ MUTATIONS = [
      CONDUCTOR,
      'if (t?.status === "blocked" || t?.status === "done") {',
      "if (false) {"),
+    # ══ P24 (7. 10. 2026, Úkol B3) — MUTACE NA ENDPOINTY, KTERÉ DOSUD
+    #    NETESTOVAL ŽÁDNÝ TEST. Bez nich by nové kontroly N/–/S byly jen
+    #    „zelené nad ničím“ a nikdo by nepoznal, že neměří.
+    # M9 `/poll` bez tajemství → kdokoli na světě si vyzvedne výsledky běhů
+    ("M9 /poll bez tajemstvi",
+     CONDUCTOR,
+     'if (path === "/poll" && request.method === "POST") {\n'
+     '      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);',
+     'if (path === "/poll" && request.method === "POST") {\n'
+     '      if (false) return json({ error: "bad secret" }, 401);'),
+    # M10 `/claim` bez hlavičky uzlu → úlohu by vzal „nikdo“ (worker = "")
+    ("M10 /claim bez hlavicky uzlu",
+     CONDUCTOR,
+     'if (path === "/claim" && request.method === "POST") {\n'
+     '      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);\n'
+     '      const name = request.headers.get("x-forge-worker") || "";\n'
+     '      if (!name) return json({ error: "chybi hlavicka x-forge-worker" }, 400);',
+     'if (path === "/claim" && request.method === "POST") {\n'
+     '      if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);\n'
+     '      const name = request.headers.get("x-forge-worker") || "";\n'
+     '      if (false) return json({ error: "chybi hlavicka x-forge-worker" }, 400);'),
+    # M11 `/claim` zahodí optimistický zámek → tutéž úlohu udělají DVA uzly
+    #     (naměřeno 2. 10. 2026: duplicitní práce na dvou uzlech)
+    ("M11 /claim zahodi optimisticky zamek",
+     CONDUCTOR,
+     'if (!claimed.meta.changes) return json({ task: null, note: "prave si to vzal jiny uzel" });',
+     'if (false) return json({ task: null, note: "prave si to vzal jiny uzel" });'),
+    # M12 `/heartbeat` přestane obnovovat `last_seen` → zdravý uzel vypadá mrtvý
+    #     (a naopak mrtvý vypadá živý; `/health` i `/workers` čtou právě tenhle údaj)
+    ("M12 heartbeat neobnovi last_seen",
+     CONDUCTOR,
+     "info = excluded.info, last_seen = datetime('now')",
+     "info = excluded.info, last_seen = last_seen"),
+    # M13 `/tasks/cleanup` ztratí bezpečnostní pojistku → při nenačtené roadmapě
+    #     smaže cache a úlohy zablokuje NASLEPO (to je nevratné)
+    ("M13 cleanup maze i pri nenalozene roadmapě",
+     CONDUCTOR,
+     "if (hryBezSouboru.length) {",
+     "if (false) {"),
+    # M14 `/roadmap/reset` ignoruje `dry_run` → „zkouška nanečisto“ maže doopravdy
+    ("M14 reset ignoruje dry_run",
+     CONDUCTOR,
+     "      // dry_run: jen spočítá, co by se stalo — pro ověření SQL před zásahem.\n"
+     "      if (body.dry_run) {",
+     "      // dry_run: jen spočítá, co by se stalo — pro ověření SQL před zásahem.\n"
+     "      if (false) {"),
+    # M15 `/tasks/cleanup` smaže VŠECHNY řádky cache, ne jen osiřelé
+    #     → přijde se o stav granul, které v souboru pořád jsou
+    ("M15 cleanup smaze i platne granule",
+     CONDUCTOR,
+     "const osirele = (vsechnyRadky.results || []).filter((r) => !platne.has(r.item_id));",
+     "const osirele = (vsechnyRadky.results || []).filter((r) => true);"),
 ]
 
 checks = 0

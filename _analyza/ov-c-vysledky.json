@@ -1,25 +1,25 @@
 {
   "kontrol": 18,
   "chyb": 0,
-  "hash_puvodni": "d8411ee74670008cf2d67dc3f0db7e429f57f93ed8a6f879c58a051d46ec565e",
-  "hash_mutovany": "e78614514f5c0815534ca107e80e5d2b371da12bd2644d17dbabb012bf35c7bd",
-  "hash_zpet": "d8411ee74670008cf2d67dc3f0db7e429f57f93ed8a6f879c58a051d46ec565e",
+  "hash_puvodni": "ec8ac05b2f4a4c2a6fcb5df279bbd7cee520cc32c9998039602fe95f94f9d59e",
+  "hash_mutovany": "d723f13ef8b9acc546189e012fd234c49ea1824d7f0a6e6a8e5b003836a77c15",
+  "hash_zpet": "ec8ac05b2f4a4c2a6fcb5df279bbd7cee520cc32c9998039602fe95f94f9d59e",
   "exit_zeleny": 0,
   "exit_mutant": 1,
   "exit_zpet": 0,
   "cisla_zeleny": {
-    "zkontrolovano": 179,
+    "zkontrolovano": 170,
     "zive": 0,
-    "vyloucene": 262
+    "vyloucene": 287
   },
   "cisla_mutant": {
-    "zkontrolovano": 179,
+    "zkontrolovano": 170,
     "zive": 1,
-    "vyloucene": 262
+    "vyloucene": 287
   },
   "cisla_zpet": {
-    "zkontrolovano": 179,
+    "zkontrolovano": 170,
     "zive": 0,
-    "vyloucene": 262
+    "vyloucene": 287
   }
 }

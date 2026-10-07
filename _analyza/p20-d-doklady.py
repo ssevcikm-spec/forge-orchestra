@@ -30,7 +30,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 WS = pathlib.Path(__file__).resolve().parents[1]
 ANALYZA = WS / "_analyza"
-VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[012]-)")
+VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[0-9]-)")
 
 # Sonda `p20-sonda-*` a `p20-c-kandidati` jsou JEDNORÁZOVÉ diagnostiky —
 # spouštět je znovu nemá smysl (a `p20-c-kandidati` pouští ostatní doklady).
@@ -51,7 +51,15 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # jen se **nespouští v dávce**; jeho roli převzal
              # `p22-zapis-zaznamu.py`, který je **idempotentní** a čísla si
              # bere **z brány** (`kronika-kontrola.py`), ne z hlavy.
-             "p21-zapis-kroniky.py"}
+             "p21-zapis-kroniky.py",
+             # ⚠ PŘESKOČENO 7. 10. 2026 (P24): SONDY, které odpovídaly na JEDNU
+             # otázku a mají odpovězeno. `p24-sonda-site.py` měřila, jestli jde
+             # z Pythonu na síť (jde — a Cloudflare blokuje `Python-urllib`
+             # podle User-Agenta, což je její hlavní nález);
+             # `p24-sonda-m2.py` hledala, proč mutace M2 neshodí test tiku
+             # (falešný svět zacyklil dispatch smyčku → Node `exit 134`).
+             # Obě jsou **jednorázové diagnostiky**, ne opakovatelné doklady.
+             "p24-sonda-site.py", "p24-sonda-m2.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

@@ -145,8 +145,11 @@ na kód po regeneraci. Pustit skener, ne „opravovat" bránu.
 - `E:\Workspaces\forge-orchestra\ZADANI-OPTIMALIZACE-KB.md` — zadání pro
   **jinou** session (KB), **tenhle workspace si ho nebere**.
 - `_analyza/p22-zapis-zaznamu.py` (34/0), `_analyza/p23-zapis-schvalene.py` (8/0),
-  `_analyza/p23k-radek-kroniky.py` (9/0), `_analyza/p22c-bunka-kroniky.py` (11/0)
+  `_analyza/_archiv/_jednorazove-P16-P17/p23k-radek-kroniky.py` (9/0),
+  `_analyza/p22c-bunka-kroniky.py` (11/0)
   — idempotentní zápisy, které se dají pustit znovu.
+  ⚠ `p23k-radek-kroniky.py` byl **7. 10. 2026 archivován** (DOPLNĚNÍ 14
+  v `PREDANI-GENERALIZACE-NASTROJU.md`), proto vede cesta do `_archiv\`.
 
 ---
 

@@ -102,6 +102,12 @@ function fakeDb(cfg) {
     runy: 0,
     bezi: cfg.bezi || 0,
     attempts: cfg.attempts ?? 0,
+    // ── P24 / Úkol B3: čítače pro endpointy, které dřív netestoval NIC ──────
+    heartbeaty: 0,      // `/heartbeat`
+    smazaneRadky: 0,    // `/tasks/cleanup` (mazání osiřelých řádků cache)
+    blocked: 0,         // `/tasks/cleanup` (označeno `blocked`)
+    abandoned: 0,       // `/tasks/cleanup` (dorovnání běhů)
+    resetSmazano: 0,    // `/roadmap/reset` (smazané granule)
   };
   const zapis = (sql) => log.push(String(sql).replace(/\s+/g, ' ').trim());
 
@@ -110,6 +116,14 @@ function fakeDb(cfg) {
     if (sql.includes("FROM tasks WHERE status='ready'")) return { n: 1 };
     if (sql.includes("FROM runs WHERE status='running'")) return { n: stav.bezi };
     if (sql.includes('COUNT(*) AS n FROM games')) return { n: cfg.aktivniHra ? 1 : 0 };
+    // `/claim`: hledá úlohu pro domácí uzel (`target='lan'` a druhy)
+    if (sql.includes("target='lan'")) return cfg.claimTask ?? null;
+    // `/roadmap/reset`: ověření, že hra existuje
+    if (sql.includes('SELECT game_id FROM games WHERE game_id')) return cfg.resetGame ?? null;
+    // `/tasks/cleanup` (dry_run) a `/roadmap/reset` (dry_run): počty
+    if (sql.includes('COUNT(*) AS n FROM roadmap')) return { n: cfg.resetPocet ?? 0 };
+    if (sql.includes("FROM tasks WHERE status='failed'")) return { n: cfg.resetUkolu ?? 0 };
+    if (sql.includes('COUNT(*) AS n FROM tasks')) return { n: cfg.cleanupCount ?? 0 };
     // `/report` hledá běh podle run_key a čte pokusy úlohy
     if (sql.includes('FROM runs WHERE run_key')) return cfg.reportRun ?? null;
     if (sql.includes('SELECT attempts')) return { attempts: stav.attempts, status: cfg.reportTaskStatus };
@@ -126,6 +140,14 @@ function fakeDb(cfg) {
       return { results: cfg.aktivniHra
         ? [{ game_id: 'test', repo: 'test/hra', roadmap_file: '.forge/roadmap.json', active: 1 }]
         : [] };
+    }
+    // `/tasks/cleanup`: co je v cache roadmapy (podle toho se hledají osiřelé)
+    if (sql.includes('SELECT item_id, task_id FROM roadmap')) {
+      return { results: cfg.roadmapRadky ?? [] };
+    }
+    // `/tasks/cleanup` (dry_run): ukázka úloh bez vazby
+    if (sql.includes('SELECT id, title, status FROM tasks')) {
+      return { results: cfg.ukazkaUkolu ?? [] };
     }
     if (sql.includes('FROM roadmap') && sql.includes('eskalovano')) return { results: [] };
     if (sql.includes('GROUP BY item_id')) return { results: [] };
@@ -148,12 +170,49 @@ function fakeDb(cfg) {
     if (sql.includes("UPDATE runs SET status='timeout'")) {
       return { meta: { changes: cfg.zaseknuteBehy ?? 0 } };
     }
+    // `/claim` (domácí uzel) I dispatch claim v tiku mají TÝŽ tvar:
+    // `UPDATE tasks SET status='running', attempts=attempts+1 …`.
+    // ⚠ STAV ÚLOHY SE MUSÍ PŘEPNOUT NA `running` — jinak by smyčka dispatche
+    // viděla tutéž úlohu pořád jako `ready` a **zacyklila se** (naměřeno
+    // 7. 10. 2026: s mutací M2 spadl Node na `exit 134`, tedy „brána nespadla
+    // podle kritéria“, protože výstup neobsahoval `CHYBA`).
+    if (sql.includes('attempts=attempts+1')) {
+      const ch = cfg.claimChanges ?? 1;
+      if (ch) {
+        stav.taskClaimed++;
+        stav.bezi++;
+        stav.taskStatus = 'running';
+      }
+      return { meta: { changes: ch } };
+    }
     if (sql.includes("UPDATE tasks SET status='running'")) {
       stav.taskClaimed++;
       if (stav.taskStatus !== 'ready') return { meta: { changes: 0 } };
       stav.taskStatus = 'running';
       stav.bezi++;
       return { meta: { changes: 1 } };
+    }
+    // `/heartbeat`: zápis uzlu (INSERT … ON CONFLICT)
+    if (sql.includes('INSERT INTO workers')) {
+      stav.heartbeaty++;
+      return { meta: { changes: 1 } };
+    }
+    // `/tasks/cleanup` a `/roadmap/reset`: co se opravdu smazalo / zablokovalo
+    if (sql.includes('DELETE FROM roadmap WHERE item_id = ?')) {
+      stav.smazaneRadky++;
+      return { meta: { changes: 1 } };
+    }
+    if (sql.includes('DELETE FROM roadmap')) {
+      stav.resetSmazano = cfg.resetPocet ?? 0;
+      return { meta: { changes: cfg.resetPocet ?? 0 } };
+    }
+    if (sql.includes("UPDATE tasks SET status='blocked'")) {
+      stav.blocked += cfg.cleanupCount ?? 0;
+      return { meta: { changes: cfg.cleanupCount ?? 0 } };
+    }
+    if (sql.includes("UPDATE runs SET status='abandoned'")) {
+      stav.abandoned++;
+      return { meta: { changes: cfg.abandoned ?? 0 } };
     }
     if (sql.includes('INSERT INTO runs')) { stav.runy++; return { meta: { changes: 1 } }; }
     if (sql.includes('INSERT INTO tasks')) return { meta: { changes: 1, last_row_id: 42 } };
@@ -209,6 +268,13 @@ function stubGithub(calls, cfg) {
     }
     if (u.includes('/pulls?head=')) return json(cfg.pull ? [cfg.pull] : []);
     if (u.includes('/pulls?')) return json([]);
+    // `/tasks/cleanup` čte roadmapu ze SUROVÉHO GitHubu (raw), ne z API —
+    // a to je přesně ta cesta, kterou dřív netestoval žádný test. `roadmapChyba`
+    // umí vrátit 404, aby se dala ověřit bezpečnostní pojistka „radši nemažu“.
+    if (u.includes('raw.githubusercontent.com')) {
+      if (cfg.roadmapChyba) return new Response('neni', { status: 404 });
+      return json({ grains: cfg.grainsSoubor ?? [GRAIN] });
+    }
     if (u.includes('/contents/') && cfg.aktivniHra) {
       const doc = { grains: [GRAIN] };
       return json({ content: Buffer.from(JSON.stringify(doc), 'utf8').toString('base64'), encoding: 'base64' });
@@ -236,6 +302,25 @@ async function report(mod, env, body, { secret = SECRET } = {}) {
     body: JSON.stringify(body),
   }), env);
   return { status: res.status, body: await res.json() };
+}
+
+/**
+ * Obecné POST na SKUTEČNÝ endpoint conductora (P24, Úkol B3).
+ *
+ * PROČ: do 7. 10. 2026 procházely handlerem jen `/tick` a `/report`; `/poll`,
+ * `/claim`, `/heartbeat`, `/tasks/cleanup` a `/roadmap/reset` netestoval
+ * NIKDO — a to je ta část rozhodovací logiky, kde bydlí mazání a blokování.
+ */
+async function post(mod, env, cesta, { telo, hlavicky = {}, secret = SECRET } = {}) {
+  const h = { 'content-type': 'application/json', ...hlavicky };
+  if (secret !== null) h['x-forge-secret'] = secret;
+  const res = await mod.default.fetch(new Request(`https://conductor.test${cesta}`, {
+    method: 'POST', headers: h,
+    body: telo === undefined ? undefined : JSON.stringify(telo),
+  }), env);
+  let b = null;
+  try { b = await res.json(); } catch { b = null; }
+  return { status: res.status, body: b };
 }
 
 /** Jeden sledovaný běh (pollRuns) — payload nese hru i granuli. */
@@ -424,6 +509,241 @@ async function main() {
     check('M: odpoví 200 s poznámkou', status === 200 && typeof body.poznamka === 'string', true);
     check('M: stav úlohy se NEMĚNÍ (blocked je terminální)',
       bylZapis(log, /UPDATE tasks SET status=\?/), false);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // P24 / Úkol B3 — ENDPOINTY, KTERÉ DOSUD NETESTOVAL ŽÁDNÝ TEST
+  // (`/poll`, `/claim`, `/heartbeat`, `/tasks/cleanup`, `/roadmap/reset`)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── N) /poll: sám endpoint (dřív šel jen omylem přes /tick) ──────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true, sledovanyRun, behNaGithubu: behNaGithubu('failure') });
+    const { env, log } = envFor({ aktivniHra: true, sledovanyRun, attempts: 2 });
+    const { status, body } = await post(mod, env, '/poll');
+    check('N: /poll odpoví 200', status, 200);
+    check('N: /poll ohlásí aktualizovaný běh',
+      /aktualizovano behu: 1/.test(String(body.message || '')), true);
+    check('N: /poll zapíše cooldown (`naposledy_selhalo`)',
+      bylZapis(log, /UPDATE roadmap SET status = \?.*naposledy_selhalo/), true);
+  }
+
+  // ── N2) /poll: špatné tajemství → 401 a ŽÁDNÉ volání GitHubu ─────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/poll', { secret: 'spatne' });
+    check('N2: /poll se špatným tajemstvím → 401', status, 401);
+    check('N2: a na GitHub se vůbec nešlo', calls.length, 0);
+  }
+
+  // ── O) /claim: domácí uzel si vyzvedne LAN úlohu ─────────────────────────
+  {
+    const lanUloha = { id: 5, title: 'LAN úloha', kind: 'test', target: 'lan', attempts: 0 };
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, stav } = envFor({ aktivniHra: true, claimTask: lanUloha });
+    const { status, body } = await post(mod, env, '/claim', {
+      telo: { kinds: ['test'] }, hlavicky: { 'x-forge-worker': 'pc-domaci' },
+    });
+    check('O: /claim odpoví 200', status, 200);
+    check('O: /claim vrátí úlohu', body?.task?.id, 5);
+    check('O: /claim vrátí `run_key`', typeof body?.run_key, 'string');
+    check('O: úloha se zamkla OPTIMISTICKY (`attempts=attempts+1`)',
+      bylZapis(log, /attempts=attempts\+1/), true);
+    check('O: vznikl běh s uzlem v `worker`',
+      bylZapis(log, /INSERT INTO runs .*worker/s), true);
+    check('O: čítač úloh se zvedl', stav.taskClaimed, 1);
+  }
+
+  // ── O2) /claim: žádná úloha → `task: null` a ŽÁDNÝ zápis běhu ────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, stav } = envFor({ aktivniHra: true, claimTask: null });
+    const { status, body } = await post(mod, env, '/claim', {
+      telo: { kinds: ['test'] }, hlavici: {}, hlavicky: { 'x-forge-worker': 'pc-domaci' },
+    });
+    check('O2: /claim bez úlohy → 200 a `task: null`',
+      status === 200 && body?.task === null, true);
+    check('O2: a NEZALOŽIL se běh', stav.runy, 0);
+    check('O2: a nezapsalo se nic do úloh', bylZapis(log, /UPDATE tasks SET status='running'/), false);
+  }
+
+  // ── O3) /claim: prohrátý optimistický zámek → `task: null` bez běhu ──────
+  {
+    const lanUloha = { id: 5, title: 'LAN úloha', kind: 'test', target: 'lan', attempts: 0 };
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav, log } = envFor({ aktivniHra: true, claimTask: lanUloha, claimChanges: 0 });
+    const { body } = await post(mod, env, '/claim', {
+      telo: { kinds: ['test'] }, hlavicky: { 'x-forge-worker': 'pc-domaci' },
+    });
+    check('O3: prohraný zámek → `task: null` s poznámkou',
+      body?.task === null && typeof body?.note === 'string', true);
+    check('O3: a běh se NEZALOŽIL (jinak by úlohu dělali dva uzly)', stav.runy, 0);
+    check('O3: a nic se neoznačilo `blocked`', stav.blocked, 0);
+  }
+
+  // ── O4) /claim bez hlavičky uzlu → 400 (jinak by úlohu vzal „nikdo“) ─────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/claim', { telo: { kinds: ['test'] } });
+    check('O4: /claim bez `x-forge-worker` → 400', status, 400);
+    check('O4: a nic se nevyzvedlo', bylZapis(log, /attempts=attempts\+1/), false);
+  }
+
+  // ── P) /heartbeat: uzel se zapíše i s druhy a informacemi ────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav, log } = envFor({ aktivniHra: true });
+    const { status, body } = await post(mod, env, '/heartbeat', {
+      telo: { kinds: ['assets', 'test'], platform: 'win32', info: { godot: '4.7.2' } },
+      hlavicky: { 'x-forge-worker': 'pc-domaci' },
+    });
+    check('P: /heartbeat odpoví 200', status, 200);
+    check('P: /heartbeat vrátí jméno uzlu', body?.name, 'pc-domaci');
+    check('P: uzel se ZAPSAL (INSERT … ON CONFLICT)', stav.heartbeaty, 1);
+    check('P: zápis je UPSERT, ne jen INSERT',
+      bylZapis(log, /ON CONFLICT\(name\) DO UPDATE/), true);
+    // Bez obnovení `last_seen` by zdravý uzel vypadal mrtvý — a to je celý
+    // smysl heartbeatu (čte ho `/health` i `/workers`).
+    check('P: a OBNOVÍ `last_seen`', bylZapis(log, /info = excluded\.info, last_seen = datetime\('now'\)/), true);
+  }
+
+  // ── P2) /heartbeat bez hlavičky uzlu → 400 a ŽÁDNÝ zápis ─────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/heartbeat', { telo: { kinds: ['test'] } });
+    check('P2: /heartbeat bez `x-forge-worker` → 400', status, 400);
+    check('P2: a uzel se nezapsal', stav.heartbeaty, 0);
+  }
+
+  // ── Q) /tasks/cleanup (dry_run): spočítá, ale NEMAŽE ─────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, stav } = envFor({
+      aktivniHra: true, cleanupCount: 4, roadmapRadky: [{ item_id: 'test/stara', task_id: 9 }],
+    });
+    const { status, body } = await post(mod, env, '/tasks/cleanup', { telo: { dry_run: true } });
+    check('Q: dry_run odpoví 200', status, 200);
+    check('Q: dry_run hlásí `dry_run: true`', body?.dry_run, true);
+    check('Q: dry_run vidí platné granule ze SOUBORU',
+      body?.platnych_granuli_v_souborech, 1);
+    check('Q: dry_run vidí osiřelý řádek cache', body?.osirelych_radku, 1);
+    check('Q: dry_run NEMAŽE řádky roadmapy', stav.smazaneRadky, 0);
+    check('Q: dry_run NEBLOKUJE úlohy', stav.blocked, 0);
+    check('Q: dry_run nezapsal ani DELETE', bylZapis(log, /DELETE FROM roadmap/), false);
+  }
+
+  // ── Q2) /tasks/cleanup: roadmapa se NEDÁ načíst → 503 a NEMAZAT ──────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true, roadmapChyba: true });
+    const { env, log, stav } = envFor({
+      aktivniHra: true, cleanupCount: 4, roadmapRadky: [{ item_id: 'test/stara', task_id: 9 }],
+    });
+    const { status, body } = await post(mod, env, '/tasks/cleanup', { telo: {} });
+    check('Q2: nenačtená roadmapa → 503', status, 503);
+    // ⚠ MUSÍ SE OVĚŘIT KONKRÉTNÍ DŮVOD, ne jen „nemažu“: obě pojistky
+    // (`hryBezSouboru` i prázdné `platne`) vrací 503 a slovo „nemažu“ je v OBOU
+    // hláškách — takže kontrola „obsahuje nemažu“ zelenala i s vypnutou první
+    // pojistkou (naměřeno 7. 10. 2026: mutace M13 tím prošla).
+    check('Q2: a řekne PROČ („roadmapa se nedá načíst“)',
+      /roadmapa se nedá načíst/.test(String(body?.error || '')), true);
+    check('Q2: a NEplete si to s prázdnou roadmapou',
+      /žádná platná granule/.test(String(body?.error || '')), false);
+    check('Q2: a hlavně NEMAZALO', stav.smazaneRadky, 0);
+    check('Q2: a neblokovalo', stav.blocked, 0);
+    check('Q2: a nezapsalo DELETE', bylZapis(log, /DELETE FROM roadmap/), false);
+  }
+
+  // ── Q3) /tasks/cleanup: prázdná roadmapa → 503 (nemaže se naslepo) ───────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true, grainsSoubor: [] });
+    const { env, stav } = envFor({ aktivniHra: true, cleanupCount: 4 });
+    const { status, body } = await post(mod, env, '/tasks/cleanup', { telo: {} });
+    check('Q3: prázdná roadmapa → 503', status, 503);
+    check('Q3: a řekne, že nemaže', /nemažu/.test(String(body?.error || '')), true);
+    check('Q3: a NEMAZALO', stav.smazaneRadky, 0);
+  }
+
+  // ── Q4) /tasks/cleanup: ostrý běh → zablokuje osiřelé a smaže cache ──────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, stav } = envFor({
+      aktivniHra: true, cleanupCount: 4, abandoned: 2,
+      roadmapRadky: [{ item_id: 'test/stara', task_id: 9 }, { item_id: 'test/grain.jedna', task_id: 1 }],
+    });
+    const { status, body } = await post(mod, env, '/tasks/cleanup', { telo: {} });
+    check('Q4: ostrý úklid odpoví 200', status, 200);
+    check('Q4: zablokoval osiřelé úlohy z řádků cache', body?.zablokovano_z_radku, 4);
+    check('Q4: smazal JEN osiřelý řádek (platná granule zůstává)', stav.smazaneRadky, 1);
+    check('Q4: dorovnal běhy, které zůstaly viset', body?.dorazeno_behu, 2);
+    check('Q4: a úlohy bez vazby označil `blocked`',
+      bylZapis(log, /UPDATE tasks SET status='blocked'/), true);
+  }
+
+  // ── R) /roadmap/reset (dry_run): spočítá, ale NEMAŽE ─────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, stav } = envFor({ aktivniHra: true, resetPocet: 7, resetUkolu: 2 });
+    const { status, body } = await post(mod, env, '/roadmap/reset', { telo: { dry_run: true } });
+    check('R: reset dry_run → 200', status, 200);
+    check('R: hlásí, kolik granul by smazal', body?.smazal_bych_granuli, 7);
+    check('R: hlásí, kolika úkolů by se dotkl', body?.dotklo_bych_se_ukolu, 2);
+    check('R: a NEMAZAL', stav.resetSmazano, 0);
+    check('R: a nezapsal DELETE', bylZapis(log, /DELETE FROM roadmap/), false);
+  }
+
+  // ── R2) /roadmap/reset: neznámá hra → 404 a NEMAZAT ──────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav } = envFor({ aktivniHra: true, resetGame: null, resetPocet: 7 });
+    const { status, body } = await post(mod, env, '/roadmap/reset',
+      { telo: { game_id: 'neexistuje' } });
+    check('R2: neznámá hra → 404', status, 404);
+    check('R2: a řekne kterou', body?.game_id, 'neexistuje');
+    check('R2: a NEMAZAL', stav.resetSmazano, 0);
+  }
+
+  // ── R3) /roadmap/reset: ostrý běh smaže cache (frontu postaví další tik) ─
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, body, stav } = envFor({ aktivniHra: true, resetPocet: 7 });
+    const vysledek = await post(mod, env, '/roadmap/reset', { telo: {} });
+    check('R3: ostrý reset → 200', vysledek.status, 200);
+    check('R3: hlásí smazané granule', vysledek.body?.smazano_granuli, 7);
+    check('R3: cache se OPRAVDU smazala', stav.resetSmazano, 7);
+    check('R3: a odpověď říká, že fronta přijde v dalším tiku',
+      /znovu postaví v dalším tiku/.test(String(vysledek.body?.poznamka || '')), true);
+  }
+
+  // ── S) tajemství: všechny chráněné endpointy ho VYŽADUJÍ ─────────────────
+  {
+    const chranene = ['/poll', '/claim', '/heartbeat', '/tasks/cleanup', '/roadmap/reset'];
+    const bez = [];
+    for (const cesta of chranene) {
+      const calls = [];
+      stubGithub(calls, { aktivniHra: true });
+      const { env } = envFor({ aktivniHra: true });
+      const { status } = await post(mod, env, cesta, { telo: {}, secret: 'spatne' });
+      if (status !== 401) bez.push(`${cesta} → ${status}`);
+    }
+    check('S: každý chráněný endpoint vrátí bez tajemství 401', bez, []);
   }
 
   console.log();

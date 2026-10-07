@@ -1,27 +1,22 @@
-# ZADÁNÍ PRO DALŠÍ SESSION — NEZÁVISLE OVĚŘIT NASAZENÍ A ZÁZNAMY (a neztratit, co se nasadilo)
+# ZADÁNÍ PRO DALŠÍ SESSION — DOKONČIT SLEPÁ MÍSTA ROZHODOVACÍ LOGIKY (a nespálit při tom živou službu)
 
-**Co tenhle dokument JE:** **zadání pro session P24**. Nahrazuje zadání z P23
+**Co tenhle dokument JE:** **zadání pro session P25**. Nahrazuje zadání z P24
 (to je **záznam**, ne stav — `git log -1 NEXT-SESSION-INSTRUKCE.md`).
-**Co NENÍ:** stav projektu (ten je v `HANDOFF.md` — nejnovější záznamy jsou
-**§52** (předání) a **§53** (nasazeno a ověřeno živě)) ani kronika (ta je
-v `KRONIKA-PROJEKTU.md`, nejnovější řádek **38**).
+**Co NENÍ:** stav projektu (ten je v `HANDOFF.md`, nejnovější oddíl **§54**)
+ani kronika (ta je v `KRONIKA-PROJEKTU.md`, nejnovější řádek **39**,
+nálezy **§2.17**).
 
-**Stav obou repů při psaní:** `forge-orchestra` = `d998190` · `uo-shadows` = `44dd454`
-`origin/main` orchestry = **`d998190`** (**pushnuto**, `origin/main..HEAD` = **0**) ·
-`origin/main` hry = **shodná**, strom orchestry má **necommitnuté MAZÁNÍ 25 starých
-skriptů** (`_analyza/_p13c-*`, `hl2-*`, `p14*`) — práce **souběžné session** (§0.2).
-**Zkontrolováno při:** **7. 10. 2026, 08:2x +02:00 = 06:2x UTC**
+**Stav obou repů při psaní:** `forge-orchestra` = `4925f64` · `uo-shadows` = `44dd454`
+`origin/main` orchestry = **`c664dde`** — **1 nepushnutý commit** (`4925f64`,
+archivace 25 nástrojů = práce **SOUBĚŽNÉ session**; **není moje a necommituj ji**).
+`origin/main` hry = **shodná**, strom orchestry má **necommitnutou práci P24**
+(viz §0.3) a průběžně i práci souběžné session.
+**Zkontrolováno při:** **7. 10. 2026, 10:0x +02:00 = 08:0x UTC**
 
 **Kotva pro měření (tvar, který čte `_analyza/zadani-kontrola.py`):**
-`forge-orchestra` = `d998190` · `uo-shadows` = `44dd454`
-**Kotva pro měření:** `d998190` (na něm se měřilo; **po každém dalším commitu
+`forge-orchestra` = `4925f64` · `uo-shadows` = `44dd454`
+**Kotva pro měření:** `4925f64` (na něm se měřilo; **po každém dalším commitu
 bude `zadání kontrola` hlásit „přibylo commitů" — a to je správně**, nález NA31)
-
-> **⚠ MEZI MÝM MĚŘENÍM A TOHLE ZADÁNÍM PŘIBYL CIZÍ COMMIT.** Souběžná session
-> (generalizace) commitla **`f8595de`** — *„cesty se odvozují, ne zapekají
-> (31 → 0) + 6. kontrola autority"*. **Mění nástroje, jejichž čísla cituju v §5**
-> (`over-skilly.py`, `ag-over-cisla.py`, `zadani-kontrola.py`) → **čísla v §5
-> ber jako naměřená PŘED ním a přeměř je.**
 
 > **⚠ PRVNÍ VĚC, KTEROU UDĚLEJ:** `git status --porcelain` a **`git fetch`**
 > v obou repech — a **ověř `origin/main..HEAD` ŽIVĚ** (`git ls-remote`), ne
@@ -35,103 +30,117 @@ bude `zadání kontrola` hlásit „přibylo commitů" — a to je správně**, 
 > **`edit`/`write` toolem**; po zápisu zkontroluj **první tři bajty**
 > (`.py` **NESMÍ** mít BOM, `.ps1` **MUSÍ**).
 >
-> **⚠ ČTVRTÁ (NOVÁ, naměřená 7. 10. 2026):** **V REPU, KDE BĚŽÍ MUTAČNÍ TESTY,
-> KONTROLUJ PŘED COMMITEM INDEX, NE PRACOVNÍ STROM.** Mutace **M8**
-> (`_analyza/tick-mutace.py`) zůstala ve **stageované** verzi
-> `conductor/src/index.ts` (`if (false) {`) — `git diff` ji **neukázal**,
-> protože disk byl správně. Zachránila to až kontrola **`git show :soubor`**
-> na známé značky mutantů. Kdyby se to podepsalo, odešel by do světa
-> **vypnutý invariant 10** (`blocked` je terminální). Podrobně §53.3.
+> **⚠ ČTVRTÁ (NOVÁ, naměřená 7. 10. 2026, P24):** **`git checkout` TICHE ROZBIJE
+> MUTAČNÍ DOKLADY.** Repo orchestra **nemá kořenový `.gitattributes`** (má ho jen
+> šablona `repo/`) a `core.autocrlf=true` → checkout přepíše `.ts` na **CRLF**,
+> vícřádkové kotvy mutací (`…\n               naposledy_selhalo …`) pak hlásí
+> **„kotva v souboru NENÍ"**, což vypadá jako vada TESTU — a **`git status` je
+> přitom čistý**. Stav se opravuje obnovením **bajtů z blobu** (LF). Podrobně
+> `HANDOFF.md` §54.3 bod 2.
+>
+> **⚠ PÁTÁ (NOVÁ):** **`git checkout`/`git restore` na `conductor/src/index.ts`
+> nikdy nespouštěj „jen tak"** — viz čtvrtá. A **PowerShell `>` píše UTF-16LE**;
+> evidenční soubory si nech zapisovat **programem** (UTF-8), ne přes `>`.
+>
+> **⚠ ŠESTÁ (NOVÁ):** **PŘERUŠENÝ MUTAČNÍ BĚH NENÍ NEHODA, JE TO STAV.** V P24
+> zůstaly po pádu pipeline **čtyři mutanty v živém `conductor/src/index.ts`**.
+> Než začneš mutovat, ověř `git status`; po každém skriptu zkontroluj návrat.
+> `_analyza/p24-a-overeni.py` to dělá za tebe (A3 + A4).
 
 ---
 
 ## 0. Co je HOTOVÉ (neopakuj to znovu)
 
-### 0.1 Práce session P23 (N0.3 + fáze B conductoru) — NASZENO
+### 0.1 P24 — nezávislé přeměření nasazení P23 (Úkol A) — HOTOVO
 
-| # | Co se udělalo | Doklad |
+| # | Co se ověřilo | Výsledek |
 |---|---|---|
-| **N0.3** | `/health` hlásí stav **cíle**: `targets[]` s `main_ci` **i** `forge.ok`/`selhani_v_rade`; „nezměřeno" = `null`, ne „v pořádku" | `HANDOFF.md` **§42**, brána `tools/test-health-cile.mjs` (21/0) + `_analyza/n03-mutace.py` (11/0) |
-| **B3a** | watchdog počítá běhy **granule** (dřív jeden úkol) a prah je **pod** stropem (`ESCALATE_AFTER` 8 → 3); značka v `roadmap.eskalovano` | **§43**, `tools/test-watchdog-granule.py` (17/0) + `b3-mutace.py` (11/0) |
-| **B2 + B5** | `/report` → cooldown má bránu; nepravdivé komentáře o `MAX_ATTEMPTS` pryč (`grep "mrtvý kód"` → 0) | **§44**, `tools/test-report-cooldown.py` (8/0) + `b2-mutace.py` (9/0) |
-| **B4** | bez **aktivní** hry se nedispatchuje (fallback na `GITHUB_REPO` pryč, dispatch smyčka se ptá na aktivní hry) | **§45**, `tools/test-listgames.py` (10/0) + `b4-mutace.py` (9/0) |
-| **B3b** | strop na granuli `GRAIN_MAX_RUNS` — **výchozí `"0"` = VYPNUTO** (zapnutí je samostatný krok) | **§46**, `tools/test-grain-cap.py` (22/0) + `b3b-mutace.py` (11/0) |
-| **Test rozhodovací logiky** | `tools/test-tick-offline.mjs` volá **skutečný `/tick` i `/report`** nad zbundlovaným conductorem s falešnou D1 (na neznámý dotaz **spadne**): **40 kontrol** | **§48–§50**, `_analyza/tick-mutace.py` (**8 vrat**, 17/0) |
-| **Měřidla** | `c2-mutace.py` nově vykazuje čítač; deklarovaná výjimka `OCEKAVANE_BEZ_CITACE` zrušena; počet v **názvu** brány zrušen (zestarával) | **§47**, `_analyza/_registr-bran.json` |
-| **Dokumentace** | skill `orchestra` + `README.md`: opraveny lži o nástrojích a **24 odkazů na neexistující layout** | **§51**, `over-skilly.py` → 54 zmínek, 0 mrtvých |
+| **A1** | živá služba běží na commitu, který se tvrdí | **POTVRZENO**: poslední úspěšný `deploy.yml` = **#33** na `head_sha 598e207`; `598e207` je poslední commit měnící `conductor/**`; **bloby** `index.ts` i `wrangler.toml` v něm a v `HEAD` **shodné**; živé `/health` vrací `targets[]` |
+| **A2** | watchdog eskaluje | **POTVRZENO s výhradou**: `/tick` → `watchdog: 0 ohlášeno (prah 3)`; prah **3 = zdroj** a je **POD** `MAX_ATTEMPTS=5`. ⚠ **Stav granul v D1 je NEZMĚŘENO** — conductor `roadmap.eskalovano` **nikde nevrací** a D1 přes REST nejde |
+| **A3** | v commitech nejsou mutanty | **POTVRZENO**: 40 kotv z 21 mutačních skriptů ověřeno v **blobech** `598e207`, `7f0b2f8`, `HEAD`; `disk == index == HEAD` |
+| **A4** | brány umí selhat | **POTVRZENO**: 6 důkazů zelených + ruční mutace mimo knihovnu branu shodila |
+| **A5** | nic nezmizelo | **POTVRZENO**: handoff **83/83**; kronika v rozsahu P23 = **0 smazaných řádků**; v posledních 6 commitech **žádný smazaný řádek session** |
+| **A6** | čísla v plánech sedí na kód | **POTVRZENO**: 12 bran znovu spuštěno, čítače přesně odpovídají (21/0+11/0, 17/0+11/0, 8/0+9/0, 10/0+9/0, 22/0+11/0, 40/0+17/0) |
+| **A7** | souběh se souběžnou session | **POTVRZENO, ale OTÁZKA ZADÁNÍ BYLA ŠPATNÁ** (ptala se na průnik, rozhoduje pořadí: `f8595de` je potomek `598e207`) |
+| **A8** | hra nedotčená | **POTVRZENO**: `44dd454`, čistá, 0 nepushnutých, v rozsahu P23 nic z cesty do hry |
 
-**Nasazení (obojí pushnuto, `origin/main` = `7f0b2f8`):**
+**Doklad:** `_analyza/p24-a-overeni.py` (**99 kontrol, 0 chyb**) +
+`_analyza/p24-b-mutace.py` (**17 kontrol, 0 chyb** — dokazuje, že měřidlo umí
+spadnout). Záznam: `HANDOFF.md` **§54**, kronika **řádek 39** a **§2.17**.
 
-| Commit | Co | Deploy |
-|---|---|---|
-| **`598e207`** | conductor: N0.3 + fáze B (25 souborů, +3714/−109) | **#33 → success** |
-| **`7f0b2f8`** | kronika §1/**38**, plány N0.3/B2–B5 na HOTOVO, `HANDOFF.md` **§53** | dokumentace, nic nenasazuje |
+### 0.2 P24 — Úkol B3: endpointy, které netestoval NIKDO — HOTOVO
 
-**Živě ověřeno po nasazení (7. 10. 2026, 06:08 UTC):**
-`/health` → `targets[0]`: `main_ci: success (ci.yml #117)`, **`forge.ok: false`**,
-**`selhani_v_rade: 20`** · `/tick` → **`watchdog: 2 ohlášeno (prah 3)`**,
-`spusteno: 1 úloh`, `zombie zablokováno: 1`.
+`tools/test-tick-offline.mjs` nově volá **skutečný handler** i pro `/poll`,
+`/claim`, `/heartbeat`, `/tasks/cleanup` a `/roadmap/reset`:
+**100 kontrol, 0 chyb** (bylo 40). Mutační důkaz `_analyza/tick-mutace.py` má
+**15 vrat / 31 kontrol, 0 chyb** (bylo 8/17) — včetně `dry_run`, který nesmí mazat,
+a pojistky „roadmapa se nedá načíst → nemažu".
 
-### 0.2 ⚠ SOUBĚŽNÁ SESSION PRACUJE VE STEJNÉM STROMĚ
+### 0.3 ⚠ CO JE V STROMĚ NECOMMITNUTÉ (stav k 7. 10. 2026, 10:0x)
 
-Ve workspace pracuje **druhá session** (generalizace nástrojů — nahrazuje
-zapečené cesty `C:\Users\Ssevc\…` za `DSH_HOME`/`HOME`). **Své první kolo už
-commitla** (`f8595de`) a **druhé má rozdělané**: v pracovním stromě je
-**necommitnuté smazání 25 starých skriptů** (`_analyza/_p13c-*.py`, `hl2-*.py`,
-`p14*.py` — nejspíš přesun do `_archivu`).
-**Patří jí — necommituj ji, neopravuj ji, nemaž ji.** A **kvůli ní průběžně
-zestarává `_analyza/_inventar.json`** (je to vstup skeneru) — to není vada.
+**Moje (P24), čeká na rozhodnutí o commitu:**
 
-⚠ **Její commit `f8595de` se dotkl i měřidel, o která se opírá §5** — pokud
-naměříš jiná čísla než já, **věř svému měření** a zapiš to jako nález (je to
-přesně ten druh rozchodu, který má brána odhalit).
+| Soubor | Co to je |
+|---|---|
+| `_analyza/p24-a-overeni.py` | měřidlo A1–A8 (**nový**) |
+| `_analyza/p24-b-mutace.py` | jeho mutační důkaz (**nový**) |
+| `_analyza/p24-sonda-site.py`, `_analyza/p24-sonda-m2.py` | jednorázové sondy (**nové**, v `p20-d-doklady.py` jsou v `PRESKOCIT`) |
+| `_analyza/p24-radek-kroniky.py` | zápis záznamů (**nový**) |
+| `tools/test-tick-offline.mjs` | +304 řádků (endpointy) |
+| `_analyza/tick-mutace.py` | +7 vrat |
+| `_analyza/p20-d-doklady.py` | `VZOR` bere i `p2[0-9]-`, sondy v `PRESKOCIT` |
+| `HANDOFF.md`, `KRONIKA-PROJEKTU.md` | §54, řádek 39, §2.17 |
+
+**Cizí (souběžná session, generalizace nástrojů):** `_analyza/_registr-bran.json`
+(jeho obsah je **generovaný** — přepsal ho běh `g3`). **Nepatří mi** — ale je to
+**generovaný** soubor, takže „necommitovat" znamená jen „nerozhodovat o něm".
 
 ---
 
 ## 1. Cíl (jedna věta)
 
-**Nezávisle přeměřit, že nasazená práce SKUTEČNĚ dělá to, co o ní záznamy
-tvrdí — a že se při ní nic neztratilo ani nepodepsalo.**
+**Dokončit slepá místa rozhodovací logiky conductora — tedy ta, která ještě
+nevolá žádný test — a přitom ani jednou nesáhnout na živou službu bez vědomí
+uživatele.**
 
-**Proč to patří nové session:** záznamy **§52/§53** i řádek kroniky psal **autor
-téže session, která práci i nasazovala** — a `AGENTS.md` je v tom jednoznačné:
-*„autor není nezávislý reviewer"*. Navíc šlo do živé služby **355 řádků
-`index.ts`** a **6 nových bran**; „nic se nerozbilo" se u toho **dokazuje
-měřením, ne pamětí**. A je tu **konkrétní naměřená stopa**, že se to podepsat
-mohlo: mutant M8 zůstal ve stageované verzi (§53.3) — kdo ví, co ještě.
+**Proč to patří nové session:** P24 zavřela **pět** endpointů, ale **handler
+jich má devatenáct**. Zbylé (`/task`, `/game`, `/game/active`, `/queue`,
+`/workers`, `/games`, `/failed`, `/status`, `/health`) **neměří žádný test** —
+a dva z nich (`/task`, `/game/active`) **zapisují do D1 a mění chování služby**.
+To je stejná třída jako §50.3: *vada, kterou nikdo nezměří, se pozná až tím, že
+se něco stane*.
 
 ---
 
 ## 2. Úkoly
 
-### 2.1 Úkol A (POVINNÝ) — nezávislé přeměření nasazení a záznamů
+### 2.1 Úkol A (POVINNÝ) — přeměřit P24 VLASTNÍM postupem
 
-Každý bod měř **jiným postupem**, než jak vznikl (ne „přečtu to a souhlasím"):
+Zadání P24 psal autor, který si je i ověřoval; **P24 to udělala pro P23 —
+a proto se to musí udělat i pro P24.** Každý bod měř **jinak, než jak vznikl**:
 
-| # | Co ověřit | Jak (návrh, klidně si zvol vlastní) |
+| # | Co ověřit | Jak (návrh; klidně si zvol vlastní) |
 |---|---|---|
-| **A1** | **Živá služba běží na tom commitu, který se tvrdí** | Ne z dokumentu: zjisti z GitHub API poslední **úspěšný** běh `deploy.yml` a jeho `head_sha`; porovnej s `HEAD`. Pak **zavolej živý `/health`** a ověř, že vrací `targets[]` (to umí **jen** kód z `598e207`). Tvrzení i měření zapiš |
-| **A2** | **Watchdog opravdu eskaluje (B3a)** | Dvě nezávislé cesty: (a) `/tick` a jeho věta `watchdog: N ohlášeno (prah P)`; (b) **stav v D1** — kolik granul má `roadmap.eskalovano` a jaké. Když k D1 nemáš přístup, **řekni to** (`nezměřeno` ≠ 0) |
-| **A3** | **V commitu NEJSOU mutanty** (a to ani v indexu) | Projdi **oba commity** (`598e207`, `7f0b2f8`): u každého souboru, který mutační testy mutují (`conductor/src/index.ts`, `conductor/wrangler.toml`, `AGENTS.md`), hledej **známé značky mutantů** (`if (false) {`, `merged = true;`, `selhani_v_rade: 0,`, `ESCALATE_AFTER = "9"`, …). Postup ber z **blobů** (`git show <sha>:<soubor>`), ne z pracovního stromu |
-| **A4** | **Brány umí selhat i po nasazení** | Spusť **6 nových mutačních důkazů** (`n03`, `b3`, `b2`, `b4`, `b3b`, `tick`) a ověř, že **každý** hlásí `0 chyb` a že po něm je `index.ts` **bajt na bajt** zpět (`git status` čistý u těch souborů). Pak **jednu** mutaci provedl ručně mimo knihovnu a sleduj, že test **spadne** (kontrola, že knihovna není ta, kdo měří) |
-| **A5** | **Nic nezmizelo** | `python _analyza\handoff-kontrola-uplnost.py` → **83/83, CHYBÍ 0**; **nezávisle**: `git diff --stat 598e207~1 7f0b2f8` musí u `KRONIKA-PROJEKTU.md` ukázat **jen přidání** a **řádky 1–37 musí být bajt na bajt** jako v `git show 598e207~1:KRONIKA-PROJEKTU.md` |
-| **A6** | **Čísla v plánech sedí na kód** | `PLAN-ORCHESTRA-AI-AGENTI.md` u **N0.3** a `PLAN-ROZVOJ-ORCHESTRA.md` u **B2–B5** teď tvrdí HOTOVO — ověř, že to **odpovídá kódu** (`grep` na `main_ci`, `eskalovano`, `GRAIN_MAX_RUNS`, `listGames`), a že tvrzené čítače brán (21/11, 17/11, 8/9, 10/9, 22/11, 40/17) **naměříš znovu stejně** |
-| **A7** | **Tvrzení o souběhu je dnešní** | Ověř, že soubor změn ze §0.2 **ještě platí** (`git status --porcelain`), a že v mém commitu **nejsou** soubory té druhé session (`git show --stat 598e207` je nesmí obsahovat) |
-| **A8** | **Hra a její CI nejsou dotčené** | `uo-shadows` = `44dd454`, strom **čistý**; `git diff --name-only 598e207~1 7f0b2f8` nesmí obsahovat **nic** z cesty do hry |
+| **A1** | **Měřidlo P24 opravdu měří** | Spusť `python _analyza\p24-a-overeni.py`. Pak **vrať do kopie** některé jeho tvrzení vadu (např. v kopii `PLAN-ROZVOJ-ORCHESTRA.md` uber `\| **B4** \|`) a ověř, že **spadne** — a že `p24-b-mutace.py` to hlásí jako nález, ne jako OK |
+| **A2** | **Nezávisle na měřidle P24**: `N > 0` u watchdogu je nastražená otázka | Ověř, že `roadmap.eskalovano` je **trvalá** značka (najdi SQL ve **zdroji** a dokaž, že se z ní neodstraňuje) — a že by tedy kontrola „ohlásil něco“ **shodila zdravou službu** |
+| **A3** | **Test tiku opravdu VOLÁ endpointy** (ne jen existuje) | Do **kopie** conductora vlož do jednoho z pěti handlerů zarážku (např. změň odpověď `/claim` na `{task: null}`) a sleduj, **které kontroly se zapnou**. Když se jich zapne **nula**, test o té smlouvě netvrdí nic |
+| **A4** | **Čísla v §54 sedí** | `grep`/skriptem najdi v `HANDOFF.md` §54 tvrzené čítače (99/0, 17/0, 100/0, 15 vrat/31/0, 48 bran) a **každý naměřený znovu spusť** |
+| **A5** | **Krátká historie se nepřepsala** | `git diff 4925f64~1 HEAD` (až bude HEAD dál) u `KRONIKA-PROJEKTU.md` musí mít **0 smazaných řádků session**; `python _analyza\kronika-kontrola.py` → SEDÍ |
+| **A6** | **Sondy nejsou brány** | Ověř, že `p24-sonda-*` **nejsou** v `BRANY` (`g3`) ani ve `spust()` (`validate-all.mjs`) a že jsou v `PRESKOCIT` — a že to není „uklizení dokladu pod koberec“ (tj. že měřidla, která měřit mají, v `g3` **jsou**) |
 
-**Doklad:** vlastní skript v `_analyza/` (název `p24-*`), spuštěný a **uložený
-i s výstupem**; **a musí umět selhat** (mutační test: uber v kopii dokumentu
-jeden nadpis a sleduj, že skript spadne). Kdo přidá doklad do `_analyza/`,
-**přidá ho i do `_analyza/p20-d-doklady.py`** — jinak shnije.
+**Doklad:** vlastní skript v `_analyza/` (název `p25-*`), spuštěný a **uložený
+i s výstupem**; **a musí umět selhat** (mutační test — vzor: `p24-b-mutace.py`).
+Kdo přidá doklad do `_analyza/`, **přidá ho i do `_analyza/p20-d-doklady.py`**.
 
-### 2.2 Úkol B — VĚCNÁ PRÁCE (teprve po Úkolu A; vyber JEDNU a řekni kterou)
+### 2.2 Úkol B — VĚCNÁ PRÁCE (vyber JEDNU a řekni kterou)
 
 | # | Nabídka | Kde je zapsaná | Proč je na řadě |
 |---|---|---|---|
-| **B1** | **Ověřit B4 na ŽIVÉ službě** — `POST /game/active {active:false}` → `/health` `games=0` a **žádný dispatch**, pak hru vrátit zpět | `HANDOFF.md` **§45**, `PLAN-ROZVOJ-ORCHESTRA.md` §3.5 (B4) | Kód i brány jsou hotové, **acceptance ještě na živé službě neproběhlo**. ⚠ **Dočasně zastaví orchestra** — chce výslovné „ano" uživatele |
-| **B2** | **Zapnout strop na granuli** (`GRAIN_MAX_RUNS = "5"`) — druhý krok B3b | `HANDOFF.md` **§46** | Až bude vidět, že watchdog stačí. ⚠ Je to **změna chování živé služby** = nasazení |
-| **B3** | **Rozšířit offline test tiku** na endpointy, které **nemá** žádný test: `/poll`, `/claim`, `/heartbeat`, `/tasks/cleanup`, `/roadmap/reset` | `HANDOFF.md` **§50.3** | Je to **největší zbylé slepé místo** rozhodovací logiky — a jde to **bez nasazení** |
-| **B4** | **Opravit slepé místo `over-skilly.py`** („0 mrtvých cest“, a přitom 24 odkazů na neexistující layout prošlo) | `HANDOFF.md` **§51.3** | Fáze C: „brány, které lžou“. ⚠ **Soubor má rozdělanou práci souběžné session** — nejdřív se domluv, nebo sáhni jinam |
+| **B1** | **Dopsat testy pro zbylé endpointy**: zejména **`POST /task`** (zakládá úlohu!) a **`POST /game` / `/game/active`** (mění registr her = mění, co orchestra dělá) | `HANDOFF.md` **§54.3** bod 10, `orders` ve `conductor/src/index.ts:1422+`, `:1644+` | Je to **pokračování Úkolu B3** a **největší zbylé slepé místo**; jde to **bez nasazení** |
+| **B2** | **Rozhodnout návrh `.gitattributes`** (P24-B) | `HANDOFF.md` **§54.3** bod 2 | `git checkout` dnes **tiše rozbíjí mutační doklady**; návrh je hotový, chybí **rozhodnutí** (a je to změna, která se dotkne celého repa) |
+| **B3** | **Ověřit B4 na ŽIVÉ službě** — `POST /game/active {active:false}` → `/health` `games=0` a **žádný dispatch**, pak hru vrátit | `HANDOFF.md` **§45**, `PLAN-ROZVOJ-ORCHESTRA.md` §3.5 (B4) | Kód i brány hotové, **acceptance na živé službě neproběhlo**. ⚠ **Dočasně zastaví orchestra** — chce výslovné „ano" uživatele |
+| **B4** | **Zapnout strop na granuli** (`GRAIN_MAX_RUNS = "5"`) — druhý krok B3b | `HANDOFF.md` **§46** | Až bude vidět, že watchdog stačí. ⚠ Je to **změna chování živé služby** = nasazení |
+| **B5** | **Opravit slepé místo `over-skilly.py`** („0 mrtvých cest“, a přitom 24 odkazů na neexistující layout prošlo) | `HANDOFF.md` **§51.3** | Fáze C: „brány, které lžou“. ⚠ **Soubor má rozdělanou práci souběžné session** — nejdřív se domluv, nebo sáhni jinam |
 | **O1** | **Rozhodnout `O3`, `O10`, `O5–O8`** | `PLAN-ROZVOJ-ORCHESTRA.md` **§6** | Jsou to **rozhodnutí**, ne kód — hodí se, když se nemá sahat na živou službu |
 
 **Podmínky:** vybrat **JEDNU** a říct kterou · než začneš měnit kód, **změř
@@ -141,22 +150,27 @@ vadu na její odpovědi · **`done` je tvrzení, ne důkaz** · ověř nasazení
 
 ### 2.3 Úkol C — ÚDRŽBA MĚŘIDEL (jen to, co se samo ozve)
 
-Nový baseline po P23 (počet bran vzrostl z 37 na **49**):
+Baseline po P24 (počet bran **48** — souběžná session zrušila duplicitní `a3-over`):
 
 ```
 # po KAŽDÉ změně souboru ve stromě (NA1/H60) — a naposledy jako POSLEDNÍ krok:
 python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 
 # brány PO SOBĚ (ne současně — obě sahají na _inventar.json):
-python _analyza\g3-brany.py                 -> 49 bran, 0 bez čítače,
-                                               2 nenulové exity (zadani kontrola
-                                               DEKLAROVANY + validate-all), exit 1
-node tools\validate-all.mjs                 -> po pushi 0 problému; před pushi
-                                               1 (E. lokální kód = repo)
-python _analyza\kronika-kontrola.py         -> KRONIKA SEDI (208 omylu / 27 bloku / 36 sessions)
+python _analyza\g3-brany.py                 -> 48 bran, 0 bez čítače,
+                                               1 deklarovaný nenulový exit
+                                               (zadání kontrola = 1), exit 0
+node tools\validate-all.mjs                 -> VŠE V POŘÁDKU (exit 0)
+python _analyza\kronika-kontrola.py         -> KRONIKA SEDI
 python _analyza\handoff-kontrola-uplnost.py -> 83/83
-python tools\over-skilly.py                 -> 13 skillu, 0 chyb, 54 zminek, 0 mrtvych
+python _analyza\p24-a-overeni.py            -> 99/0   (A1-A8)
+python _analyza\p24-b-mutace.py             -> 17/0
+node tools\test-tick-offline.mjs            -> 100/0
+python _analyza\tick-mutace.py              -> 31/0 (15 vrat)
+python _analyza\ov-g-neovereno.py           -> 35 návrhů + 99 nálezů, 0 ve stavu NEOVĚŘENO
+python tools\over-skilly.py                 -> 13 skillu, 0 chyb
 python tools\over-dokumentaci.py            -> 67 kontrol, 0 chyb
+python _analyza\p20-d-doklady.py            -> spustí i doklady P24
 python _analyza\zadani-kontrola.py          -> kontroluje KOTVU tohohle zadani
 ```
 
@@ -165,8 +179,7 @@ python _analyza\zadani-kontrola.py          -> kontroluje KOTVU tohohle zadani
 **⚠ KDO PŘIDÁ DOKLAD DO `_analyza/`, PŘIDÁ HO I DO `p20-d-doklady.py`.**
 **⚠ POČET VRAT NEPIŠ DO NÁZVU BRÁNY** — zestaral dvakrát (3 → 6 → 8); čítač
 vykazuje test sám a registr `g3`.
-**⚠ KDO MĚNÍ `_analyza/g3-brany.py`, MĚNÍ I `tools/validate-all.mjs`** (dva
-seznamy živých bran) — a oba se musí shodovat s během.
+**⚠ KDO MĚNÍ `_analyza/g3-brany.py`, MĚNÍ I `tools/validate-all.mjs`.**
 
 ### 2.4 Úkol D — ZÁZNAMY (povinné na konci)
 
@@ -176,11 +189,12 @@ seznamy živých bran) — a oba se musí shodovat s během.
    `akční`/`plánovací`/`ověřovací`/`analýza`/`rozhodovací` — **jiný brána
    neuzná**) a **nálezy** do §2.
    ⚠ **OMYLY SE OD 6. 10. 2026 NEVEDOU** — uživatel rozhodl **„omyly nepiš"**;
-   do sloupce omylů patří **`—`** a **souhrn §3 se nepřepočítává**
-   (není to nula, je to vědomě nevedený sloupec). Řádky piš **skriptem**
-   (vzor: `_analyza/n03d-radek-kroniky.py`, **12/0**): řádky mají **přes 2000
-   znaků** a kotva z načteného řádku ho **zkrátí** (omyly **194**, **206**).
-3. **Ověř, že nezůstalo `NEOVĚŘENO`** — vlastním skriptem, ne grepem.
+   do sloupce omylů patří **`—`** a **souhrn §3 se nepřepočítává**.
+   Řádky piš **skriptem** (vzor: `_analyza/p24-radek-kroniky.py`): řádky mají
+   **přes 2000 znaků** a kotva z načteného řádku ho **zkrátí** (omyly **194**, **206**).
+3. **Ověř, že nezůstalo `NEOVĚŘENO`** — měřidlem `python _analyza\ov-g-neovereno.py`
+   (**ne** hledáním slova v textu: v P24 to dalo 17 falešných poplachů, z toho
+   15 legitimních zmínek v historii).
 4. **Přegeneruj inventář** a spusť `g3` **a pak** `validate-all` (**NE SOUČASNĚ**),
    inventář **jako POSLEDNÍ krok** (jeho otisk počítá **i `.md`**).
 5. **Do chatu vlož prompt pro uživatele i se STAVOVÝM ŘÁDKEM.**
@@ -191,12 +205,12 @@ seznamy živých bran) — a oba se musí shodovat s během.
 
 | # | Podmínka | Jak se to pozná |
 |---|---|---|
-| 1 | **Nasazení je přeměřené, ne odsouhlasené** | A1: `head_sha` úspěšného deploye = `HEAD`; živé `/health` vrací `targets[]` |
-| 2 | **Watchdog je doložený dvěma cestami** | A2: věta z `/tick` **i** stav v D1 (nebo přiznané `nezměřeno`) |
-| 3 | **V commitech nejsou mutanty** | A3: kontrola **blobů**, ne pracovního stromu; A4: 6 mutačních důkazů zelených a strom po nich čistý |
-| 4 | **Nic nezmizelo** | A5: `handoff-kontrola-uplnost` **83/83**; `git diff` = jen přidání; řádky 1–37 kroniky **bajt na bajt** |
-| 5 | **Čísla v plánech sedí na kód** | A6: naměřené čítače = tvrzené |
-| 6 | **Nic se nerozbilo** | `g3` → 49 bran, jen **deklarované** exity; `validate-all` → **0 problémů** (po pushi) |
+| 1 | **Práce P24 je přeměřená, ne odsouhlasená** | A1: měřidlo projde **a** po vrácení vady spadne |
+| 2 | **Nastražená otázka je doložená** | A2: SQL dokazuje trvalost značky `eskalovano` |
+| 3 | **Test tiku endpointy opravdu VOLÁ** | A3: zarážka v handleru zapne aspoň jednu kontrolu |
+| 4 | **Čísla v §54 sedí** | A4: každý tvrzený čítač naměřen znovu |
+| 5 | **Nic se nepřepsalo** | A5: 0 smazaných řádků session + `kronika-kontrola` SEDÍ |
+| 6 | **Nic se nerozbilo** | `g3` → 48 bran, jen **deklarované** exity; `validate-all` → **VŠE V POŘÁDKU** |
 | 7 | **Push je ROZHODNUTÍ uživatele** | u `conductor/**` navíc **nasadí živou službu** |
 | 8 | V chatu je **prompt pro uživatele** i **stavový řádek** | ke zkopírování |
 
@@ -204,51 +218,58 @@ seznamy živých bran) — a oba se musí shodovat s během.
 
 ## 4. Co NEDĚLAT
 
-- **⚠ NEDĚLEJ Z KONTROLY CÍL.** Ověřit máš **nasazení a záznamy**, ne přidávat
-  další měřidla. Nová brána je na místě **jen** tam, kde je doložená vada
-  měření (jako §51.3) — ne „pro jistotu".
-- **⚠ NESAHEJ NA ROZDĚLANOU PRÁCI SOUBĚŽNÉ SESSION** (§0.2) — necommituj ji,
-  neopravuj ji, nemaž ji. Když ti překáží, **řekni to**.
+- **⚠ NEDĚLEJ Z KONTROLY CÍL.** Ověřit máš **práci P24**, ne přidávat další
+  měřidla. Nová brána je na místě **jen** tam, kde je doložená vada měření.
+- **⚠ NESAHEJ NA ROZDĚLANOU PRÁCI SOUBĚŽNÉ SESSION** — necommituj ji, neopravuj
+  ji, nemaž ji. Když ti překáží, **řekni to**. (Její je i obsah
+  `_analyza/_registr-bran.json` — je **generovaný**.)
 - **Nesahej na hru** — uživatel ji **záměrně pozastavil**; `uo-shadows` musí
   zůstat na `44dd454` a čistá.
 - **Nepřepisuj `HANDOFF.md` ani `KRONIKU`** — jen **přidávej**; historická čísla
-  se **nechávají citovaná** (§52 = plán nasazení, §53 = co se nasadilo).
-- **Nemaž `_analyza/n03*-mutace.py`, `b*-mutace.py`, `tick-mutace.py`,
+  se **nechávají citovaná** (§53 = nasazení P23, §54 = ověření P24).
+- **Nemaž `_analyza/p24-*`, `n03*-mutace.py`, `b*-mutace.py`, `tick-mutace.py`,
   `n03d-radek-kroniky.py` ani `ov-*`** — jsou to **doklady**; a **nemaž
   `_archiv`** (je to cesta zpět).
 - **Nespouštěj `g3` a `validate-all` SOUČASNĚ** (obě sahají na inventář).
 - **Neupravuj `.py` přes `Set-Content`** (přidá BOM) a **nepoužívej
   `python -c`** s regexy ani `$(...)` — **piš skript do souboru**.
+- **⚠ NEPŘERUŠUJ MUTAČNÍ BĚH.** Když ho přerušíš, **ověř strom** — v P24
+  v něm zůstaly **čtyři mutanty**.
+- **⚠ POZOR NA `git checkout` NAD `conductor/src/index.ts`** — přepíše ho na
+  CRLF a rozbije vícřádkové kotvy mutací (a `git status` bude čistý).
+- **⚠ NEPIŠ EVIDENCI PŘES `>`** — PowerShell tím vyrobí **UTF-16LE**.
 - **Nepřesouvej nic zpátky na `C:`** a nemaž `E:\Workspaces\_acl-oprava-20261006\`
-  (rollback opravy ACL z 6. 10. 2026).
-- **⚠ PŘED COMMITEM KONTROLUJ INDEX, NE PRACOVNÍ STROM** (mutant M8, §53.3).
-- **Nepřebírej tvrzení z §52/§53** — psal je autor, který si je i ověřoval.
+  ani `E:\Workspaces\_acl-oprava-20261007\` (rollbacky oprav ACL).
+- **Nepřebírej tvrzení z §54** — psal je autor, který si je i ověřoval.
 
 ---
 
 ## 5. Naměřená východiska (aby se nemusela měřit znovu)
 
 ```
-# hlavička a stav (7. 10. 2026, 06:1x UTC = 08:1x +02:00)
-git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD           -> 7f0b2f8
-git -C E:\Workspaces\forge-orchestra rev-parse --short origin/main     -> 7f0b2f8
-git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 0
-git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD            -> 44dd454
+# hlavička a stav (7. 10. 2026, 10:0x +02:00 = 08:0x UTC)
+git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD            -> 4925f64
+git -C E:\Workspaces\forge-orchestra rev-parse --short origin/main      -> c664dde
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 1
+git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD             -> 44dd454
 
-# deploy a ziva sluzba (7. 10. 2026, 06:06-06:08 UTC)
+# ziva sluzba (7. 10. 2026, 09:0x UTC)
 deploy.yml beh #33 na head_sha 598e207            -> completed / success
-GET  /health  -> ok=true ready=1 running=0 games=1
-                 targets[0]: main_ci: success (ci.yml #117)
+GET  /health  -> ok=true ready=2 running=0 games=1
+                 targets[0]: main_ci: success (ci.yml #117, head 44dd454)
                              forge.ok=false, selhani_v_rade=20
-POST /tick    -> spusteno: 1 uloh; watchdog: 2 ohlášeno (prah 3)
+POST /tick    -> watchdog: 0 ohlášeno (prah 3)     <- 0 je SPRÁVNĚ (trvalá značka)
 
-# brany po nasazeni (session, ktera to nasazovala)
-python _analyza\g3-brany.py                  -> 49 bran, 0 bez citace
-python _analyza\kronika-kontrola.py          -> KRONIKA SEDI (208 / 27 / 36)
+# brany po P24
+python _analyza\g3-brany.py                  -> 48 bran, 0 bez citace, exit 0
+node tools\validate-all.mjs                  -> VSE V PORADKU, exit 0
 python _analyza\handoff-kontrola-uplnost.py  -> 83/83, CHYBI 0
-python tools\over-skilly.py                  -> 13 skillu, 0 chyb, 54 zminek, 0 mrtvych
-python tools\over-dokumentaci.py             -> 67 kontrol, 0 chyb
-python tools\kontrola-diakritiky.py          -> VSE OK (256/300, 0 chyb)
+python _analyza\p24-a-overeni.py             -> 99 kontrol, 0 chyb
+python _analyza\p24-b-mutace.py              -> 17 kontrol, 0 chyb
+node tools\test-tick-offline.mjs             -> 100 kontrol, 0 chyb
+python _analyza\tick-mutace.py               -> 31 kontrol, 0 chyb (15 vrat)
+python _analyza\ov-g-neovereno.py            -> 0 ve stavu NEOVERENO (35 navrhu, 99 nalezu)
+python tools\over-skilly.py                  -> 13 skillu, 0 chyb
 
 # ⚠ TRIK PRO PUSH (PAT se NIKDY nevypisuje):
 #   $pat = (Get-Content .secrets\github_pat.txt -Raw).Trim()
@@ -256,57 +277,57 @@ python tools\kontrola-diakritiky.py          -> VSE OK (256/300, 0 chyb)
 #   & .\tools\git.cmd -c "http.extraHeader=AUTHORIZATION: basic $b64" push origin main
 
 # ⚠ PRED COMMITEM: kontrola STAGOVANEHO blobu na znacky mutantu
-#   git show :conductor/src/index.ts   (hledej: if (false) {, merged = true;, ...)
+#   git show :conductor/src/index.ts   (hledej: if (false) break;, merged = true;, ...)
 
 # inventar se MUSI pregenerovat po kazde zmene souboru ve stromu (H60/NA1)
 #   a jako POSLEDNI krok (otisk pocita i .md):
 python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
-```
 
-**Uložené doklady, které k tomu patří:** `_analyza/tick-mutace.py` (**8 vrat,
-17/0** — včetně historických vad **B1** a **A1**), `tools/test-tick-offline.mjs`
-(**40 kontrol**, volá skutečný `/tick` i `/report`), šest mutačních důkazů
-(`n03`, `b3`, `b2`, `b4`, `b3b`, `tick`) a `_analyza/n03d-radek-kroniky.py`
-(**12/0**, zápis řádku 38).
+# ⚠ MERIDLO P24: síť z Pythonu JDE, ale Cloudflare blokuje `Python-urllib`
+#   (403 error code: 1010) — posílej User-Agent prohlížeče.
+```
 
 ---
 
 ## 6. Prompt pro uživatele (zkopíruj do nového chatu)
 
 ```text
-Jsi session P24. Repa jsou na E:
+Jsi session P25. Repa jsou na E:
   orchestra = E:\Workspaces\forge-orchestra
   hra       = E:\Workspaces\uo-shadows   (POZASTAVENÁ — nesahej na ni)
 
 Zadání pro tebe je v E:\Workspaces\forge-orchestra\NEXT-SESSION-INSTRUKCE.md
 — přečti ho CELÝ, hlavně §2.1 (Úkol A) a §3 (hotovo znamená).
 
-Kontext: session P23 nasadila do ŽIVÉ služby N0.3 (stav cíle v /health) a celou
-fázi B conductoru (B2, B3a, B3b, B4, B5) — commity 598e207 + 7f0b2f8, deploy #33
-success, živě ověřeno: /health targets[0] = main_ci success, forge.ok false,
-selhani_v_rade 20; /tick = "watchdog: 2 ohlášeno (prah 3)". Od 6. 10. 2026 se
-OMYLY NEVEDOU (uživatel rozhodl "omyly nepiš") — do sloupce omylů patří "—"
-a souhrn §3 kroniky se nepřepočítává.
+Kontext: session P24 NEZÁVISLE PŘEMĚŘILA nasazení P23 (Úkol A: A1–A8 vlastním
+měřidlem _analyza/p24-a-overeni.py = 99/0, s mutačním důkazem p24-b-mutace.py =
+17/0) a dokončila Úkol B3 — offline test tiku teď volá i /poll, /claim,
+/heartbeat, /tasks/cleanup a /roadmap/reset (100 kontrol, bylo 40; mutační
+důkaz tick-mutace.py = 15 vrat / 31 kontrol). Záznam je v HANDOFF.md §54
+a v kronice řádek 39 + §2.17. Od 6. 10. 2026 se OMYLY NEVEDOU — do sloupce
+omylů patří "—" a souhrn §3 kroniky se nepřepočítává.
 
-TVŮJ ÚKOL JE NEPŘÍJEMNÝ, ALE DŮLEŽITÝ: ty záznamy i nasazení dělal autor, který
-sám sebe ověřoval — a AGENTS.md říká "autor není nezávislý reviewer". Přeměř to
-VLASTNÍM měřidlem (§2.1 A1-A8): běží živá služba na tom commitu, který se tvrdí?
-eskaluje watchdog opravdu (dvěma cestami)? nejsou v commitech MUTANTY (u P23
-jeden zůstal ve stageované verzi index.ts — viz §53.3)? nezmizelo nic
-(handoff 83/83 + diff jen přidání + řádky 1-37 kroniky bajt na bajt)?
+TVŮJ ÚKOL JE NEPŘÍJEMNÝ, ALE DŮLEŽITÝ: záznamy P24 psal autor, který si je sám
+ověřoval — a AGENTS.md říká "autor není nezávislý reviewer". Přeměř to VLASTNÍM
+měřidlem (§2.1 A1–A6): měří p24-a-overeni.py opravdu to, co tvrdí? je pravda,
+že N>0 u watchdogu je NASTRAŽENÁ otázka (trvalá značka eskalovano)? VOLÁ test
+tiku ty endpointy doopravdy? Pak si vyber JEDNU věcnou práci (§2.2) — nejvýš
+je na řadě dopsat testy pro POST /task a /game/active.
 
 POZOR: ve workspace pracuje SOUBĚŽNÁ session (generalizace nástrojů) — její
-necommitnutou práci necommituj, neopravuj a nemaž; kvůli ní průběžně zestarává
-_inventar.json (to není vada). Před commitem kontroluj INDEX (git show :soubor),
-ne pracovní strom. Nepoužívej git show <sha>^ (git.cmd žere ^) a needituj .py
-přes Set-Content (přidá BOM).
+práci necommituj, neopravuj a nemaž. Před commitem kontroluj INDEX
+(git show :soubor), ne pracovní strom. Nepoužívej git show <sha>^ (git.cmd žere ^)
+a needituj .py přes Set-Content (přidá BOM). NEPŘERUŠUJ mutační běh — v P24 po
+přerušení zůstaly čtyři mutanty v živém conductor/src/index.ts. A POZOR:
+git checkout nad conductor/src/index.ts ho přepíše na CRLF a tiše rozbije
+vícřádkové kotvy mutací (git status přitom bude čistý).
 
 Než začneš: git status --porcelain a git fetch v obou repech (git.cmd kvůli TLS),
 a ověř origin/main..HEAD ŽIVĚ, ne podle zadání.
 
 Na konci povinně: přepiš NEXT-SESSION-INSTRUKCE.md, zapiš výsledky do HANDOFF.md
 (nový oddíl) a do KRONIKY (řádek session + nálezy; omyly = "—"), ověř, že
-nezůstalo NEOVĚŘENO, přegeneruj inventář JAKO POSLEDNÍ KROK, spusť g3 a pak
-validate-all (ne současně) a do chatu vlož prompt pro uživatele i se STAVOVÝM
-ŘÁDKEM.
+nezůstalo NEOVĚŘENO (měřidlem ov-g-neovereno.py, ne hledáním slova), přegeneruj
+inventář JAKO POSLEDNÍ KROK, spusť g3 a pak validate-all (ne současně) a do chatu
+vlož prompt pro uživatele i se STAVOVÝM ŘÁDKEM.
 ```
