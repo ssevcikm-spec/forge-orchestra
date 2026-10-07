@@ -133,8 +133,13 @@ BRANY = [
     ("handoff úplnost", ["python", "<ANALYZA>/handoff-kontrola-uplnost.py"],
      r"kontrolovaných klíčů:\s+(\d+)"),
     # 2. 10. 2026 (12:5x): KRONIKA je nový TRVALÝ dokument. Brána kontroluje,
-    # že počty omylů v ní odpovídají `HANDOFF.md` §8, že nálezy H1–H7 jsou
+    # že počty omylů v ní odpovídají tabulkám omylů, že nálezy H1–H7 jsou
     # zmíněné tam, kde vznikly, a že odkazy na dokumenty existují.
+    # ⚠ OD 7. 10. 2026 (optimalizace KB, Úkol C) ty tabulky NEJSOU v `HANDOFF.md`
+    # §8 — přesunuly se **bajt na bajt** do `_archiv\HANDOFF-OMYLY.md` spolu
+    # s §10–§39 (674 723 → 107 717 znaků v HANDOFFu). Brána proto čte
+    # `HANDOFF.md` **I ARCHIVY**; v MUTAČNÍM režimu (fixtura) archivy nečte,
+    # aby test nebyl slepý. Měřeno: 27 bloků, 208 omylů, `KRONIKA SEDÍ`.
     # ⚠ Mutační test je od 2. 10. 2026 (akční session) **`t3-kronika-mutace.py`**,
     # ne `h17-kronika-mutace.py`: ten starý testoval bránu **jen na ŽIVÉ kronice**
     # a ta neměla tvar, na kterém brána selhala (tabulka **nálezů** ve výřezu
@@ -166,6 +171,17 @@ BRANY = [
     ("over-dokumentaci", ["python", "<TOOLS>/over-dokumentaci.py"],
      r"Kontrol:\s*(\d+)"),
     ("over-skilly", ["python", "<TOOLS>/over-skilly.py"], r"Skillů: (\d+)"),
+    # ⚠ PŘIDÁNO 7. 10. 2026 (optimalizace KB, Úkoly A+B): `over-skilly.py` umí
+    # nově kontrolovat i cesty v **delegovaných dokumentech** (`PROVOZ-ORCHESTRA.md`,
+    # `BRANY-HRY.md`) — protože skilly do nich přesunuly znalost a bez toho by
+    # ta znalost VYPADLA z kontroly (naměřeno: 26 → 68 zmínek, 0 mrtvých).
+    # Nová kontrola je sama branou, takže musí mít **mutační důkaz**, že umí
+    # spadnout — jinak by to byla zelená nad něčím, co nikdy neměří.
+    # Test NESAHÁ na živé dokumenty (přepis `FORGE_NAVAZANE` + fixtury ve
+    # scratchi): přerušený mutační běh nad živým souborem už jednou nechal
+    # v kódu čtyři mutanty (P24, 7. 10. 2026).
+    ("over-skilly: mutace delegovaných cest",
+     ["python", "<ANALYZA>/test-over-skilly-delegovane.py"], r"Kontrol: (\d+)"),
     ("lint-roadmapa", ["python", "<TOOLS>/lint-roadmapa.py", "<HRA>"],
      r"(\d+) z (\d+)"),
     # ⚠ OPRAVENO 2. 10. 2026 (plánovací session, nález **H8**):

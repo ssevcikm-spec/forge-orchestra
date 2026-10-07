@@ -35,7 +35,24 @@ H = (pathlib.Path(sys.argv[1]) if len(sys.argv) > 1
 if not H.is_file():
     print("CHYBA: %s neexistuje — není co kontrolovat" % H)
     sys.exit(2)
-text = H.read_text(encoding="utf-8")
+
+# ⚠ OD 7. 10. 2026 JE HISTORIE PŘESUNUTÁ (optimalizace KB, Úkol C, měřeno):
+# `HANDOFF.md` měl **674 723 znaků** a 93,8 % z toho byla historie. Oddíl
+# **§8 (omyly)** a **§10–§39 (záznamy session)** se přesunuly do `_archiv\`
+# **bajt na bajt** (dokázáno: multimnožina řádků i sha256 bloků —
+# `_kb\over-presun-historie.py`). Klíče se proto hledají v `HANDOFF.md`
+# **I V ARCHIVECH** — jinak by brána hlásila „ztracené otevřené body", které se
+# ve skutečnosti jen přesunuly.
+#
+# ⚠ V MUTAČNÍM (fixtura) REŽIMU SE ARCHIVY NEČTOU. Test maže klíč Z FIXTURY
+# a chce vidět, že to brána POZNÁ; kdyby jí archiv pomohl, byl by test slepý
+# (a přesně tak vypadá brána, která „projde i s vrácenou vadou").
+ARCHIVY = sorted((_STANICE / '_archiv').glob('HANDOFF-*.md'))
+if len(sys.argv) > 1:
+    zdroje = [pathlib.Path(sys.argv[1])]
+else:
+    zdroje = [H] + ARCHIVY
+text = "\n".join(p.read_text(encoding="utf-8") for p in zdroje if p.is_file())
 
 # (kategorie, klíčový výraz, co to je)
 KLICE = [
@@ -151,6 +168,7 @@ najdene = len(KLICE) - len(chybi)
 print("=" * 78)
 print("KONTROLA ÚPLNOSTI HANDOFFu — nic nesmí zmizet")
 print("=" * 78)
+print(f"  prohledané soubory:   {', '.join(p.name for p in zdroje if p.is_file())}")
 print(f"  kontrolovaných klíčů: {len(KLICE)}")
 print(f"  nalezených:           {najdene}")
 print(f"  CHYBÍ:                {len(chybi)}")

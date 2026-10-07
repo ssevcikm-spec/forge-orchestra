@@ -32,6 +32,28 @@ SKILLS = DSH / "skills"
 # Kořeny, proti kterým se cesta k nástroji zkouší (projekt orchestra a hra).
 # `HRA` je sestra tohohle repa (vzor z `g3-brany.py`), takže se odvozuje odsud.
 KORENY = [REPO, REPO.parent / "uo-shadows"]
+HRA = REPO.parent / "uo-shadows"
+
+# ⚠ PŘIDÁNO 7. 10. 2026 (optimalizace KB, Úkoly A+B): skilly `orchestra` a
+# `game-developer` část znalosti **přesunuly** do projektových dokumentů
+# (místo aby ji nosily v sobě). Tím by ale ta znalost **vypadla z týhle
+# kontroly** — cesty k nástrojům by se přestaly ověřovat, protože kontrola
+# dosud skenovala jen `SKILL.md`. Naměřeno: ve skillu `orchestra` bylo
+# 40+ odkazů na nástroje; po přesunu by kontrola měřila 26 a **mlčela by
+# o zbytku**. Kontrola se proto rozšiřuje na dokumenty, na které skilly
+# odkazují — a jejich **existence je sama kontrolou** (když dokument zmizí,
+# skill posílá agenta nikam).
+NAVAZANE = [
+    REPO / "PROVOZ-ORCHESTRA.md",
+    HRA / "docs" / "BRANY-HRY.md",
+]
+# ⚠ PŘEPIS PRO MUTAČNÍ TEST (`_analyza\test-over-skilly-delegovane.py`):
+# `FORGE_NAVAZANE` = cesty oddělené `;`. Test tak měří na FIXTURÁCH a **nesahá
+# na živé dokumenty** — naměřeno 7. 10. 2026 (P24): přerušený mutační běh nad
+# živým souborem nechal v kódu čtyři mutanty a `git status` byl přitom čistý.
+_over = os.environ.get("FORGE_NAVAZANE")
+if _over:
+    NAVAZANE = [pathlib.Path(x) for x in _over.split(";") if x.strip()]
 
 # Cesty k nástrojům projektu v backticích (např. `_analyza\g3-brany.py`, `tools\over-skilly.py`).
 VZOR_CESTY = re.compile(r"`((?:_analyza|tools)[\\/][^\s`\"']+)`")
@@ -40,6 +62,15 @@ VZOR_CESTY = re.compile(r"`((?:_analyza|tools)[\\/][^\s`\"']+)`")
 # Každá má důvod; NOVÁ mrtvá cesta bránu SHODÍ (to je smysl kontroly).
 OCEKAVANE = {
     # příklad: (jmeno_skillu, "cesta"): "důvod",
+}
+
+# ⚠ DEKLAROVANÉ VÝJIMKY pro DELEGOVANÉ dokumenty (stejný smysl jako `OCEKAVANE`).
+# Historické zmínky se odchytávají slovem v řádku („neexistuje", „už není",
+# „smazán", „~~"); sem patří jen cesty, které slovem odchytit nelze.
+# Každá výjimka musí mít důvod — nová mrtvá cesta bránu SHODÍ.
+OCEKAVANE_DELEGOVANE = {
+    # (zatím prázdné — oba dokumenty mají mrtvé cesty jen v historických
+    #  zmínkách, a ty jsou označené slovem)
 }
 vsech_cest = 0
 mrtvych = 0
@@ -108,6 +139,37 @@ for jmeno, mrtve in podezrele:
     print(f"  CHYBA {jmeno}: odkazuje na {len(mrtve)} cest, které NEEXISTUJÍ:")
     for i, cesta in mrtve:
         print(f"        ř. {i}: {cesta}")
+
+# --- PRAVDIVOST CEST V DOKUMENTECH, NA KTERÉ SKILLY ODKAZUJÍ (7. 10. 2026) ----
+# Stejná pravidla jako u skillů; mění se jen zdroj textu. Cesty se počítají do
+# týchž čítačů, takže pokrytí přesunem NEKLESLO.
+for p in NAVAZANE:
+    if not p.exists():
+        print(f"  CHYBA delegovaný dokument NEEXISTUJE: {p}")
+        chyb += 1
+        continue
+    mrtve_tady = []
+    for i, radek in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+        for mm in VZOR_CESTY.finditer(radek):
+            cesta = mm.group(1).rstrip(".,;:")
+            if "*" in cesta or "?" in cesta:
+                continue
+            vsech_cest += 1
+            if cesta in OCEKAVANE_DELEGOVANE:
+                continue
+            if any((k / cesta).exists() for k in KORENY):
+                continue
+            if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
+                continue
+            mrtve_tady.append((i, cesta))
+    if mrtve_tady:
+        mrtvych += len(mrtve_tady)
+        chyb += 1
+        print(f"  CHYBA {p.name}: odkazuje na {len(mrtve_tady)} cest, které NEEXISTUJÍ:")
+        for i, cesta in mrtve_tady:
+            print(f"        ř. {i}: {cesta}")
+    else:
+        print(f"  OK   {p.name:22} (delegovaný dokument, cesty v pořádku)")
 
 print()
 print(f"Skillů: {len([x for x in SKILLS.iterdir() if x.is_dir()])}, chyb: {chyb}")

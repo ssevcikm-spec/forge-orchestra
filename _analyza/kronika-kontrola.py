@@ -60,7 +60,25 @@ if not KRONIKA.is_file():
     sys.exit(1)
 
 kron = KRONIKA.read_text(encoding="utf-8")
-hand = HANDOFF.read_text(encoding="utf-8")
+
+# ⚠ OD 7. 10. 2026 JE HISTORIE PŘESUNUTÁ (optimalizace KB, Úkol C, měřeno):
+# z `HANDOFF.md` (674 723 znaků, 93,8 % historie) se do `_archiv\` přesunuly
+# oddíly **§8 (omyly)** a **§10–§39 (záznamy session)** — **bajt na bajt**
+# (dokázáno: 0 chybějících řádků v multimnožině a shodné sha256 bloků,
+# `_kb\over-presun-historie.py`). Tahle brána z HANDOFFu čte **tabulky omylů
+# (bloky `8xx`), nálezy H1–H7 a sessions §17** — tedy přesně to, co se
+# přesunulo. Proto se dívá do `HANDOFF.md` **I DO ARCHIVŮ**; jinak by hlásila
+# „nález v kronice, ale v HANDOFF.md není" u ~40 nálezů, které se jen přesunuly
+# (naměřeno po přesunu: `exit 1` ze špatného důvodu).
+#
+# ⚠ PŘI MUTAČNÍM BĚHU (fixtura jako 2. argument) SE ARCHIVY NEČTOU: `t3-kronika-mutace.py`
+# maže kotvu z fixtury a chce vidět, že to brána POZNÁ. Kdyby jí archiv pomohl,
+# test by byl slepý přesně v tom, co měří.
+if len(sys.argv) > 2:
+    _zdroje = [HANDOFF]
+else:
+    _zdroje = [HANDOFF] + sorted((WS / "_archiv").glob("HANDOFF-*.md"))
+hand = "\n".join(p.read_text(encoding="utf-8") for p in _zdroje if p.is_file())
 
 
 def blok(text: str, od: str, do: str | None) -> str:

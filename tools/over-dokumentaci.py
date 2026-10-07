@@ -20,6 +20,15 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 DSH = pathlib.Path(os.environ.get("DSH_HOME") or pathlib.Path.home() / ".dsh")
 STANICE = pathlib.Path(os.environ.get("FORGE_STANICE", r"C:\Users\Ssevc\Local-Deepseek"))
 SKILLS = DSH / "skills"
+# ⚠ PŘIDÁNO 7. 10. 2026 (optimalizace KB, Úkol A): znalost o BRANÁCH HRY se
+# přesunula ze skillu `orchestra` do projektu hry. Kontrola se přesměrovala
+# s ní — jinak by brána vyžadovala text ve skillu, který ho už (správně) nemá.
+# `HRA` je sourozenec repa orchestry (stejný vzor jako v `over-skilly.py`).
+HRA = REPO.parent / "uo-shadows"
+BRANY_HRY = HRA / "docs" / "BRANY-HRY.md"
+# ⚠ PŘIDÁNO 7. 10. 2026 (Úkol B): projektová znalost orchestry se přesunula ze
+# skillu do repa projektu; skill drží jen operativu a odkazuje sem.
+PROVOZ = REPO / "PROVOZ-ORCHESTRA.md"
 # Obecná pravidla stanice (DSH_HOME; `~\.dsh` je junction na E:\DeepSeekHarness-data).
 # OD 4. 10. 2026 sem patří obecné části trvalých pravidel — projektové AGENTS.md
 # je už nenese, aby se nezdvojovaly (viz PLAN-SEPARACE-WORKSPACE.md).
@@ -109,8 +118,15 @@ zkontroluj(STANICE / "README.md", [
     "zjisti-pages.mjs",
 ], "README stanice")
 
-print("=== orchestra/SKILL.md ===")
-zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
+print("=== PROVOZ-ORCHESTRA.md (přesunuto ze skillu orchestra, 7. 10. 2026) ===")
+# ⚠ PŘESMĚROVÁNO 7. 10. 2026 (optimalizace KB, Úkol B): těchhle 11 textů bylo
+# ve skillu `orchestra` (38,7 kB projektové znalosti, která se načítala
+# i v session o hře nebo o obrázcích). Přesunuly se do repa PROJEKTU, protože
+# „obecné patří do DSH_HOME, projektové do projektu". Skill drží operativu
+# a odkazuje sem; brána hlídá text tam, kde **skutečně žije**.
+# Rozhodnutí bylo měřené, ne odhadnuté: plošný sken ukázal, že ty texty nežily
+# nikde jinde (audit, který je chtěl „zkrátit", by znalost zničil).
+zkontroluj(PROVOZ, [
     "Analýza a diagnostika",
     "(**3 h**)",
     "Cooldown se vynucuje ČASEM",
@@ -135,7 +151,7 @@ zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
     "`listGames` fallback je nebezpečný",
     # Nový invariant 19: brána si musí dovézt svoje závislosti (Pillow/PIL).
     "ModuleNotFoundError: No module named 'PIL'",
-], "orchestra skill")
+], "PROVOZ-ORCHESTRA (bývalý orchestra skill)")
 
 print("=== game-developer/SKILL.md ===")
 zkontroluj(SKILLS / "game-developer" / "SKILL.md", [
@@ -172,9 +188,14 @@ zkontroluj(SKILLS / "game-assets" / "SKILL.md", [
     "Podívej se na to vlastníma očima",
 ], "game-assets skill")
 
-print("=== orchestra/SKILL.md (assety a oči) ===")
-zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
-    "Assety a „oči\" orchestra",
+print("=== BRANY-HRY.md (brány hry — přesunuto ze skillu orchestra) ===")
+# ⚠ PŘESMĚROVÁNO 7. 10. 2026 (Úkol A): znalost o **branách hry** patří projektu
+# hry (`E:\Workspaces\uo-shadows\docs\BRANY-HRY.md`), ne skillu orchestry.
+# Pozor na jednu změnu textu: nadpis „Assety a „oči" orchestra" → „Assety
+# a „oči" hry" — ve hře by slovo „orchestra" v nadpisu bylo nepravdivé.
+# Kotva se změnila S PŘESUNEM (precedent: „MAX_ATTEMPTS` NENÍ mrtvý kód" níž).
+zkontroluj(BRANY_HRY, [
+    "Assety a „oči\" hry",
     "vision.mjs",
     "check-assets.py",
     # 30. 9. 2026: brána animace se nikdy neuplatní – chůze leží jinde.
@@ -187,7 +208,7 @@ zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
     # 30. 9. 2026: baseline + LGTM cache.
     "baseline.py",
     "LGTM",
-], "orchestra skill assety")
+], "BRANY-HRY (bývalý orchestra skill assety)")
 
 print("=== game-assets: slepé místo brány ===")
 zkontroluj(SKILLS / "game-assets" / "SKILL.md", [
@@ -368,12 +389,12 @@ zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
     "z HTML se verze nepozná",
 ], "orchestra nasazení")
 
-print("=== orchestra: brána, která přestala měřit ===")
-zkontroluj(SKILLS / "orchestra" / "SKILL.md", [
+print("=== hra: brána, která přestala měřit (přesunuto ze skillu) ===")
+zkontroluj(BRANY_HRY, [
     "TIŠE PŘESTALA MĚŘIT",
     "test-check-schema.py",
     "commitnout do hry",
-], "orchestra nález brány")
+], "BRANY-HRY nález brány")
 
 print("=== workspace: README + FORGE-ORCHESTRA-MOZNOSTI ===")
 zkontroluj(REPO / "README.md", [

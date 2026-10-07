@@ -1,7 +1,7 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-07 08:35:02",
-  "bran_celkem": 48,
+  "kdy": "2026-10-07 13:12:23",
+  "bran_celkem": 49,
   "s_nenulovym_exit": [
     "zadání kontrola"
   ],
@@ -77,21 +77,21 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "368",
+      "otevrela": "355",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
     {
       "nazev": "zadání kontrola",
       "exit": 1,
-      "otevrela": "312",
+      "otevrela": "333",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
     {
       "nazev": "over-dokumentaci",
       "exit": 0,
-      "otevrela": "67",
+      "otevrela": "64",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-dokumentaci.py"
     },
@@ -101,6 +101,13 @@
       "otevrela": "13",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
+    },
+    {
+      "nazev": "over-skilly: mutace delegovaných cest",
+      "exit": 0,
+      "otevrela": "8",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-over-skilly-delegovane.py"
     },
     {
       "nazev": "lint-roadmapa",
@@ -203,14 +210,14 @@
     {
       "nazev": "tik offline: rozhodovací logika",
       "exit": 0,
-      "otevrela": "40 / 0",
+      "otevrela": "100 / 0",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/test-tick-offline.mjs"
     },
     {
       "nazev": "tik offline: mutace brány",
       "exit": 0,
-      "otevrela": "17 / 0",
+      "otevrela": "31 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/tick-mutace.py"
     },
@@ -329,7 +336,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "165 / 0",
+      "otevrela": "149 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

@@ -30,6 +30,11 @@ if hasattr(sys.stdout, "reconfigure"):
 WS = pathlib.Path(__file__).resolve().parents[1]
 KRONIKA = WS / "KRONIKA-PROJEKTU.md"
 HANDOFF = WS / "HANDOFF.md"
+# ⚠ OD 7. 10. 2026 (optimalizace KB, Úkol C) žijí TABULKY OMYLŮ tady, ne v §8
+# `HANDOFF.md`: oddíl §8 se přesunul **bajt na bajt** sem (doklad: 0 chybějících
+# řádků + shodné sha256, `_kb\over-presun-historie.py`). Blok omylů se proto
+# vkládá a ověřuje v archivu.
+OMYLY = WS / "_archiv" / "HANDOFF-OMYLY.md"
 GATE = WS / "_analyza" / "kronika-kontrola.py"
 
 # ── 1) OMYLY 211–213 ────────────────────────────────────────────────────────
@@ -324,22 +329,42 @@ k("### 2.16 " in t2, "kronika obsahuje sekci 2.16")
 k("| **8za** |" in t2, "kronika obsahuje řádek bloku 8za")
 k("**27 bloků, 35 sessions**" in t2, "souhrn §3 uvádí 27 bloků / 35 sessions")
 
-# ── C) HANDOFF: blok omylů 8za + oddíl §40 ─────────────────────────────────
+# ── C) BLOK OMYLŮ → archiv; oddíl §40 → HANDOFF ────────────────────────────
+# ⚠ ZMĚNA 7. 10. 2026 (optimalizace KB, Úkol C): oddíl **§8** s tabulkami omylů
+# se z `HANDOFF.md` **přesunul** do `_archiv\HANDOFF-OMYLY.md` (bajt na bajt,
+# 84 376 znaků; HANDOFF zůstal o 84 % menší). Nový blok omylů se proto vkládá
+# a ověřuje **v archivu** — kdyby ho skript hledal dál v HANDOFFu, spadl by na
+# chybějící kotvu `### 8z.` a hlásil by **vadu ZÁPISU** tam, kde je jen přesun
+# (přesně ta třída: „nástroj se ptá na místo, které se legitimně změnilo").
+# `§40` zůstává v `HANDOFF.md` — to není historie omylů.
 puvodni_h = HANDOFF.read_bytes()
 th = puvodni_h.decode("utf-8")
 rh = th.splitlines(keepends=True)
 k("\r" not in th, "handoff má LF (zapisuje se zpět bajty)")
 
-uz8za_h = any(r.startswith(SEKCE_8ZA_PREFIX) for r in rh)
-if uz8za_h:
-    print("  OK    blok 8za v HANDOFFu už je — nevkládám")
+k(OMYLY.is_file(), f"archiv omylů existuje: {OMYLY}")
+puvodni_o = OMYLY.read_bytes() if OMYLY.is_file() else b""
+to = puvodni_o.decode("utf-8")
+ro = to.splitlines(keepends=True)
+k("\r" not in to, "archiv omylů má LF")
+
+uz8za = any(r.startswith(SEKCE_8ZA_PREFIX) for r in ro)
+if uz8za:
+    print("  OK    blok 8za v archivu omylů už je — nevkládám")
     kontrol += 1
 else:
-    i8z_h = next((i for i, r in enumerate(rh) if r.startswith("### 8z.")), None)
-    k(i8z_h is not None, "kotva: nadpis `### 8z.` v HANDOFFu")
-    if i8z_h is not None:
-        rh.insert(i8z_h, BLOK_8ZA + "\n")
-        k(any(r.startswith(SEKCE_8ZA_PREFIX) for r in rh), "blok 8za vložen PŘED blok 8z")
+    i8z = next((i for i, r in enumerate(ro) if r.startswith("### 8z.")), None)
+    k(i8z is not None, "kotva: nadpis `### 8z.` v archivu omylů")
+    if i8z is not None:
+        ro.insert(i8z, BLOK_8ZA + "\n")
+        k(any(r.startswith(SEKCE_8ZA_PREFIX) for r in ro), "blok 8za vložen PŘED blok 8z")
+
+novy_o = "".join(ro).encode("utf-8")
+if novy_o != puvodni_o:
+    OMYLY.write_bytes(novy_o)
+    print(f"  ZAPSÁNO: {OMYLY.name} ({len(puvodni_o)} → {len(novy_o)} B)")
+else:
+    print("  archiv omylů beze změny (blok už je zapsaný)")
 
 uz40 = any(r.startswith(SEKCE_40_PREFIX) for r in rh)
 if uz40:
@@ -369,9 +394,10 @@ k(zpet_h == novy_h, "HANDOFF na disku odpovídá zapsanému")
 k(not zpet_h.startswith(b"\xef\xbb\xbf"), "HANDOFF nemá BOM")
 k(zpet_h.count(b"\r\n") == 0, "v HANDOFFu nejsou CRLF")
 th2 = zpet_h.decode("utf-8")
-k("### 8za. " in th2, "HANDOFF obsahuje blok omylů 8za")
+to2 = OMYLY.read_text(encoding="utf-8")
+k("### 8za. " in to2, "archiv omylů obsahuje blok 8za")
 k("## 40. " in th2, "HANDOFF obsahuje oddíl §40")
-k("| **213** |" in th2, "HANDOFF obsahuje omyl 213")
+k("| **213** |" in to2, "archiv omylů obsahuje omyl 213")
 
 # ── D) VOLÁNÍ BRÁNY (autorita, ne vlastní vzor) ────────────────────────────
 import subprocess  # noqa: E402
