@@ -496,7 +496,7 @@ N5  Hardware           ← až když N4 ukáže, kde je úzké místo
 |---|---|---|
 | **N0.1** | Doplnit `python3 -m pip install --quiet pillow` do kroku „Kontrola vizuálního schématu" v `ci.yml` — **v obou kopiích** (šablona i hra) | ✅ **HOTOVO** — hra: commit `7cd14cb` pushnut, CI **success**. Šablona: oprava na disku, **čeká na commit šablony** (viz níž) |
 | **N0.2** | Zavést **bránu na závislosti bran**: každá brána, která importuje knihovnu mimo stdlib, ji musí mít v kroku, který ji pouští | Přidání `import X` do brány → CI to ohlásí (dnes: spadne až v produkci) |
-| **N0.3** | **Naučit orchestra rozeznat „zelený conductor nad červeným repem"** — stav posledního CI běhu na `main` dát do `/health` | `/health` ukáže `main_ci: failure` (dnes hlásí `ok: true`) |
+| **N0.3** | **Naučit orchestra rozeznat „zelený conductor nad červeným repem"** — stav posledního CI běhu na `main` dát do `/health` | ✅ **HOTOVO A NASAZENO 7. 10. 2026** (commit `598e207`, deploy #33). `/health` nese `targets[]` s `main_ci` **i** stavem běhů agenta (`forge.ok`, `selhani_v_rade`); „nezměřeno" = `null`, ne „v pořádku". **Živě ověřeno:** `targets[0]` → `main_ci: success (ci.yml #117)`, `forge.ok: false`, **`selhani_v_rade: 20`** — conductor to teď ŘEKNE. Brána `tools/test-health-cile.mjs` (21/0) + mutace `_analyza/n03-mutace.py` (11/0) |
 
 > **N0.2 a N0.3 jsou důležitější než N0.1.** Oprava jedné řádky zmizí; ale
 > **třída chyby „brána si nedoveze závislost" a „conductor lže o stavu repa"

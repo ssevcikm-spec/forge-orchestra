@@ -8964,6 +8964,9 @@ Brána tedy měří jiný tvar cest, než jaký v dokumentu skutečně je (adres
 který tuhle práci převezme. Je to jediné místo, kde je pohromadě **co je hotové,
 co je připravené k nasazení a co zůstává otevřené**; podrobný záznam je
 v oddílech **§42–§51**.
+>
+> **⚠ 7. 10. 2026: PRÁCE JE NASZENÁ A OVĚŘENÁ ŽIVĚ — viz §53.** Tabulka 52.2 je
+> **záznam plánu nasazení**, ne dnešní stav; „NENASOZENO" níž už neplatí.
 
 ### 52.1 Hotovo v téhle session (vše ověřené bránami)
 
@@ -9022,3 +9025,64 @@ Zmizí prvním schváleným pushem. Kdyby byla červená **jiná** kontrola, je 
 
 **Stav stromu:** **13 změněných + 12 nových souborů**, necommitnuto (čeká na
 rozhodnutí o pushi); do hry `uo-shadows` jsem **nesáhl**.
+
+---
+
+## 53. NASZENO A OVĚŘENO ŽIVĚ (7. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení** — uživatel schválil
+„commit i push hned“ a doplnění kroniky. Stav je v `§2.x` + `KRONIKA §1/38`.
+
+### 53.1 Co se stalo
+
+| Krok | Důkaz |
+|---|---|
+| Uživatel schválil commit i push | „Určitě můžeš commit i push hned co všechno čeká a doplň kroniku.“ |
+| **Commit** | **`598e207`** — 25 souborů, **+3714/−109** (tělo zprávy v commitu) |
+| **Push** | `48eebd8..598e207 main -> main`; `git rev-list --count origin/main..HEAD` → **0** |
+| **Deploy** | běh **#33** (`Deploy conductor (Cloudflare)`) na `head_sha = 598e207` → **completed / success** (job `deploy`: success) |
+| **Kronika** | řádek **38** vložen skriptem `_analyza/n03d-radek-kroniky.py` (**12 kontrol, 0 chyb**); `kronika-kontrola.py` → **SEDÍ**; omyly = `—` (uživatel je nechce vést), §3 se nepřepočítává |
+| **Plány** | `PLAN-ORCHESTRA-AI-AGENTI.md` **N0.3** → ✅ HOTOVO; `PLAN-ROZVOJ-ORCHESTRA.md` **B2/B3/B4/B5** → ✅ HOTOVO (s živými důkazy) |
+
+### 53.2 Živé ověření po nasazení (měřeno, ne odhad)
+
+```
+/health: ok=true ready=1 running=0 games=1 time=2026-10-07T06:08:21.760Z
+targets[0]: repo=ssevcikm-spec/uo-shadows error=null measured_at=2026-10-07T06:08:20.860Z
+  main_ci: success (ci.yml, run #117)
+  forge:   ok=false  selhani_v_rade=20
+/tick: spusteno: 1 úloh; polling: zadny cloudovy beh nebezi;
+       z roadmapy založeno 1 granulí, zombie zablokováno: 1,
+       watchdog: 2 ohlášeno (prah 3)
+```
+
+* **N0.3 funguje:** `/health` nese stav **cíle** — `main_ci` i `forge.ok`.
+  ⚠ **Předpověď v §52.2 byla „`selhani_v_rade ≈ 10`“, naměřeno `20`** — smyčka
+  jela dál přes noc; předpověď byla o řád vedle, ne na místě.
+* **B3a funguje:** watchdog ohlásil **2 granule** (`entity.npc`, `entity.enemy`) —
+  přesně jak §52.2 předpovědělo. Do 6. 10. 2026 se **nespustil ani jednou**.
+
+### 53.3 Vlastní past, kterou tenhle commit málem přinesl
+
+Před commitem byl ve **stageované** verzi `conductor/src/index.ts` na ř. 1702
+**`if (false) {`** — zbytek mutace **M8** z `_analyza/tick-mutace.py`
+(`_mutace.mutuj` ji měl vrátit; **disk byl správně, index ne**).
+Odhalila to až kontrola **stageovaného blobu** (`git show :soubor`) na známé
+značky mutantů — `git diff` ji neukázal.
+**Poučení: v repu, kde běží mutační testy, se před commitem kontroluje INDEX,
+ne pracovní strom.** Zapsáno i v kronice (řádek 38).
+
+### 53.4 Co zůstává otevřené
+
+* **B3b zapnout strop** (`GRAIN_MAX_RUNS = "5"`) — samostatný krok, až bude
+  vidět, že watchdog stačí.
+* **B4 ověřit živě** vypnutím hry (`POST /game/active {active:false}`) — kód
+  i brány jsou hotové, acceptance „žádný dispatch“ ještě neproběhlo na živé službě.
+* **Netestované endpointy handlerem:** `/poll`, `/claim`, `/heartbeat`,
+  `/tasks/cleanup`, `/roadmap/reset`.
+* **Slepé místo `over-skilly.py`** (24 odkazů na neexistující layout prošlo) — §51.3.
+* **Fáze C a D** — čekají na `O3`, `O10`, `O5–O8`.
+* **⚠ V workspace pracuje souběžná session (generalizace nástrojů, 7. 10. 2026)** —
+  její rozdělanou práci (`_analyza/ag-over-cisla.py`, `tools/over-skilly.py`,
+  `tools/over-dokumentaci.py`, `_analyza/ov-*.py`, …) jsem **ZÁMĚRNĚ
+  necommitoval**; v `AGENTS.md` je z ní jen jednořádková aktualizace počtu bran.
