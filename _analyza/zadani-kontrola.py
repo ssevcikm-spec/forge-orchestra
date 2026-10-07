@@ -136,22 +136,47 @@ print(f"  naposledy zapsán: {zmeneno}  (před {stari_hodin:.1f} h)")
 # `exit 0` NAD ZASTARALÝM ZADÁNÍM. Odhalil to až mutační test.
 # Čte se proto KONKRÉTNÍ řádek „Stav obou repů při psaní:" a z něj dvojice
 # `repo = <sha>`. Když řádek chybí, je to varování — ne ticho.
+# ── TVAR HLAVIČKY: dvojice se čtou z KONKRÉTNÍHO ŘÁDKU ─────────────────────
+# ⚠ ZVÝRAZNĚNÍ `**` MUSÍ VZOR PŘEŽÍT: v dokumentech stanice se píše
+# `` `forge-orchestra` = **`c87db93`** ``. Vzor, který zvýraznění nezná, hlásí
+# vadu na SPRÁVNÉM dokumentu — a falešný poplach se hledá hůř než slepé místo
+# (naměřeno 7. 10. 2026 v šabloně měřidel, past E4).
+VZOR_DVOJICE = re.compile(
+    r"\*{0,2}`?([A-Za-z0-9_-]+)`?\*{0,2}\s*=\s*\*{0,2}`?([0-9a-f]{7,40})`?\*{0,2}")
+
 hlavicka = "\n".join(radky[:30])
 tvrzene_head = {}
 radek_stavu = ""
-for l in radky[:30]:
+cislo_stavu = 0
+for cislo, l in enumerate(radky[:30], start=1):
     if "Stav obou repů" in l or "Stav obou repu" in l:
         radek_stavu = l
+        cislo_stavu = cislo
         break
-if radek_stavu:
-    for jmeno, sha in re.findall(r"`?([A-Za-z0-9_-]+)`?\s*=\s*`?([0-9a-f]{7,40})`?", radek_stavu):
-        tvrzene_head[jmeno.lower()] = sha
+dvojice = VZOR_DVOJICE.findall(radek_stavu) if radek_stavu else []
+for jmeno, sha in dvojice:
+    tvrzene_head[jmeno.lower()] = sha
 vsechny_sha = set(re.findall(r"\b([0-9a-f]{7,40})\b", text))
 tvrzene_casy = re.findall(r"(\d{1,2}\.\s*\d{1,2}\.\s*\d{4}[^\n]{0,12}UTC)", text)
 
+# ⚠ TVAR JE SAMOSTATNÁ KONTROLA (naměřeno 6. 10. 2026 archivovaným nástrojem
+# `zadani-hlavicka-tvar.py`): když je popis a dvojice na DVOU řádcích, kontrola
+# níž vypíše „zadání netvrdí žádný commit" — a to **vypadá jako vada brány**,
+# ale je to **vada ZÁPISU**. Tenhle stav se musí pojmenovat, ne schovat do dvou
+# otazníků u repů: kdo hledá vadu, hledá ji pak v gitu, kde není.
+vada_tvaru = ""
+if not radek_stavu:
+    vada_tvaru = "hlavička NEMÁ řádek s klíčem „Stav obou repů“"
+elif not dvojice:
+    vada_tvaru = ("řádek se stavem repů NETVRDÍ žádný commit `<repo>` = `<sha>` "
+                  "(dvojic na něm: 0)")
+
 print("\n--- HLAVIČKA: co zadání tvrdí -------------------------------------")
-print(f"  řádek se stavem repů: {'NALEZEN' if radek_stavu else 'CHYBÍ (varování)'}")
-print(f"  tvrzené commity: {tvrzene_head or '(žádné — hlavička podle §3 chybí)'}")
+print(f"  řádek se stavem repů: "
+      f"{'NALEZEN (ř. ' + str(cislo_stavu) + ')' if radek_stavu else 'CHYBÍ'}")
+print(f"  dvojic `<repo>` = `<sha>` na tom řádku: {len(dvojice)}")
+print(f"  TVAR HLAVIČKY: {'OK' if not vada_tvaru else 'VADA — ' + vada_tvaru}")
+print(f"  tvrzené commity: {tvrzene_head or '(žádné — viz TVAR výš)'}")
 print(f"  různých sha v celém dokumentu:    {len(vsechny_sha)}")
 print(f"  tvrzených časů měření:            {len(tvrzene_casy)}")
 
@@ -165,16 +190,22 @@ for jmeno, s in zivy.items():
 # ── 3) POROVNÁNÍ: sedí tvrzení na skutečnost? ──────────────────────────────
 print("\n--- SEDÍ ZADÁNÍ NA SKUTEČNOST? -----------------------------------")
 varovani = 0
-if not radek_stavu:
-    print("  ⚠    hlavička podle `PREDAVANI-SESSION.md` §3 chybí — zadání si nese")
-    print("       jen text, ne to, PROTI ČEMU bylo měřeno. Doplň ji.")
+if vada_tvaru:
+    # ⚠ JEDNA příčina = JEDNO varování: kdyby se počítalo i za každý repo níž,
+    # vyšlo by „3 varování" z jediné vady ZÁPISU — a to číslo mate.
+    print(f"  ⚠    TVAR HLAVIČKY: {vada_tvaru}")
+    print("       (dvojice se čtou z TOHOHLE řádku; když jsou o řádek níž,"
+          " nástroj je nevidí)")
     varovani += 1
 for jmeno, s in zivy.items():
     tvrz = _najdi_tvrzene(jmeno)
     if not tvrz:
-        print(f"  ?    {jmeno}: zadání netvrdí žádný commit")
-        print(f"       (hledáno pod jmény: {', '.join(_mozna_jmena(jmeno))})")
-        varovani += 1
+        if vada_tvaru:
+            print(f"  ?    {jmeno}: commit se neporovnal — PŘÍČINA JE TVAR HLAVIČKY výš")
+        else:
+            print(f"  ?    {jmeno}: zadání netvrdí žádný commit")
+            print(f"       (hledáno pod jmény: {', '.join(_mozna_jmena(jmeno))})")
+            varovani += 1
         continue
     if s["head"].startswith(tvrz) or tvrz.startswith(s["head"][:len(tvrz)]):
         print(f"  OK   {jmeno}: tvrzený {tvrz[:9]} = skutečný HEAD")
@@ -236,6 +267,9 @@ if varovani:
     print(f"VÝSLEDEK: zadání je ZASTARALÉ NEBO NEPOUŽITELNÉ ({varovani} varování).")
     print("  → Než podle něj začneš pracovat, PŘEMĚŘ všechny údaje o stavu")
     print("    a zapiš to jako nález. Zadání se NEZAHOZUJE — jen se ověří.")
+    if vada_tvaru:
+        print("  → A JE TO VADA ZÁPISU, NE NESHODA COMMITŮ: na řádku s klíčem")
+        print("    chybí dvojice `<repo>` = `<sha>` — oprav HLAVIČKU, ne zadání.")
     sys.exit(1)
 print("VÝSLEDEK: zadání je použitelné — tvrzené commity sedí na živý stav.")
 print("  → Stejně ověř aspoň TŘI klíčová tvrzení spuštěním (shodný commit")
