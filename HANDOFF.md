@@ -8370,3 +8370,655 @@ hledáním**, ne pamětí autora. Zadání je hotové: `ZADANI-OPTIMALIZACE-KB.m
 | **§6.5 + §6.6** | **PŘESUN** (ne zkrácení!) `DSH_HOME` §„Jak ověřovat“ a `overovani` §7 | dotýká se **trvalých pravidel**; auditovy důvody „duplikuje jinde“ byly **vyvráceny ve 3 ze 3 případů** |
 | **§6.11** | **přesun historie z `HANDOFF.md`** (569 tis. znaků z 656 kB) | je to **přepis stavu**: `kronika-kontrola.py` **čte omyly z §8**, takže přesun §8 znamená **upravit i bránu** |
 | **§6.9** | nepravdivé číslo „**27 podmíněných kontrol**“ (`game-developer` + `AGENTS.md` hry) | naměřeno dnes: **`has_method` na 23 řádcích** → patří k §6.8 (přesun do hry) |
+
+---
+
+## 42. N0.3 — STAV CÍLE V `/health` (6. 10. 2026, pokračování práce na conductoru)
+
+**Co tenhle oddíl JE:** **záznam o provedení** — co se udělalo, čím je to doložené
+a co ještě **NENÍ** hotové (nasazení). **Nejde z něj číst dnešní stav** — ten je
+v `§2.x` a v kronice.
+
+### 42.1 Proč přišlo na řadu zrovna tohle (živé měření, ne plán)
+
+Předání `PREDANI-ORCHESTRA-SESSION.md` nechalo na výběr **C1** (B2–B5) / **C2**
+(N0.3) / **O1** (rozhodnutí). Zvoleno **C2 = N0.3**, protože táž třída (**S18**)
+se 6. 10. 2026 naměřila **ZNOVU a živě**:
+
+| Co | Hodnota (6. 10. 2026, 19:39–21:26 UTC) | Odkud |
+|---|---|---|
+| `/health` | `ok: true`, `ready: 1`, `running: 0`, `games: 1` | `GET /health` |
+| běhy `agent.yml` | **9 v řadě `failure`** (poslední 19:36:01Z); poslední úspěch = PR #37 (5. 10. 02:04) | GitHub API (`jobs` + anotace check-runů) |
+| selhaný krok | vždy **první tvrdá brána na výstup agenta** — `Kontrola parsování` 6×, `Testy hry` 3× | `jobs` API |
+| soubory granulí | `scripts/npc.gd` a `scripts/enemy.gd` v `main` **NEJSOU** (nikdy nebyly) | raw 404 + `commits?path=` → `[]` |
+| `/failed` | **1 úloha** (#229 `entity.enemy`, 5 běhů) | `GET /failed` |
+| `/queue` | 50 úloh, z toho **49× „NPC — obchodník“** (48× `blocked`, `attempts=0` — nikdy se nespustily) | `GET /queue` |
+| `/roadmap` | `entity.npc` = #234 `ready` (att=3), `entity.enemy` = #229 `failed` (att=5), zbytek `done` | `GET /roadmap` |
+
+→ **Conductor hlásil `ok: true` přes 22 hodin, ve kterých nevzniklo nic.** Přesně
+tomu má N0.3 zabránit: „zelený conductor nad mrtvým cílem“ musí být vidět na
+jednom místě.
+
+### 42.2 Co je hotové (kód + brána + mutační důkaz)
+
+| Co | Kde | Doklad |
+|---|---|---|
+| `/health` nově nese `targets[]`: `main_ci`, `forge.ok`, `forge.selhani_v_rade`, `error` + cache (2 min; 30 s po chybě) | `conductor/src/index.ts` | `tsc --noEmit` → **exit 0** |
+| nová brána: nechá conductora **zbundlovat** (`wrangler deploy --dry-run`, bez sítě a bez přihlášení) a zavolá **skutečný** `/health` s falešnou D1 a stubovaným GitHubem | `tools/test-health-cile.mjs` | **21 kontrol, 0 chyb**, `exit 0` |
+| **mutační důkaz** brány (5 vrat: `selhani_v_rade`=0, `forge.ok`=true, bez `targets`, cache bez TTL, cíl z `GITHUB_REPO`) | `_analyza/n03-mutace.py` | **11 kontrol, 0 chyb** — 5× brána **spadla**, soubor vždy vrácen **bajt na bajt** |
+| registrace bran | `_analyza/g3-brany.py` (`BRANY`), `tools/validate-all.mjs`, `tools/kontrola-diakritiky.py` | `g3`: **39 bran** (bylo 37), registr přegenerován |
+
+**Rozhodnutí v designu (a proč):** `ok` zůstává „**služba žije**“ (hlídá ho
+monitoring dostupnosti) — stav cíle je **oddělený** v `targets`, aby se
+„dostupnost“ a „cíl maká“ nedaly splést. `forge.ok` je `null`, když žádný běh
+neskončil — „**nezměřeno**“ se nesmí číst jako „v pořádku“. Když GitHub neodpoví,
+je to vidět (`error` + `null`), ne ticho.
+
+### 42.3 Brány: co je zelené a co je červené SCHVÁLNĚ
+
+* `kontrola-diakritiky.py` → `VŠE OK` (otevřeno 246 z 290, 0 chyb) · `over-dokumentaci.py` → **67/0** · `over-skilly.py` → **13 skillů / 0 chyb**, 40 zmínek o nástrojích, **0 mrtvých cest**.
+* `g3-brany.py` → **39 bran**, nenulový exit **2**: `zadání kontrola` (**deklarovaný** — kotva vs. nový HEAD) a `validate-all` (**nečekaný**).
+* `validate-all.mjs` → **1 problém**: `E. lokální kód = repo` (**78 631 B vs 74 492 B**). To je „**změna ještě není v gitu**“ — porovnává se lokální `conductor/src/index.ts` s verzí **na GitHubu**; zavře se **až schváleným pushem**. Ostatní sekce (A–D, F…) zelené.
+
+### 42.4 Nové nálezy (k dočíslování — čísla H přiděluje až nezávislé ověření)
+
+| # | Nález | Doklad |
+|---|---|---|
+| **1** | **`C2: mutace N1` běží a je zelená, ale NEVYPISUJE ČÍTAČ** → registr neví, **co** změřila (`g3` to hlásí jako „běžela, ale vzor nic nenašel“, 3303 B) | `python _analyza/c2-mutace.py` → `VÝSLEDEK: brána měří — zastaralý i nezměřený inventář SHODÍ nástroj` (žádné „N kontrol, M chyb“) |
+| **2** | **Fronta je zahlcená osiřelými duplikáty**: 49 úloh na jednu granuli, `attempts=0`, `blocked` — podklad pro **B3** (strop a watchdog na `item_id`) | `GET /queue` (6. 10. 21:2x UTC) |
+| **3** | **Past prostředí (stanice):** kořen workspace ztratil právo **měnit vlastníka** → DSH nemohlo provisionovat zápis a **každý příkaz** spadl na `SetNamedSecurityInfoW failed (Win32 5): grantWrite(E:\Workspaces\forge-orchestra)` — vypadá to jako vada nástroje, je to stav oprávnění | opraveno skriptem skillu `diagnose-windows-sandbox-acl`; `before {writeDac:true, writeOwner:false}` → `after {…, writeOwner:true}`; rollback v `E:\Workspaces\_acl-oprava-20261006\` |
+
+### 42.5 Co NENÍ hotové (nečti to jako hotové)
+
+* **NENASAZENO.** Push do `conductor/**` = nasazení **živé služby** → rozhodnutí
+  uživatele. Do té doby platí: `E. lokální kód = repo` je červená **schválně**
+  a **živé** `/health` `targets` ještě **nemá** (naměřeno 21:26 UTC).
+* **Kronika a plán** (řádek do `KRONIKA-PROJEKTU.md`, přepis N0.3
+  v `PLAN-ORCHESTRA-AI-AGENTI.md` na HOTOVO) patří **až po nasazení** — a s důkazem
+  z živé služby, ne z tohoto textu.
+* **B3** (strop a watchdog na `item_id`) — podklad změřený (42.1 a 42.4/2), práce nezačatá.
+
+---
+
+## 43. B3a — WATCHDOG NA GRANULI (6. 10. 2026, pokračování práce na conductoru)
+
+**Co tenhle oddíl JE:** **záznam o provedení** (druhý krok téhož pokračování jako
+§42). **Nejde z něj číst dnešní stav** — ten je v `§2.x` a v kronice.
+
+### 43.1 Živé měření vady (ne z dokumentu)
+
+| Co | Hodnota (6. 10. 2026, 21:2x UTC) | Odkud |
+|---|---|---|
+| `entity.npc` — spálené běhy | **8** napříč **DVĚMA** úkoly (#228: 5, #234: 3) | `GET /queue` (součet `attempts`) |
+| `entity.enemy` — spálené běhy | **5** (#229) | `GET /queue` + `GET /failed` |
+| `payload.eskalovano` | **není ani u jedné** → watchdog **nikdy** neohlásil | `GET /failed` (klíče payloadu) |
+| úloh na jednu granuli ve frontě | **49×** „NPC — obchodník“ (48× `blocked`, `attempts=0`) | `GET /queue` |
+| prah vs. strop | `ESCALATE_AFTER=8` **>** `MAX_ATTEMPTS=5` → **nedosažitelný stav** | `wrangler.toml` |
+
+**Proč to bylo slepé:** `escalateStuckTasks` počítal `COUNT(runs) WHERE r.task_id = t.id`
+— tedy běhy **JEDNOHO úkolu** — a značku „už ohlášeno“ si nesl v `payload.eskalovano`.
+Retry ale zakládá **nový úkol s `attempts=0`**, takže prah 8 se na jednom úkolu
+nemohl naplnit (strop je 5) a značka by se při dalším pokusu ztratila.
+
+### 43.2 Co je hotové
+
+| Co | Kde | Doklad |
+|---|---|---|
+| počítadlo **na granuli** přes všechny její úkoly; klíč `{game}/{grain}` se skládá na **jednom místě** | `conductor/src/index.ts` | test **A**: 5+3 = **8**; starý dotaz na jeden úkol vidí max 5 (známý chybný případ) |
+| okno `runs.started_at >= roadmap.created_at` → **`roadmap-reset` je cesta zpět** | tamtéž | test **B**: po resetu se počítá 1, ne 5 |
+| prah z `ESCALATE_AFTER`, výchozí **3** (pod stropem 5) | `index.ts` + `wrangler.toml` | test **F** (kód i konfigurace) |
+| značka v **`roadmap.eskalovano`** (+ sloupec v `schema.sql` a samomigrace) | `index.ts`, `schema.sql` | test **D** (žádný spam) a **G** |
+| rozhodnutí jako **čistá funkce** `shouldEscalate` — test ji VOLÁ, neopisuje | `index.ts` | test **E** (5 případů: 2/3/8/0/undefined) |
+| brána čte SQL, prah i rozhodnutí **ze zdrojáku** | `tools/test-watchdog-granule.py` | **17 kontrol, 0 chyb** |
+| **mutační důkaz** (5 vrat: počítadlo úkolů místo běhů · vypuštěný časový filtr · vypuštěná značka · `shouldEscalate` vždy `true` · prah nad stropem) | `_analyza/b3-mutace.py` | **11 kontrol, 0 chyb** — 5× brána **spadla**, soubor vždy vrácen bajt na bajt |
+| registrace bran | `_analyza/g3-brany.py`, `tools/validate-all.mjs`, `tools/kontrola-diakritiky.py` | `g3`: **41 bran** (bylo 39) |
+| starý test označen | `tools/test-eskalace.py` | hlavička **⚠ ZASTARALÉ** — měří odstraněnou logiku; smazat/přepsat patří do **C2** (drží ho 20+ odkazů) |
+
+### 43.3 Co se cestou rozbilo — a bylo to VIDĚT (to je pointa)
+
+* **`ag-over-cisla.py` shodilo sama sebe:** do `schema.sql` přibyl sloupec, takže
+  D1 má **41 sloupců**, ale `AGENTS.md` tvrdilo **40**. Opraveno včetně data
+  a důvodu (`+1 sloupec 6. 10. 2026 (B3a): roadmap.eskalovano`) — trvalá pravidla
+  jsou taky měřidlo.
+* **`ag-mutace.py` ohlásilo „mutace se neprovedla“:** jeho kotva byla `40 sloupců`
+  natvrdo. Kotva aktualizována a **historie kotvy zapsána** (39→40 dne 2. 10.,
+  40→41 dne 6. 10.) — jinak by se táž past opakovala potřetí.
+* **Dvě vady v MÉM testu** (obě odhalené spuštěním, ne čtením): (a) nekonečná
+  rekurze při nahrazování konstanty sama sebou → `RecursionError`; (b) špatný
+  předpoklad, že prah filtruje SQL (filtruje ho rozhodnutí v JS) → přepsáno na
+  volání skutečné funkce `shouldEscalate`.
+
+### 43.4 Co NENÍ hotové (nečti to jako hotové)
+
+* **NENASOZENO** — čeká na rozhodnutí uživatele; **dva kroky**: `N0.3` (§42) a `B3a` (tenhle oddíl).
+* **B3b = strop na granuli** (zastavit vydávání po `MAX_ATTEMPTS` spálených běhech)
+  — záměrně **druhý krok** (plán: „nasadit po částech“). B3a jen **hlásí**, nezastavuje.
+* **Kronika a plán** (řádek do `KRONIKA-PROJEKTU.md`, přepis B3/N0.3 v plánech na HOTOVO)
+  patří **až po nasazení** a s důkazem z živé služby.
+
+### 43.5 Brány (stav po B3a)
+
+* zelené: `kontrola-diakritiky` (otevřeno 248 z 292, 0 chyb) · `over-dokumentaci` **67/0** ·
+  `over-skilly` **13/0** (40 zmínek o nástrojích, **0 mrtvých cest**) · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` **5 v pořádku / 0 rozešlých** · `ag-mutace` **2/2 chyceno**.
+* `g3` → **41 bran**, nenulové exity **2**: `zadání kontrola` (**deklarovaný**) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` (**81 445 B vs 74 492 B**) = nepushnutá změna.
+* známá výjimka beze změny: `C2: mutace N1` běží zeleně, ale **nevypisuje čítač** (nález 42.4/1).
+
+---
+
+## 44. B5 UZAVŘENO + B2 ZMĚŘENO (6. 10. 2026, třetí krok pokračování na conductoru)
+
+**Co tenhle oddíl JE:** **záznam o provedení**. Nejde z něj číst dnešní stav —
+ten je v `§2.x` a v kronice.
+
+### 44.1 B5 — nepravdivé komentáře: UZAVŘENO
+
+Plán žádal: `grep -n "mrtvý kód" conductor/src/index.ts` → **0**. Naměřeno:
+**0 výskytů** (předtím 2: `Env` a `escalateStuckTasks`, oba tvrdily, že
+`MAX_ATTEMPTS` je v provozu nežívá konstanta — naměřeno nepravda).
+
+⚠ **A jedna past, která se při tom ukázala:** první verze mého komentáře tu
+nepravdu **citovala** — a tím držela zakázaný řetězec v souboru, takže by
+přijímací `grep` **nikdy nezezelel**. Musel jsem ji přeformulovat. Je to táž
+past, kterou projekt zná od `test-zamek-owns.py` („kontrola, která hledá
+řetězec v celém souboru, ho najde i v komentáři, který vadu popisuje").
+
+### 44.2 B2 — `/report` a cooldown: vada je OPRAVENÁ, ale NEBYLA MĚŘENÁ
+
+**Stav vady:** `/report` dřív zapsal jen `tasks`, ne `roadmap` → selhaná granule
+se vrátila do fronty **okamžitě** a spálila všechny pokusy za čtvrt hodiny
+(naměřeno 30. 9. 2026: `#128` měl 5 pokusů za 16 minut). **Opravil to B1**
+(`roadmap.naposledy_selhalo`) — a `index.ts:1606–1617` to má i s komentářem.
+
+**Co chybělo:** **žádná brána to neměřila.** `tools/test-cooldown.py` kryje
+cestu **dispatche**, ne zápis z `/report` — takže kdyby někdo ten zápis smazal,
+neozvalo by se nic.
+
+| Co je nové | Kde | Doklad |
+|---|---|---|
+| brána: simuluje selhání přes `/report` a ptá se **skutečného** dispatch guardu (obě SQL se vytahují ze zdrojáku, `RETRY_HOURS` z `wrangler.toml`) | `tools/test-report-cooldown.py` | **8 kontrol, 0 chyb** |
+| **mutační důkaz** (4 vrat: `/report` nezapíše `naposledy_selhalo` · guard porovnává opačně · `RETRY_HOURS=0` · poslední pokus nezapíše) | `_analyza/b2-mutace.py` | **9 kontrol, 0 chyb** — 4× brána **spadla**, soubor vždy vrácen bajt na bajt |
+| registrace | `g3-brany.py`, `validate-all.mjs`, `kontrola-diakritiky.py` | `g3`: **43 bran** (bylo 41) |
+
+**Co brána tvrdí (Hotovo znamená plánu):** po čerstvém selhání přes `/report`
+guard úkol **nevydá**; po uplynutí `RETRY_HOURS` **vydá**; **známý chybný případ**
+(bez zápisu `naposledy_selhalo`) ho vydá **okamžitě** — to je měřená vada S13.
+
+### 44.3 Co NENÍ hotové
+
+* **B4** (`listGames` fallback **nesmí dispatchovat**, invariant 18) — **nezačato**.
+  Změřeno dřív: fallback sahá na `env.GITHUB_REPO`, takže vypnutí poslední hry
+  orchestra nezastaví. Acceptance plánu: `POST /game/active {active:false}` →
+  `/health` `games=0` a **žádný dispatch**. Je to **změna chování** (plán ji sám
+  označuje jako zamýšlené „radši nemakat“) → patří do samostatného kroku.
+* **NENASOZENO** — pořád platí: `N0.3` (§42), `B3a` (§43) a k tomu **B5** (komentář)
+  čekají na rozhodnutí o pushi; `B2` je **jen test + registrace**, běhový kód nemění.
+* **B3b** (strop, který vydávání zastaví) — druhý krok B3, čeká na nasazení B3a.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 44.4 Brány (stav po B2/B5)
+
+* zelené: `kontrola-diakritiky` · `over-dokumentaci` · `over-skilly` (0 mrtvých cest) ·
+  `handoff` **83/83** · `kronika` **SEDÍ** · `ag-over-cisla` **5/0** · `ag-mutace` **2/2**.
+* `g3` → **43 bran**; nenulové exity: `zadání kontrola` (**deklarovaný**) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 45. B4 — BEZ AKTIVNÍ HRY SE NEDISPATCHUJE (6. 10. 2026, čtvrtý krok)
+
+**Co tenhle oddíl JE:** **záznam o provedení**. Nejde z něj číst dnešní stav —
+ten je v `§2.x` a v kronice.
+
+### 45.1 Vada nejdřív ZMĚŘENÁ (brána byla před opravou červená)
+
+`listGames` měl „zpětnou kompatibilitu“: když registr neměl **aktivní** hru,
+vrátil `[{game_id: "default", repo: env.GITHUB_REPO}]`. Důsledek (invariant 18):
+**vypnutí poslední registrované hry orchestra nezastavilo.**
+
+Naměřeno bránou `tools/test-listgames.py` **PŘED opravou** → **7 kontrol, 3 CHYB**:
+
+```
+CHYBA B: vypnutá hra (SQL nic nevrátí) → PRÁZDNÝ seznam = žádný dispatch
+      cekano: []   dáno: [{'game_id': 'default', 'repo': 'fallback/nesmi-se-pouzit', …}]
+CHYBA B: fallback na env.GITHUB_REPO se NEPOUŽIL      cekano: False  dáno: True
+CHYBA D: v KÓDU `listGames` není `env.GITHUB_REPO`    cekano: False  dáno: True
+```
+
+**A druhá polovina vady, kterou samotný `listGames` neřeší:** dispatch smyčka
+čte úlohy z **D1** (`SELECT * FROM tasks WHERE status='ready' AND target='cloud'`),
+takže i s prázdným registrem by hotové úlohy dál odcházely. Acceptance plánu zní
+„`/health` `games=0` a **žádný dispatch**“ — proto jsou potřeba **oba** guardy.
+
+### 45.2 Co je hotové
+
+| Co | Kde | Doklad |
+|---|---|---|
+| `listGames` **bez fallbacku** — žádná aktivní hra = prázdný seznam + zpráva do logu | `conductor/src/index.ts` | brána **10 kontrol, 0 chyb** (před opravou 7/3) |
+| `tick` si aktivní hry načte **z registru** a bez nich se **nedispatchuje** (guard na začátku dispatch smyčky) ani neběží `roadmapTick` | tamtéž | brána, kontroly **E** |
+| tik to **řekne** ve své odpovědi (`| POZOR: žádná AKTIVNÍ hra → nedispatchuji (B4)`) | tamtéž | kód (ticho by bylo past) |
+| brána: SQL běží ve **skutečném SQLite**, funkce se **volá** (Node `--experimental-strip-types`), guardy se čtou z **KÓDU bez komentářů** | `tools/test-listgames.py` | **10 kontrol, 0 chyb** |
+| **mutační důkaz** (4 vrat: dispatch bez guardu · dotaz bez `active = 1` · starý fallback · `roadmapTick` i bez hry) | `_analyza/b4-mutace.py` | **9 kontrol, 0 chyb** — 4× brána **spadla**, soubor vždy vrácen bajt na bajt |
+| registrace | `g3-brany.py`, `validate-all.mjs`, `kontrola-diakritiky.py` | `g3`: **45 bran** (bylo 43) |
+
+**Pojistka, která se ověřovala taky:** `/tasks/cleanup` **nemaže**, když je
+`platne` prázdné (`503 „žádná platná granule – roadmapy jsou prázdné, nemažu“`) —
+takže prázdný registr tam nic nesmaže. Zkontrolováno čtením kódu **před** opravou.
+
+### 45.3 Co NENÍ hotové
+
+* **NENASOZENO**: `N0.3` (§42), `B3a` (§43) a nově **`B4`** čekají na rozhodnutí
+  o pushi; `B5` (komentář) a `B2` (testy) běhový kód nemění.
+  ⚠ **B4 je první změna, která MŮŽE orchestra zastavit** (zamýšleně — plán:
+  „radši nemakat“), takže se nabízí nasadit ji **samostatně** a ověřit, že
+  s vypnutou hrou tik opravdu nic nespustí.
+* **B3b** (strop na granuli) — druhý krok B3.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 45.4 Brány (stav po B4)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **45 bran**; nenulové exity: `zadání kontrola` (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 46. B3b — STROP NA GRANULI (6. 10. 2026, pátý krok; poslední vada fáze B)
+
+**Co tenhle oddíl JE:** **záznam o provedení**. Nejde z něj číst dnešní stav —
+ten je v `§2.x` a v kronice.
+
+### 46.1 Co to je a proč ZÁMĚRNĚ VYPNUTÉ
+
+Watchdog (B3a) granuli jen **ohlásí** — nic nezastaví. Naměřeno na živé službě:
+`entity.npc` spálil **8 běhů** napříč dvěma úkoly a ve frontě na to vzniklo
+**49 osiřelých úloh** na tutéž granuli. Strop (B3b) je ta druhá polovina:
+po `GRAIN_MAX_RUNS` spálených bězích se granule **přestane vydávat**
+(`status='blocked'` + notifikace jednou).
+
+**Proč je výchozí hodnota `"0"` (vypnuto):** plán žádá nasazovat **po částech**
+a měřit před/po. Kdyby se strop zapnul naráz s watchdogem, **nebylo by z čeho
+měřit, že watchdog opravdu hlásí** (dnešní granule už jsou nad prahem i nad
+stropem). Proto: *deploy 1* = watchdog (hlásí), *deploy 2* = `GRAIN_MAX_RUNS = "5"`
+(zastaví).
+
+### 46.2 Co je hotové
+
+| Co | Kde | Doklad |
+|---|---|---|
+| `grainCap` — strop z konfigurace; **nesmysl/záporné/`0` = vypnuto** („strop, který se nedá přečíst, nesmí tiše zastavit orchestra“) | `conductor/src/index.ts` | brána **22 kontrol, 0 chyb** |
+| `grainCapped` — čisté rozhodnutí (test ho VOLÁ) | tamtéž | kontroly **A/B** |
+| `grainKeyOf` — klíč granule `{game}/{grain}` z payloadu | tamtéž | kontrola **C** |
+| **shoda obou tvarů klíče** (JS `grainKeyOf` × SQL `GRAIN_KEY_SQL`) | tamtéž | kontrola **C** — přesně to, co u invariantu 17 chybělo |
+| strop je v **obou** cestách, kterými granule odchází: filtr `ready` v `roadmapTick` i dispatch smyčka | tamtéž | kontroly **D** |
+| počítadlo se měří **jednou za tik** a jde do watchdogu, roadmapy i dispatche (jedno číslo pro všechny tři) | tamtéž | kontrola **D** |
+| konfigurace `GRAIN_MAX_RUNS = "0"` s vysvětlením dvou kroků | `conductor/wrangler.toml` | kontrola **E** (test VYPÍŠE, že je strop vypnutý) |
+| **mutační důkaz** (5 vrat) | `_analyza/b3b-mutace.py` | **11 kontrol, 0 chyb** — 5× brána **spadla**, soubor vždy vrácen bajt na bajt |
+| registrace | `g3-brany.py`, `validate-all.mjs`, `kontrola-diakritiky.py` | `g3`: **47 bran** (bylo 45) |
+
+### 46.3 Vlastní vada, kterou brána odhalila sama
+
+První běh brány skončil **22 kontrol, 1 CHYBA** — a nebyl to conductor, ale
+**můj regex**: hledal za `=>` otevírací závorku, kterou tam filtr `ready` nemá.
+Brána to ohlásila jako **„nenašel jsem filtr `ready` — test je slepý“**, tedy
+přesně tak, jak má: **nemlčela**. To je rozdíl proti bráně, která nad
+nenalezeným vzorem projde zeleně (`overovani` §7.10).
+
+### 46.4 Co NENÍ hotové
+
+* **NENASOZENO**: `N0.3` (§42), `B3a` (§43), `B4` (§45) a nově **`B3b`** čekají na
+  rozhodnutí o pushi. `B3b` je navíc **inertní**, dokud se nepřepne
+  `GRAIN_MAX_RUNS` — takže prvním deployem se chování nemění.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+* **Fáze B je tím hotová** (B1 ✅ · B2 ✅ · B3a ✅ · B3b ✅ čeká na zapnutí ·
+  B4 ✅ · B5 ✅). Zbytek fází C a D zůstává na rozhodnutí (`O3`, `O10`, `O5–O8`).
+
+### 46.5 Brány (stav po B3b)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **47 bran**; nenulové exity: `zadání kontrola` (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 47. ČÍTAČ BRÁNY `C2: mutace N1` (6. 10. 2026) — poslední „nevíme, co změřila“
+
+**Co tenhle oddíl JE:** **záznam o provedení** drobnosti z §42.4/1. Nejde z něj
+číst dnešní stav — ten je v `§2.x` a v kronice.
+
+### 47.1 Vada a její náprava
+
+`g3` u téhle brány **pořád** hlásil `běžela, ale vzor nic nenašel (3 303 B)`:
+`_analyza/c2-mutace.py` sice měřil pět scénářů a správně padal, ale **nikdy
+nevypsal čítač** (`N kontrol, M chyb`), takže registr bran **nevěděl, CO změřil**.
+
+| Co | Doklad |
+|---|---|
+| skript vypisuje `SOUHRN: N kontrol, M chyb`; **počet se bere z toho, co proběhlo** (krok „smazaný inventář“ se umí přeskočit na oprávněních → správně 4, ne 5; natvrdo psaná pětka by lhala — vada S27) | `python _analyza\c2-mutace.py` → `SOUHRN: 5 kontrol, 0 chyb`, `exit 0` |
+| **deklarovaná výjimka se ruší**: `OCEKAVANE_BEZ_CITACE = set()` (držet ji dál by znamenalo, že nová ztráta čítače u téže brány projde jako „deklarovaná“) | `_analyza/g3-brany.py` |
+| registr to teď VÍ: `{"nazev":"C2: mutace N1 (5 běhů)","exit":0,"otevřela":"5 / 0","ma_citac":true}` | `_analyza/_registr-bran.json` |
+| `g3` už varování nehlásí a sám řekl, že výjimka není potřeba | `BRÁNY BEZ ČÍTAČE mimo deklarovaný stav: 0` + `(poznámka: v OCEKAVANE_BEZ_CITACE už není potřeba: C2: mutace N1 (5 běhů) — brána teď čítač vykazuje)` |
+
+### 47.2 Dvě pasti, které se přitom ukázaly
+
+* **Editace brány zestarala inventář** — `c2-mutace.py` je vstupem jazykového
+  skeneru, takže první běh po editaci spadl na `INVENTÁŘ JE ZASTARALÝ / NEZMĚNĚNÝ`
+  ve scénáři 1. **To je správné chování** (ne vada brány ani nástroje): inventář
+  se přegeneruje a běh je zelený. Projekt to zná a píše to v `AGENTS.md`
+  („počítej s tím víckrát za session“).
+* **Čítač nesmí být konstanta.** Krok 4 (smazaný inventář) se umí přeskočit
+  v sandboxu; kdyby skript tiskl natvrdo „5“, hlásil by víc, než změřil.
+
+### 47.3 Co NENÍ hotové
+
+* **NENASOZENO** — beze změny: `N0.3` (§42), `B3a` (§43), `B4` (§45) a inertní
+  `B3b` (§46) čekají na rozhodnutí o pushi. Tenhle oddíl běhový kód nemění.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 47.4 Brány (stav po §47)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **47 bran**, **0 bran bez čítače** (dřív 1); nenulové exity: `zadání
+  kontrola` (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 48. TIK OFFLINE — první test ROZHODOVACÍ LOGIKY conductora (6. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení**. Nejde z něj číst dnešní stav —
+ten je v `§2.x` a v kronice.
+
+### 48.1 Proč
+
+Projekt o sobě sám psal (skill `orchestra`, `README.md`): *„Conductor **nemá test
+své rozhodovací logiky.** Dva `.py` testy logiku **opisují**, `mock-conductor.mjs`
+neumí `/tick`, `/poll`, `/roadmap`… a `validate-all.mjs` se na `index.ts` dívá jen
+**bajtovým porovnáním** — **když se v conductoru změní SQL, neozve se nic.**“*
+
+Naměřeno 6. 10. 2026: i brána `B4` kontrolovala jen `listGames` a guardy
+**staticky** — a „staticky to tam je“ **není** totéž jako „tik to neudělá“
+(dispatch smyčka čte úlohy z D1).
+
+### 48.2 Co je hotové
+
+`tools/test-tick-offline.mjs` volá **skutečný `POST /tick`** nad conductorem
+zbundlovaným přes `wrangler deploy --dry-run` (bez sítě a bez přihlášení),
+s falešnou D1 a stubovaným GitHub API. Falešná D1 má **router podle SQL a na
+NEZNÁMÝ dotaz SPADNE** — kdyby conductor začal dělat nový dotaz, test to řekne,
+místo aby tiše měřil něco jiného.
+
+| Kontrola | Co tvrdí | Doklad |
+|---|---|---|
+| **A** | registr bez AKTIVNÍ hry → tik **nedispatchuje**, hlásí „žádná aktivní hra“ i „roadmapu neřeším“ a roadmapu **ani nečte** | `spusteno: 0 úloh`, 0× `/dispatches`, 0× `/contents/` |
+| **B** | s aktivní hrou a jednou připravenou granulí dispatchuje **právě jednou**, úlohu claimne a založí běh | 1× `/dispatches` na `agent.yml`, `taskClaimed=1`, `runy=1` |
+| **C** | když UŽ jeden běh běží, `MAX_CONCURRENT=1` další dispatch **nepustí** | 0× `/dispatches` (a úloha přitom zůstává `ready`) |
+| | **mutační důkaz** (3 vraty: dispatch bez guardu · `MAX_CONCURRENT` vypnutý · `roadmapTick` i bez hry) | `_analyza/tick-mutace.py` → **7 kontrol, 0 chyb**, 3× brána spadla |
+| | registrace | `g3` → **49 bran** (bylo 47) |
+
+⚠ **Dvě kontroly jsem musel ZPEVNIT, protože by prošly i s vratou vadou:**
+kontrola C původně nastavila úlohu na `running`, takže by neprošla kvůli
+*žádnému kandidátovi*, ne kvůli `MAX_CONCURRENT` — dnes je „běží jiný běh“
+oddělený od stavu úlohy. A kontrola „roadmapa se ani nečetla“ neměla jak
+selhat, protože bez aktivní hry by `roadmapTick` stejně nic neudělal; dnes se
+měří i **zpráva o přeskočení** (ta je falsifikovatelná).
+
+### 48.3 Co je tím ZASTARALÉ (a musí se opravit)
+
+* Skill `~\.dsh\skills\orchestra\SKILL.md` a `README.md` **tvrdí, že conductor
+  test rozhodovací logiky NEMÁ** — po tomhle oddílu to **není pravda**.
+  Nechal jsem to zatím být (skill je mimo repo a `over-skilly.py` hlídá jeho
+  cesty); **patří to opravit** — dokud to tam stojí, čte to každá session jako
+  fakt a **nehledá**, co už existuje.
+
+### 48.4 Co NENÍ hotové
+
+* **NENASOZENO** — beze změny: `N0.3` (§42), `B3a` (§43), `B4` (§45) a inertní
+  `B3b` (§46) čekají na rozhodnutí o pushi. Tenhle oddíl běhový kód nemění.
+* Test pokrývá **čtyři** cesty tiku (hry, roadmapa, dispatch, `MAX_CONCURRENT`);
+  **nepokrývá** `pollRuns` (výsledky běhů), stale-recovery a `/report` — to je
+  materiál pro další kolo.
+  > **⚠ OD 6. 10. 2026 TO UŽ NEPLATÍ pro `pollRuns` a stale-recovery — viz §49.**
+  > Zůstává **`/report`** (endpoint má vlastní bránu `B2` na úrovni SQL, ale
+  > **handler** `/report` zatím nezavolal žádný test).
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 48.5 Brány (stav po §48)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **49 bran**, **0 bez čítače**; nenulové exity: `zadání kontrola`
+  (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 49. TIK OFFLINE — ROZŠÍŘENÍ NA `pollRuns` A STALE-RECOVERY (6. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení** (pokračování §48). Nejde z něj
+číst dnešní stav — ten je v `§2.x` a v kronice.
+
+### 49.1 Proč zrovna tyhle cesty
+
+**V `pollRuns` bydlely dvě z nejdražších vad projektu** a ani jedna neměla test,
+který by **zavolal kód** — testy je jen opisovaly:
+
+* **B1** — cooldown se ptal na `updated_at`, což je i čas VZNIKU řádku, takže se
+  nová granule **3 h nevydala** (vada S12).
+* **A1** — `done` se zapsalo i u PR, které se **NESLOUČILO**; naměřeno
+  2. 10. 2026: tři granule byly `done`, jejich PR měly `merged_at: null`
+  a soubory v `main` nebyly (S29/S31).
+
+### 49.2 Co je nové
+
+`tools/test-tick-offline.mjs` má **25 kontrol** (bylo 13) a kryje nově:
+
+| Kontrola | Co tvrdí | Co by to chytilo |
+|---|---|---|
+| **D** | běh na GitHubu selhal → úloha zpět na `ready`, běh dostal výsledek a **`roadmap.naposledy_selhalo` se ZAPSAL** | regresi vady **B1** |
+| **E** | běh uspěl **a PR je sloučený** → úloha i granule `done` | — |
+| **F** | běh uspěl, **PR sloučený NENÍ** → `awaiting_human`, a `done` se **nezapíše** | regresi vady **A1** |
+| **G** | zaseknutý běh → `timeout` a úloha zpět **jen dokud má pokusy** (`attempts < ?`), jinak `failed` | smyčku #107–#109 (30. 9. 2026) |
+| **G2** | **bez** zaseknutých běhů se stav úloh nemění | „sahá to na úlohy, i když není co řešit“ |
+
+Falešná D1 se rozšířila na **stavový model** a **zapisuje si provedené dotazy** —
+tvrzení stojí na skutečném SQL, které tik poslal, ne na dojmu.
+
+**Mutační důkaz je rozšířený na 6 vrat** (`_analyza/tick-mutace.py`, **13 kontrol,
+0 chyb**), a to včetně **dvou historických regresí**:
+
+* **M4** — `/poll` nezapíše `naposledy_selhalo` (vada B1) → brána spadne,
+* **M5** — „úspěch = sloučeno“ (vada A1) → brána spadne.
+
+To je poprvé, co má projekt **spustitelný důkaz**, že B1 a A1 by se po vrácení
+poznaly — do 6. 10. 2026 je hlídaly jen testy, které si logiku opisovaly.
+
+### 49.3 Co NENÍ hotové
+
+* **`/report` handler** zatím nezavolal žádný test (brána `B2` měří jen SQL,
+> které handler používá). Patří to do dalšího kola.
+* **Skill `orchestra` a `README.md` pořád tvrdí, že conductor test rozhodovací
+  logiky nemá** (§48.3) — neopraveno.
+* **NENASOZENO** — beze změny: `N0.3` (§42), `B3a` (§43), `B4` (§45), inertní
+  `B3b` (§46) čekají na rozhodnutí o pushi. Tenhle oddíl běhový kód nemění.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 49.4 Brány (stav po §49)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **49 bran** (počet se nezměnil — rozšířily se stávající brány),
+  **0 bez čítače**; nenulové exity: `zadání kontrola` (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 50. `/report` V TESTU TIKU — poslední netestovaná rozhodovací cesta (6. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení** (třetí díl testu z §48/§49).
+Nejde z něj číst dnešní stav — ten je v `§2.x` a v kronice.
+
+### 50.1 Co je nové
+
+`tools/test-tick-offline.mjs` má **40 kontrol** (bylo 25) a volá **skutečný
+`POST /report`** — endpoint, který dřív netestoval **nikdo** (brána `B2` měřila
+jen SQL, které používá). Nové scénáře:
+
+| Kontrola | Co tvrdí | Co by to chytilo |
+|---|---|---|
+| **H** | selhání s pokusy → úloha zpět na `ready`, **`naposledy_selhalo` se zapíše**, granule se **NEoznačí** `failed` | vadu **B1** na druhé cestě |
+| **I** | poslední pokus → úloha i granule `failed` (+ čas selhání) | chybějící terminální stav |
+| **J** | úspěch → úloha i granule `done` | — |
+| **K** | neznámý `run_key` → **404 a žádné zápisy** | „zapíše, i když běh nezná“ |
+| **L** | špatné tajemství → **401 a žádné zápisy** | nechráněný endpoint |
+| **M** | `blocked`/`done` je **TERMINÁLNÍ** — report ho nevzkřísí | **invariant 10** (osiřelá úloha se po úklidu vrací a dispatchuje dokola) |
+
+**Mutační důkaz je rozšířený na 8 vrat** (`_analyza/tick-mutace.py`, **17 kontrol,
+0 chyb**): nově **M7** (`/report` nezapíše čas selhání = B1) a **M8** (`/report`
+vzkřísí `blocked` úlohu = invariant 10).
+
+### 50.2 Vlastní vada, kterou to odhalilo (a poučení)
+
+**Počet vrat jsem měl v NÁZVU brány — a dvakrát zestaral** (3 → 6 → 8), protože
+se test rozšiřoval. Je to táž vada, kterou projekt zná jako „ztráta čítače“ a
+„různé čítače nesou stejné jméno“: **jméno, které tvrdí počet, je další místo,
+kde vzniká nepravda.** Název je proto nově bez počtu (`tik offline: mutace brány`)
+a skutečný počet hlásí test i registr `g3` — ty se měří, neopisují.
+
+### 50.3 Co NENÍ hotové
+
+* **Skill `orchestra` + `README.md` pořád tvrdí, že conductor test rozhodovací
+  logiky nemá** (§48.3) — **neopraveno**; je to poslední známá lež o nástrojích.
+* Test volá `/tick` a `/report`; **`/poll`, `/claim`, `/heartbeat`, `/tasks/cleanup`
+  a `/roadmap/reset`** handlerem zatím neprochází žádný test.
+* **NENASOZENO** — beze změny: `N0.3` (§42), `B3a` (§43), `B4` (§45), inertní
+  `B3b` (§46) čekají na rozhodnutí o pushi. Tenhle oddíl běhový kód nemění.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 50.4 Brány (stav po §50)
+
+* zelené: diakritika · `over-dokumentaci` · `over-skilly` · `handoff` **83/83** ·
+  `kronika` **SEDÍ** · `ag-over-cisla` · `ag-mutace`.
+* `g3` → **49 bran**, **0 bez čítače**; nenulové exity: `zadání kontrola`
+  (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 51. DOKUMENTACE, KTERÁ POPÍRALA VLASTNÍ NÁSTROJE (6. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení** — oprava skillu `orchestra`
+a `README.md`. Nejde z něj číst dnešní stav — ten je v `§2.x` a v kronice.
+
+### 51.1 Nejdřív MĚŘENÍ (a ukázalo, že dvě varování jsou nepravdivá)
+
+| Co dokument tvrdil | Co naměřeno |
+|---|---|
+| `README.md` i skill: *„`test-cooldown.py` **nemá assert ani `sys.exit`** → končí vždy 0, SQL má **opsané**“* | **NEPRAVDA (6. 10. 2026):** soubor **má** `assert` i `sys.exit` (`:240`, `:242`) a SQL guardu **vytahuje ze zdrojáku** (`vytahni_guard_sql`, `:79`) → **10 kontrol, 0 chyb**, `exit 0` |
+| skill: *„Conductor **nemá test své rozhodovací logiky** … když se v conductoru změní SQL, neozve se nic“* | **NEPRAVDA od §48–§50:** `tools\test-tick-offline.mjs` volá skutečný `/tick` i `/report` (**40 kontrol**) a má **8 vrat** v `_analyza\tick-mutace.py` |
+| skill, Klíčové cesty: `orchestra/conductor/`, `orchestra/repo/`, `orchestra/tools/`… | **24 odkazů na layout, který na disku NENÍ** — `orchestra\tools` → `False`, `tools` → `True` (repo se 4. 10. 2026 přesunul na `E:`) |
+| skill: `test-eskalace.py` = „offline test watchdogu“ | **měří odstraněnou logiku** (prah natvrdo 8, počítání po úkolech) — hlavička souboru to od §43 hlásí |
+
+### 51.2 Co je opravené
+
+| Soubor | Změna | Doklad |
+|---|---|---|
+| `~\.dsh\skills\orchestra\SKILL.md` | řádek `test-cooldown` opraven (a staré varování označeno jako **historie**), `test-eskalace` označen **ZASTARALÉ**, přidán řádek pro `test-tick-offline.mjs`, blok „nemá test rozhodovací logiky“ **nahrazen pravdou** (starý text zůstal přeškrtnutý jako historie), opravena položka v „co orchestra NEMÁ“ | `over-skilly.py` → **13 skillů / 0 chyb**, **54 zmínek, 0 mrtvých** (bylo 48) |
+| tamtéž — **Klíčové cesty** | přepsáno na stav po přesunu: root repa `E:\Workspaces\forge-orchestra\`, `conductor/`, `repo/`, `tools/`, `_analyza/`, `.secrets/`, `.env`, hra jako **sourozenec** `E:\Workspaces\uo-shadows\`; **24 předpřesunových odkazů sníženo na 2 legitimní** (historická poznámka + dnešní `forge-orchestra\repo\`) | `grep 'orchestra[/\\]'` → jen ř. 25 (historie) a ř. 470 (dnešní cesta) |
+| `README.md` | `test-cooldown` opraven, `test-eskalace` označen ZASTARALÉ, **doplněno 6 řádků** pro nové brány (`B2`, `B3a`, `B3b`, `B4`, `N0.3`, tik offline) | `kontrola-diakritiky.py` → **VŠE OK** (256/300, 0 chyb) · `over-dokumentaci.py` → **67/0** |
+
+### 51.3 Nový nález: BRÁNA NA CESTY V DOKUMENTACI JE SLEPÁ K TOMU, CO HLEDÁ
+
+`over-skilly.py` **celou dobu hlásil „0 mrtvých cest“** — a přitom skill
+obsahoval **24 odkazů na neexistující layout** (`orchestra/tools/`, `orchestra/repo/`).
+Naměřeno: `Test-Path orchestra\tools` → **False**, `tools` → **True**.
+Brána tedy měří jiný tvar cest, než jaký v dokumentu skutečně je (adresářový tvar
+`orchestra/…` a prefix uvnitř delší ukázky jí uniká). **Patří to do fáze C**
+(„brány, které lžou“) — dokud to tak je, „0 mrtvých cest“ **není důkaz**.
+
+### 51.4 Co NENÍ hotové
+
+* **Slepé místo `over-skilly` z §51.3** — neopraveno (patří do fáze C).
+* **NENASOZENO** — beze změny: `N0.3` (§42), `B3a` (§43), `B4` (§45), inertní
+  `B3b` (§46) čekají na rozhodnutí o pushi. Tenhle oddíl běhový kód nemění.
+* **Kronika a plán** — až po nasazení, s důkazem z živé služby.
+
+### 51.5 Brány (stav po §51)
+
+* zelené: diakritika **VŠE OK** · `over-dokumentaci` **67/0** · `over-skilly`
+  **13/0** (54 zmínek, 0 mrtvých) · `handoff` **83/83** · `kronika` **SEDÍ** ·
+  `ag-over-cisla` · `ag-mutace`.
+* `g3` → **49 bran**, **0 bez čítače**; nenulové exity: `zadání kontrola`
+  (deklarovaný) a `validate-all`.
+* `validate-all` → **1 problém**: `E. lokální kód = repo` = nepushnutá změna.
+
+---
+
+## 52. PŘEDÁNÍ — CO JE HOTOVÉ, CO ČEKÁ A JAK TO OVĚŘIT (6. 10. 2026)
+
+**Co tenhle oddíl JE:** **předání stavu práce** pro session (nebo člověka),
+který tuhle práci převezme. Je to jediné místo, kde je pohromadě **co je hotové,
+co je připravené k nasazení a co zůstává otevřené**; podrobný záznam je
+v oddílech **§42–§51**.
+
+### 52.1 Hotovo v téhle session (vše ověřené bránami)
+
+| # | Co | Kde je záznam | Doklad |
+|---|---|---|---|
+| 1 | **N0.3** — `/health` hlásí stav **cíle** (`main_ci`, `forge.ok`, `selhani_v_rade`, `error`) | §42 | brána `test-health-cile.mjs` **21/0** + mutace **11/0** |
+| 2 | **B3a** — watchdog počítá běhy **granule** (přes všechny úkoly), prah **pod** stropem | §43 | `test-watchdog-granule.py` **17/0** + `b3-mutace.py` **11/0** |
+| 3 | **B5** + **B2** — nepravdivé komentáře pryč; `/report` → cooldown má bránu | §44 | `test-report-cooldown.py` **8/0** + `b2-mutace.py` **9/0** |
+| 4 | **B4** — bez aktivní hry se **nedispatchuje** (ani nečte roadmapa) | §45 | `test-listgames.py` **10/0** + `b4-mutace.py` **9/0** |
+| 5 | **B3b** — strop na granuli (`GRAIN_MAX_RUNS`, **výchozí vypnuto**) + shoda obou tvarů klíče | §46 | `test-grain-cap.py` **22/0** + `b3b-mutace.py` **11/0** |
+| 6 | **Čítač brány `C2: mutace N1`** + zrušená deklarovaná výjimka | §47 | registr `5 / 0`, `ma_citac: true` |
+| 7 | **Test rozhodovací logiky conductora** — skutečný `/tick` i `/report` nad zbundlovaným conductorem | §48–§50 | **40 kontrol** + `tick-mutace.py` **8 vrat / 17/0** |
+| 8 | **Dokumentace, která popírala nástroje** — skill `orchestra` + `README` | §51 | `over-skilly` **54 zmínek, 0 mrtvých** |
+
+### 52.2 Připraveno k NASAZENÍ (a co to udělá s živou službou)
+
+Push do `conductor/**` spouští `deploy.yml` = **nasazení živé služby**. Doporučené
+pořadí (plán: „nasadit po částech a měřit před/po“):
+
+| Krok | Co obsahuje | Dopad na provoz | Riziko |
+|---|---|---|---|
+| **1** | `B2` + `B5` + §47 (jen testy, komentář, čítač) | **žádný** | nulové |
+| **2** | `N0.3` (§42) | `/health` přidá `targets[]` | nízké (2 volání GitHubu na 2 min cache) |
+| **3** | `B3a` (§43) | watchdog začne hlásit; **dnes pošle 2 notifikace** (`entity.npc` 8 běhů, `entity.enemy` 5) a v `/tick` bude `watchdog: 2 ohlášeno (prah 3)` | nízké |
+| **4** | `B4` (§45) — **samostatně** | bez aktivní hry se **přestane dispatchovat** (zamýšleno) → ověřit, že vypnutá hra opravdu nic nespustí | střední |
+| **5** | `B3b` (§46) — **nic nezapínat** | inertní; teprve `GRAIN_MAX_RUNS = "5"` (samostatný krok) strop **zapne** | nulové |
+
+**Ověření po nasazení** (co má být vidět): `/health` má `targets[0].main_ci`
+a `targets[0].forge` (`ok: false`, `selhani_v_rade ≈ 10`) · `/tick` hlásí
+`watchdog: …` · notifikace o granulích · s vypnutou hrou `spusteno: 0 úloh`.
+
+### 52.3 Otevřené (nic není zapomenuté, jen neudělané)
+
+* **Nasazení** — rozhodnutí uživatele (viz 52.2). **Nic jsem nepushnul.**
+* **Kronika a plán** — řádek do `KRONIKA-PROJEKTU.md` a přepis `N0.3`/`B3`/`B4`
+  v plánech na HOTOVO patří **až po nasazení** a s důkazem z **živé** služby.
+* **Netestované endpointy handlerem:** `/poll`, `/claim`, `/heartbeat`,
+  `/tasks/cleanup`, `/roadmap/reset` (§50.3).
+* **Slepé místo brány `over-skilly.py`:** hlásí „0 mrtvých cest“, ale 24 odkazů
+  na neexistující layout jí prošlo (§51.3) — patří do fáze C („brány, které lžou“).
+* **Fáze C a D** celé — čekají na rozhodnutí `O3`, `O10`, `O5–O8`
+  (`PLAN-ROZVOJ-ORCHESTRA.md` §6).
+
+### 52.4 Jak to ověřit (jeden příkaz + co má být červené)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json   # inventář POSLEDNÍ
+python _analyza\g3-brany.py          # 49 bran, 0 bez čítače
+node tools\validate-all.mjs          # 1 problém: "E. lokální kód = repo"
+```
+
+⚠ **Červená `E. lokální kód = repo` je SPRÁVNĚ**, dokud práce není v gitu —
+kontrola porovnává lokální `conductor/src/index.ts` s verzí **na GitHubu**.
+Zmizí prvním schváleným pushem. Kdyby byla červená **jiná** kontrola, je to vada.
+
+**Stav stromu:** **13 změněných + 12 nových souborů**, necommitnuto (čeká na
+rozhodnutí o pushi); do hry `uo-shadows` jsem **nesáhl**.

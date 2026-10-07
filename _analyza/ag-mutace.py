@@ -12,20 +12,23 @@ Nález N9 říká, že první verze tohohle nástroje měla tvrzená čísla NAP
 NAPEVNO — měřila tedy zdroj a porovnávala ho sám se sebou a vrácená vada
 v dokumentu jí prošla. Tenhle test to zkouší dvěma mutacemi:
 
-  1) vloží se VADA: `40 sloupců` -> `32 sloupců`   → brána MUSÍ spadnout
-  2) PŘEFORMULUJE se tvrzení (`40 sloupců` -> `čtyřicet sloupců`) → brána musí
+  1) vloží se VADA: `41 sloupců` -> `32 sloupců`   → brána MUSÍ spadnout
+  2) PŘEFORMULUJE se tvrzení (`41 sloupců` -> `čtyřicet jedna sloupců`) → brána musí
      hlásit „NENAŠLA SE TVRZENÍ", ne „OK" (jinak je slepá k přeformulování)
 
-⚠ KOTVA SE 2. 10. 2026 ZMĚNILA: `39 sloupců` -> `40 sloupců` (Úkol 2 zadání
-`ZADANI-DOKONCENI-AUDITU.md`). Naměřeno: `Select-String` i Python na
-`39 sloupců` → **0 výskytů** v `AGENTS.md` — číslo 39 a slovo „sloupců"
-nejsou v dokumentu nikde vedle sebe. `pocet != 1` proto obě mutace
-**tiše neprovedlo** a skript skončil `exit 1`; a protože **nebyl v seznamu
-`BRANY` v `g3-brany.py`**, nikdo si toho nevšiml. Přesně to je past
-`overovani` §7.9 („mutace, která se tiše neprovede, tvrdí totéž co mutace,
-která projde") — a druhá polovina vady byla, že **nikdo ten exit nečetl**.
-Jednoznačná kotva je `40 sloupců` (výskytů **1** — tabulka jazyka,
-`AGENTS.md:338`).
+⚠ HISTORIE KOTVY (mění se s každou změnou počtu sloupců — a to je její slabina):
+  * **2. 10. 2026:** `39 sloupců` → `40 sloupců` (Úkol 2 zadání
+    `ZADANI-DOKONCENI-AUDITU.md`). Naměřeno: `Select-String` i Python na
+    `39 sloupců` → **0 výskytů** v `AGENTS.md`. `pocet != 1` proto obě mutace
+    **tiše neprovedlo** a skript skončil `exit 1`; a protože **nebyl v seznamu
+    `BRANY` v `g3-brany.py`**, nikdo si toho nevšiml. Přesně to je past
+    `overovani` §7.9 („mutace, která se tiše neprovede, tvrdí totéž co mutace,
+    která projde") — a druhá polovina vady byla, že **nikdo ten exit nečetl**.
+  * **6. 10. 2026 (B3a):** `40 sloupců` → `41 sloupců` — do `roadmap` přibyl
+    sloupec `eskalovano`. Tentokrát to **bylo vidět**, protože nástroj už
+    v `BRANY` je: `g3` i `validate-all` ohlásily `exit=1` a `mutace 1/2 se
+    neprovedla`. Kotva se proto aktualizovala tady.
+  Jednoznačná kotva je dnes `41 sloupců` (výskytů **1** — tabulka jazyka).
 
 A navíc se měří POKRYTÍ (to je nález N9): kolik tvrzení o číslech v AGENTS.md
 nástroj vůbec kontroluje. Částečný nástroj budí falešný dojem úplnosti.
@@ -85,16 +88,16 @@ selhalo = []
 chycene = []          # mutace, které brána CHYTILA (pro strojově čitelný součet)
 try:
     # ── MUTACE 1: číslo 40 -> 32 (vracená vada N9) ───────────────────────────
-    # Kotva JE `40 sloupců` (AGENTS.md:338, výskytů 1). Dřív tu stálo
+    # Kotva JE `41 sloupců` (AGENTS.md:338, výskytů 1). Dřív tu stálo
     # `39 sloupců`, což v dokumentu NEBYLO ANI JEDNOU → mutace se neprovedla.
-    pocet = text.count("40 sloupců")
-    print(f"\n  1) vracím vadu: `40 sloupců` -> `32 sloupců`  (vzor {pocet}x)")
+    pocet = text.count("41 sloupců")
+    print(f"\n  1) vracím vadu: `41 sloupců` -> `32 sloupců`  (vzor {pocet}x)")
     if pocet != 1:
         print("     NEZMUTOVANO — vzor neni jednoznacny")
         selhalo.append("mutace 1 se neprovedla")
     else:
-        zmut = text.replace("40 sloupců", "32 sloupců")
-        assert "32 sloupců" in zmut and "40 sloupců" not in zmut, "mutace 1 se neprovedla!"
+        zmut = text.replace("41 sloupců", "32 sloupců")
+        assert "32 sloupců" in zmut and "41 sloupců" not in zmut, "mutace 1 se neprovedla!"
         AGENTS.write_text(zmut, encoding="utf-8", newline="")
         # OVERENI, ZE VADA JE V SOUBORU (past §7.9)
         assert "32 sloupců" in AGENTS.read_text(encoding="utf-8"), "vada v souboru neni!"
@@ -107,20 +110,20 @@ try:
         if not ok1:
             selhalo.append("mutace 1: brana prosla s vadou 40 -> 32")
         else:
-            chycene.append("mutace 1 (vada 40 -> 32)")
+            chycene.append("mutace 1 (vada 41 -> 32)")
         AGENTS.write_bytes(orig)
 
     # ── MUTACE 2: přeformulování (číslo -> slovo) ────────────────────────────
-    print(f"\n  2) přeformuluji tvrzení: `40 sloupců` -> `čtyřicet sloupců`")
-    if text.count("40 sloupců") != 1:
+    print(f"\n  2) přeformuluji tvrzení: `41 sloupců` -> `čtyřicet jedna sloupců`")
+    if text.count("41 sloupců") != 1:
         print("     NEZMUTOVANO")
         selhalo.append("mutace 2 se neprovedla")
     else:
-        zmut = text.replace("40 sloupců", "čtyřicet sloupců")
-        assert "čtyřicet sloupců" in zmut, "mutace 2 se neprovedla!"
-        assert "40 sloupců" not in zmut, "mutace 2: kotva v textu zustala!"
+        zmut = text.replace("41 sloupců", "čtyřicet jedna sloupců")
+        assert "čtyřicet jedna sloupců" in zmut, "mutace 2 se neprovedla!"
+        assert "41 sloupců" not in zmut, "mutace 2: kotva v textu zustala!"
         AGENTS.write_text(zmut, encoding="utf-8", newline="")
-        assert "čtyřicet sloupců" in AGENTS.read_text(encoding="utf-8")
+        assert "čtyřicet jedna sloupců" in AGENTS.read_text(encoding="utf-8")
         kod, vystup = spust()
         nenasla = re.search(r"NENAŠLA SE TVRZENÍ:\s*(\d+)", vystup)
         hlasi = bool(nenasla and int(nenasla.group(1)) > 0)

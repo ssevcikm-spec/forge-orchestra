@@ -291,6 +291,105 @@ console.log('\n════ K. VIZUÁLNÍ SCHÉMA A „OČI" ════');
   test('cooldown guard: SQL ze zdrojáku + chování',
     cooldown.stav === 0, `exit=${cooldown.stav}`);
 
+  // ── N0.3: STAV CÍLE V /health (6. 10. 2026) ──────────────────────────────
+  //
+  // PROČ TU JE: conductor hlásil `ok: true` nad mrtvým cílem. Naměřeno
+  // 1. 10. 2026 (7,5 h bez práce kvůli červenému CI hry, S18) a ZNOVU
+  // 6. 10. 2026 (od 5. 10. 22:02 selhalo 9 běhů v řadě, `/health` pořád `ok`).
+  //
+  // Test NEOPISUJE logiku: nechá si conductora zbundlovat (`wrangler --dry-run`,
+  // bez sítě i bez přihlášení) a zavolá SKUTEČNÝ handler `/health` s falešnou D1
+  // a stubovaným GitHubem — měří tedy tutéž cestu jako živá služba.
+  // A sám má mutační důkaz (`_analyza/n03-mutace.py`, 5 vrat → 5× musí spadnout).
+  const cil = spust(process.execPath, [`${ORCH}/tools/test-health-cile.mjs`]);
+  test('N0.3: /health hlásí stav cíle (main_ci + forge)',
+    cil.stav === 0, `exit=${cil.stav}`);
+
+  const cilMutace = spust('python', [`${ORCH}/_analyza/n03-mutace.py`]);
+  test('N0.3: mutační důkaz brány (5 vrat → 5× spadne)',
+    cilMutace.stav === 0, `exit=${cilMutace.stav}`);
+
+  // ── B3a: WATCHDOG NA GRANULI (6. 10. 2026) ───────────────────────────────
+  //
+  // PROČ TU JE: watchdog počítal běhy JEDNOHO úkolu a měl prah 8 > strop 5, takže
+  // se nikdy nemohl spustit. Naměřeno na živé službě: `entity.npc` spálil 8 pokusů
+  // napříč DVĚMA úkoly (#228: 5, #234: 3) a conductor ho vydával dál; v `payload`
+  // žádné úlohy nebylo `eskalovano`.
+  //
+  // Test čte SQL, prah i rozhodnutí **ze zdrojáku** (neopisuje je) a hlídá i to,
+  // že prah je POD stropem — prah nad stropem je prah, který nikdy nepřijde.
+  const watchdog = spust('python', [`${ORCH}/tools/test-watchdog-granule.py`]);
+  test('B3a: watchdog počítá běhy granule, prah pod stropem',
+    watchdog.stav === 0, `exit=${watchdog.stav}`);
+
+  const watchdogMutace = spust('python', [`${ORCH}/_analyza/b3-mutace.py`]);
+  test('B3a: mutační důkaz brány (5 vrat → 5× spadne)',
+    watchdogMutace.stav === 0, `exit=${watchdogMutace.stav}`);
+
+  // ── B2: SELHÁNÍ PŘES `/report` MUSÍ ZALOŽIT COOLDOWN ─────────────────────
+  //
+  // PROČ TU JE: `/report` dřív zapsal jen `tasks`, ne `roadmap` → granule se
+  // vrátila do fronty okamžitě a spálila všechny pokusy za čtvrt hodiny
+  // (naměřeno 30. 9. 2026: #128 měl 5 pokusů za 16 minut). Opravil to B1, ale
+  // **nikdo to neměřil** — `test-cooldown.py` kryje cestu dispatche, ne zápis
+  // z `/report`. Brána vytahuje obě SQL ze zdrojáku a simuluje guard.
+  const reportCooldown = spust('python', [`${ORCH}/tools/test-report-cooldown.py`]);
+  test('B2: /report zakládá cooldown (cooldown je okno, ne vězení)',
+    reportCooldown.stav === 0, `exit=${reportCooldown.stav}`);
+
+  const reportMutace = spust('python', [`${ORCH}/_analyza/b2-mutace.py`]);
+  test('B2: mutační důkaz brány (4 vrata → 4× spadne)',
+    reportMutace.stav === 0, `exit=${reportMutace.stav}`);
+
+  // ── B4: BEZ AKTIVNÍ HRY SE NEDISPATCHUJE (invariant 18) ──────────────────
+  //
+  // PROČ TU JE: `listGames` měl fallback na `env.GITHUB_REPO`, takže **vypnutí
+  // poslední registrované hry orchestra nezastavilo** — dispatch jel dál na hře,
+  // kterou uživatel vypnul. Naměřeno bránou PŘED opravou: `7 kontrol, 3 CHYB`
+  // (vypnutá hra → `[{game_id: "default", repo: <GITHUB_REPO>}]`).
+  // Brána měří SQL ve skutečném SQLite, VOLÁ skutečný `listGames` a kontroluje
+  // i guardy v `tick` (dispatch smyčka čte úlohy z D1).
+  const hry = spust('python', [`${ORCH}/tools/test-listgames.py`]);
+  test('B4: bez aktivní hry se nedispatchuje (fallback je pryč)',
+    hry.stav === 0, `exit=${hry.stav}`);
+
+  const hryMutace = spust('python', [`${ORCH}/_analyza/b4-mutace.py`]);
+  test('B4: mutační důkaz brány (4 vrata → 4× spadne)',
+    hryMutace.stav === 0, `exit=${hryMutace.stav}`);
+
+  // ── B3b: STROP NA GRANULI (záměrně VYPNUTÝ, nasazuje se druhým krokem) ────
+  //
+  // PROČ TU JE: watchdog (B3a) jen hlásí; nic nezastaví. Naměřeno: `entity.npc`
+  // spálil 8 běhů napříč dvěma úkoly a ve frontě na to vzniklo 49 osiřelých
+  // úloh na tutéž granuli. Strop je obrana proti tomu — a je **vypnutý**
+  // (`GRAIN_MAX_RUNS = "0"`), aby se dalo nejdřív změřit, že watchdog hlásí.
+  // Brána volá skutečné `grainCap`/`grainCapped`/`grainKeyOf` a hlídá i shodu
+  // obou tvarů klíče granule (JS × SQL, invariant 17).
+  const strop = spust('python', [`${ORCH}/tools/test-grain-cap.py`]);
+  test('B3b: strop na granuli + shoda obou tvarů klíče',
+    strop.stav === 0, `exit=${strop.stav}`);
+
+  const stropMutace = spust('python', [`${ORCH}/_analyza/b3b-mutace.py`]);
+  test('B3b: mutační důkaz brány (5 vrat → 5× spadne)',
+    stropMutace.stav === 0, `exit=${stropMutace.stav}`);
+
+  // ── TIK OFFLINE: ROZHODOVACÍ LOGIKA CONDUCTORA ───────────────────────────
+  //
+  // PROČ TU JE: projekt o sobě psal, že conductor **nemá test své rozhodovací
+  // logiky** — `.py` testy ji opisovaly a `mock-conductor.mjs` `/tick` neuměl.
+  // Tenhle test volá SKUTEČNÝ `POST /tick` nad zbundlovaným conductorem
+  // s falešnou D1 (router podle SQL, neznámý dotaz = CHYBA) a stubovaným
+  // GitHubem. Měří tím i acceptance `B4` na úrovni TIKU (ne staticky).
+  const tik = spust(process.execPath, [`${ORCH}/tools/test-tick-offline.mjs`]);
+  test('tik offline: bez aktivní hry se nedispatchuje (acceptance B4)',
+    tik.stav === 0, `exit=${tik.stav}`);
+
+  const tikMutace = spust('python', [`${ORCH}/_analyza/tick-mutace.py`]);
+  // ⚠ Bez počtu v názvu schválně: stál tu a dvakrát zestaral (3 → 6 → 8 vrat).
+  // Skutečný počet kontrol hlásí sám test a registr `g3`.
+  test('tik offline: mutační důkaz brány (každé vratné vady si všimne)',
+    tikMutace.stav === 0, `exit=${tikMutace.stav}`);
+
   // ── BASELINE A LGTM CACHE ─────────────────────────────────────────────────
   // Bez baseline nelze měřit drift: „vypadá to jinak" je tvrzení, které se
   // nedá ověřit, dokud není s čím porovnávat. Testuje se tu jak logika

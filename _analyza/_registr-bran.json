@@ -1,16 +1,15 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-06 23:09:35",
-  "bran_celkem": 37,
+  "kdy": "2026-10-07 04:15:17",
+  "bran_celkem": 48,
   "s_nenulovym_exit": [
+    "validate-all (CELEK)",
     "zadání kontrola"
   ],
   "ocekavane_nenulove": {
     "zadání kontrola": 1
   },
-  "bez_citace": [
-    "C2: mutace N1 (5 běhů)"
-  ],
+  "bez_citace": [],
   "neotevrene": [],
   "brany": [
     {
@@ -37,14 +36,14 @@
     {
       "nazev": "C2: mutace N1 (5 běhů)",
       "exit": 0,
-      "otevrela": "—",
-      "ma_citac": false,
+      "otevrela": "5 / 0",
+      "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/c2-mutace.py"
     },
     {
       "nazev": "C2: sebekontrola diakritiky",
       "exit": 0,
-      "otevrela": "127",
+      "otevrela": "140",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-mutace-diakritika.py"
     },
@@ -79,7 +78,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "380",
+      "otevrela": "392",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
@@ -133,6 +132,90 @@
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/f2-over-cooldown.py"
     },
     {
+      "nazev": "N0.3: stav cíle v /health",
+      "exit": 0,
+      "otevrela": "21 / 0",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/tools/test-health-cile.mjs"
+    },
+    {
+      "nazev": "N0.3: mutace brány (5 vrat)",
+      "exit": 0,
+      "otevrela": "11 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n03-mutace.py"
+    },
+    {
+      "nazev": "B3a: watchdog na granuli",
+      "exit": 0,
+      "otevrela": "17 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-watchdog-granule.py"
+    },
+    {
+      "nazev": "B3a: mutace brány (5 vrat)",
+      "exit": 0,
+      "otevrela": "11 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b3-mutace.py"
+    },
+    {
+      "nazev": "B2: /report zaklada cooldown",
+      "exit": 0,
+      "otevrela": "8 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-report-cooldown.py"
+    },
+    {
+      "nazev": "B2: mutace brány (4 vrat)",
+      "exit": 0,
+      "otevrela": "9 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b2-mutace.py"
+    },
+    {
+      "nazev": "B4: bez aktivni hry se nedispatchuje",
+      "exit": 0,
+      "otevrela": "10 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-listgames.py"
+    },
+    {
+      "nazev": "B4: mutace brány (4 vrat)",
+      "exit": 0,
+      "otevrela": "9 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b4-mutace.py"
+    },
+    {
+      "nazev": "B3b: strop na granuli",
+      "exit": 0,
+      "otevrela": "22 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-grain-cap.py"
+    },
+    {
+      "nazev": "B3b: mutace brány (5 vrat)",
+      "exit": 0,
+      "otevrela": "11 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b3b-mutace.py"
+    },
+    {
+      "nazev": "tik offline: rozhodovací logika",
+      "exit": 0,
+      "otevrela": "40 / 0",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/tools/test-tick-offline.mjs"
+    },
+    {
+      "nazev": "tik offline: mutace brány",
+      "exit": 0,
+      "otevrela": "17 / 0",
+      "ma_citac": true,
+      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/tick-mutace.py"
+    },
+    {
       "nazev": "deploy B1",
       "exit": 0,
       "otevrela": "50",
@@ -159,13 +242,6 @@
       "otevrela": "23",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/a1-a2-over.py"
-    },
-    {
-      "nazev": "a3-over",
-      "exit": 0,
-      "otevrela": "0",
-      "ma_citac": true,
-      "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/a3-over.py"
     },
     {
       "nazev": "n8-zastarala",
@@ -197,7 +273,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
@@ -254,7 +330,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "179 / 0",
+      "otevrela": "189 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

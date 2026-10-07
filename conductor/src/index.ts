@@ -26,12 +26,20 @@ export interface Env {
   ROADMAP_FILE?: string;      // odkud brát úkoly, když je fronta prázdná
   ROADMAP_MAX_PRS?: string;   // kolik otevřených PR od agenta tolerovat (výchozí 3)
   RETRY_HOURS?: string;       // po kolika hodinách smí selhaná granule znovu do fronty (výchozí 6)
-  MAX_ATTEMPTS?: string;      // kolik pokusů smí úloha mít, než zůstane 'failed' (výchozí 5)
-  // Po kolika spálených pokusech se granule OHLÁSÍ (Telegram). Nic se
-  // nevypíná – jen notifikace. `MAX_ATTEMPTS` je v provozu mrtvý kód, protože
-  // rozhoduje pollRuns (ten strop nezná), takže bez watchdogu by úkol mohl
-  // pokračovat donekonečna a nikdo by se to nedozvěděl.
+  MAX_ATTEMPTS?: string;      // kolik pokusů smí ÚKOL mít, než zůstane 'failed' (výchozí 5)
+  CI_WORKFLOW_FILE?: string;  // který workflow je „CI cíle“ pro /health (výchozí ci.yml)
+  // Po kolika spálených pokusech se GRANULE ohlásí (Telegram). Nic se
+  // nevypíná – jen notifikace (strop je druhý krok, B3b). Musí být POD
+  // `MAX_ATTEMPTS`: prah nad stropem je prah, který nikdy nepřijde.
+  // ⚠ Do 6. 10. 2026 tu stálo, že se `MAX_ATTEMPTS` v provozu nepoužívá —
+  // NAMĚŘENO NEPRAVDA: čte se v `pollRuns` (strop úkolu), v `/report`
+  // i v `attempts < ?` v dispatch dotazu. Nepoužívaný nebyl strop, ale
+  // WATCHDOG (prah nad stropem a počítání po úkolech) — opraveno v B3a.
   ESCALATE_AFTER?: string;
+  // Strop na GRANULI (B3b): kolik běhů smí granule spálit, než se přestane
+  // vydávat. **Prázdné/`0` = strop vypnutý** — nasazuje se druhým krokem,
+  // až po ověření watchdogu (viz `grainCap`).
+  GRAIN_MAX_RUNS?: string;
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -228,59 +236,141 @@ async function dispatchWorkflow(env: Env, task: Task, runKey: string, attempt: n
 }
 
 /**
- * Upozorní, když granule spálila příliš mnoho pokusů.
+ * Watchdog na GRANULI (B3a, 6. 10. 2026) — ohlásí granuli, která spálila příliš
+ * mnoho pokusů, a počítá je PŘES VŠECHNY JEJÍ ÚKOLY.
  *
- * PROČ: `MAX_ATTEMPTS` je v provozu mrtvý kód (rozhoduje `pollRuns`, který
- * strop nezná), takže úkol může pokračovat donekonečna – 5 pokusů / 3h
- * cooldown ≈ 40 pokusů za den na jednu granuli a nikdo se to nedozví.
- * Naměřeno 30. 9. 2026: #128 i #131 měly 5 pokusů za 16 minut, v historii
- * fronty 121 spálených pokusů.
+ * PROČ SE TO PŘEPISOVALO (naměřeno na ŽIVÉ službě 6. 10. 2026):
+ * `MAX_ATTEMPTS` platí na ÚKOL, ale smyčka je na GRANULI — každý retry zakládá
+ * nový úkol s `attempts=0`. `entity.npc` proto spálil **8 pokusů** (5 v #228
+ * + 3 v #234), `entity.enemy` **5**, a conductor je vydával dál. Starý watchdog
+ * počítal běhy JEDNOHO úkolu (`r.task_id = t.id`) a měl prah 8 > strop 5, takže
+ * se **nikdy nemohl spustit** — ověřeno: v `payload` žádné úlohy není
+ * `eskalovano`. Značka navíc žila v payloadu úkolu, který retry zahodí, takže
+ * kdyby se spustil, spammoval by při každém novém úkolu.
  *
- * ZÁMĚRNĚ SE NIC NEVYPÍNÁ: granule se nechává dál zkoušet (může jít o přechodný
- * výpadek poskytovatele) a posílá se jen notifikace, ať se na to člověk podívá.
- * Aby se neopakovala při každém tiku, označí se úkol `payload.eskalovano`.
+ * CO SE ZMĚNILO:
+ *   · počítá se `COUNT(runs)` na klíči `{game}/{grain}` napříč úkoly
+ *     (`SQL_GRANULE_RUNS`); klíč se skládá na JEDNOM místě (`GRAIN_KEY_SQL`) —
+ *     dva tvary téhož klíče je vada, kterou žádný test nevidí (invariant 17),
+ *   · prah je `ESCALATE_AFTER` (výchozí **3**, tedy POD stropem `MAX_ATTEMPTS=5`,
+ *     protože prah nad stropem je prah, který nikdy nepřijde),
+ *   · značka „už ohlášeno“ je v `roadmap.eskalovano`, takže přežije retry;
+ *     `roadmap-reset` ji smaže — to je cesta, jak granuli po stropu vrátit.
  *
- * @returns počet nově ohlášených granulí
+ * ZÁMĚRNĚ SE NIC NEVYPÍNÁ: jen se to řekne. Strop (B3b) je druhý krok.
+ *
+ * @returns text pro tik — vždy se říká, CO se měřilo (i „NEZMĚŘENO“)
  */
-async function escalateStuckTasks(env: Env): Promise<number> {
-  const prah = Number(env.ESCALATE_AFTER || "8");
+const GRAIN_KEY_SQL =
+  `(json_extract(t.payload, '$.game') || '/' || json_extract(t.payload, '$.grain'))`;
+
+const SQL_GRANULE_RUNS = `
+  SELECT ${GRAIN_KEY_SQL} AS item_id, COUNT(r.id) AS runs
+    FROM runs r
+    JOIN tasks t ON t.id = r.task_id
+    JOIN roadmap rm ON rm.item_id = ${GRAIN_KEY_SQL}
+   WHERE r.started_at IS NOT NULL
+     AND r.started_at >= rm.created_at
+   GROUP BY item_id`;
+
+/** Spálené běhy na granuli od založení jejího řádku. `null` = NEZMĚŘENO. */
+async function grainRuns(env: Env): Promise<Map<string, number> | null> {
+  try {
+    const rows = await env.DB.prepare(SQL_GRANULE_RUNS)
+      .all<{ item_id: string; runs: number }>();
+    const m = new Map<string, number>();
+    for (const r of rows.results || []) m.set(String(r.item_id), Number(r.runs) || 0);
+    return m;
+  } catch (e) {
+    // „nezměřeno“ se NESMÍ číst jako nula (pravidlo projektu): vrací se `null`
+    // a tik to vypíše. Watchdog pak mlčí — radši nehlásit než hlásit nesmysl.
+    console.log(`pocitadlo granulí nejde nacist: ${String(e).slice(0, 160)}`);
+    return null;
+  }
+}
+
+/**
+ * Rozhodnutí watchdogu: má se granule ohlásit?
+ *
+ * Je to SAMOSTATNÁ čistá funkce schválně — test (`tools/test-watchdog-granule.py`)
+ * ji vytáhne ze zdrojáku a ZAVOLÁ, místo aby si rozhodnutí opsal. „Test, který
+ * opisuje logiku" je v tomhle projektu pojmenovaná vada (starý `test-eskalace.py`).
+ * `undefined` (granule bez řádku v roadmapě) NENÍ nula, která se hlásí.
+ */
+function shouldEscalate(runs: number | undefined, threshold: number): boolean {
+  return (runs ?? 0) >= threshold;
+}
+
+/**
+ * Strop na GRANULI (B3b, 6. 10. 2026): kolik běhů smí granule spálit, než se
+ * přestane vydávat.
+ *
+ * **Výchozí `0` = strop VYPNUTÝ** a je to schválně: plán žádá nasazovat po
+ * částech a měřit před/po. První deploy přinese **watchdog** (B3a — jen hlásí),
+ * druhý (`GRAIN_MAX_RUNS = "5"`) teprve **zastaví** vydávání. Kdyby se obojí
+ * zapnulo naráz, nebylo by z čeho měřit, že watchdog opravdu hlásí.
+ *
+ * Nesmysl v konfiguraci (`""`, `"abc"`, záporné číslo) se bere jako **vypnuto** —
+ * „strop, který se nedá přečíst“ nesmí tiše zastavit celou orchestra.
+ */
+function grainCap(env: Env): number {
+  const n = Number(env.GRAIN_MAX_RUNS || "0");
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Rozhodnutí o stropu — čistá funkce, aby ji test VOLAL, neopisoval. */
+function grainCapped(runs: number | undefined, cap: number): boolean {
+  return cap > 0 && (runs ?? 0) >= cap;
+}
+
+/**
+ * Klíč granule z payloadu úkolu — `{game}/{grain}`.
+ *
+ * ⚠ MUSÍ SEDĚT s `GRAIN_KEY_SQL` (SQL si klíč skládá sám). Dva tvary téhož klíče
+ * je vada, kterou žádný test nevidí (invariant 17) — proto na shodu existuje
+ * kontrola v `tools/test-grain-cap.py`.
+ */
+function grainKeyOf(payload: string | null): string | null {
+  try {
+    const p = JSON.parse(payload || "{}");
+    if (typeof p?.game === "string" && typeof p?.grain === "string" && p.game && p.grain) {
+      return `${p.game}/${p.grain}`;
+    }
+  } catch { /* */ }
+  return null;
+}
+
+async function escalateStuckTasks(env: Env, runs: Map<string, number> | null): Promise<string> {
+  const prah = Number(env.ESCALATE_AFTER || "3");
+  if (runs === null) return "NEZMĚŘENO (počítadlo granulí nejde načíst)";
   let notified = 0;
   try {
     const rows = await env.DB.prepare(
-      `SELECT t.id, t.title, t.payload,
-              (SELECT COUNT(*) FROM runs r WHERE r.task_id = t.id) AS pokusu
-         FROM tasks t
-        WHERE t.status IN ('ready','failed')
-        ORDER BY t.id DESC LIMIT 50`,
-    ).all<{ id: number; title: string; payload: string | null; pokusu: number }>();
+      `SELECT item_id, task_id, status FROM roadmap
+        WHERE status <> 'done' AND (eskalovano IS NULL OR eskalovano = '')
+        ORDER BY item_id LIMIT 200`,
+    ).all<{ item_id: string; task_id: number | null; status: string }>();
 
-    for (const t of rows.results || []) {
-      if ((t.pokusu ?? 0) < prah) continue;
-      let p: Record<string, unknown> = {};
-      try { p = JSON.parse(t.payload || "{}"); } catch { /* */ }
-      if (p.eskalovano === true) continue; // už jsme hlásili
-
-      const granule = typeof p.grain === "string" ? p.grain : "?";
-      const soubory = Array.isArray(p.owns) ? (p.owns as string[]).join(", ") : "?";
+    for (const r of rows.results || []) {
+      const spalenych = runs.get(r.item_id);
+      if (!shouldEscalate(spalenych, prah)) continue;
       await notify(
         env,
         "Forge: granule se nedari",
-        `#${t.id} ${granule}\n${t.title}\n`
-        + `spáleno ${t.pokusu} pokusů (prah ${prah})\n`
-        + `soubory: ${soubory}\n`
+        `${r.item_id} (stav ${r.status})\n`
+        + `spáleno ${spalenych} pokusů na TÉHLE granulí (prah ${prah})\n`
+        + `počítá se přes všechny její úkoly — retry zakládá nový úkol\n`
         + `běh pokračuje dál – nic se nevypíná, jen na vědomí`,
         "warning",
       );
-      p.eskalovano = true;
-      p.eskalovano_pokusu = t.pokusu;
-      await env.DB.prepare("UPDATE tasks SET payload=? WHERE id=?")
-        .bind(JSON.stringify(p), t.id).run().catch(() => undefined);
+      await env.DB.prepare("UPDATE roadmap SET eskalovano = datetime('now') WHERE item_id = ?")
+        .bind(r.item_id).run().catch(() => undefined);
       notified++;
     }
   } catch (e) {
     console.log("eskalace selhala:", String(e).slice(0, 160));
   }
-  return notified;
+  return `${notified} ohlášeno (prah ${prah})`;
 }
 
 // ------------------------------------------------------- polling běhů ----
@@ -322,6 +412,86 @@ async function github(env: Env, repo: string, path: string): Promise<any> {
     throw new Error(`GitHub ${path} → ${res.status}: ${(await res.text()).slice(0, 200)}`);
   }
   return res.json();
+}
+
+// ------------------------------------------------- stav CÍLE v /health (N0.3) ----
+// PROČ: naměřeno 1. 10. 2026 (S18) — conductor hlásil `ok: true`, `/failed`
+// prázdné, a přesto **7,5 h nevydal ani granuli**, protože `main` cílové hry
+// měl červené CI. Naměřeno ZNOVU 6. 10. 2026 (tatáž třída, jiná příčina):
+// od 5. 10. 22:02 selhalo **9 běhů v řadě** a `/health` pořád hlásilo `ok`.
+//
+// `ok` zůstává „služba žije“ (hlídá ho monitoring dostupnosti) — stav cíle se
+// proto hlásí ZVLÁŠŤ v `targets`, aby se „dostupnost“ a „cíl maká“ nedaly
+// splést. To je celý smysl N0.3: zelený conductor nad mrtvým cílem musí být
+// vidět na jednom místě.
+//
+// Cache je nutná: `/health` může volat kdokoli a často; bez TTL by to byl
+// GitHub API provoz na každý dotaz. Chyba se needspiruje na plnou dobu.
+const targetCache = new Map<string, { data: Record<string, unknown>; expiruje: number }>();
+const TARGET_TTL_MS = 2 * 60 * 1000;        // naměřeno → platí 2 minuty
+const TARGET_TTL_CHYBA_MS = 30 * 1000;      // nezměřeno → zkusit dřív
+
+async function targetState(env: Env, g: Game): Promise<Record<string, unknown>> {
+  const ted = Date.now();
+  const vCache = targetCache.get(g.repo);
+  if (vCache && vCache.expiruje > ted) return vCache.data;
+
+  const ref = env.GITHUB_REF || "main";
+  const ven: Record<string, unknown> = {
+    game_id: g.game_id,
+    repo: g.repo,
+    branch: ref,
+    main_ci: null,
+    forge: null,
+    measured_at: new Date().toISOString(),
+    // „nezměřeno“ NENÍ „v pořádku“ (pravidlo projektu: nula a nezměřeno musí
+    // být vidět). Když GitHub neodpoví, zůstane tady důvod a `null` výš.
+    error: null,
+  };
+  try {
+    const [ci, agent] = await Promise.all([
+      github(env, g.repo,
+        `/actions/workflows/${env.CI_WORKFLOW_FILE || "ci.yml"}/runs?branch=${ref}&per_page=1`),
+      github(env, g.repo,
+        `/actions/workflows/${env.WORKFLOW_FILE || "agent.yml"}/runs?branch=${ref}&per_page=20`),
+    ]);
+
+    const beh = (ci?.workflow_runs || [])[0];
+    if (beh) {
+      ven.main_ci = {
+        workflow: env.CI_WORKFLOW_FILE || "ci.yml",
+        status: beh.status,
+        conclusion: beh.conclusion,
+        created_at: beh.created_at,
+        head_sha: beh.head_sha,
+        run_number: beh.run_number,
+        url: beh.html_url,
+      };
+    }
+
+    const hotove = (agent?.workflow_runs || []).filter((r: any) => r?.status === "completed");
+    let vRade = 0;
+    for (const r of hotove) {
+      if (r.conclusion === "success") break;
+      vRade++;
+    }
+    ven.forge = {
+      // `ok` je tvrzení o POSLEDNÍM běhu, ne o náladě: když běhy nejsou, je null.
+      ok: hotove.length ? hotove[0].conclusion === "success" : null,
+      selhani_v_rade: vRade,
+      posledni: hotove.slice(0, 5).map((r: any) => ({
+        run_number: r.run_number, conclusion: r.conclusion,
+        created_at: r.created_at, url: r.html_url,
+      })),
+    };
+  } catch (e) {
+    ven.error = String(e).slice(0, 200);
+    targetCache.set(g.repo, { data: ven, expiruje: ted + TARGET_TTL_CHYBA_MS });
+    console.log(`stav cile ${g.repo} nejde zjistit: ${ven.error}`);
+    return ven;
+  }
+  targetCache.set(g.repo, { data: ven, expiruje: ted + TARGET_TTL_MS });
+  return ven;
 }
 
 async function pollRuns(env: Env): Promise<string> {
@@ -520,16 +690,30 @@ async function listGames(env: Env): Promise<Game[]> {
     "SELECT game_id, repo, roadmap_file, active FROM games WHERE active = 1 ORDER BY game_id",
   ).all<Game>();
   if (rows.results?.length) return rows.results;
-  // Zpětná kompatibilita: žádná registrovaná hra = jeden defaultní repo, jako dřív.
-  return [{
-    game_id: "default",
-    repo: env.GITHUB_REPO,
-    roadmap_file: env.ROADMAP_FILE || ".forge/roadmap.json",
-    active: 1,
-  }];
+
+  // B4 (6. 10. 2026): ŽÁDNÝ FALLBACK NA `env.GITHUB_REPO`.
+  //
+  // Dřív tu stálo „zpětná kompatibilita: žádná registrovaná hra = jeden defaultní
+  // repo“ — a to znamenalo, že **vypnutí poslední hry orchestra nezastaví**
+  // (invariant 18): registr nemá aktivní hru, `listGames` vrátí `GITHUB_REPO`
+  // a dispatch jede dál na hře, kterou uživatel právě vypnul.
+  // Naměřeno 6. 10. 2026 bránou `tools/test-listgames.py` (PŘED opravou
+  // `7 kontrol, 3 CHYB`): vypnutá hra → `[{game_id: "default", repo: <GITHUB_REPO>}]`.
+  //
+  // Nově: žádná aktivní hra = **žádná práce** (plán to označuje jako zamýšlené —
+  // „radši nemakat“). Kdo chce orchestra rozjet, zaregistruje hru přes
+  // `POST /game`; to je dokumentovaný postup od F0. Ticho by ale bylo past,
+  // proto se to hlásí do logu (a tik to řekne ve své odpovědi).
+  console.log("registr her: žádná AKTIVNÍ hra – conductor nedělá nic (B4)");
+  return [];
 }
 
-async function roadmapTick(env: Env, retryH: number): Promise<string> {
+async function roadmapTick(
+  env: Env,
+  retryH: number,
+  runs: Map<string, number> | null,
+  cap: number,
+): Promise<string> {
   const games = await listGames(env);
 
   // Samomigrace schématu (idempotentní): roadmap.updated_at přibyl kvůli
@@ -545,6 +729,11 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
   // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
   await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
     .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
+  // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
+  // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
+  // značka ztratila a notifikace by chodila při každém tiku.
+  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
+    .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
 
   // Stav granulí drží tabulka roadmap (item_id = {game_id}/{grain_id}).
   // Řádek sám o sobě nestačí – je vidět i stav úlohy (LEFT JOIN tasks).
@@ -720,6 +909,31 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
       }
     }
 
+    // B3b (6. 10. 2026): STROP — granule, která spálila víc než strop běhů, se
+    // přestane vydávat. `runs === null` (nezměřeno) strop NESMÍ uplatnit:
+    // „nezměřeno“ není nula a tiché zastavení práce kvůli nezměřenému počítadlu
+    // by bylo horší než pár spálených pokusů.
+    // Značka je `status='blocked'` (řádek se nevydává) a notifikace se pošle
+    // JEN když zápis něco změnil — jinak by chodila při každém tiku.
+    if (cap > 0 && runs) {
+      for (const i of items) {
+        const key = `${g.game_id}/${i.id}`;
+        if (i.done === true || done.has(key) || blocked.has(key)) continue;
+        if (!grainCapped(runs.get(key), cap)) continue;
+        const zm = await env.DB.prepare(
+          `UPDATE roadmap SET status='blocked', updated_at=datetime('now')
+            WHERE item_id=? AND status <> 'blocked'`,
+        ).bind(key).run().catch(() => undefined);
+        blocked.add(key);
+        if (zm?.meta?.changes) {
+          await notify(env, "Forge: granule ZASTAVENA (strop)",
+            `${key}: spáleno ${runs.get(key)} běhů (strop ${cap}) – přestávám ji vydávat.\n`
+            + `Zpět ji pustíš přes POST /roadmap/reset (smaže stav) nebo opravou granule.`,
+            "warning").catch(() => undefined);
+        }
+      }
+    }
+
     // Připravené granule: ne-hotové, depends_on hotové, owns volné a bez
     // čekajícího cooldownu po selhání. Zámek je scoped na repo ({repo}/{soubor}),
     // ať se dvě hry neblokují.
@@ -727,6 +941,7 @@ async function roadmapTick(env: Env, retryH: number): Promise<string> {
       i.done !== true
       && !done.has(`${g.game_id}/${i.id}`)
       && !blocked.has(`${g.game_id}/${i.id}`)
+      && !grainCapped(runs?.get(`${g.game_id}/${i.id}`), cap)
       && (i.depends_on || []).every((d) => done.has(`${g.game_id}/${d}`))
       && !(i.owns || []).some((f) => locked.has(`${g.repo}/${f}`)),
     );
@@ -806,8 +1021,13 @@ async function tick(env: Env): Promise<string> {
   const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
 
   // 0b) watchdog: granule, která spálila příliš mnoho pokusů, se OHLÁSÍ.
-  //     Nic se nevypíná – jen notifikace, ať se na to dá podívat.
-  const eskalovano = await escalateStuckTasks(env);
+  //     B3a jen HLÁSÍ; strop (B3b, `GRAIN_MAX_RUNS`) je vypnutý, dokud ho
+  //     uživatel nezapne — viz `grainCap`. Počítadlo se měří JEDNOU za tik
+  //     a používá se na třech místech (watchdog, roadmapa, dispatch), aby
+  //     všechny tři soudily podle TÉHOŽ čísla.
+  const grainRunsMap = await grainRuns(env);
+  const cap = grainCap(env);
+  const eskalovano = await escalateStuckTasks(env, grainRunsMap);
 
   // 1) zaseknuté úlohy (runner umřel, Actions zrušily job, worker se odpojil)
   const stale = await env.DB.prepare(
@@ -841,10 +1061,18 @@ async function tick(env: Env): Promise<string> {
         AND id IN (SELECT task_id FROM runs WHERE status='abandoned')`,
   ).run().catch(() => undefined);
 
+  // 1a) B4: REGISTR HER JE ZDROJ PRAVDY O TOM, CO SE SMÍ DISPATCHOVAT.
+  // Bez aktivní hry se nedispatchuje NIC — dřív se tady bral `env.GITHUB_REPO`
+  // jako fallback a vypnutá hra jela dál (invariant 18). Naměřeno bránou
+  // `tools/test-listgames.py` (7 kontrol) — viz `listGames`.
+  const aktivniHry = await listGames(env);
+
   // 1b) doplň připravené granule z roadmapy (závislosti hotové, owns volné).
   // Počítají se jen CLOUDOVÉ úlohy – úkol pro domácí uzel (telefon/PC) nemá
   // blokovat práci, kterou dělá GitHub Actions.
-  const roadmapMsg = await roadmapTick(env, retryH).catch((e) => `roadmapa selhala: ${String(e)}`);
+  const roadmapMsg = aktivniHry.length
+    ? await roadmapTick(env, retryH, grainRunsMap, cap).catch((e) => `roadmapa selhala: ${String(e)}`)
+    : "žádná aktivní hra – roadmapu neřeším (B4)";
 
   // 1c) INVARIANT: úkol, na který neodkazuje žádný řádek `roadmap`, je zombie.
   // Vzniká po resetu cache, po ručním zásahu nebo po změně ID granulí — a je
@@ -873,12 +1101,14 @@ async function tick(env: Env): Promise<string> {
   // Stav watchdogu se hlásí VŽDYCKY (i s nulou), aby bylo z odpovědi tiku vidět,
   // že opravdu běžel a s jakým prahem – jinak by se jeho výpadek poznal jen
   // tak, že by chyběla notifikace, což se snadno přehlédne.
-  const eskalMsg = `, watchdog: ${eskalovano} ohlášeno (prah ${Number(env.ESCALATE_AFTER || "8")})`;
+  const eskalMsg = `, watchdog: ${eskalovano}`;
 
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
   const started: number[] = [];
   while (true) {
+    // B4: bez AKTIVNÍ hry se nedispatchuje (registr her je zdroj pravdy).
+    if (!aktivniHry.length) break;
     const running = await env.DB.prepare(
       "SELECT COUNT(*) AS n FROM runs WHERE status='running' AND worker IS NULL",
     ).first<{ n: number }>();
@@ -932,6 +1162,9 @@ async function tick(env: Env): Promise<string> {
         ORDER BY id LIMIT 25`,
     ).bind(`-${retryH} hours`).all<Task>();
     const task = (readyAll.results || []).find((t) => {
+      // B3b: zastavenou granuli nevydávej — i kdyby jí v D1 zůstal úkol 'ready'
+      // (cooldown i strop se musí ptát na TÝŽ klíč: `grainKeyOf` × `GRAIN_KEY_SQL`).
+      if (grainCapped(grainRunsMap?.get(grainKeyOf(t.payload) || ""), cap)) return false;
       return !lockKeys(t.payload, env).some((k) => locked.has(k));
     });
     if (!task) break;
@@ -969,7 +1202,8 @@ async function tick(env: Env): Promise<string> {
     started.push(task.id);
   }
 
-  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}`;
+  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}`
+    + (aktivniHry.length ? "" : " | POZOR: žádná AKTIVNÍ hra → nedispatchuji (B4)");
 }
 
 // ---------------------------------------------------- claim pro domácí uzly ----
@@ -1021,8 +1255,21 @@ export default {
                 CAST((julianday('now') - julianday(last_seen)) * 1440 AS INTEGER) AS minutes_ago
            FROM workers ORDER BY last_seen DESC LIMIT 10`,
       ).all();
+      // N0.3: STAV CÍLE zvlášť od stavu služby. `ok` výš zůstává „služba žije“
+      // (hlídá ho monitoring dostupnosti) – ale conductor tímhle přestává lhát
+      // o tom, že „nic nemá dělat“, když cíl ve skutečnosti nemaká.
+      const hry = await env.DB.prepare(
+        "SELECT game_id, repo, roadmap_file, active FROM games WHERE active=1 ORDER BY game_id",
+      ).all<Game>();
+      const targets = await Promise.all(
+        (hry.results || []).map((h) => targetState(env, h).catch((e) => ({
+          game_id: h.game_id, repo: h.repo,
+          error: String(e).slice(0, 200), measured_at: new Date().toISOString(),
+        }))),
+      );
       return json({ ok: true, time: new Date().toISOString(), ready: t?.n ?? 0,
-                    running: r?.n ?? 0, games: g?.n ?? 0, workers: w.results });
+                    running: r?.n ?? 0, games: g?.n ?? 0, workers: w.results,
+                    targets });
     }
 
     // Ruční tik (testování i externí budík typu cron-job.org)

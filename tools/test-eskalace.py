@@ -1,3 +1,17 @@
+# ⚠ ZASTARALÉ OD 6. 10. 2026 — TENHLE TEST MĚŘÍ ODSTRANĚNOU LOGIKU.
+#
+# Testuje watchdog, který počítal běhy JEDNOHO úkolu (`r.task_id = t.id`) a měl
+# `PRAH = 8` **natvrdo**. Naměřeno 6. 10. 2026 na živé službě: takový watchdog se
+# **nikdy nemohl spustit** (prah 8 > strop `MAX_ATTEMPTS` 5) — testoval tedy stav,
+# který conductor neumí vyrobit (`ANALYZA-ARCHITEKTURY-ORCHESTRA.md` ř. 500).
+#
+# Logiku nahradil watchdog na GRANULI (**B3a**, `conductor/src/index.ts`) a ten
+# měří `tools/test-watchdog-granule.py` (**17 kontrol**; vytahuje prah, SQL
+# i rozhodnutí **ze zdrojáku**, místo aby si je opisoval) s mutačním důkazem
+# `_analyza/b3-mutace.py` (**11 kontrol**, 5 vrat → 5× spadne).
+#
+# Soubor zůstává jen proto, že na něj odkazuje 20+ dokumentů a brána
+# `hl-rizika-jazyka.py`; **smazat/přepsat ho patří do C2** (plán fáze C).
 """Ověří logiku eskalace (watchdog na spálené pokusy) bez sítě a bez LLM.
 
 Proč offline test: eskalace se v provozu nedá vyzkoušet bez toho, aby granule

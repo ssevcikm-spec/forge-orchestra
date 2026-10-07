@@ -5,6 +5,7 @@ kontrola dělá Pythonem – viz HANDOFF.md, „Pozor při editaci souborů
 s diakritikou".
 """
 
+import os
 import pathlib
 import sys
 
@@ -20,8 +21,15 @@ import sys
 # workspace" a po presunu uz zadny workspace s tema dokumenty neexistuje —
 # nechat jmeno by znamenalo, ze budouci ctenar hleda root, ktery neni.
 REPO = pathlib.Path(__file__).resolve().parents[1]
-STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
-OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026). Dřív tu byly
+# literály `C:\Users\Ssevc\…`, takže nástroj šel použít jen na téhle stanici.
+# Teď: `REPO` z umístění souboru, `DSH_HOME` z prostředí se záložkou `~\.dsh`
+# a `STANICE` z `FORGE_STANICE` (vzor, který už používal `verify-setup.py`).
+# Hodnoty jsou na téhle stanici SHODNÉ s dřívějšími literály — mění se jen to,
+# že je nástroj přenositelný. Ověřeno `_tools\over-nastroje.py --gate`.
+DSH = pathlib.Path(os.environ.get("DSH_HOME") or pathlib.Path.home() / ".dsh")
+STANICE = pathlib.Path(os.environ.get("FORGE_STANICE", r"C:\Users\Ssevc\Local-Deepseek"))
+OBECNA = DSH / "AGENTS.md"
 SOUBORY = [
     OBECNA,
     REPO / "AGENTS.md",
@@ -274,6 +282,28 @@ SOUBORY = [
     # session. Vzniklo **mimo** `NEXT-SESSION-INSTRUKCE.md` ze stejného důvodu
     # jako předchozí (ten patří souběžné session, nález **H28**).
     REPO / "ZADANI-DODELAT-MERIDLA.md",
+    # 6. 10. 2026 (N0.3 — stav cíle v /health): nová brána conductora má české
+    # komentáře i české hlášky, a přitom ji PROJITÍ SLOŽKY níž nevidí: prochází
+    # jen `*.md` a `*.py` v kořeni a v `_analyza`, kdežto `tools/*.mjs` ne.
+    # Doplněno ručně ze stejného důvodu jako `tools/test-check-schema.py` výš —
+    # nový soubor by jinak prošel zeleně, aniž by ho kontrola otevřela (S27).
+    # (`_analyza/n03-mutace.py` sem doplňovat netřeba: je to `.py` v `_analyza`,
+    # takže ho projití složky vezme samo.)
+    REPO / "tools" / "test-health-cile.mjs",
+    # 6. 10. 2026 (B3a — watchdog na granuli): stejný důvod jako výš; `tools/*.py`
+    # projití složky nebere (prochází jen `*.md` a `*.py` v kořeni a v `_analyza`),
+    # takže nová brána musí být v ručním seznamu — jinak by prošla zeleně, aniž by
+    # ji kontrola otevřela (S27).
+    REPO / "tools" / "test-watchdog-granule.py",
+    # 6. 10. 2026 (B2 — `/report` a cooldown): stejný důvod; nová brána v `tools/`
+    # by prošla zeleně, aniž by ji kontrola otevřela (S27).
+    REPO / "tools" / "test-report-cooldown.py",
+    # 6. 10. 2026 (B4 — bez aktivní hry se nedispatchuje): stejný důvod (S27).
+    REPO / "tools" / "test-listgames.py",
+    # 6. 10. 2026 (B3b — strop na granuli): stejný důvod (S27).
+    REPO / "tools" / "test-grain-cap.py",
+    # 6. 10. 2026 (tik offline — rozhodovací logika conductora): stejný důvod (S27).
+    REPO / "tools" / "test-tick-offline.mjs",
 ]
 
 # ── PROJITÍ SLOŽKY (2. 10. 2026, 19:0x) — KONEC RUČNÍHO SEZNAMU ──────────────
@@ -345,7 +375,7 @@ print(f"  VYLOUČENO jako záloha/snapshot: {len(_preskocene)} "
 # Teď se složka PROJDE. Nový skill je vidět ve chvíli vzniku; když některý
 # zmizí, brána to ohlásí jako `CHYBA ... neexistuje` (a to je správně —
 # chybějící skill je nález, ne ticho).
-SKILLS_DIR = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+SKILLS_DIR = DSH / "skills"
 _skilly = sorted(SKILLS_DIR.glob("*/SKILL.md")) if SKILLS_DIR.is_dir() else []
 if not _skilly:
     print(f"  CHYBA {SKILLS_DIR}: žádné skilly k projití (složka chybí nebo je prázdná)")

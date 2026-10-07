@@ -184,6 +184,76 @@ BRANY = [
      r"(Schéma je v souladu|schéma NENÍ v souladu|CHYBA[^\n]{0,40})"),
     ("test-cooldown", ["python", "<TOOLS>/test-cooldown.py"], r"(\d+) kontrol, (\d+) chyb"),
     ("f2 over cooldown", ["python", "<ANALYZA>/f2-over-cooldown.py"], r"(\d+) kontrol, (\d+) chyb"),
+    # ── N0.3: STAV CÍLE V /health (6. 10. 2026) ──────────────────────────────
+    # PROČ: conductor hlásil `ok: true` nad mrtvým cílem — naměřeno 1. 10. 2026
+    # (7,5 h bez práce kvůli červenému CI hry, S18) a ZNOVU 6. 10. 2026 (od
+    # 5. 10. 22:02 selhalo 9 běhů v řadě a `/health` pořád `ok`).
+    #
+    # ⚠ TENHLE TEST SE NEOPISUJE: nechá si conductora zbundlovat skutečným
+    # `wrangler deploy --dry-run` (bez sítě a bez přihlášení — nic se nenasadí)
+    # a zavolá SKUTEČNÝ handler `default.fetch('/health')` s falešnou D1
+    # a stubovaným GitHubem. Měří tedy tutéž cestu jako živá služba, ne její opis.
+    # Sám má mutační důkaz (5 vrat → 5× spadne), proto je v seznamu i on.
+    ("N0.3: stav cíle v /health", ["node", "<TOOLS>/test-health-cile.mjs"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    ("N0.3: mutace brány (5 vrat)", ["python", "<ANALYZA>/n03-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ── B3a: WATCHDOG NA GRANULI (6. 10. 2026) ───────────────────────────────
+    # PROČ: watchdog počítal běhy JEDNOHO úkolu a měl prah 8 > strop 5, takže se
+    # nikdy nemohl spustit — naměřeno na živé službě (`entity.npc` spálil 8 pokusů
+    # napříč dvěma úkoly a conductor ho vydával dál; v `payload` žádné úlohy není
+    # `eskalovano`). Brána čte SQL, prah i rozhodnutí **ze zdrojáku** (neopisuje)
+    # a kontroluje i to, že prah je POD stropem (`wrangler.toml`).
+    ("B3a: watchdog na granuli", ["python", "<TOOLS>/test-watchdog-granule.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    ("B3a: mutace brány (5 vrat)", ["python", "<ANALYZA>/b3-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ── B2: SELHÁNÍ PŘES `/report` MUSÍ ZALOŽIT COOLDOWN (6. 10. 2026) ───────
+    # PROČ: `/report` dřív zapsal jen `tasks`, ne `roadmap` → granule se vrátila
+    # do fronty okamžitě a spálila všechny pokusy za čtvrt hodiny (naměřeno
+    # 30. 9. 2026: #128 měl 5 pokusů za 16 minut). Opravil to B1, ale **nikdo to
+    # neměřil** — `test-cooldown.py` kryje cestu dispatche, ne zápis z `/report`.
+    # Brána vytahuje obě SQL ze zdrojáku a simuluje `guard` nad fixturou.
+    ("B2: /report zaklada cooldown", ["python", "<TOOLS>/test-report-cooldown.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    ("B2: mutace brány (4 vrat)", ["python", "<ANALYZA>/b2-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ── B4: FALLBACK `listGames` NESMÍ DISPATCHOVAT (6. 10. 2026) ────────────
+    # PROČ: bez AKTIVNÍ hry se bral `env.GITHUB_REPO` jako fallback → **vypnutí
+    # poslední hry orchestra nezastavilo** (invariant 18): registr prázdný,
+    # a dispatch jel dál na hře, kterou uživatel vypnul.
+    # Brána měří SQL ve skutečném SQLite, volá skutečný `listGames` a kontroluje
+    # i guardy v `tick` (dispatch smyčka čte úlohy z D1, takže samotný
+    # `listGames` k „žádnému dispatchi“ nestačí).
+    ("B4: bez aktivni hry se nedispatchuje", ["python", "<TOOLS>/test-listgames.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    ("B4: mutace brány (4 vrat)", ["python", "<ANALYZA>/b4-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ── B3b: STROP NA GRANULI (6. 10. 2026) ──────────────────────────────────
+    # PROČ: watchdog (B3a) jen HLÁSÍ; nic nezastaví. Naměřeno: `entity.npc` spálil
+    # 8 běhů napříč dvěma úkoly a ve frontě na to vzniklo 49 osiřelých úloh.
+    # ⚠ Strop je ZÁMĚRNĚ VYPNUTÝ (`GRAIN_MAX_RUNS = "0"`) — nasazuje se druhým
+    # krokem, aby se dalo měřit, že watchdog hlásí. Brána měří i to, že oba tvary
+    # klíče granule SEDÍ (`grainKeyOf` v JS × `GRAIN_KEY_SQL` v SQL, invariant 17).
+    ("B3b: strop na granuli", ["python", "<TOOLS>/test-grain-cap.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    ("B3b: mutace brány (5 vrat)", ["python", "<ANALYZA>/b3b-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ── TIK OFFLINE: ROZHODOVACÍ LOGIKA CONDUCTORA (6. 10. 2026) ─────────────
+    # PROČ: projekt o sobě psal „conductor nemá test své rozhodovací logiky —
+    # dva .py testy logiku OPISUJÍ a `mock-conductor.mjs` neumí `/tick`; když se
+    # v conductoru změní SQL, neozve se nic“. Tenhle test volá SKUTEČNÝ
+    # `POST /tick` nad zbundlovaným conductorem (wrangler --dry-run, bez sítě
+    # a bez přihlášení) s falešnou D1, která na NEZNÁMÝ dotaz SPADNE — takže
+    # nemůže tiše měřit něco jiného, než si myslí.
+    ("tik offline: rozhodovací logika", ["node", "<TOOLS>/test-tick-offline.mjs"],
+     r"(\d+) kontrol, (\d+) chyb"),
+    # ⚠ POČET VRAT ZÁMĚRNĚ V NÁZVU NENÍ (6. 10. 2026): stál tam a **dvakrát
+    # zestaral** (3 → 6 → 8), protože se test rozšiřoval. Registr vede skutečný
+    # čítač z běhu; jméno, které tvrdí počet, je jen další místo, kde může
+    # vzniknout nepravda („různé čítače nesou stejné jméno“).
+    ("tik offline: mutace brány", ["python", "<ANALYZA>/tick-mutace.py"],
+     r"(\d+) kontrol, (\d+) chyb"),
     # ⚠ OPRAVENO 2. 10. 2026 (po PUSHI obou repů, nález v §19 `HANDOFF.md`):
     # tady stálo `f3-over-deploy.mjs 7c11b2d` — tedy sha, který byl HEADem
     # **v době psaní** tohoto souboru. Po pushi se HEAD posunul na `1e3925e`,
@@ -216,7 +286,16 @@ BRANY = [
     ("ag-mutace (autorita)", ["python", "<ANALYZA>/ag-mutace.py"],
      r"mutací=(\d+), chyceno=(\d+)"),
     ("a1-a2-over", ["python", "<ANALYZA>/a1-a2-over.py"], r"Kontrol: (\d+)"),
-    ("a3-over", ["python", "<ANALYZA>/a3-over.py"], r"(\d+)"),
+    # ⚠ ODSTRANĚNO 7. 10. 2026 (generalizace): tady stálo
+    #     ("a3-over", ["python", "<ANALYZA>/a3-over.py"], r"(\d+)")
+    # a výše v seznamu je `("C1: a3-over (náhrada za a3-kontrola.mjs)", …)`
+    # — **TÝŽ skript, TÝŽ příkaz, jen jiný popis**. Duplicita byla ŽIVÁ (skript
+    # se spouštěl 2× a 2× se vypsal), ne jen kosmetická. Naměřeno měřidlem
+    # `_tools\over-nastroje.py` (AST nad `BRANY`): v `BRANY` byl `a3-over.py`
+    # dvakrát. Na tu druhou bránu se nevázala žádná deklarace
+    # (`OCEKAVANE_NENULOVE` = jen `zadání kontrola`, `OCEKAVANE_BEZ_CITACE` je
+    # prázdný), a jméno `a3-over` v seznamu ZŮSTÁVÁ — takže nevzniká „visutý
+    # záznam", na který `g3` sám upozorňuje.
     ("n8-zastarala", ["python", "<ANALYZA>/n8-zastarala-analyza.py"], r"(\d+) z (\d+)"),
     ("b5-over-tvrzeni", ["python", "<ANALYZA>/b5-over-tvrzeni.py"], r"(\d+)/(\d+)"),
     ("n1-over-inventar", ["python", "<ANALYZA>/n1-over-inventar.py"], r"(\d+)"),
@@ -594,7 +673,13 @@ if bez_citace:
 # čítač nemá (a víme proč). Nová taková brána = `exit 1`, dokud se nerozhodne.
 # ⚠ Záznam, který už není potřeba, se VYPÍŠE jako „už není potřeba“ — zastaralý
 # baseline by jinak tiše krýval novou bránu se stejným jménem.
-OCEKAVANE_BEZ_CITACE = {"C2: mutace N1 (5 běhů)"}
+#
+# ⚠ PRÁZDNÉ OD 6. 10. 2026: `C2: mutace N1 (5 běhů)` tu byl do té doby, protože
+# `c2-mutace.py` čítač **nevypisoval** — registr tedy nevěděl, CO brána změřila
+# (nález 42.4/1). Skript teď čítač vykazuje (`SOUHRN: 5 kontrol, 0 chyb`, počet
+# se bere z toho, co skutečně proběhlo), takže výjimka **není potřeba** — a držet
+# ji dál by znamenalo, že nová ztráta čítače u téže brány projde jako „deklarovaná“.
+OCEKAVANE_BEZ_CITACE = set()
 
 # ══ ROZHODNUTÍ P20 (Úkol A) — `g3` NYNÍ SOUDÍ I ČERVENÉ (NA23b VYŘEŠEN) ═══════
 # Do P20 `g3` o červených **nerozhodoval** — chyběl mu seznam „které nenulové
@@ -625,7 +710,7 @@ print("─" * 78)
 # ── VERDIKT NAD ČERVENÝMI (P20): deklarované projdou, nedeklarované shodí g3 ──
 # ⚠ OMyl P20/6 (naměřený `p19-d-kontroly.py`, případ 4): `selhalo` je KAŽDÝ
 # nenulový exit — takže sem spadne i brána, která je DEKLAROVANÁ jako
-# „běžela bez čítače“ (`OCEKAVANE_BEZ_CITACE`, dnes `C2: mutace N1`), a taky
+# „běžela bez čítače“ (`OCEKAVANE_BEZ_CITACE` — v té době v něm `C2: mutace N1`; od 6. 10. 2026 je seznam prázdný), a taky
 # brána, která VŮBEC NEZAČALA. Ani jedna z nich není „neočekávaný nenulový
 # exit“ — první je přiznaný stav a druhá je vada MĚŘENÍ, která se hlásí svou
 # vlastní sekcí. Bez tohohle odečtení by `g3` padal za to, co sám deklaroval.

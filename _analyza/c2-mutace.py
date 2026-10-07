@@ -16,6 +16,11 @@ POZOR NA PAST: smazání souboru v sandboxu vypadá jako „nástroj neumí obno
 ale je to prostředí (skill `dsh-prostredi` §4). Skript proto při `WinError 5`
 řekne, že šlo o oprávnění, a NE o vadu nástroje.
 
+⚠ ČÍTAČ (přidán 6. 10. 2026): skript MUSÍ vypsat `N kontrol, M chyb` — `g3`
+z něj plní registr bran. Do té doby čítač neměl a `g3` u téhle brány hlásil
+„běžela, ale vzor nic nenašel“ (nevíme, co změřila). Počet se bere z toho, co
+skutečně proběhlo (krok 4 se umí přeskočit na oprávněních → 4, ne 5).
+
 Použití: python _analyza\\c2-mutace.py
 """
 
@@ -159,6 +164,14 @@ def main() -> int:
     print("=" * 76)
     print("VÝSLEDEK: %s" % ("brána měří — zastaralý i nezměřený inventář SHODÍ nástroj"
                             if spatne == 0 else "NĚCO NESEDÍ (%d)" % spatne))
+    # ── ČÍTAČ PRO `g3` (PŘIDÁNO 6. 10. 2026) ─────────────────────────────────
+    # Do 6. 10. 2026 tenhle skript čítač NEVYPISOVAL — `g3` proto u téhle brány
+    # hlásil „běžela, ale vzor nic nenašel (3 303 B)“, tedy **nevíme, CO změřila**
+    # (nález 42.4/1). `exit 0` bez počtu je ticho, ne zelená.
+    # ⚠ Počet se bere z `vysledky`, ne z konstanty: krok 4 se umí přeskočit
+    # (oprávnění v sandboxu), a pak je správně **4**, ne 5. Kdyby tu stálo
+    # natvrdo „5“, čítač by lhal o tom, co proběhlo (vada S27).
+    print("SOUHRN: %d kontrol, %d chyb" % (len(vysledky), spatne))
     return 0 if spatne == 0 else 1
 
 

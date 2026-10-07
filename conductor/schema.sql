@@ -65,6 +65,10 @@ CREATE TABLE IF NOT EXISTS roadmap (
   -- jako „právě selhala" a RETRY_HOURS se na ni vztáhl (vada S12). NULL =
   -- ještě neselhala.
   naposledy_selhalo TEXT
+  -- KDY SE WATCHDOG OZVVAL (B3a, 6. 10. 2026). NULL = ještě ne. Drží se na
+  -- řádku GRANULE, protože retry zakládá nový ÚKOL — v payloadu úkolu by se
+  -- značka ztratila a notifikace by chodila při každém tiku.
+  eskalovano TEXT
 );
 
 -- Migrace starých tabulek: roadmap.updated_at přibyl kvůli cooldownu
@@ -72,6 +76,8 @@ CREATE TABLE IF NOT EXISTS roadmap (
 -- ALTER TABLE roadmap ADD COLUMN updated_at TEXT NOT NULL DEFAULT (datetime('now'));
 -- B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
 -- ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT;
+-- B3a (6. 10. 2026): značka watchdogu na řádku granule.
+-- ALTER TABLE roadmap ADD COLUMN eskalovano TEXT;
 
 -- Registr her, na kterých orchestr pracuje. Když je prázdný, orchestr jede na
 -- jednom repu (GITHUB_REPO), přesně jako dřív – zpětná kompatibilita.

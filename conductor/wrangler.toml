@@ -53,9 +53,26 @@ RETRY_HOURS = "3"
 # Strop zároveň brání smyčce: bez něj stale-recovery vracela do fronty i úlohu
 # s vyčerpanými pokusy a ta jela dál navěky.
 MAX_ATTEMPTS = "5"
-# Po kolika spálených pokusech se granule OHLÁSÍ (Telegram).
-# Nic se nevypíná – jen notifikace. Watchdog v tiku.
-ESCALATE_AFTER = "8"
+# Po kolika spálených pokusech se GRANULE ohlásí (Telegram). Nic se nevypíná.
+#
+# ⚠ PRAH MUSÍ BÝT POD `MAX_ATTEMPTS` (5) — prah nad stropem je prah, který nikdy
+# nepřijde. Naměřeno 6. 10. 2026 na živé službě: prah byl 8 a watchdog navíc
+# počítal běhy JEDNOHO úkolu, takže se se stropem 5 nemohl spustit nikdy
+# (v `payload` žádné úlohy nebylo `eskalovano`). Od B3a se počítá přes VŠECHNY
+# úkoly granule, takže prah 3 znamená „ozvi se po třetím spáleném běhu“ —
+# a granule jich dnes mají 8 (`entity.npc`) a 5 (`entity.enemy`).
+ESCALATE_AFTER = "3"
+
+# STROP NA GRANULI (B3b, 6. 10. 2026): kolik běhů smí granule spálit, než se
+# přestane vydávat. `"0"` = STROP VYPNUTÝ (a to je záměrný výchozí stav).
+#
+# Proč vypnutý: plán žádá nasazovat po částech a měřit před/po. První deploy
+# přinese jen WATCHDOG (B3a — hlásí od `ESCALATE_AFTER`), teprve druhý krok
+# (`GRAIN_MAX_RUNS = "5"`) vydávání zastaví. Kdyby se zapnulo obojí naráz,
+# nebylo by z čeho měřit, že watchdog opravdu hlásí.
+# Naměřeno 6. 10. 2026: `entity.npc` spálil 8 běhů napříč dvěma úkoly a fronta
+# vyrobila 49 osiřelých úloh na tutéž granuli — strop je obrana proti tomu.
+GRAIN_MAX_RUNS = "0"
 
 [[d1_databases]]
 binding = "DB"

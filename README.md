@@ -291,8 +291,14 @@ znamená to i „watchdog na to nikdy nedosáhne".
 | `tools/kontrola-driftu.mjs` | šablona vs. klon hry; u YAML porovnává STRUKTURU |
 | `tools/lint-roadmapa.py` | statický lint plánu (8 druhů vad DAG) |
 | `tools/simulace-dag.py` | co odblokuje dokončení které granule (kritická cesta) |
-| `tools/test-cooldown.py` | offline test SQL logiky cooldownu (6 scénářů). **Pozor: nemá assert ani `sys.exit`, takže končí vždy 0 — a je slepý vůči nové granuli (díra 1 výše).** |
-| `tools/test-eskalace.py` | offline test watchdogu (10 scénářů). **Pozor: prah má natvrdo 8 a scénáře podávají 8–20 běhů na úkol = stav, který conductor neumí vyrobit → díru s `MAX_ATTEMPTS` nechytí.** |
+| `tools/test-cooldown.py` | offline test SQL logiky cooldownu. **Stav 6. 10. 2026: OPRAVENO** — SQL guardu **vytahuje ze zdrojáku** a má `assert` i `sys.exit` (10 kontrol, 0 chyb). Historické „nemá assert, končí vždy 0" už neplatí. |
+| `tools/test-report-cooldown.py` | brána **B2**: simuluje selhání přes `/report` a ptá se **skutečného** dispatch guardu (obě SQL ze zdrojáku) — cooldown je okno, ne vězení. |
+| `tools/test-watchdog-granule.py` | brána **B3a**: watchdog počítá běhy **granule** (přes všechny její úkoly) a prah musí být **pod** stropem. Nahrazuje `test-eskalace.py`, který měřil odstraněnou logiku. |
+| `tools/test-grain-cap.py` | brána **B3b**: strop na granuli (`GRAIN_MAX_RUNS`, výchozí vypnuto) + **shoda obou tvarů klíče** granule (JS × SQL). |
+| `tools/test-listgames.py` | brána **B4**: bez aktivní hry se **nedispatchuje** (SQL ve skutečném SQLite, funkce se volá, guardy v `tick` se čtou z kódu). |
+| `tools/test-tick-offline.mjs` | **rozhodovací logika conductora**: volá **skutečný `/tick` i `/report`** nad zbundlovaným conductorem s falešnou D1 a stubovaným GitHubem (40 kontrol); mutační důkaz `_analyza/tick-mutace.py` (8 vrat). |
+| `tools/test-health-cile.mjs` | brána **N0.3**: `/health` hlásí i stav **cíle** (`main_ci`, `forge.ok`, `selhani_v_rade`). |
+| `tools/test-eskalace.py` | ⚠ **ZASTARALÉ (6. 10. 2026)** — měřilo watchdog s prahem natvrdo 8 a počítáním po úkolech, tedy stav, který conductor neumí vyrobit. Nahrazeno `test-watchdog-granule.py`. |
 | `tools/mereni-poskytovatelu.mjs` | změří dostupnost a velikost výstupu providerů |
 
 ## Conductor (API)
