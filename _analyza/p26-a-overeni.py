@@ -510,23 +510,35 @@ def a4(plne):
 # ═══════════════════════════════════════════════════════════════════ A5 ═══
 def a5():
     print("\n--- A5: nález P25-K — rozsah měřidla `ov-g-neovereno.py` ---")
-    # (a) PŘED OPRAVOU: verze z HEAD, spuštěná z `_analyza/` (aby REPO sedělo).
+    # (a) PŘED OPRAVOU: verze z commitu, kde rozsah JEŠTĚ zúžený byl.
+    # ⚠ NESMÍ TO BÝT `HEAD` NASLEPO: jakmile se oprava commitne, je v `HEAD` už
+    # OPRAVENÁ verze — naměřeno 7. 10. 2026 (P26), že kontrola „verze z HEAD čte
+    # 1 řádek" pak spadne na SPRÁVNĚ opraveném repu. Je to táž past jako
+    # `p20-a-kody-bran.py` (nález H107): „změřeno před commitem" ≠ „změřeno teď".
+    # Hledá se proto ZPĚT po commitech, dokud se nenajde verze, která opravdu
+    # čte 1 řádek — a když se nenajde, je to NEZMĚŘENO, ne zelená.
     pred = ANALYZA / "_p26-pred-opravou.py"
-    b = blob("HEAD", "_analyza/ov-g-neovereno.py")
-    if b is None:
-        nezmereno_zapis("A5 verze měřidla z HEAD", "git show HEAD:… selhalo")
-    else:
+    for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3", "HEAD~4"):
+        b = blob(rev, "_analyza/ov-g-neovereno.py")
+        if b is None:
+            continue
         pred.write_bytes(b)
         try:
             kod, v = cmd(["python", str(pred)], timeout=300)
-            m = re.search(r"nálezů \(řádků tabulek Hxx\):\s*(\d+)", v)
-            pred_r = int(m.group(1)) if m else None
-            print("      PŘED opravou (verze z HEAD): čte %s řádků Hxx, exit=%d"
-                  % (pred_r, kod))
-            check("A5 P25-K POTVRZEN: verze z HEAD čte JEN 1 řádek Hxx", pred_r, 1)
-            check("A5 a přitom tvrdí zelenou (exit 0) — zelená nad 1 % rozsahu", kod, 0)
         finally:
             pred.unlink(missing_ok=True)
+        m = re.search(r"nálezů \(řádků tabulek Hxx\):\s*(\d+)", v)
+        if m and int(m.group(1)) == 1:
+            print("      PŘED opravou (verze z `%s`): čte 1 řádek Hxx, exit=%d"
+                  % (rev, kod))
+            check("A5 P25-K POTVRZEN: verze z `%s` čte JEN 1 řádek Hxx" % rev, 1, 1)
+            check("A5 a přitom tvrdí zelenou (exit 0) — zelená nad 1 % rozsahu",
+                  kod, 0)
+            break
+    else:
+        nezmereno_zapis("A5 verze měřidla PŘED opravou",
+                        "v žádném z `HEAD`…`HEAD~4` není verze, která by četla "
+                        "1 řádek Hxx (oprava je hloub v historii)")
 
     # (b) PO OPRAVĚ: živé měřidlo vypíše, KTERÉ soubory otevřelo, a celý rozsah.
     kod, v = cmd(["python", str(OV_G)], timeout=300)

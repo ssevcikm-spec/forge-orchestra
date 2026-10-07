@@ -138,16 +138,26 @@ def main() -> int:
     try:
         # ─────────────────────── M1: ZÚŽENÝ ROZSAH BRÁNY (nález P25-K) ────
         print("\n--- M1: `ov-g-neovereno.py` se ZÚŽENÝM rozsahem (1 řádek) ---")
-        b = blob("HEAD", "_analyza/ov-g-neovereno.py")
-        k("M1a verze měřidla z HEAD se přečetla z gitu", b is not None, True)
-        if b is not None:
-            hist = ANALYZA / "_p26-blind-head.py"
+        # ⚠ NE `HEAD` NASLEPO: po commitu opravy je v `HEAD` už OPRAVENÁ verze
+        # (naměřeno 7. 10. 2026). Hledá se ZPĚT, dokud se nenajde verze, která
+        # čte 1 řádek — jinak by „důkaz P25-K" spadl na správně opraveném repu.
+        hist = ANALYZA / "_p26-blind-head.py"
+        nalezeno = None
+        for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3", "HEAD~4"):
+            b = blob(rev, "_analyza/ov-g-neovereno.py")
+            if b is None:
+                continue
             zapis(hist, b)
             kod, v = cmd([sys.executable, "-B", str(hist)])
             m = re.search(r"nálezů \(řádků tabulek Hxx\):\s*(\d+)", v)
-            k("M1a verze z HEAD měří JEN 1 řádek Hxx (P25-K jako fakt)",
-              int(m.group(1)) if m else None, 1)
-            hist.unlink(missing_ok=True)
+            if m and int(m.group(1)) == 1:
+                nalezeno = rev
+                break
+        hist.unlink(missing_ok=True)
+        k("M1a verze měřidla PŘED opravou nalezena v historii (%s)" % nalezeno,
+          nalezeno is not None, True)
+        k("M1a ta verze měří JEN 1 řádek Hxx (P25-K jako fakt)",
+          bool(nalezeno), True)
 
         # Zúžení je přesně ta vada: vypadne archiv z `zive_zdroje()`.
         uzka = ANALYZA / "_p26-uzka.py"
@@ -214,14 +224,26 @@ def main() -> int:
         # ───────────────── M3: ČÍSLO PŘEČTENÉ Z DOKUMENTU (§55) ───────────
         print("\n--- M3: §55 s posunutým číslem (83/83 → 82/83) ---")
         text = HANDOFF.read_text(encoding="utf-8")
-        kotva = "`handoff-kontrola-uplnost` → **83/83** |"
-        k("M3 kotva §55 (`handoff-kontrola-uplnost` → 83/83) je v HANDOFFu právě 1×",
-          text.count(kotva), 1)
-        if text.count(kotva) == 1:
+        # ⚠ MUTACE SE DĚLÁ POUZE UVNITŘ §55. Naměřeno 7. 10. 2026: kotva, která
+        # je v dokumentu JEDNOZNAČNÁ, může být v JINÉM oddílu — mutace se pak
+        # „provede", ale měřené tvrzení zůstane nezměněné a diferenciál to
+        # odhalí jako „originál nespadl".
+        stary = "`handoff-kontrola-uplnost` \u2192 **83/83**"
+        novy_jen = "`handoff-kontrola-uplnost` \u2192 **82/83**"
+        m55 = re.search(r"\n## 55\.", text)
+        i = m55.start() if m55 else None
+        m2 = re.search(r"\n## ", text[i + 4:]) if i is not None else None
+        j = i + 4 + m2.start() if (i is not None and m2) else (len(text) if i is not None else 0)
+        sekce55 = text[i:j] if i is not None else ""
+        k("M3 kotva je v §55 právě 1× (ne jen v dokumentu)",
+          sekce55.count(stary), 1)
+        if sekce55.count(stary) == 1:
             kopie_h = SCRATCH / "handoff.md"
-            zapis(kopie_h, text.replace(kotva, kotva.replace("83/83", "82/83"), 1))
-            k("M3 číslo v kopii HANDOFFu se opravdu změnilo",
-              "**82/83**" in kopie_h.read_text(encoding="utf-8"), True)
+            zmut = text[:i] + sekce55.replace(stary, novy_jen, 1) + text[j:]
+            zapis(kopie_h, zmut)
+            k("M3 číslo v §55 KOPIE se opravdu změnilo (a je to v §55)",
+              ("**82/83**" in zmut and zmut.count("**83/83**") < text.count("**83/83**")),
+              True)
             kod, v = beh(MERIDLO, "A4", ["--handoff", str(kopie_h)], vystup)
             k("M3 ORIGINÁL měřidla nad posunutým číslem SPADNE", kod != 0, True)
             k("M3 a spadne na KONTROLE, KTERÁ ČTE TVRZENÍ Z DOKUMENTU",
