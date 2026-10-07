@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-07 13:12:23",
+  "kdy": "2026-10-07 14:23:39",
   "bran_celkem": 49,
   "s_nenulovym_exit": [
     "zadání kontrola"
@@ -77,7 +77,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "355",
+      "otevrela": "359",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
@@ -210,14 +210,14 @@
     {
       "nazev": "tik offline: rozhodovací logika",
       "exit": 0,
-      "otevrela": "100 / 0",
+      "otevrela": "146 / 0",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/test-tick-offline.mjs"
     },
     {
       "nazev": "tik offline: mutace brány",
       "exit": 0,
-      "otevrela": "31 / 0",
+      "otevrela": "41 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/tick-mutace.py"
     },
@@ -336,7 +336,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "149 / 0",
+      "otevrela": "152 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

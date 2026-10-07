@@ -135,6 +135,39 @@ MUTATIONS = [
      CONDUCTOR,
      "const osirele = (vsechnyRadky.results || []).filter((r) => !platne.has(r.item_id));",
      "const osirele = (vsechnyRadky.results || []).filter((r) => true);"),
+    # ══ P25 (7. 10. 2026, Úkol B1) — MUTACE NA ENDPOINTY, KTERÉ ZAPISUJÍ DO D1
+    #    A MĚNÍ CHOVÁNÍ SLUŽBY: `/task` zakládá úlohu, `/game` a `/game/active`
+    #    mění registr her (tedy to, CO orchestra dělá). Bez těchhle vrat by nové
+    #    kontroly T/U/V/W byly jen „zelené nad ničím".
+    # M16 `/task` ignoruje `target: "lan"` → úloha pro domácí uzel skončí v cloudu
+    #     (a domácí uzel ji nikdy nedostane)
+    ("M16 task ignoruje target lan",
+     CONDUCTOR,
+     'const target = body.target === "lan" ? "lan" : "cloud";',
+     'const target = "cloud";'),
+    # M17 `/task` zruší validaci → založí úlohu bez zadání (prázdný prompt)
+    ("M17 task bez validace title/prompt",
+     CONDUCTOR,
+     'if (!body.prompt || !body.title) return json({ error: "chybi title nebo prompt" }, 400);',
+     'if (false) return json({ error: "chybi title nebo prompt" }, 400);'),
+    # M18 `/game` zaregistruje hru VYPNUTOU (`active = 0`) → orchestra na nové hře
+    #     nikdy nezačne pracovat a vypadá to jako „hra se zaregistrovala"
+    ("M18 game zaregistruje hru vypnutou",
+     CONDUCTOR,
+     "repo = excluded.repo, roadmap_file = excluded.roadmap_file, active = 1",
+     "repo = excluded.repo, roadmap_file = excluded.roadmap_file, active = 0"),
+    # M19 `/game/active` ignoruje `active: false` → hru NELZE vypnout (a orchestra
+    #     pálí kvótu na opuštěné hře — naměřeno 30. 9. 2026)
+    ("M19 game/active ignoruje active:false",
+     CONDUCTOR,
+     "const active = body.active === false ? 0 : 1;",
+     "const active = 1;"),
+    # M20 `/game/active` nehlásí 404 u neznámé hry → volající si myslí, že přepnul
+    #     (a `UPDATE` s 0 změněnými řádky je TICHÝ neúspěch)
+    ("M20 game/active taji neznamou hru",
+     CONDUCTOR,
+     'if (!res.meta.changes) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);',
+     'if (false) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);'),
 ]
 
 checks = 0
@@ -190,6 +223,10 @@ def main() -> int:
         check(f"{name} → soubor vracen bajt na bajt", m.hash_po_navratu, m.hash_pred)
 
     print()
+    # ⚠ POČET VRAT SE VYKAZUJE SÁM (P25): dřív se dal jen odhadnout z počitadla
+    # kontrol (1 + 2×vrat) nebo přečíst ze zdroje — a to jsou dvě různá místa,
+    # kde vzniká nepravda. Kdo čte výsledek, ať vidí i tohle číslo.
+    print(f"vrat: {len(MUTATIONS)}")
     if errors:
         print(f"VYSLEDEK: {checks} kontrol, {errors} CHYB")
         return 1

@@ -1731,3 +1731,146 @@ python _analyza\tick-mutace.py            # 15 vrat, 31 kontrol, 0 chyb
 python _analyza\g3-brany.py               # 48 bran, 0 bez čítače
 node tools\validate-all.mjs               # VŠE V POŘÁDKU
 ```
+
+
+---
+
+## 55. P25 — PŘEMĚŘENÍ P24 A TESTOVÁNÍ ZAPISUJÍCÍCH ENDPOINTŮ (7. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P25 + stav po P25**. Plní i slot,
+na který §54 **visutě odkazoval** („stav je v novém oddílu 55“) — oddíl 55 do
+P25 **neexistoval** a to je samo nález (níž, bod 1). **Pravidla** v `AGENTS.md`,
+**projektová znalost** v `PROVOZ-ORCHESTRA.md`, **historie** v
+`KRONIKA-PROJEKTU.md` (řádek **40**, nálezy **§2.18**). Zadání P25 je
+v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **7. 10. 2026, 13:0x–14:2x +02:00**. Tvrzení
+> o **stavu** (HEAD, hra, živá služba) platí k tomu okamžiku; kdo to čte
+> později, **přeměří** (`python _analyza\p25-a-overeni.py --plne`).
+
+### 55.1 Co se udělalo
+
+| # | Co | Doklad |
+|---|---|---|
+| **A** | **Přeměření práce P24 VLASTNÍM měřidlem** (A1–A6, každý bod jiným postupem, než vznikl) | `_analyza/p25-a-overeni.py` → **53 kontrol, 0 chyb** (první běh měl 6 chyb — všechny typu „číslo se změnilo, a ještě není zapsané“; to je správné chování, po zapsání tohoto oddílu 0) |
+| **A** | **Důkaz, že i tohle měřidlo umí spadnout** — 5 mutací v **KOPIÍCH** + diferenciál + rozhodovací funkce A3 | `_analyza/p25-b-mutace.py` → **27 kontrol, 0 chyb** |
+| **B1** | **Testy pro endpointy, které ZAPISUJÍ do D1 a MĚNÍ CHOVÁNÍ služby**: `POST /task`, `POST /game`, `POST /game/active` — včetně integrační kontroly, že vypnutá hra zastaví dispatch | `tools/test-tick-offline.mjs` → **146/0** (146 kontrol, 0 chyb; bylo **100/0**) |
+| **B1** | **Mutační důkaz k novým cestám** — 5 nových vrat (M16–M20) | `_analyza/tick-mutace.py` → **20 vrat / 41/0** (bylo 15 vrat / 31/0) |
+| **C** | Brány po sobě (po přegenerování inventáře) | `g3` → **49 bran**, 1 deklarovaný nenulový exit (`zadání kontrola`), `exit 0` · `validate-all` → **VŠE V POŘÁDKU** · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
+
+### 55.2 Nálezy P25 (každý doložený měřením)
+
+1. **§54 OBSAHUJE VISUTÝ ODKAZ NA ODDÍL 55, KTERÝ NEEXISTOVAL.** §54 tvrdí
+   „stav je v `§53` … a v novém oddílu **55** (stav po P24)“ — a `## 55.`
+   v `HANDOFF.md` nebylo (nejvyšší oddíl byl 54). Tenhle oddíl slot plní, ale
+   jako záznam **P25**. **Poučení: odkaz na oddíl je TVRZENÍ o dokumentu**
+   a `handoff-kontrola-uplnost` kontroluje klíče, ne cíle odkazů.
+2. **DOBOVÁ KOTVA P24 PŘESTALA PLATIT, PROTOŽE SE ZMĚNIL STAV — ne proto, že
+   by měřidlo lhalo.** `p24-a-overeni.py` dnes vrací **99/1** (na kotvě
+   `4925f64` naměřila **99/0**): jediná červená je **A8** — `uo-shadows` je dnes
+   **`932dc6f`**, ne `44dd454`. To je **správné chování** měřidla: měří živý
+   stav, ne zamrzlý text (A8 je v P24 označená jako `DOBOVÉ`). První dnešní běh
+   dal **99/4** — další tři červené byly A6 („dokument netvrdí naměřené 146/0
+   a 41/0“), tedy **následek mojí vlastní práce B1**; po zapsání tohoto oddílu
+   zmizely.
+   **Co hru změnilo:** souběžná session (generalizace nástrojů) do ní
+   **7. 10. 2026 přidala commit** `932dc6f` (`AGENTS.md` + `docs/BRANY-HRY.md`)
+   a **pushla ho**, i když uživatel hru pozastavil. **Není to moje práce** —
+   je to zapsané jako změna stavu, která P24inu A8 dělá dobově neplatnou.
+3. **ZARÁŽKA V ROUTERU ZAPNE PRÁVĚ TY KONTROLY, KTERÉ MÁ — a `/tick` zůstane
+   zelený.** A3 vložila do živého `conductor/src/index.ts` (v `try/finally`,
+   s ověřením hashe před i po) návrat `599` pro pět endpointů: test tiku vykázal
+   **42 červených**, mezi nimi **všech 5 cílených** (`N`, `O`, `P`, `Q`, `R`),
+   a **kontrolní `A: /tick odpoví 200` zůstala zelená**. Druhá zarážka
+   **uvnitř handleru** `/tasks/cleanup` (změna hlášky pojistky) zapnula
+   **právě 1** kontrolu (`Q2: a řekne PROČ`) a `Q2: nenačtená roadmapa → 503`
+   zůstala zelená. **Tím je doloženo, že test endpointy opravdu VOLÁ** a že
+   kontroly nejsou měkké (past P24-I).
+4. **⚠ SABOTÁŽ SE TICHE NEPROVEDLA — a odhalil to až DIFFERENCIÁL.** Vlastní
+   měřidlo mělo spustit `p24-b-mutace.py` nad **oslabenou** kopií měřidla (bez
+   kontroly `B4`). Kotva v cizím skriptu je ale **`ANALYZA` (s Y)**, ne
+   `ANALIZA` (s I) — `replace()` tedy **nic nenahradil** a sabotovaný důkaz
+   hlásil `17/0` nad **NEZMĚNĚNÝM** skriptem. Přesně past `overovani` §7.9
+   („mutace, která se tiše neprovede, vypadá jako úspěch“). Zachytil to
+   **diferenciál** (originál na téže vadě spadne, oslabená kopie projde);
+   měřidlo dnes **explicitně kontroluje, že sabotáž míří na oslabenou kopii**.
+5. **VLASTNÍ MĚŘIDLO MĚLO TŘI VADY A VŠECHNY ODHALIL JEHO BĚH** (ne čtení):
+   (a) práh „aspoň 20 kontrol“ v režimu `--jen-dokumenty`, který měří **8**;
+   (b) A2 klasifikoval **JS literály** (`, watchdog: ${eskalovano}` a log-prefix
+   `roadmap.eskalovano: `) jako SQL → falešný poplach „nesklasifikovaný zápis“;
+   (c) jednoduchý vzor `[^…\n]` **nenašel víceřádkový SQL literál** → falešný
+   poplach „nikde není výběr kandidátů“. Všechny tři jsou **falešné poplachy
+   nad správným zdrojem** — nejdražší druh vady (`overovani` §8.3).
+6. **TRVALOST ZNAČKY `eskalovano` JE DOKÁZANÁ Z KÓDU, NE Z DOJMU.** Vlastní
+   čtení **SQL literálů po odstranění komentářů** našlo: samomigraci
+   `ALTER TABLE roadmap ADD COLUMN eskalovano TEXT`, **právě jeden** zápis
+   (`SET eskalovano = datetime('now')`), **žádné** mazání a filtr kandidátů
+   `status <> 'done' AND (eskalovano IS NULL OR eskalovano = '')`. Živé `/tick`
+   pak hlásí **`0 ohlášeno` (prah 3 < strop 5)** — kontrola „ohlásil něco“
+   (`N > 0`) by tedy **shodila zdravou službu**. Negativní kontrola: po vložení
+   mazacího `UPDATE` do KOPIE zdroje predikát vadu **ohlásí**.
+7. **`tick-mutace.py` NEVYKAZOVAL POČET VRAT.** Číslo „15 vrat“ žilo jen
+   v dokumentech. Měřidlo ho proto odvozuje **dvěma nezávislými cestami** (AST
+   zdroje: počet `MUTATIONS`; aritmetika z běhu: `1 + 2×vrat`) a doklad ho od
+   P25 **vypisuje sám** (`vrat: 20`).
+8. **NENULOVÝ EXIT NENÍ VŽDY NÁLEZ — MŮŽE BÝT STAV.** Po přidání dokladů měl
+   `g3` **6 nenulových exitů**: tři byly **zastaralý inventář** (náprava je
+   přegenerovat, **ne deklarovat** — deklarace by z trvalé vady udělala
+   „očekávaný stav“) a dva **moje vlastní chyba v textu skillu** (`tools\…`
+   v tabulce vzal `over-skilly` jako mrtvou cestu). Po nápravě **49 bran,
+   1 deklarovaný exit**. Měřidlo proto „nedeklarovaný exit“ **rozlišuje** na
+   nález a na pojmenovaný stav.
+9. **`/task`, `/game` a `/game/active` UŽ MAJÍ TEST — a test měří i CHOVÁNÍ.**
+   Nově se ověřuje, že payload jde do D1 jako **JSON řetězec**, že `target: lan`
+   se opravdu uloží jako `lan`, že registrace hry ji **ZAPNE** (`active = 1`),
+   že vypnutí zapíše **`active = 0`** (a ne 1), že neznámá hra vrátí **404** —
+   a hlavně **integrační kontrola W**: po `/game/active {active:false}` tik
+   **NEDISPATCHUJE** a po zapnutí dispatchuje **právě jednou**.
+10. **⚠ SANDBOX ODEMKL ZÁPIS PODPROCESŮM V PODADRESÁŘÍCH.** V první polovině
+    session nešlo zapsat soubor podprocesem do **žádného** podadresáře
+    workspace (`PermissionError [Errno 13]`), zatímco do kořene ano; nástroj
+    `write` (harness) přitom zapsal i do podadresáře. **Nebyla to vada
+    skriptů** — spadlo na tom celé měřidlo P24 (11 `PermissionError`, mutace se
+    vůbec neprovedly) a `git fetch` (`.git/FETCH_HEAD`). Opravný skript ACL
+    vrátil `VERDICT=NOT_THIS_CLASS`; pomohlo až **přepnutí session na plný
+    přístup**. Past je zapsaná ve skillu `dsh-prostredi` §4e.
+11. **⚠ MĚŘIDLO `ov-g-neovereno.py` TIŠE ZÚŽILO ROZSAH — z 99 řádků na 1.**
+    Zadání P25 §2.4 bod 3 nařizuje ověřit `NEOVĚŘENO` **tímhle měřidlem**. Ono
+    dnes (po optimalizaci KB souběžné session, 7. 10. 2026 ~13:09) čte **jen
+    `HANDOFF.md`** — a tam zbyl **1** řádek tabulky Hxx. Zbylých **98** řádků se
+    přesunulo do **`_archiv/HANDOFF-HISTORIE.md`** (1 + 98 = **99**, přesně
+    tolik, kolik jich P24 naměřila). **Měřidlo ten soubor neotevírá**, takže jeho
+    verdikt „žádný nález ve stavu NEOVĚŘENO“ dnes **tvrdí něco o 1 řádku, ne
+    o 99** — a nikdo to nepozná, protože měřidlo sice vypíše čítač, ale
+    **rozsah ne**. **Co jsem naměřil nezávisle:** v `_archiv/HANDOFF-HISTORIE.md`
+    je **98** řádků Hxx a **0** z nich má `NEOVĚŘENO` → otevřený bod se tedy
+    **neztratil** (a soubor je **trackovaný v gitu**, ne ignorovaný).
+    **Náprava (pro P26):** měřidlo má číst i archiv — nebo aspoň vypsat, KTERÉ
+    soubory otevřelo; jinak je jeho zelená nad 1 % původního rozsahu.
+
+### 55.3 Živý stav při zápisu (7. 10. 2026, ~14:2x +02:00)
+
+```
+orchestra: HEAD 92aa80a · origin/main 92aa80a · nepushnutých commitů 0
+           (e401f6f, 22cebce i 92aa80a jsou práce SOUBĚŽNÉ session — P24inu
+            práci commitla a pushla ONA, ne já)
+hra:       HEAD 932dc6f · origin/main 932dc6f · strom čistý · 0 nepushnutých
+živá služba: /health → ok=true ready=2 running=0 games=1 · targets[0] main_ci
+             (ci.yml #118 na 932dc6f), forge.ok=false, selhani_v_rade=20
+             /tick → watchdog: 0 ohlášeno (prah 3)
+brány:     g3 → 49 bran, 1 deklarovaný nenulový exit (zadání kontrola), exit 0
+```
+
+### 55.4 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p25-a-overeni.py --plne   # A1-A6: 53 kontrol, 0 chyb
+python _analyza\p25-b-mutace.py           # umí to spadnout? 27 kontrol, 0 chyb
+node tools\test-tick-offline.mjs          # 146/0
+python _analyza\tick-mutace.py            # 20 vrat / 41/0
+python _analyza\p24-a-overeni.py          # 99/1 (A8: hra je na 932dc6f, ne 44dd454)
+python _analyza\p24-b-mutace.py           # 17/0
+python _analyza\g3-brany.py               # 49 bran, 1 deklarovaný exit
+node tools\validate-all.mjs               # VŠE V POŘÁDKU
+```

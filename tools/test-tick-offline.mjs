@@ -96,6 +96,7 @@ function build() {
  */
 function fakeDb(cfg) {
   const log = [];
+  const vazby = [];   // P25/B1: vázané hodnoty (co se opravdu posílá do D1)
   const stav = {
     taskStatus: cfg.taskStatus || 'ready',
     taskClaimed: 0,
@@ -108,6 +109,10 @@ function fakeDb(cfg) {
     blocked: 0,         // `/tasks/cleanup` (označeno `blocked`)
     abandoned: 0,       // `/tasks/cleanup` (dorovnání běhů)
     resetSmazano: 0,    // `/roadmap/reset` (smazané granule)
+    // ── P25 / Úkol B1: registr her (`/game`, `/game/active`) ────────────────
+    hryZapsany: 0,      // INSERT do `games`
+    prepnutoHry: 0,     // UPDATE `games.active`
+    posledniActive: undefined,  // čím se naposledy přepnulo (undefined = nic)
   };
   const zapis = (sql) => log.push(String(sql).replace(/\s+/g, ' ').trim());
 
@@ -164,7 +169,7 @@ function fakeDb(cfg) {
     throw new Error('fakeDb.all: neznámý dotaz → ' + sql.replace(/\s+/g, ' ').slice(0, 120));
   };
 
-  const run = async (sql) => {
+  const run = async (sql, args) => {
     zapis(sql);
     if (sql.startsWith('ALTER TABLE roadmap')) return { meta: { changes: 0 } };
     if (sql.includes("UPDATE runs SET status='timeout'")) {
@@ -216,6 +221,24 @@ function fakeDb(cfg) {
     }
     if (sql.includes('INSERT INTO runs')) { stav.runy++; return { meta: { changes: 1 } }; }
     if (sql.includes('INSERT INTO tasks')) return { meta: { changes: 1, last_row_id: 42 } };
+    // ── P25 / Úkol B1: REGISTR HER. Tenhle zápis mění, CO orchestra dělá —
+    // `/game` hru zapne (`active = 1`) a `/game/active` ji vypne/zapne.
+    // `cfg.aktivniHra` je proto ŽIVÝ stav falešného světa: přepnutí hry se
+    // v něm projeví, takže jde ověřit, že další `/tick` opravdu needispatchuje.
+    if (sql.includes('INSERT INTO games')) {
+      stav.hryZapsany++;
+      return { meta: { changes: cfg.gameChanges ?? 1 } };
+    }
+    if (sql.includes('UPDATE games SET active')) {
+      const ch = cfg.gameChanges ?? 1;
+      if (ch) {
+        const aktivni = Number(args?.[0]) === 1;
+        stav.prepnutoHry++;
+        stav.posledniActive = aktivni;
+        cfg.aktivniHra = aktivni;
+      }
+      return { meta: { changes: ch } };
+    }
     if (sql.startsWith('INSERT INTO roadmap') || sql.startsWith('UPDATE roadmap')
         || sql.startsWith('UPDATE tasks') || sql.startsWith('UPDATE runs')) {
       return { meta: { changes: 0 } };
@@ -223,11 +246,17 @@ function fakeDb(cfg) {
     throw new Error('fakeDb.run: neznámý dotaz → ' + sql.replace(/\s+/g, ' ').slice(0, 120));
   };
 
-  const api = (sql) => ({
-    first: () => first(sql), all: () => all(sql), run: () => run(sql),
-    bind: () => api(sql),
+  // ⚠ `bind` SE ZAZNAMENÁVÁ (P25/B1): kontroly typu „jde do DB opravdu 0, ne 1"
+  // se nedají udělat z textu SQL — hodnoty jsou v `bind()`. Bez toho by test
+  // tvrdil jen to, že se dotaz TVAROVĚ podobá (`overovani`: přítomnost ≠ chování).
+  const api = (sql, args) => ({
+    first: () => first(sql, args), all: () => all(sql, args), run: () => run(sql, args),
+    bind: (...a) => {
+      vazby.push({ sql: String(sql).replace(/\s+/g, ' ').trim(), args: a });
+      return api(sql, a);
+    },
   });
-  return { DB: { prepare: (sql) => api(String(sql)) }, stav, log };
+  return { DB: { prepare: (sql) => api(String(sql)) }, stav, log, vazby };
 }
 
 function envFor(cfg) {
@@ -251,6 +280,7 @@ function envFor(cfg) {
     },
     stav: db.stav,
     log: db.log,
+    vazby: db.vazby,
   };
 }
 
@@ -744,6 +774,217 @@ async function main() {
       if (status !== 401) bez.push(`${cesta} → ${status}`);
     }
     check('S: každý chráněný endpoint vrátí bez tajemství 401', bez, []);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // P25 / Úkol B1 — ENDPOINTY, KTERÉ ZAPISUJÍ DO D1 A MĚNÍ CHOVÁNÍ SLUŽBY
+  // (`POST /task`, `POST /game`, `POST /game/active`)
+  //
+  // PROČ PRÁVĚ TYHLE: P24 zavřela pět cest, které netestoval nikdo — ale
+  // `/task` ZAKLÁDÁ ÚLOHU a `/game` + `/game/active` mění REGISTR HER, tedy to,
+  // co orchestra vůbec dělá (vypnutá hra = orchestra nedispatchuje). „Vada,
+  // kterou nikdo nezměří, se pozná až tím, že se něco stane."
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── T) /task: založí úlohu (a co se opravdu posílá do D1) ────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, vazby } = envFor({ aktivniHra: true });
+    const { status, body } = await post(mod, env, '/task', {
+      telo: { title: 'Nová granule', kind: 'test', prompt: 'neco',
+              payload: { game: 'test', grain: 'x' } },
+    });
+    check('T: /task odpoví 200', status, 200);
+    check('T: /task vrátí id nové úlohy', body?.id, 42);
+    check('T: /task vrátí target `cloud` (výchozí)', body?.target, 'cloud');
+    check('T: INSERT do `tasks` proběhl', bylZapis(log, /INSERT INTO tasks/), true);
+    const v = vazby.find((x) => /INSERT INTO tasks/.test(x.sql));
+    check('T: INSERT nese 5 hodnot (title, kind, target, prompt, payload)',
+      Array.isArray(v?.args) ? v.args.length : null, 5);
+    check('T: `title` jde do INSERTu', v?.args?.[0], 'Nová granule');
+    check('T: `kind` jde do INSERTu', v?.args?.[1], 'test');
+    // Payload se musí uložit jako ŘETĚZEC: kdyby šel objekt, D1 by dostal
+    // `[object Object]` a granule by přišla o `game`/`grain` (dispatch by ji
+    // nevydal nebo by ji vydal bez klíče).
+    check('T: payload se ukládá jako JSON ŘETĚZEC (ne objekt)',
+      typeof v?.args?.[4], 'string');
+    check('T: a v payloadu je skutečný obsah',
+      JSON.parse(String(v?.args?.[4] || '{}')).grain, 'x');
+  }
+
+  // ── T2) /task s `target: "lan"` → fronta domácího uzlu ───────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, vazby } = envFor({ aktivniHra: true });
+    const { body } = await post(mod, env, '/task', {
+      telo: { title: 'LAN úloha', prompt: 'x', target: 'lan' },
+    });
+    check('T2: /task vrátí target `lan`', body?.target, 'lan');
+    const v = vazby.find((x) => /INSERT INTO tasks/.test(x.sql));
+    check('T2: a do INSERTu jde `lan` (ne `cloud`)', v?.args?.[2], 'lan');
+  }
+
+  // ── T3) /task bez `title` → 400 a ŽÁDNÝ INSERT ──────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/task',
+      { telo: { prompt: 'bez titulku' } });
+    check('T3: /task bez `title` → 400', status, 400);
+    check('T3: a NEZALOŽIL úlohu', bylZapis(log, /INSERT INTO tasks/), false);
+  }
+
+  // ── T4) /task s neznámým target → `cloud` (žádný tichý nesmysl) ─────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, vazby } = envFor({ aktivniHra: true });
+    const { body } = await post(mod, env, '/task', {
+      telo: { title: 'x', prompt: 'y', target: 'neexistuje' },
+    });
+    check('T4: neznámý target se srazí na `cloud`', body?.target, 'cloud');
+    const v = vazby.find((x) => /INSERT INTO tasks/.test(x.sql));
+    check('T4: a do INSERTu jde `cloud`', v?.args?.[2], 'cloud');
+  }
+
+  // ── T5) /task se špatným tajemstvím → 401 a ŽÁDNÝ INSERT ────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/task',
+      { telo: { title: 'x', prompt: 'y' }, secret: 'spatne' });
+    check('T5: /task se špatným tajemstvím → 401', status, 401);
+    check('T5: a nic se nezaložilo', bylZapis(log, /INSERT INTO tasks/), false);
+  }
+
+  // ── U) /game: registrace hry ji ZAPNE (`active = 1`) ────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, vazby } = envFor({ aktivniHra: true });
+    const { status, body } = await post(mod, env, '/game',
+      { telo: { game_id: 'test', repo: 'test/hra' } });
+    check('U: /game odpoví 200', status, 200);
+    check('U: /game vrátí `ok: true` a hru', [body?.ok, body?.game_id], [true, 'test']);
+    check('U: zápis je UPSERT (ne pád na duplicitní klíč)',
+      bylZapis(log, /INSERT INTO games .*ON CONFLICT\(game_id\) DO UPDATE/s), true);
+    // ⚠ TOHLE JE TO PODSTATNÉ: registrace musí hru ZAPNOUT — jinak by nová hra
+    //    zůstala `active = 0` a orchestra by na ní nikdy nezačala pracovat.
+    check('U: a registrace hru ZAPNE (`active = 1`)',
+      bylZapis(log, /ON CONFLICT\(game_id\) DO UPDATE SET[\s\S]*active = 1/), true);
+    const v = vazby.find((x) => /INSERT INTO games/.test(x.sql));
+    check('U: `game_id` a `repo` jdou do INSERTu',
+      [v?.args?.[0], v?.args?.[1]], ['test', 'test/hra']);
+    check('U: výchozí `roadmap_file` je `.forge/roadmap.json`',
+      v?.args?.[2], '.forge/roadmap.json');
+  }
+
+  // ── U2) /game bez `repo` → 400 a ŽÁDNÝ zápis ────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/game', { telo: { game_id: 'test' } });
+    check('U2: /game bez `repo` → 400', status, 400);
+    check('U2: a nic se nezapsalo', bylZapis(log, /INSERT INTO games/), false);
+  }
+
+  // ── U3) /game se špatným tajemstvím → 401 a ŽÁDNÝ zápis ─────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/game',
+      { telo: { game_id: 'test', repo: 'test/hra' }, secret: 'spatne' });
+    check('U3: /game se špatným tajemstvím → 401', status, 401);
+    check('U3: a nic se nezapsalo', bylZapis(log, /INSERT INTO games/), false);
+  }
+
+  // ── V) /game/active: VYPNUTÍ hry (`active: false`) ──────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log, vazby } = envFor({ aktivniHra: true });
+    const { status, body } = await post(mod, env, '/game/active',
+      { telo: { game_id: 'test', active: false } });
+    check('V: /game/active odpoví 200', status, 200);
+    check('V: a vrátí `active: 0`', body?.active, 0);
+    check('V: UPDATE do `games` proběhl', bylZapis(log, /UPDATE games SET active/), true);
+    const v = vazby.find((x) => /UPDATE games SET active/.test(x.sql));
+    check('V: do DB jde `active = 0` (ne 1)', v?.args?.[0], 0);
+    check('V: a hra se hledá podle `game_id`', v?.args?.[1], 'test');
+  }
+
+  // ── V2) /game/active BEZ `active` → ZAPNE (výchozí 1) ───────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, vazby } = envFor({ aktivniHra: true });
+    const { body } = await post(mod, env, '/game/active', { telo: { game_id: 'test' } });
+    check('V2: bez `active` se hra ZAPNE (`active: 1`)', body?.active, 1);
+    const v = vazby.find((x) => /UPDATE games SET active/.test(x.sql));
+    check('V2: a do DB jde 1', v?.args?.[0], 1);
+  }
+
+  // ── V3) /game/active: neznámá hra → 404 a stav se NEPŘEPNE ──────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav } = envFor({ aktivniHra: true, gameChanges: 0 });
+    const { status, body } = await post(mod, env, '/game/active',
+      { telo: { game_id: 'neexistuje', active: false } });
+    check('V3: neznámá hra → 404', status, 404);
+    check('V3: a odpověď řekne kterou hru', body?.game_id, 'neexistuje');
+    check('V3: a stav hry se NEZMĚNIL (0 změněných řádků ≠ přepnuto)',
+      stav.posledniActive, undefined);
+  }
+
+  // ── V4) /game/active bez `game_id` → 400 ────────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/game/active', { telo: { active: false } });
+    check('V4: /game/active bez `game_id` → 400', status, 400);
+    check('V4: a nic se nepřepnulo', bylZapis(log, /UPDATE games SET active/), false);
+  }
+
+  // ── V5) /game/active se špatným tajemstvím → 401 ────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true });
+    const { status } = await post(mod, env, '/game/active',
+      { telo: { game_id: 'test', active: false }, secret: 'spatne' });
+    check('V5: /game/active se špatným tajemstvím → 401', status, 401);
+    check('V5: a nic se nepřepnulo', bylZapis(log, /UPDATE games SET active/), false);
+  }
+
+  // ── W) INTEGRACE: vypnutá hra → tik NEDISPATCHUJE; zapnutá → dispatchuje ─
+  // Tohle je smysl celého `/game/active`: registr her není „data", je to
+  // ROZHODNUTÍ o tom, co orchestra dělá. Test to měří na CHOVÁNÍ tiku.
+  {
+    const cfg = { aktivniHra: true };
+    const calls = [];
+    stubGithub(calls, cfg);
+    const { env, stav } = envFor(cfg);
+    const vyp = await post(mod, env, '/game/active',
+      { telo: { game_id: 'test', active: false } });
+    check('W: hru jde vypnout (`/game/active false`)', vyp.body?.active, 0);
+    await tick(mod, env);
+    check('W: po VYPNUTÍ hry tik NEDISPATCHUJE', calls.filter(jeDispatch).length, 0);
+    const zap = await post(mod, env, '/game/active', { telo: { game_id: 'test' } });
+    check('W: hru jde zase zapnout', zap.body?.active, 1);
+    const calls2 = [];
+    stubGithub(calls2, cfg);
+    await tick(mod, env);
+    check('W: po ZAPNUTÍ hry tik dispatchuje PRÁVĚ JEDNOU',
+      calls2.filter(jeDispatch).length, 1);
+    check('W: přepnutí hry proběhla právě 2×', stav.prepnutoHry, 2);
   }
 
   console.log();
