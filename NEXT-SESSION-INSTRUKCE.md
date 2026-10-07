@@ -6,16 +6,22 @@
 **§52** (předání) a **§53** (nasazeno a ověřeno živě)) ani kronika (ta je
 v `KRONIKA-PROJEKTU.md`, nejnovější řádek **38**).
 
-**Stav obou repů při psaní:** `forge-orchestra` = `7f0b2f8` · `uo-shadows` = `44dd454`
-`origin/main` orchestry = **`7f0b2f8`** (**pushnuto**, `origin/main..HEAD` = **0**) ·
-`origin/main` hry = **shodná**, strom orchestry má **necommitnutou práci SOUBĚŽNÉ
-session** (viz §0.2).
-**Zkontrolováno při:** **7. 10. 2026, 06:1x UTC = 08:1x +02:00**
+**Stav obou repů při psaní:** `forge-orchestra` = `d998190` · `uo-shadows` = `44dd454`
+`origin/main` orchestry = **`d998190`** (**pushnuto**, `origin/main..HEAD` = **0**) ·
+`origin/main` hry = **shodná**, strom orchestry má **necommitnuté MAZÁNÍ 25 starých
+skriptů** (`_analyza/_p13c-*`, `hl2-*`, `p14*`) — práce **souběžné session** (§0.2).
+**Zkontrolováno při:** **7. 10. 2026, 08:2x +02:00 = 06:2x UTC**
 
 **Kotva pro měření (tvar, který čte `_analyza/zadani-kontrola.py`):**
-`forge-orchestra` = `7f0b2f8` · `uo-shadows` = `44dd454`
-**Kotva pro měření:** `7f0b2f8` (na něm se měřilo; **po každém dalším commitu
+`forge-orchestra` = `d998190` · `uo-shadows` = `44dd454`
+**Kotva pro měření:** `d998190` (na něm se měřilo; **po každém dalším commitu
 bude `zadání kontrola` hlásit „přibylo commitů" — a to je správně**, nález NA31)
+
+> **⚠ MEZI MÝM MĚŘENÍM A TOHLE ZADÁNÍM PŘIBYL CIZÍ COMMIT.** Souběžná session
+> (generalizace) commitla **`f8595de`** — *„cesty se odvozují, ne zapekají
+> (31 → 0) + 6. kontrola autority"*. **Mění nástroje, jejichž čísla cituju v §5**
+> (`over-skilly.py`, `ag-over-cisla.py`, `zadani-kontrola.py`) → **čísla v §5
+> ber jako naměřená PŘED ním a přeměř je.**
 
 > **⚠ PRVNÍ VĚC, KTEROU UDĚLEJ:** `git status --porcelain` a **`git fetch`**
 > v obou repech — a **ověř `origin/main..HEAD` ŽIVĚ** (`git ls-remote`), ne
@@ -68,14 +74,17 @@ bude `zadání kontrola` hlásit „přibylo commitů" — a to je správně**, 
 
 ### 0.2 ⚠ SOUBĚŽNÁ SESSION PRACUJE VE STEJNÉM STROMĚ
 
-Ve workspace je **necommitnutá práce druhé session** (generalizace nástrojů —
-nahrazuje zapečené cesty `C:\Users\Ssevc\…` za `DSH_HOME`/`HOME`): změněné
-`_analyza/ag-over-cisla.py`, `_analyza/b-mutace.py`, `_analyza/kronika-kontrola.py`,
-`_analyza/n8-zastarala-analyza.py`, `_analyza/ov-*.py` (8 souborů),
-`_analyza/p22-test-mutace.py`, `_analyza/zadani-kontrola.py`,
-`tools/over-dokumentaci.py`, `tools/over-skilly.py`.
-**Patří jí — necommituj ji a neopravuj ji.** Zároveň: **kvůli ní průběžně
+Ve workspace pracuje **druhá session** (generalizace nástrojů — nahrazuje
+zapečené cesty `C:\Users\Ssevc\…` za `DSH_HOME`/`HOME`). **Své první kolo už
+commitla** (`f8595de`) a **druhé má rozdělané**: v pracovním stromě je
+**necommitnuté smazání 25 starých skriptů** (`_analyza/_p13c-*.py`, `hl2-*.py`,
+`p14*.py` — nejspíš přesun do `_archivu`).
+**Patří jí — necommituj ji, neopravuj ji, nemaž ji.** A **kvůli ní průběžně
 zestarává `_analyza/_inventar.json`** (je to vstup skeneru) — to není vada.
+
+⚠ **Její commit `f8595de` se dotkl i měřidel, o která se opírá §5** — pokud
+naměříš jiná čísla než já, **věř svému měření** a zapiš to jako nález (je to
+přesně ten druh rozchodu, který má brána odhalit).
 
 ---
 
