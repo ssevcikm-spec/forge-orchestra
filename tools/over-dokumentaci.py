@@ -8,17 +8,22 @@ zakazuje to `AGENTS.md` a `g1-diakritika-novych.py` to hlásí jako vadu
 souboru (naměřeno 2. 10. 2026).
 """
 
+import os
 import pathlib
 import re
 import sys
 
-SKILLS = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026). Dřív tu byly
+# literály `C:\Users\Ssevc\…`, takže nástroj šel použít jen na téhle stanici.
+# Hodnoty jsou tu SHODNÉ s dřívějšími literály — mění se jen přenositelnost.
+REPO = pathlib.Path(__file__).resolve().parents[1]
+DSH = pathlib.Path(os.environ.get("DSH_HOME") or pathlib.Path.home() / ".dsh")
+STANICE = pathlib.Path(os.environ.get("FORGE_STANICE", r"C:\Users\Ssevc\Local-Deepseek"))
+SKILLS = DSH / "skills"
 # Obecná pravidla stanice (DSH_HOME; `~\.dsh` je junction na E:\DeepSeekHarness-data).
 # OD 4. 10. 2026 sem patří obecné části trvalých pravidel — projektové AGENTS.md
 # je už nenese, aby se nezdvojovaly (viz PLAN-SEPARACE-WORKSPACE.md).
-OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
-REPO = pathlib.Path(__file__).resolve().parents[1]
-STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")  # P8 (presun na E:): dokumenty, ktere zustaly stanici (D6)
+OBECNA = DSH / "AGENTS.md"
 
 # Typické znaky dvojitého kódování (UTF-8 přečtené jako Windows-1250)
 ROZBITE = ["Ã", "Ä", "Å", "Å¡", "Ä›", "Ã¡", "Ã­", "Ã©"]

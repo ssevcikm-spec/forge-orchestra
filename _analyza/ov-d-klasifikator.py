@@ -22,7 +22,9 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-REPO = pathlib.Path(r"E:\Workspaces\forge-orchestra")
+# ⚠ CESTA SE ODVOZUJE, NEZAPEKÁVÁ (generalizace, 7. 10. 2026).
+# `_analyza` leží v repu orchestry; dřív tu byl literál `E:\Workspaces\…`.
+REPO = pathlib.Path(__file__).resolve().parents[1]
 ANALYZA = REPO / "_analyza"
 G3 = ANALYZA / "g3-brany.py"
 FIX = ANALYZA / "a-ukol-scratch" / "ov-d-fixtury"   # gitignorováno (`*-scratch/`)

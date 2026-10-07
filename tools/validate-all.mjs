@@ -466,13 +466,19 @@ console.log('\n════ L. BRÁNY A1/A2/A3 A STÁRNUTÍ ANALÝZY ═══�
     // tam patří: `AGENTS.md` je **autorita pro VŠECHNY session**, takže chybné
     // číslo v něm se neprojeví jako chyba, ale jako **důsledek na pěti místech**
     // (naměřeno: „32 sloupců" místo 39, chybné už při zápisu, šest session to
-    // nevidělo). ⚠ JEHO MEZ, PŘIZNANÁ: pokrývá **5 čísel** (`schema.sql` ×3,
-    // non-ASCII názvy, `ci.yml`) + 2 historická; **zbytek nehlídá**. Proto se
+    // nevidělo). ⚠ JEHO MEZ, PŘIZNANÁ: pokrývá **6 čísel** (`schema.sql` ×3,
+    // non-ASCII názvy, `ci.yml`, **počet bran v generovaném registru**)
+    // + 2 historická; **zbytek nehlídá**. Proto se
     // u něj nesmí číst zelená jako „všechna čísla sedí" — jen jako „ta měřená
     // sedí". Kdo do `AGENTS.md` přidá číslo, **přidá i kontrolu** (jinak si
     // příště přečte zastaralé číslo jako fakt).
+    // ⚠ 7. 10. 2026 (generalizace): přidáno 6. číslo — „bran v registru".
+    // `AGENTS.md` tvrdil **37 bran**, registr měl **48**. Je to táž třída vady
+    // (číslo v AUTORITĚ, které zestaralo) a nová kontrola je **mutačně ověřená**
+    // (`_analyza-generalizace\test-nove-kontroly.py`: 48 → 37 → `exit 1`,
+    // soubor vrácen bajt na bajt).
     ['ag-over-cisla.py',
-     'trvalá pravidla: čísla v AGENTS.md proti ZDROJI (5 měřených; zbytek NEhlídá)',
+     'trvalá pravidla: čísla v AGENTS.md proti ZDROJI (6 měřených; zbytek NEhlídá)',
      ['python', `${ANALYZA}/ag-over-cisla.py`]],
     // POZOR: `c2-mutace.py` sem NEPATŘÍ, i když je to brána k N1. Sama
     // přepisuje `_inventar.json` (a vrací ho) — přesně to pojistka níž hlídá.

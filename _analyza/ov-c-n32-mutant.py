@@ -21,7 +21,9 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-REPO = pathlib.Path(r"E:\Workspaces\forge-orchestra")
+# ⚠ CESTA SE ODVOZUJE, NEZAPEKÁVÁ (generalizace, 7. 10. 2026).
+# `_analyza` leží v repu orchestry; dřív tu byl literál `E:\Workspaces\…`.
+REPO = pathlib.Path(__file__).resolve().parents[1]
 BRANA = REPO / "_analyza" / "n32-kompilovatelnost.py"
 # JINÝ soubor než P17 (ta mutovala pravděpodobně `tools/` nebo živý `_analyza/`;
 # tady je to VLASTNÍ skener téhle session, na jiném místě souboru).

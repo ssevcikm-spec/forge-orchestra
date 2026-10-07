@@ -39,7 +39,11 @@ def _najdi_godot() -> Path:
         kandidati.append(Path(os.environ["FORGE_GODOT"]))
     kandidati += [
         KOREN.parent.parent / "Tools" / "godot" / "Godot_v4.7.2-stable_win64_console.exe",
+        # Obvyklá místa obecného nástroje stanice (D7). Bere se PRVNÍ, které
+        # existuje; override je `FORGE_GODOT`. Pořadí je shodné s `g3-brany.py`.
         Path(r"E:\Tools\godot") / "Godot_v4.7.2-stable_win64_console.exe",
+        Path(r"C:\Users\Ssevc\Local-Deepseek\_tools\godot")
+        / "Godot_v4.7.2-stable_win64_console.exe",
     ]
     for k in kandidati:
         if k.is_file():

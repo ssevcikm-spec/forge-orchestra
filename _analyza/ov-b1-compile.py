@@ -15,9 +15,13 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026). Dřív tu byly
+# literály `E:\Workspaces\…`, takže nástroj šel použít jen na téhle stanici.
+# `_analyza` leží v repu orchestry, hra je její SOUROZENEC (vzor z `g3-brany.py`).
+REPO = pathlib.Path(__file__).resolve().parents[1]
 REPA = {
-    "orchestra": pathlib.Path(r"E:\Workspaces\forge-orchestra"),
-    "hra": pathlib.Path(r"E:\Workspaces\uo-shadows"),
+    "orchestra": REPO,
+    "hra": REPO.parent / "uo-shadows",
 }
 # Archivní stromy: kód, který se už nespouští. Počítají se ZVLÁŠŤ a vypisují.
 ARCHIV = {"_archiv", "_retired"}

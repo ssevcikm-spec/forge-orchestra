@@ -6,7 +6,9 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-KR = pathlib.Path(r"E:\Workspaces\forge-orchestra\KRONIKA-PROJEKTU.md")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026).
+REPO = pathlib.Path(__file__).resolve().parents[1]
+KR = REPO / "KRONIKA-PROJEKTU.md"
 lines = KR.read_text(encoding="utf-8").splitlines()
 
 STAVY = ("NEOVĚŘENO", "APLIKOVÁNO", "POTVRZENO", "ZAMÍTNUTO", "ODLOŽENO",
@@ -43,7 +45,7 @@ for n, i, s in nerozhodnute:
 print("\n" + "=" * 90)
 print("TOTÉŽ PRO NÁLEZY (Hxx) V HANDOFF.md — hledám 'NEOVĚŘENO' ve sloupci Stav")
 print("=" * 90)
-HO = pathlib.Path(r"E:\Workspaces\forge-orchestra\HANDOFF.md")
+HO = REPO / "HANDOFF.md"
 h_lines = HO.read_text(encoding="utf-8").splitlines()
 n_h = 0
 h_nev = []

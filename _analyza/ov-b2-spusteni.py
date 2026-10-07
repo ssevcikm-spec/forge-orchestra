@@ -20,9 +20,12 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-IZO = pathlib.Path(r"E:\Workspaces\_ov-scratch\forge-orchestra")
-ZIVY = pathlib.Path(r"E:\Workspaces\forge-orchestra")
-HRA = pathlib.Path(r"E:\Workspaces\uo-shadows")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026). Dřív tu byly
+# literály `E:\Workspaces\…`, takže nástroj šel použít jen na téhle stanici.
+# IZO = izolovaná kopie repa (zdroj izolace), ZIVY = živý repa, HRA = sourozenec.
+ZIVY = pathlib.Path(__file__).resolve().parents[1]
+IZO = ZIVY.parent / "_ov-scratch" / ZIVY.name
+HRA = ZIVY.parent / "uo-shadows"
 BASELINE = HRA / ".forge" / "vision" / "baseline.json"
 
 SEST = [

@@ -7,7 +7,11 @@ _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
 _HRA = _REPO.parent / "uo-shadows"
 # Dokumenty, ktere zustaly STANICI (D6): na ty se saha absolutne.
-_STANICE_DOKUMENTY = _pl.Path(r"C:\Users\Ssevc\Local-Deepseek")
+# ⚠ Kořen stanice je JINÝ DISK, takže se odvodit nedá — bere se z prostředí
+# s dokumentovanou výchozí hodnotou (vzor z `tools/verify-setup.py:69`).
+import os as _os
+_STANICE_DOKUMENTY = _pl.Path(_os.environ.get(
+    "FORGE_STANICE", r"C:\Users\Ssevc\Local-Deepseek"))
 r"""Kontrola zadání: je `NEXT-SESSION-INSTRUKCE.md` ještě použitelné?
 
 PROČ TO EXISTUJE (naměřeno 2. 10. 2026): zadání pro druhý krok řetězu vznikalo

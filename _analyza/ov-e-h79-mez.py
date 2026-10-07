@@ -26,8 +26,9 @@ import warnings
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WS = pathlib.Path(r"E:\Workspaces\forge-orchestra")
-HRA = pathlib.Path(r"E:\Workspaces\uo-shadows")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026).
+WS = pathlib.Path(__file__).resolve().parents[1]
+HRA = WS.parent / "uo-shadows"
 SKEN = WS / "_analyza" / "h79-escape-sken.py"
 ARCHIV = WS / "_analyza" / "_archiv"
 SKIP = {".git", "node_modules", "__pycache__"}

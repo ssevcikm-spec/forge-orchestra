@@ -14,8 +14,9 @@ import sys
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-WS = pathlib.Path(r"E:\Workspaces\forge-orchestra")
-HRA = pathlib.Path(r"E:\Workspaces\uo-shadows")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026).
+WS = pathlib.Path(__file__).resolve().parents[1]
+HRA = WS.parent / "uo-shadows"
 SKIP = {".git", "node_modules", "__pycache__", "_archiv", ".godot", ".tmp"}
 # Cíl, na který se ptáme (existuje jen pod herním repem).
 CIL = pathlib.Path("assets")
@@ -120,5 +121,5 @@ for rel in ["tools/simulace-dag.py", "tools/stav-dag.py",
         cesta = cil / "uo-shadows"
         print(f"    {rel}:{i}  {m.group(0)}\n        → {cesta}  "
               f"(existuje: {cesta.exists()})")
-print(f"\n  E:\\uo-shadows existuje: {pathlib.Path(r'E:\\uo-shadows').exists()}")
+print(f"\n  {HRA} existuje: {HRA.exists()}")
 sys.exit(0 if not riziko else 1)

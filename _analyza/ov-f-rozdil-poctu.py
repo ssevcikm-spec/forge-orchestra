@@ -2,8 +2,8 @@
 import pathlib
 from collections import Counter
 
-WS = pathlib.Path(r"E:\Workspaces\forge-orchestra")
-HRA = pathlib.Path(r"E:\Workspaces\uo-shadows")
+WS = pathlib.Path(__file__).resolve().parents[1]
+HRA = WS.parent / "uo-shadows"
 REPA = [("orchestra", WS), ("hra", HRA)]
 
 # Filtr NA32 (živý strom, mimo _archiv a .git)

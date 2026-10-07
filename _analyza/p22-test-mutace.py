@@ -132,7 +132,12 @@ zk(kod0 == 0, "zdravá brána prochází", f"exit={kod0}")
 pred_brana = sha(BRANA)
 
 # Zmutujeme KOŘEN, proti kterému brána ověřuje cesty → přestane je nacházet.
-with mutuj(BRANA, r'pathlib.Path(r"E:\Workspaces\forge-orchestra")',
+# ⚠ KOTVA SE MUSÍ SHODOVAT SE ZDROJEM. Po generalizaci cest (7. 10. 2026) je
+# v `n8-zastarala-analyza.py` místo literálu `E:\Workspaces\forge-orchestra`
+# odvození z `__file__` — kotva se proto změnila s ním. Kdyby zůstala stará,
+# `mutuj` by spadl (`kotva v souboru NENÍ`) a test by NEMĚŘIL; přesně na to
+# `_mutace.py:74` myslí, takže se to nedozvíme tiše.
+with mutuj(BRANA, r'pathlib.Path(__file__).resolve().parents[1]',
            r'pathlib.Path(r"E:\Workspaces\NEEXISTUJE-tato-cesta")') as m:
     kod1, v1 = spust_branu()
     zk(kod1 != 0, "zmutovaná brána SPADLA (verdikt se změnil)", f"exit={kod1}")

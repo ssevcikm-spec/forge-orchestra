@@ -15,17 +15,23 @@ které nutí „opravovat" správný text. Naměřeno: plošný sken hlásil 45 
 cest, z toho po filtraci zůstalo 7 a **všechny byly legitimní**.
 """
 
+import os
 import pathlib
 import re
 import sys
 
 import yaml
 
-SKILLS = pathlib.Path(r"C:\Users\Ssevc\.dsh\skills")
+# ⚠ CESTY SE ODVOZUJÍ, NEZAPEKAJÍ (generalizace, 7. 10. 2026). Dřív tu byly
+# literály `C:\Users\Ssevc\…`, takže nástroj šel použít jen na téhle stanici.
+# Hodnoty jsou tu SHODNÉ s dřívějšími literály — mění se jen přenositelnost.
+REPO = pathlib.Path(__file__).resolve().parents[1]
+DSH = pathlib.Path(os.environ.get("DSH_HOME") or pathlib.Path.home() / ".dsh")
+SKILLS = DSH / "skills"
 
 # Kořeny, proti kterým se cesta k nástroji zkouší (projekt orchestra a hra).
-KORENY = [pathlib.Path(r"E:\Workspaces\forge-orchestra"),
-          pathlib.Path(r"E:\Workspaces\uo-shadows")]
+# `HRA` je sestra tohohle repa (vzor z `g3-brany.py`), takže se odvozuje odsud.
+KORENY = [REPO, REPO.parent / "uo-shadows"]
 
 # Cesty k nástrojům projektu v backticích (např. `_analyza\g3-brany.py`, `tools\over-skilly.py`).
 VZOR_CESTY = re.compile(r"`((?:_analyza|tools)[\\/][^\s`\"']+)`")

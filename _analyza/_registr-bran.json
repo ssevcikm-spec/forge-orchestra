@@ -1,9 +1,8 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-07 04:15:17",
+  "kdy": "2026-10-07 08:17:11",
   "bran_celkem": 48,
   "s_nenulovym_exit": [
-    "validate-all (CELEK)",
     "zadání kontrola"
   ],
   "ocekavane_nenulove": {
@@ -78,7 +77,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "392",
+      "otevrela": "372",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
@@ -273,7 +272,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 1,
+      "exit": 0,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
@@ -288,7 +287,7 @@
     {
       "nazev": "chybějící importy (statická)",
       "exit": 0,
-      "otevrela": "74",
+      "otevrela": "76",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
     },
@@ -330,7 +329,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "189 / 0",
+      "otevrela": "169 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

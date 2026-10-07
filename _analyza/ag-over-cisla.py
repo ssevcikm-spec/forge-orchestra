@@ -38,6 +38,7 @@ POZOR na dvě věci, které tu jsou schválně:
      Kdyby hlásil chybu u všech, je rozbitý on, ne dokument.
 """
 
+import os
 import pathlib
 import re
 import subprocess
@@ -51,8 +52,11 @@ AGENTS = WS / "AGENTS.md"
 # workspace). Tvrzení se proto hledají ve DVOU dokumentech — jinak by skript
 # po přesunu hlásil „NENAŠEL JSEM TVRZENÍ" u pravidla, které je v pořádku,
 # jen se přestěhovalo. (Přesně ta vada, kterou níž řeší `nenalezeno`.)
-OBECNA = pathlib.Path(r"C:\Users\Ssevc\.dsh\AGENTS.md")
+OBECNA = (pathlib.Path(os.environ["DSH_HOME"]) if os.environ.get("DSH_HOME")
+          else pathlib.Path.home() / ".dsh") / "AGENTS.md"
 ORCHESTRA = WS
+# Generovaný registr živých bran (píše ho `g3`; needituje se rukou).
+REGISTR = pathlib.Path(__file__).resolve().parent / "_registr-bran.json"
 GIT = str(ORCHESTRA / "tools" / "git.cmd")
 
 # ⚠ PŘIDÁNO 4. 10. 2026 (přesun na E:). Adresáře, které NEJSOU zdrojový kód
@@ -172,6 +176,26 @@ def radku_v_blobu(cesta: str) -> int | None:
         return None
 
 
+def pocet_bran_v_registru() -> int | None:
+    """Počet bran v GENEROVANÉM registru `_analyza\\_registr-bran.json`.
+
+    ⚠ Proč to sem patří (nález 7. 10. 2026): `AGENTS.md` tvrdil **„37 bran"**
+    a registr měl **48**. Je to TÁŽ třída vady, kterou tenhle skript vznikl
+    hlídat — číslo v autoritě, které zestaralo a čte se jako fakt. Registr je
+    **generovaný `g3`** (`python _analyza\\g3-brany.py`), takže správný postup
+    je: přeměř, a když se rozešel, **přepiš číslo v AGENTS.md** (registr se
+    needituje rukou). Když registr chybí, vrátí `None` = „nepodařilo se změřit"
+    — což NENÍ totéž jako shoda.
+    """
+    try:
+        import json
+        data = json.loads(REGISTR.read_text(encoding="utf-8"))
+        hodnota = data.get("bran_celkem")
+        return int(hodnota) if hodnota is not None else None
+    except Exception:
+        return None
+
+
 # ── PARSOVÁNÍ TVRZENÍ Z AGENTS.md ────────────────────────────────────────────
 # ⚠ TADY BYLA VÁŽNÁ VADA PRVNÍ VERZE (odhalil ji až MUTAČNÍ TEST):
 # čísla byla v seznamu NAPSANÁ NAPEVNO, takže skript měřil zdroj a porovnával
@@ -232,6 +256,13 @@ KONTROLY = [
      # hlásila slepé místo, které přitom v dokumentu bylo.
      tvrzi(r"u `ci\.yml` hlásil \*\*\d+\*\*,\s+správně je \*\*(\d+)\*\*", 1, jako_int),
      "blob v HEAD (ne disk!) — soubor je v repo/.github/workflows/", False),
+    # ⚠ PŘIDÁNO 7. 10. 2026 (generalizace, třetí autorita): `AGENTS.md` tvrdil
+    # „37 bran", registr měl **48**. Je to táž třída vady, kterou tenhle skript
+    # hlídá — číslo v AUTORITĚ, které zestaralo. Registr je GENEROVANÝ
+    # (`python _analyza\g3-brany.py`), takže autorita čísla je běh.
+    ("bran v registru", pocet_bran_v_registru(),
+     tvrzi(r"výstupem běhu\*\* \((\d+) bran", 1, jako_int),
+     "generovaný _registr-bran.json (píše ho `g3`)", False),
     # ── historická (ve svém čase správná) ────────────────────────────────────
     ("10 míst s českým identifikátorem", 0,
      tvrzi(r"IDENTIFIKÁTOR \| \*\*(\d+) míst\*\*", 1, jako_int),

@@ -5,7 +5,8 @@
 import pathlib as _pl
 _REPO = _pl.Path(__file__).resolve().parents[1]
 _STANICE = _REPO  # dokumenty projektu jsou v repu (presun na E:, 4. 10. 2026)
-_HRA = _REPO.parent / "uo-shadows"
+_HRA = _pl.Path(__import__("os").environ.get("FORGE_HRA")
+                or (_REPO.parent / "uo-shadows"))
 """N8: ověří, která tvrzení ANALYZA-HLOUBKOVA-ORCHESTRA-2.md UŽ NEPLATÍ.
 
 PROČ TOHLE EXISTUJE

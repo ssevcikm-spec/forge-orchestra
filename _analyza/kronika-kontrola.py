@@ -402,7 +402,7 @@ chybejici = []
 #   REPO   = root repa (orchestra)  — projektove dokumenty se presunuly sem
 #   HRA    = E:\Workspaces\uo-shadows — sourozenec; `docs/...` je UVNITR ni
 #   STANICE= C:\Users\Ssevc\Local-Deepseek — dokumenty, ktere zustaly stanici (D6)
-STANICE = pathlib.Path(r"C:\Users\Ssevc\Local-Deepseek")
+STANICE = pathlib.Path(os.environ.get("FORGE_STANICE", r"C:\Users\Ssevc\Local-Deepseek"))
 SKILLY_DIR = pathlib.Path.home() / ".dsh" / "skills"
 for o in odkazy:
     if (WS / o).is_file():                 # v repu orchestra
