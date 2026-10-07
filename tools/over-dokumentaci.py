@@ -326,7 +326,19 @@ zkontroluj(OBECNA, [
     # Kdy práce patří do nové session.
     "nezávislosti pohledu",
     # Co nikdy.
-    "Nepushovat bez vyžádání",
+    #
+    # ⚠ ZMĚNA 7. 10. 2026: uživatel řekl, že **commit i push má dělat agent
+    # sám** („To stejné pro commit a push — já stejně nerozumím kódu, jen
+    # konceptu v lidském jazyce"). Původní kotva **„Nepushovat bez vyžádání"**
+    # tím přestala platit — a brána na ní **správně spadla** (`exit 1`), protože
+    # kontrola dokumentu má číst AKTUÁLNÍ pravidlo, ne zrušené.
+    #
+    # ⚠ A druhá věc, která se tím potvrdila: **kontrola textu v dokumentu se
+    # rozbije, když se pravidlo změní** — a to je tak správně. Kdo kotvu
+    # „opraví" smazáním, přijde o kontrolu; správná oprava je **nová kotva
+    # s novým zněním** (a ta stará se už nehlídá, protože už neplatí).
+    "Nepushovat, dokud nejsou brány zelené",
+    "origin/main",
 ], "AGENTS.md obecná (DSH_HOME)")
 
 print("=== workspace: AGENTS.md (PRAVIDLA PROJEKTU) ===")
