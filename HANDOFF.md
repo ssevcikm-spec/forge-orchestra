@@ -1894,7 +1894,7 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 
 | # | Co | Doklad |
 |---|---|---|
-| **A** | **Přeměření práce P25 VLASTNÍM měřidlem** (A1–A6, každý bod jiným postupem, než vznikl) | `_analyza/p26-a-overeni.py --plne` → **«PLNE» kontrol, 0 chyb** |
+| **A** | **Přeměření práce P25 VLASTNÍM měřidlem** (A1–A6, každý bod jiným postupem, než vznikl) | `_analyza/p26-a-overeni.py --plne` → **90 kontrol, 0 chyb** (0× `NEZMĚŘENO`), uložený výstup `p26-a-plne-vystup.txt` |
 | **A** | **Důkaz, že i tohle měřidlo umí spadnout** — tři mutace **v KOPIÍCH**, každá s **diferenciálem** (originál spadne / oslabená kopie projde) | `_analyza/p26-b-mutace.py` → **26 kontrol, 0 chyb** |
 | **B1** | **Oprava brány, která tiše zúžila rozsah z 99 řádků Hxx na 1** (nález P25-K) | `_analyza/ov-g-neovereno.py` → rozsah **1 → 99**, vypisuje KTERÉ soubory otevřel; fixtury: `NEOVĚŘENO` → `exit 1`, prázdno → `NEMĚŘENO` |
 | **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran, 1 deklarovaný nenulový exit** (`zadání kontrola`), **exit 0** · `validate-all` → **VŠE V POŘÁDKU** · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
@@ -1983,6 +1983,18 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
     strom není čistý, 3 nepushnuté commity) místo dřívějšího **99/1** — a to
     **není vada měřidla**: A8 měří **živý stav hry** (P25 to zapsala jako
     „dobová kotva"). **Na práci té session se nesahalo.**
+13. **DVA GATE SE VYLUČUJÍ — naměřeno, ne odvozeno.** `zadani-kontrola.py`
+    vyžaduje, aby **kotva zadání = živý `HEAD`** (jinak hlásí „zadání je
+    zastaralé"), ale `p25-b-mutace.py` vyžaduje **ČISTÝ pracovní strom**
+    (jinak svou kontrolou „živé soubory zůstaly BEZ mutací" vykáže **moje
+    legitimní necommitnuté záznamy jako mutanty**). **Obojí současně nejde:**
+    po commitu se `HEAD` posune a kotva zadání přestane sedět. Naměřeno v P26
+    dvakrát (`p25-b` → 27/**1** se dvěma necommitnutými soubory; po commitu
+    zase 27/**0**). **Řešení zvolené P26:** doklad i `p25-b` se měří na
+    **čistém** stromě (commit `d451905`) a hlavička zadání se doplňuje
+    **NEcommitnutá** — proto zůstává `NEXT-SESSION-INSTRUKCE.md` v pracovním
+    stromě jako jediná změna. Kdo pustí `p25-b` před commitem, uvidí tuhle
+    falešnou červenou — **není to vada kódu**.
 
 ### 56.3 Živý stav při zápisu (7. 10. 2026, ~16:2x +02:00)
 

@@ -473,8 +473,10 @@ se opravila brána, kterou sama P25 **označila za zúženou**. Záznam: `HANDOF
 | **P26-I** | „Měřidlo, které nikdo nepoužije, je neškodné.“ | Dvě vady měřidel P25/P24 se projevily **jen tím, že je P26 spustila**: `p25-a` A6 odhalil smazané položky `PRESKOCIT` a `p24-a` A8 ukázal, že do hry zapsala **souběžná session** | **NEZÁVISLÉ SPUŠTĚNÍ JE JEDINÁ OBRANA.** Záznam P25 byl v číslech **pravdivý**, ale v **důkazu** měl mezeru (A2) |
 | **P26-J** | „Když podproces nemůže zapsat soubor, spadne na `PermissionError`.“ | V `workspace-write` nešlo zapsat podprocesem do **žádného** podadresáře workspace — a tentokrát to **ZAMRZLO** (ticho, žádná chyba); `git fetch` padal na `.git/FETCH_HEAD: Permission denied`, `write` (harness) přitom zapsal | **STAV PROSTŘEDÍ, NE VADA SKRIPTU** — pomohlo **přepnutí session na plný přístup**; past ve skillu `dsh-prostredi` **§4e** |
 | **P26-K** | „Do hry teď nikdo nepíše (je pozastavená).“ | **Píše.** Mezi 15:50 a 16:02 +02:00 přibyly v `uo-shadows` **tři commity** (`6796188`, `43a2004`, `125b062`, **nepushnuté**) a netrackovaný `_acl-recovery/`; `p24-a` proto hlásí **99/3** (tři červené `A8`) místo **99/1** | **ZAPSÁNO JAKO STAV** (`A8` měří živý stav hry — P25 to zapsala jako „dobová kotva“). **Na práci té session se nesahalo**; `_acl-recovery/` se needituje, necommituje a nemaže |
+| **P26-L** | „Brány jdou spustit všechny najednou a budou zelené.“ | **DVA GATE SE VYLUČUJÍ:** `zadani-kontrola.py` chce **kotva zadání = živý `HEAD`**, ale `p25-b-mutace.py` chce **ČISTÝ pracovní strom** (jinak vykáže necommitnuté záznamy jako mutanty). Naměřeno dvakrát: `p25-b` → 27/**1** s necommitnutými soubory a 27/**0** po commitu (`d451905`) | **ŘEŠENÍ ZVOLENÉ P26:** doklad i `p25-b` se měří na **čistém** stromě a hlavička zadání se doplňuje **NEcommitnutá** (jediná změna v pracovním stromě). Falešná červená `p25-b` před commitem **není vada kódu** |
 
 ## 3. Počty omylů — jediné místo, kde je vidět TREND
+
 
 **Proč to tu je zvlášť:** `AGENTS.md` říká *„počítej, že i tvoje první číslo bude
 někde mimo."* Tahle sekce to **dokládá čísly** — a je to jediné místo, kde je

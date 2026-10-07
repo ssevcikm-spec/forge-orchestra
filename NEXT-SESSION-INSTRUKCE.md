@@ -201,6 +201,11 @@ do `PRESKOCIT`).
 **⚠ AUTORITA SEZNAMU ŽIVÝCH BRAN JE `BRANY` v `_analyza\g3-brany.py`** —
 **ne** ruční výčet v `HANDOFF.md` §6 (ten je **záznam z 2. 10. 2026**
 s předpřesunovými cestami `orchestra\tools\…` a čísly 63/12).
+**⚠ DVA GATE SE VYLUČUJÍ (naměřeno P26):** `zadani-kontrola.py` chce
+**kotva zadání = živý `HEAD`**, ale `p25-b-mutace.py` chce **ČISTÝ strom**
+(necommitnuté záznamy vykáže jako mutanty). Pořadí, které projde: **commit →
+doklad → záznamy → inventář → `g3` → `validate-all` → hlavička zadání
+(necommitnutá)**. `p25-b` červené před commitem **není vada kódu**.
 
 ### 2.4 Úkol D — ZÁZNAMY (povinné na konci)
 
