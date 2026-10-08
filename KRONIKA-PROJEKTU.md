@@ -606,6 +606,23 @@ a poučení je stejné: **„spadlo to“ není důkaz, důkaz je diferenciál**
 nástroje musí ležet **ve stejném adresáři** jako originál (totéž platí pro
 `g3-brany.py` — i ten si kořen odvozuje z `__file__`).
 
+**P28-I — FRONTA SELHÁVÁ NA KVÓTĚ A NA OSIŘELÝCH GRANULÍCH (dodatek, 8. 10. 2026 večer).**
+Poslední **4 běhy** agenta (`#240`–`#243`) skončily `failure` a **všechny čtyři**
+mají v logu `litellm.RateLimitError` (`Tokens per minute` / `Request too large`);
+workflow to hlásí jako „agent nic nezměnil“ — verdikt je správný, ale **důvod je
+jinde** (model nedostal odpověď). V běhu #341 byl navíc **rozbitý název modelu**
+`openai/openai/gpt-oss-120b`. **Druhá, závažnější věc:** úloha **#239 je `ready`**
+a míří na granuli `entity.enemy`, kterou architekt při přepisu roadmapy
+**odstranil** — v cache D1 zůstalo **5 osiřelých** řádků a ve frontě **2 úlohy**
+na neexistující granule; agent na takové granuli **nemá co dělat**, takže běh
+skončí „nic nezměnil“. **Kontrakt roadmapy má díry:** **6/21** granul bez
+`size_lines`, **11/21** bez `model` (10/21 je `strong` → perou se o tutéž free
+kvótu), 0/21 bez `acceptance`. **`/failed` neumí říct důvod** (prázdný
+`log_tail`) — proto vznikly sondy `p28-sonda-granule.mjs`,
+`p29-sonda-fronta-vs-roadmapa.mjs`, `p29-sonda-selhani.mjs`, `p29-sonda-agenta.mjs`.
+**Návod pro architekta** (checklist, procedura výměny roadmapy, anti-vzory) je
+v `JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md` **§9** — ověřuje ho P29 (nabídka **B8**).
+
 ## 3. Počty omylů — jediné místo, kde je vidět TREND
 
 

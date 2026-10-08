@@ -2443,3 +2443,35 @@ node tools\validate-all.mjs                 # 2 problémy = stav HRY (viz 59.2 b
 python _analyza\handoff-kontrola-uplnost.py # úplnost handoffu
 python _analyza\ov-g-neovereno.py           # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
 ```
+
+### 59.6 DODATEK (8. 10. 2026, ~20:3x +02:00): PROČ FRONTA SELHÁVÁ GRANULE — měřeno
+
+> Přidáno po dotazu uživatele („architekt udělal změny a fronta nadále selhává
+> granule“). **Všechno je měřené živě, jen čtením.** Sondy:
+> `_analyza/p28-sonda-granule.mjs`, `_analyza/p29-sonda-fronta-vs-roadmapa.mjs`,
+> `_analyza/p29-sonda-selhani.mjs`, `_analyza/p29-sonda-agenta.mjs`.
+
+1. **SELHÁNÍ NENÍ ZPŮSOBENÉ FORMULACÍ ZADÁNÍ, ALE KVÓTOU POSKYTOVATELE.**
+   Poslední **4 běhy** agenta (`#240`–`#243`) skončily `failure` a **ve všech
+   čtyřech** je v logu `litellm.RateLimitError` (`Tokens per minute`
+   i `Request too large for …`). Workflow to hlásí jako „**agent nic nezměnil**“
+   — verdikt je správný, ale **důvod leží jinde**. V běhu `#341` byl navíc
+   **rozbitý název modelu** `Model: openai/openai/gpt-oss-120b` (dvojitý prefix).
+2. **ORCHESTRA POSÍLÁ AGENTA NA GRANULI, KTERÁ V ROADMAPĚ NENÍ.** Úloha **#239
+   je `ready`** a míří na `entity.enemy`; `#238` (`entity.npc`) je `failed`
+   s 5 pokusy. Obě granule architekt při přepisu roadmapy **odstranil**, ale
+   **řádky v D1 a úlohy ve frontě zůstaly** (cache má **5 osiřelých**). Agent na
+   takové granuli **nemá co dělat** → „agent nic nezměnil“ → `failure`.
+3. **KONTRAKT ROADMAPY MÁ DÍRY:** **6/21** granul bez `size_lines` (gate pak
+   použije 60 a větší změnu **zamítne**), **11/21** bez `model` (a **10/21** je
+   `strong` → všechny se perou o **tutáž free kvótu**), 0/21 bez `acceptance`.
+4. **`/failed` NEVÍ, PROČ TO SELHALO** — `log_tail` je **prázdný**; důvod je jen
+   v logu Actions. Proto ty čtyři sondy výše.
+5. **NÁVOD PRO ARCHITEKTA JE NAPSANÝ:** `JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md`
+   **§9** — kvóty a velikost kontextu, kontrakt polí granule, **procedura výměny
+   roadmapy** (aby nevznikali sirotci), checklist a anti-vzory s naměřenými
+   důsledky. Ověřuje ho P29 (nabídka **B8** v `NEXT-SESSION-INSTRUKCE.md` §2.2).
+
+**Co z toho plyne pro orchestra (a patří do P29):** osiřelé úlohy se **nemají
+dispatchovat** (dnes se to děje) a řetěz poskytovatelů se má při `RateLimitError`
+**posunout na dalšího**, ne skončit jako „agent nic nezměnil“.

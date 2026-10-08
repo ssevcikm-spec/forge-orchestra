@@ -263,3 +263,118 @@ rozporu „soubor ne-done / D1 done“ **není naměřené**:
   dostává do kontextu jako `--read`, takže je to nejúčinnější místo.)
 - **Kdo schvaluje `done`?** Dnes ho zapisuje conductor z běhu; kdyby ho směl
   zapsat jen člověk po kontrole v `main`, zmizela by celá třída §4.2.
+
+---
+
+## 9. Naměřené případy 8. 10. 2026 (P28): PROČ GRANULE SELHÁVAJÍ — a co k tomu potřebuje ZADÁNÍ
+
+> **Odkud čísla (všechno spustitelné):** `_analyza/p28-sonda-granule.mjs`
+> (stav fronty a selhaných úloh), `_analyza/p29-sonda-fronta-vs-roadmapa.mjs`
+> (osiřelé v cache, kontrakt polí), `_analyza/p29-sonda-selhani.mjs`
+> (běhy `agent.yml` z GitHubu), `_analyza/p29-sonda-agenta.mjs` (log kroku agenta).
+> **Datum spotřeby:** **8. 10. 2026, 20:0x +02:00**, hra `8fe57ce`. Do hry píše
+> **souběžná session**, takže čísla se mají **přeměřit**, ne opsat.
+
+### 9.1 Fronta neselhává na FORMULACI — selhává na KVÓTĚ (a je to měřené)
+
+Poslední **čtyři** běhy agenta (`Forge #240`, `#241`, `#242`, `#243`) skončily
+`failure` a **ve všech čtyřech** je v logu:
+
+```
+litellm.RateLimitError: RateLimitError: OpenAIException - Tokens per minute
+litellm.RateLimitError: RateLimitError: OpenAIException - Request too large for …
+```
+
+Workflow to hlásí jako krok „**Agent nic nezměnil** → hlásíme neúspěch“.
+**Verdikt je správný, ale důvod leží jinde:** model nedostal odpověď, protože ho
+poskytovatel odmítl. Dva různé tvary téhož:
+
+* `Tokens per minute` = **vyčerpaná kvóta za minutu** (TPM),
+* `Request too large for …` = **jeden požadavek je větší, než free tier dovolí**
+  (aider posílá repo-mapu + obsah dotčených souborů; `scripts/game.gd` má
+  naměřeno **12 567 B**).
+
+**A jeden běh měl ROZBITÝ název modelu:** `Model: openai/openai/gpt-oss-120b`
+(dvojitý prefix `openai/`) — u běhu, který začínal na `groq`. Není to kosmetika:
+jiný řetězec = jiné směrování.
+
+**Druhá měřená mez:** `/failed` vrací **prázdný `log_tail`**, takže orchestra
+**neumí říct, proč běh selhal** — důvod je jen v logu Actions. Kdo to řeší, musí
+sáhnout po `p29-sonda-selhani.mjs` / `p29-sonda-agenta.mjs`.
+
+### 9.2 Proč na tom zadání ZÁLEŽÍ (i když to není „formulace“)
+
+| Pole granule | Co s ním orchestra dělá | Naměřený důsledek, když chybí / je špatně |
+|---|---|---|
+| `model` | vybere **poskytovatele**; `strong` zužuje na `mistral, cerebras, groq` | **10 z 21** granul `strong` → perou se o **tutéž free kvótu**; **11 z 21** `model` nemá |
+| `size_lines` | gate auto-merge: změna nad deklarovaný limit se **zamítne** (výchozí **60**) | **6 z 21** ho nemá (`data.content`, `core.attributes`, `core.skills`, `entity.item`, `sim.economy`, `sim.assist`) → větší změna = zamítnutý PR |
+| `owns` | vlastněné soubory; dva vlastníci téhož souboru = **sériově** | `scripts/player.gd` i `scripts/save.gd` mají **2 vlastníky** (lint: problém **[3]**) |
+| `depends_on` | kdy smí granule běžet | `done: true` je **nespolehlivé** (H105) → viz §3.2 |
+| `acceptance` | co se ověří | **0 z 21** chybí — tohle je v pořádku |
+| `prompt` | text pro agenta | jeho délka + velikost dotčeného souboru rozhoduje o `Request too large` |
+
+**První pravidlo pro architekta:** velikost granule **není jen „kolik řádků“**,
+ale **kolik kontextu si agent přečte**. Granule, která má přepsat 12kB soubor,
+selže na free tieru **bez ohledu na to, jak je napsaná**.
+
+### 9.3 VÝMĚNA ROADMAPY JE OPERACE — a nesmí nechat sirotky
+
+Naměřeno po přepisu roadmapy hry: soubor má **21 granul**, ale **cache D1 má
+25 řádků** → **5 osiřelých** (`entity.enemy`, `entity.npc`, `entity.player.api`,
+`tests.harness`, `world.map`). Fronta drží **44 blokovaných úloh** a jednu
+**`failed` s 5 pokusy** (`entity.npc`) — tedy práci na granulích, **které
+v roadmapě už nejsou**.
+
+Důsledek je vidět v branách orchestra: `validate-all` hlásí
+`cache neobsahuje osiřelé řádky — osiřelé=5` a `cache není větší než soubor`;
+`g3` kvůli tomu končí **nedeklarovaným nenulovým exitem**. Nikdo nic neporušil —
+**chyběla procedura**.
+
+**Procedura při výměně roadmapy (dělej ji jako krok, ne mimochodem):**
+1. **Před** přepisem: `node _analyza\p29-sonda-fronta-vs-roadmapa.mjs` → vypíše osiřelé.
+2. Granule, které končí, **ukončit explicitně** — přesunout do `_retired/`
+   (ne smazat) a doběhnout/odblokovat jejich úlohy (`/tasks/cleanup`, `/roadmap/reset`).
+3. **Po** přepisu: sonda znovu → **osiřelé musí být 0** a `validate-all` zelený.
+4. Nové `done: true` **jen s prací v `main`** (§3.2) — jinak vznikne „hotová“
+   granule, na kterou čekají ostatní.
+
+### 9.4 Checklist pro zadání granule (zkopíruj a vyplň)
+
+```yaml
+- id: engine.input                 # jednoznačné, bez diakritiky
+  title: "Vstup — záměr pohybu z myši a kláves (M1)"
+  kind: code                       # code | assets | docs | test
+  model: strong                    # strong = free „silné“ (mistral/cerebras/groq)
+  size_lines: "<= 80"              # ⚠ VŽDY; bez něj platí 60 a větší změna se zamítne
+  owns: ["scripts/input.gd"]       # ⚠ JEDEN vlastník na soubor
+  depends_on: ["engine.registry"]  # jen na HOTOVÉ a FUNGUJÍCÍ
+  acceptance: ["tests", "wiring"]  # co se má ověřit (jména testů)
+  prompt: |
+    Vytvoř/uprav scripts/input.gd — POUZE vzorkuje vstup a vrací ZÁMĚR pohybu
+    (nerozhoduje o pozici, neplní frontu příkazů — dva pisatele = kolize).
+    CO JE TAM TEĎ: <...>            # ⚠ bez toho agent nic nezmění a běh selže
+    ROZHRANÍ: <přesné názvy funkcí a návratové typy>
+    HOTOVO ZNAMENÁ: <test, který to ověří>
+```
+
+**Anti-vzory (každý má naměřený důsledek):**
+
+* **„Vytvoř X“, když X už existuje a je hotové** → agent nemá co měnit →
+  „agent nic nezmění“ = `failure`, i když je kód v pořádku. Naměřeno:
+  `engine.shell` vlastní `scripts/game.gd`, které **existuje**.
+* **Obří prompt + celý velký soubor** → `Request too large` (free tier).
+* **Všechny granule `model: strong`** → vyčerpají TPM jednoho poskytovatele;
+  u malých granul `model` **vůbec nedávej** (výchozí řetězec je širší).
+* **Chybějící `size_lines` u velké granule** → PR se zamítne pravidlem 60.
+* **Dvě granule vlastnící týž soubor** → pojedou sériově (lint **[3]**).
+* **Výměna roadmapy bez ukončení granul** → osiřelé v cache, blokované úlohy
+  a červené brány orchestra (§9.3).
+
+**Kontrola před předáním orchestra (spustitelné):**
+
+```powershell
+python tools\lint-roadmapa.py E:\Workspaces\uo-shadows   # blokující + poradní nálezy
+node _analyza\p29-sonda-fronta-vs-roadmapa.mjs            # osiřelé v cache + kontrakt polí
+node _analyza\p28-sonda-granule.mjs                       # co je ve frontě a proč selhalo
+```
+
