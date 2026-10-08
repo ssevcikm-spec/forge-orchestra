@@ -105,7 +105,7 @@ def premenuj(text, dvojice, popis):
 def oslabene_meridlo(nazev, dvojice):
     text = premenuj(MERIDLO.read_text(encoding="utf-8"), dvojice,
                     "oslabení %s" % nazev)
-    cil = ANALIZA / ("_p27oslab-%s.py" % nazev)
+    cil = ANALYZA / ("_p27oslab-%s.py" % nazev)
     zapis(cil, text)
     return cil
 
@@ -153,7 +153,8 @@ def main() -> int:
                 '    check("A4 §56 existuje a je netriviálně dlouhý (délka %d znaků)" % len(s56),\n'
                 '          len(s56) > 3000, True)\n', "    pass\n")])
             k("M1 oslabení se opravdu uložilo (kontrola §56 v kopii není)",
-              "§56 existuje" not in osl1.read_text(encoding="utf-8"), True)
+              "A4 §56 existuje a je netriviálně dlouhý"
+              not in osl1.read_text(encoding="utf-8"), True)
             kod2, _ = beh(osl1, "A4", ["--handoff", str(kopie_h)])
             k("M1a DIFFERENCIÁL: oslabená kopie na TÉŽE vadě PROJDE", kod2, 0)
             k("M1a tedy vadu chytá kontrola ROZSAHU §56 (ne něco jiného)",
@@ -195,7 +196,13 @@ def main() -> int:
 
         # ─────────── M3: BRÁNA SE ZÚŽENÝM ROZSAHEM (nález P25-K) ───────────
         print("\n--- M3: `ov-g-neovereno.py` se ZÚŽENÝM rozsahem (1 řádek) ---")
-        uzka = SCRATCH / "k-ovg-uzka.py"
+        # ⚠ KOPIE MUSÍ LEŽET V `_analyza/`, NE V PODSLOŽCE: skript si kořen
+        # repa odvozuje jako `Path(__file__).parents[1]`, takže kopie
+        # v `_analyza/p27-b-scratch/` hledá `_analyza/KRONIKA-PROJEKTU.md`
+        # a SPADNE na `FileNotFoundError`. Naměřeno 7. 10. 2026 v P27: měřidlo
+        # pak „správně spadlo", ale z ÚPLNĚ JINÉHO důvodu — a odhalil to až
+        # diferenciál (oslabená kopie taky spadla).
+        uzka = ANALYZA / "_p27oslab-uzka.py"
         zapis(uzka, premenuj(
             OV_G.read_text(encoding="utf-8"),
             [('    if arch.is_dir():\n'
@@ -218,10 +225,19 @@ def main() -> int:
             ('    check("A5 a jeho součet po souborech = MŮJ součet (ne jen totéž číslo)",\n'
              '          sum(int(n) for _, n in otevreno), soucet)\n', "    pass\n"),
             ('    check("A5 a VYPISUJE, které soubory otevřelo (`OTEVŘENO:`)", '
-             'len(otevreno), 3)\n', "    pass\n")])
+             'len(otevreno), 3)\n', "    pass\n"),
+            # ⚠ ČTVRTÁ KONTROLA TÉHOŽ ROZSAHU: zúžená brána přesune archiv
+            # do „mimo živé zdroje", takže se rozejde i TENHLE součet
+            # (naměřeno 7. 10. 2026: bez tohohle oslabení diferenciál neshodí
+            # 0, protože kopie padá pořád — a to je NÁLEZ O MUTACI, ne o kódu).
+            ('    check("A5 rozsah mimo živé zdroje = MŮJ vlastní součet",\n'
+             '          (sum(mimo.values()), len(mimo)),\n'
+             '          (int(mm.group(1)), int(mm.group(2))) if mm else None)\n',
+             "    pass\n")])
         k("M3 oslabení se opravdu uložilo (kontroly rozsahu v kopii nejsou)",
-          ("měří 99 řádků Hxx" not in osl3.read_text(encoding="utf-8")
-           and "OTEVŘENO:" not in osl3.read_text(encoding="utf-8")), True)
+          ("A5 živé měřidlo měří 99 řádků Hxx"
+           not in osl3.read_text(encoding="utf-8")
+           and "len(otevreno), 3" not in osl3.read_text(encoding="utf-8")), True)
         kod2, _ = beh(osl3, "A5", ["--ovg", str(uzka)])
         k("M3a DIFFERENCIÁL: oslabená kopie na TÉŽE vadě PROJDE", kod2, 0)
         k("M3a tedy vadu chytá kontrola ROZSAHU, ne něco jiného", kod2 != kod, True)

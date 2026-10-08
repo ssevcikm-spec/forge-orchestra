@@ -254,7 +254,9 @@ def a1():
         nezmereno_zapis("A1b1 kontramutace handoffu", str(e))
     check("A1b1 kopie handoffu je vrácena (hash sedí s živým)", sha(kopie_h), sha(HANDOFF))
 
-    # (2) `g3` s JEDNOU branou NAVÍC → A4 měřidla P26 musí spadnout
+    # (2) `g3` s JEDNOU branou NAVÍC → měřidlo P26 to musí vidět.
+    # ⚠ NAMĚŘENO 7. 10. 2026: přepínač `--g3` je v DÁVKOVÉM režimu A4 **mrtvý** —
+    # kontrola počtu bran je v `a4()` AŽ ZA `if not plne: return`.
     print("    (2) kopie g3 s 50. branou v seznamu BRANY")
     try:
         # ⚠ `BRANY= [` (bez mezery) — jinak by nový text OBSAHOVAL starý
@@ -263,27 +265,57 @@ def a1():
                    'BRANY= [("p27-fixtura", ["python", "x.py"]),'):
             check("A1b2 mutace se provedla (fixtura v kopii g3 je)",
                   "p27-fixtura" in kopie_g.read_text(encoding="utf-8"), True)
-            kod, v = cmd(["python", str(P26_A), "--jen", "A4",
-                          "--g3", str(kopie_g)])
-        check("A1b2 měřidlo P26 po přidání brány SPADLO", kod != 0, True)
-        ch = [x for x in cervene(v) if "bran" in x]
-        check("A1b2 a spadlo na POČTU BRAN (ne na něčem jiném)", bool(ch), True)
-        if ch:
-            print("        · %s" % ch[0][:110])
+            kod, v = cmd(["python", str(P26_A), "--jen", "A4", "--g3", str(kopie_g)])
+            check("A1b2a NÁLEZ O MĚŘIDLE: v DÁVKOVÉM režimu `--g3` nic neovlivní "
+                  "(kontrola počtu bran je až za `if not plne: return`)", kod, 0)
     except ValueError as e:
         nezmereno_zapis("A1b2 kontramutace g3", str(e))
     check("A1b2 kopie g3 je vrácena (hash sedí s živou)", sha(kopie_g), sha(G3))
 
+    # (2b) TVRZENÍ V §55 POSUNUTÉ (83/83 → 82/83) → A4 měřidla P26 musí spadnout.
+    # Tím se měří, že měřidlo čte číslo Z DOKUMENTU (ne že ho má zapečené).
+    print("    (2b) kopie handoffu s posunutým číslem v §55 (83/83 → 82/83)")
+    text_h = HANDOFF.read_text(encoding="utf-8")
+    m55 = re.search(r"\n## 55\.", text_h)
+    i55 = m55.start() if m55 else None
+    m2 = re.search(r"\n## ", text_h[i55 + 4:]) if i55 is not None else None
+    j55 = (i55 + 4 + m2.start()) if (i55 is not None and m2) else None
+    if i55 is None or j55 is None:
+        nezmereno_zapis("A1b2b posun čísla v §55", "oddíl §55 se nedá vymezit")
+    else:
+        s55 = text_h[i55:j55]
+        stary = "**83/83**"
+        check("A1b2b kotva čísla je v §55 právě 1× (ne jen v dokumentu)",
+              s55.count(stary), 1)
+        if s55.count(stary) == 1:
+            kopie2 = SCRATCH / "k-handoff2.md"
+            zmut = text_h[:i55] + s55.replace(stary, "**82/83**", 1) + text_h[j55:]
+            kopie2.write_bytes(zmut.encode("utf-8"))
+            check("A1b2b mutace se provedla a JEN v §55",
+                  ("**82/83**" in zmut
+                   and zmut.count("**83/83**") == text_h.count("**83/83**") - 1), True)
+            kod, v = cmd(["python", str(P26_A), "--jen", "A4",
+                          "--handoff", str(kopie2)])
+            check("A1b2b měřidlo P26 nad POSUNUTÝM číslem SPADNE", kod != 0, True)
+            check("A1b2b a spadne na kontrole, KTERÁ ČTE TVRZENÍ Z DOKUMENTU",
+                  any("úplnost handoffu = tvrzených" in x for x in cervene(v)), True)
+
     # (3) `ov-g` bez hlášení rozsahu MIMO živé zdroje → A5 musí spadnout
     print("    (3) kopie `ov-g-neovereno.py` bez hlášení „MIMO ŽIVÉ ZDROJE“")
     try:
+        # ⚠ PREDIKÁT MUSÍ MÍŘIT NA KÓD, NE NA KOMENTÁŘ: řetězec „MIMO ŽIVÉ
+        # ZDROJE“ je v tom skriptu i v komentáři, který vadu popisuje —
+        # kontrola „řetězec v souboru není“ by hlásila, že se mutace
+        # neprovedla, i když se provedla (past `overovani` §10.1).
         with mutuj(kopie_o,
                    '    print("\\n  ── MIMO ŽIVÉ ZDROJE (zmrazené kopie a zálohy'
                    ' — ZÁMĚRNĚ se nečtou) ──")',
                    '    print("\\n  ── (hlášení rozsahu mimo živé zdroje je vypnuto)"'
                    ' ──")'):
-            check("A1b3 mutace se provedla (hlášení „MIMO ŽIVÉ ZDROJE“ v kopii není)",
-                  "MIMO ŽIVÉ ZDROJE" not in kopie_o.read_text(encoding="utf-8"), True)
+            text_o = kopie_o.read_text(encoding="utf-8")
+            check("A1b3 mutace se provedla (VYPISOVACÍ řádek je pryč, komentář zůstal)",
+                  ("je vypnuto" in text_o
+                   and "── MIMO ŽIVÉ ZDROJE (zmrazené kopie" not in text_o), True)
             kod, v = cmd(["python", str(P26_A), "--jen", "A5", "--ovg", str(kopie_o)])
         check("A1b3 měřidlo P26 po vypnutí hlášení rozsahu SPADLO", kod != 0, True)
         ch = [x for x in cervene(v) if "MIMO" in x]
@@ -321,8 +353,12 @@ def a2():
 
     for pref, cesta, kotva in ZARAZKY:
         print("    zarážka v handleru %s" % cesta)
-        nahrada = '%s return json({ error: "zarazka-p27%s" }, 599);' % (
-            kotva, cesta.replace("/", "-"))
+        # ⚠ NÁHRADA NESMÍ OBSAHOVAT KOTVU (jinak ji `mutuj` správně odmítne jako
+        # „kontrola by hledala totéž", omyly #18/#106) — proto se podmínka
+        # rozšíří (`|| path === "/p27-zarazka"`), místo aby se jen vložil return.
+        nahrada = ('if (path === "%s" || path === "/p27-zarazka") '
+                   '{ return json({ error: "zarazka-p27%s" }, 599);'
+                   % (cesta, cesta.replace("/", "-")))
         try:
             with mutuj(SRC, kotva, nahrada) as m:
                 check("A2 %s zarážka se provedla (hash před != po)" % cesta,
@@ -432,15 +468,27 @@ def ziva_sluzba():
 
     env = {}
     p = WS / ".env"
+    # ⚠ `utf-8-sig`, NE `utf-8`: `.env` i `.secrets/cf-secrets.json` mají na
+    # začátku **UTF-8 BOM**, takže klíč vyjde jako `"\ufeffFORGE_URL"` a hledání
+    # `env.get("FORGE_URL")` **tiše selže** (naměřeno 7. 10. 2026 v P27).
     if p.is_file():
-        for l in p.read_text(encoding="utf-8", errors="replace").splitlines():
+        for l in p.read_text(encoding="utf-8-sig", errors="replace").splitlines():
             if "=" in l and not l.strip().startswith("#"):
                 k, _, v2 = l.partition("=")
                 env[k.strip()] = v2.strip()
+    # Když `.env` tajemství nenese, je v trezoru Cloudflare (`.secrets/cf-secrets.json`).
+    if not env.get("FORGE_SECRET"):
+        q = WS / ".secrets" / "cf-secrets.json"
+        if q.is_file():
+            try:
+                env["FORGE_SECRET"] = json.loads(
+                    q.read_text(encoding="utf-8-sig")).get("WEBHOOK_SECRET", "")
+            except Exception:
+                pass
     url = env.get("FORGE_URL", "").rstrip("/")
     taj = env.get("FORGE_SECRET", "")
     if not url or not taj:
-        nezmereno_zapis("A4 živá služba", "v `.env` chybí FORGE_URL nebo FORGE_SECRET")
+        nezmereno_zapis("A4 živá služba", "chybí FORGE_URL nebo tajemství (.env/.secrets)")
         return
 
     def volej(cesta, secret=True):
@@ -509,7 +557,7 @@ def a4(plne):
     check("A4 handoff-kontrola-uplnost.py → exit 0", kod, 0)
     if m and m2 and tv:
         check("A4 úplnost handoffu = tvrzených %d/%d" % tv,
-              (int(m.group(1)), int(m.group(2))), tv)
+              (int(m.group(1)), int(m2.group(1))), tv)
 
     kod, v = cmd(["python", str(TOOLS / "over-skilly.py")], timeout=900)
     ms = re.search(r"Skillů:\s*(\d+),\s*chyb:\s*(\d+)", v)
@@ -524,7 +572,7 @@ def a4(plne):
     kod, v = cmd(["python", str(TOOLS / "over-dokumentaci.py")], timeout=900)
     md = re.search(r"Kontrol:\s*(\d+),\s*chyb:\s*(\d+)", v)
     tv = najdi56([r"`over-dokumentaci`\s*\*\*(\d+)/(\d+)\*\*",
-                  r"živé měření je \*\*(\d+)/(\d+)\*\*"], "over-dokumentaci")
+                  r"\*\*živé měření je (\d+)/(\d+)\*\*"], "over-dokumentaci")
     check("A4 over-dokumentaci.py → exit 0", kod, 0)
     if md and tv:
         check("A4 over-dokumentaci.py = tvrzených %d/%d" % tv,
@@ -552,14 +600,30 @@ def a4(plne):
         return
 
     # 1) měřidlo P26 a jeho mutační důkaz
+    # ⚠ PŘEDPOKLAD: měřidlo P26 má **90 kontrol nad ČERSTVÝM inventářem** a **86
+    # nad ZASTARALÝM** — jeho A6 totiž u zastaralého inventáře hlásí pojmenovaný
+    # STAV místo čtyř `check(...)` (g3 exit, g3 bez čítače, validate-all ×2).
+    # Naměřeno 7. 10. 2026 v P27 OBĚMA směry. Kdo to nezměří, zapíše „čítač
+    # nesedí" jako vadu měřidla, ačkoli je to STAV (`overovani` §7.13).
+    k_riz, v_riz = cmd(["python", str(RIZIKA)], timeout=900)
+    inventar_cerstvy = (k_riz == 0)
     kod, v = cmd(["python", str(P26_A), "--plne"], timeout=5400)
     c26 = citac(v)
     cerv26 = cervene(v)
     tv = najdi56(r"p26-a-overeni\.py --plne`\s*→\s*\*\*(\d+) kontrol, (\d+) chyb\*\*",
                  "p26-a-overeni.py --plne")
-    print("      p26-a --plne: čítač=%s, červených=%d %s"
-          % (c26, len(cerv26), [x[:70] for x in cerv26[:3]]))
-    if tv:
+    print("      p26-a --plne: čítač=%s, červených=%d, inventář čerstvý=%s"
+          % (c26, len(cerv26), inventar_cerstvy))
+    for x in cerv26[:6]:
+        print("        · %s" % x[:120])
+    if not inventar_cerstvy:
+        nezmereno_zapis("A4 p26-a-overeni.py --plne = 90/0",
+                        "během měření byl inventář ZASTARALÝ → p26-a hlásí "
+                        "pojmenovaný STAV (4 kontroly místo `check`); náprava je "
+                        "přegenerovat inventář a spustit znovu")
+        check("A4 a úbytek proti tvrzeným 90 kontrolám je PRÁVĚ 4 (cena stavu)",
+              (90 - c26[0]) if c26 else None, 4)
+    elif tv:
         if c26 == tv:
             check("A4 p26-a-overeni.py --plne = tvrzených %d/%d" % tv, c26, tv)
         else:
@@ -794,7 +858,7 @@ def a6(plne):
            if vzz is None or not vzz.match(j)], [])
     check("A6 sondy P27 jsou v PRESKOCIT dávky",
           sorted(j for j in pres if j.startswith("p27-sonda")),
-          ["p27-sonda-inventar.py", "p27-sonda-obsah.py"])
+          ["p27-sonda-endpointy.py", "p27-sonda-inventar.py"])
     check("A6 negativní kontrola: predikát chybějící doklad NAJDE",
           [j for j in ("p27-a-overeni.py", "nedoklad-p27.py")
            if vzz is None or not vzz.match(j)], ["nedoklad-p27.py"])
@@ -912,7 +976,10 @@ def a7():
     # ⚠ A PREDIKÁT MUSÍ BÝT KONKRÉTNÍ: v ZELENÉM výstupu je slovo „nezměněno"
     # v próze („řetězce jako ‚schváleno a nezměněno'"), takže kontrola „obsahuje
     # ZASTARAL/NEZMĚNĚN" projde i nad zelenou — falešně pozitivní.
-    sonda = ANALYZA / "p27-sonda-inventar.py"          # sonda: patří do PRESKOCIT
+    # ⚠ JMÉNO NESMÍ ODPOVÍDAT VZORU SOND (`p27-fixtura-*`, ne `p27-sonda-*`):
+    # sonda patří do `PRESKOCIT` dávky a je to TRVALÝ soubor, kdežto tohle je
+    # jednorázová fixtura, která po měření zmizí.
+    sonda = ANALYZA / "p27-fixtura-otisk.txt"
     sonda.write_bytes(b"# P27: sonda pro A7 (nemeni kod, jen otisk vstupu)\n")
     try:
         kod, v = cmd(["python", str(RIZIKA)], timeout=900)

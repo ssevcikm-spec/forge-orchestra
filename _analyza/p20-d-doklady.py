@@ -72,7 +72,14 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # Naměřeno P26: při vkládání sond P26 se tenhle řádek málem přepsal
              # a `p24-sonda-*` z `PRESKOCIT` **vypadly** — chytila to až brána
              # `p25-a-overeni.py` (A6: „sondy nejsou v PRESKOCIT“).
-             "p24-sonda-site.py", "p24-sonda-m2.py"}
+             "p24-sonda-site.py", "p24-sonda-m2.py",
+             # ⚠ PŘESKOČENO 7. 10. 2026 (P27): SONDY, které odpovídaly na JEDNU
+             # otázku a mají odpovězeno. `p27-sonda-endpointy.py` naměřila, které
+             # endpointy volá test tiku (a které ne — na tom stál Úkol B1);
+             # `p27-sonda-inventar.py` vypisuje, co je v otisku vstupů inventáře
+             # (obě repa, vyloučené artefakty) — podklad měření A7.
+             # Obě jsou **jednorázové diagnostiky**, ne opakovatelné doklady.
+             "p27-sonda-endpointy.py", "p27-sonda-inventar.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
