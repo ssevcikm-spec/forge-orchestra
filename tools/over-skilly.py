@@ -28,11 +28,53 @@ import yaml
 REPO = pathlib.Path(__file__).resolve().parents[1]
 DSH = pathlib.Path(os.environ.get("DSH_HOME") or pathlib.Path.home() / ".dsh")
 SKILLS = DSH / "skills"
+# ⚠ PŘEPIS PRO MUTAČNÍ TEST (`_analyza\test-over-skilly-delegovane.py`): cesty ke
+# skillům oddělené `;`. Test měří část o DELEGOVANÝCH DOKUMENTECH — a bez tohohle
+# přepisu by jeho „zdravá fixtura → exit 0" padalo kvůli **cizímu** skillu
+# (naměřeno 8. 10. 2026 v P27: nový skill `dialog-s-uzivatelem` měl neplatný YAML
+# a test kvůli tomu hlásil 2 chyby, i když s delegovanými cestami neměl nic
+# společného). Test tak měří SVOU věc, ne stav cizích skillů.
+_over_s = os.environ.get("FORGE_SKILLS")
+if _over_s:
+    SKILLS = pathlib.Path(_over_s)
 
 # Kořeny, proti kterým se cesta k nástroji zkouší (projekt orchestra a hra).
 # `HRA` je sestra tohohle repa (vzor z `g3-brany.py`), takže se odvozuje odsud.
-KORENY = [REPO, REPO.parent / "uo-shadows"]
+#
+# ⚠ ROZŠÍŘENO 8. 10. 2026 (P27 — nález P27-R, rozhodnutí **B5**): skilly jsou
+# **STANIČNÍ** (učí agenta napříč projekty), takže cesta v nich může patřit
+# **JINÉMU projektu** než orchestra. Naměřeno: skill `game-developer` (přepsaný
+# cizí session) odkazuje na `tools/plan-status.py` a `tools/roadmap-gen.py` —
+# ty existují v sourozenci `E:\Workspaces\game-clone` — a brána je hlásila jako
+# **MRTVÉ**, protože znala jen orchestra + hru. To je **falešný poplach**, a ten
+# se hledá hůř než slepé místo: nutil „opravovat" správný text a shazoval `g3`.
+# **Rozhodnutí:** cesta se uzná, když existuje v orchestře, ve hře, **nebo
+# v některém sourozeneckém projektu** (adresář v `REPO.parent`, který má `.git`).
+# **Skutečně mrtvá cesta (nikde v projektech) bránu SHODÍ dál** — o to tu jde.
+# A co se našlo mimo orchestra/hru, se **vypíše jako poznámka** (rozsah musí být
+# VIDĚT; tiché rozšíření rozsahu by bylo přesně ta vada, kterou P25-K popisuje).
+REPO = pathlib.Path(__file__).resolve().parents[1]
 HRA = REPO.parent / "uo-shadows"
+
+
+def _projekty() -> list:
+    """Projekty, proti kterým se cesty zkouší: orchestra, hra + sourozenci s `.git`."""
+    koreny = [REPO, HRA]
+    try:
+        for d in sorted(REPO.parent.iterdir()):
+            if d.is_dir() and (d / ".git").exists() and d not in koreny:
+                koreny.append(d)
+    except OSError:
+        pass
+    return koreny
+
+
+KORENY = _projekty()
+# ⚠ PŘEPIS PRO MUTAČNÍ TEST (stejný vzor jako `FORGE_NAVAZANE`): `FORGE_KORENY`
+# = kořeny oddělené `;`, aby test měřil na FIXTURÁCH a nesahal na živé projekty.
+_over_k = os.environ.get("FORGE_KORENY")
+if _over_k:
+    KORENY = [pathlib.Path(x) for x in _over_k.split(";") if x.strip()]
 
 # ⚠ PŘIDÁNO 7. 10. 2026 (optimalizace KB, Úkoly A+B): skilly `orchestra` a
 # `game-developer` část znalosti **přesunuly** do projektových dokumentů
@@ -75,7 +117,7 @@ OCEKAVANE_DELEGOVANE = {
 vsech_cest = 0
 mrtvych = 0
 podezrele = []
-
+mimo_repo = []          # cesty, které se našly v JINÉM projektu (rozsah musí být vidět)
 chyb = 0
 for d in sorted(SKILLS.iterdir()):
     if not d.is_dir():
@@ -121,7 +163,10 @@ for d in sorted(SKILLS.iterdir()):
             vsech_cest += 1
             if (d.name, cesta) in OCEKAVANE:
                 continue
-            if any((k / cesta).exists() for k in KORENY):
+            najd = next((k for k in KORENY if (k / cesta).exists()), None)
+            if najd is not None:
+                if najd not in (REPO, HRA):
+                    mimo_repo.append((d.name, cesta, najd.name))
                 continue
             # Zmínka o neexistující cestě, kterou text SÁM přiznává, není vada.
             if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
@@ -157,7 +202,10 @@ for p in NAVAZANE:
             vsech_cest += 1
             if cesta in OCEKAVANE_DELEGOVANE:
                 continue
-            if any((k / cesta).exists() for k in KORENY):
+            najd = next((k for k in KORENY if (k / cesta).exists()), None)
+            if najd is not None:
+                if najd not in (REPO, HRA):
+                    mimo_repo.append((p.name, cesta, najd.name))
                 continue
             if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
                 continue
@@ -170,6 +218,15 @@ for p in NAVAZANE:
             print(f"        ř. {i}: {cesta}")
     else:
         print(f"  OK   {p.name:22} (delegovaný dokument, cesty v pořádku)")
+
+if mimo_repo:
+    projekty = sorted({x[2] for x in mimo_repo})
+    print()
+    print(f"  POZNÁMKA: {len(mimo_repo)} cest se našlo MIMO orchestra a hru "
+          f"(skill je STANIČNÍ — patří projektu {', '.join(projekty)}):")
+    for jm, cesta, projekt in mimo_repo[:12]:
+        print(f"    · {jm}: `{cesta}` → `{projekt}`")
+    print("    (rozsah brány je VIDĚT; skutečně mrtvá cesta by bránu shodila)")
 
 print()
 print(f"Skillů: {len([x for x in SKILLS.iterdir() if x.is_dir()])}, chyb: {chyb}")

@@ -64,15 +64,20 @@ MAX_ATTEMPTS = "5"
 ESCALATE_AFTER = "3"
 
 # STROP NA GRANULI (B3b, 6. 10. 2026): kolik běhů smí granule spálit, než se
-# přestane vydávat. `"0"` = STROP VYPNUTÝ (a to je záměrný výchozí stav).
+# přestane vydávat. `"0"` = STROP VYPNUTÝ.
 #
-# Proč vypnutý: plán žádá nasazovat po částech a měřit před/po. První deploy
-# přinese jen WATCHDOG (B3a — hlásí od `ESCALATE_AFTER`), teprve druhý krok
-# (`GRAIN_MAX_RUNS = "5"`) vydávání zastaví. Kdyby se zapnulo obojí naráz,
-# nebylo by z čeho měřit, že watchdog opravdu hlásí.
+# ⚠ ZAPNUTO 8. 10. 2026 (P27, rozhodnutí uživatele) na **8** — do té doby bylo
+# `"0"` (měřilo se, že watchdog hlásí). Proč právě 8:
+#   · musí být VÍC než `MAX_ATTEMPTS` (5) — jinak jen zopakuje pokusový strop
+#     a nic dalšího nebrzdí (granule s jedním úkolem spálí 5 běhů a stejně padne);
+#   · `ESCALATE_AFTER` (3) musí zůstat POD ním, aby watchdog stihl ohlásit dřív,
+#     než se granule zastaví (prah nad stropem je prah, který nikdy nepřijde);
+#   · 8 = 3 (ohlášení) + 5 (jeden plný pokusový rozpočet) → granule dostane
+#     druhou šanci, ale třetí už ne; free kvóta se nepálí bez omezení.
 # Naměřeno 6. 10. 2026: `entity.npc` spálil 8 běhů napříč dvěma úkoly a fronta
 # vyrobila 49 osiřelých úloh na tutéž granuli — strop je obrana proti tomu.
-GRAIN_MAX_RUNS = "0"
+# Cesta zpět je jeden řádek: `GRAIN_MAX_RUNS = "0"` a znovu nasadit.
+GRAIN_MAX_RUNS = "8"
 
 [[d1_databases]]
 binding = "DB"

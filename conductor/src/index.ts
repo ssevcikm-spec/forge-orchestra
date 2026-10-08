@@ -305,10 +305,12 @@ function shouldEscalate(runs: number | undefined, threshold: number): boolean {
  * Strop na GRANULI (B3b, 6. 10. 2026): kolik běhů smí granule spálit, než se
  * přestane vydávat.
  *
- * **Výchozí `0` = strop VYPNUTÝ** a je to schválně: plán žádá nasazovat po
- * částech a měřit před/po. První deploy přinese **watchdog** (B3a — jen hlásí),
- * druhý (`GRAIN_MAX_RUNS = "5"`) teprve **zastaví** vydávání. Kdyby se obojí
- * zapnulo naráz, nebylo by z čeho měřit, že watchdog opravdu hlásí.
+ * **Výchozí `0` = strop VYPNUTÝ** (když proměnná chybí), ale `wrangler.toml` ho
+ * od **8. 10. 2026** nasazuje **ZAPNUTÝ na `"8"`**: plán žádal nasazovat po
+ * částech — první deploy přinesl **watchdog** (B3a, jen hlásí), teprve další
+ * krok strop **zastaví** vydávání. **Proč 8:** musí být VÍC než `MAX_ATTEMPTS`
+ * (5), jinak jen opisuje pokusový strop; a `ESCALATE_AFTER` (3) zůstává pod ním,
+ * aby watchdog ohlásil dřív, než se granule zastaví.
  *
  * Nesmysl v konfiguraci (`""`, `"abc"`, záporné číslo) se bere jako **vypnuto** —
  * „strop, který se nedá přečíst“ nesmí tiše zastavit celou orchestra.
@@ -1021,8 +1023,8 @@ async function tick(env: Env): Promise<string> {
   const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
 
   // 0b) watchdog: granule, která spálila příliš mnoho pokusů, se OHLÁSÍ.
-  //     B3a jen HLÁSÍ; strop (B3b, `GRAIN_MAX_RUNS`) je vypnutý, dokud ho
-  //     uživatel nezapne — viz `grainCap`. Počítadlo se měří JEDNOU za tik
+  //     B3a jen HLÁSÍ; strop (B3b, `GRAIN_MAX_RUNS`) je od 8. 10. 2026
+  //     ZAPNUTÝ na 8 — viz `grainCap`. Počítadlo se měří JEDNOU za tik
   //     a používá se na třech místech (watchdog, roadmapa, dispatch), aby
   //     všechny tři soudily podle TÉHOŽ čísla.
   const grainRunsMap = await grainRuns(env);

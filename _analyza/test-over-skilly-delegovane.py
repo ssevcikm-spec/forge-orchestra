@@ -45,9 +45,18 @@ def test(popis, ok, detail=""):
 
 
 def spust_nad(fixtury):
-    """Spustí bránu s DELEGOVANÝMI dokumenty = fixturami. Vrací (exit, výstup)."""
+    """Spustí bránu s DELEGOVANÝMI dokumenty = fixturami. Vrací (exit, výstup).
+
+    ⚠ `FORGE_SKILLS` míří na PRÁZDNÝ adresář: tenhle test měří část o
+    delegovaných dokumentech, ne stav cizích skillů. Naměřeno 8. 10. 2026 (P27):
+    nový skill `dialog-s-uzivatelem` (cizí session) měl neplatný YAML a test
+    kvůli němu hlásil „zdravá fixtura → exit 1" — tedy vadu, která s jeho věcí
+    nesouvisela. Falešný poplach se hledá hůř než slepé místo.
+    """
     env = dict(os.environ)
     env["FORGE_NAVAZANE"] = ";".join(str(p) for p in fixtury)
+    env["FORGE_SKILLS"] = str(SCRATCH / "prazdne-skilly")
+    (SCRATCH / "prazdne-skilly").mkdir(parents=True, exist_ok=True)
     r = subprocess.run([sys.executable, str(BRANA)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
                        cwd=str(WS), env=env, timeout=300)
