@@ -395,6 +395,22 @@ print("  bez typu (akční/plánovací/ověřovací/analýza/rozhodovací): %d" 
 if bez_typu:
     chyby.append("%d řádků session nemá uvedený typ" % len(bez_typu))
 
+# ⚠ P28-E (8. 10. 2026): KONTINUITA ID — chybějící záznam je TICHO, ne rozchod.
+# Naměřeno: kronika měla **41 řádků** s id 1..42 — **id 24 CHYBĚLO**. Commit
+# `c3ee946` ten řádek SMAZAL (a na jeho místo vložil 25); text se v živé kronice
+# nevyskytoval, dohledatelný byl jen v gitu (`411f0bb`). Do dneška to brána
+# neviděla, protože kontrolovala jen POČET řádků (≥ 10), datum a typ — a přesně
+# na tuhle třídu upozorňuje poučení P22: „chybějící záznam není rozchod, je to
+# ticho; kdo to chce chytit, musí se ptát NAOPAK“. Obnoveno nástrojem
+# `_analyza/p28-obnov-kroniku.py`; tenhle blok je pojistka proti dalšímu.
+_ids = [int(re.match(r"^\|\s*\*\*(\d+)\*\*\s*\|", r).group(1)) for r in radky]
+chybejici_id = [i for i in range(1, max(_ids) + 1) if i not in _ids] if _ids else []
+print("  chybějící id v řadě 1..%s: %s"
+      % (max(_ids) if _ids else "—", chybejici_id or "(žádné)"))
+if chybejici_id:
+    chyby.append("v tabulce sessions CHYBÍ id %s — záznam session se ztratil "
+                 "(obnova: `_analyza/p28-obnov-kroniku.py`)" % chybejici_id)
+
 # ----------------------------------------------------- D) odkazy na zdroje
 print()
 print("D) ODKAZY NA ZDROJE — existují soubory, na které kronika odkazuje?")

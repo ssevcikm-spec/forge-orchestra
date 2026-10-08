@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""MUTAČNÍ TEST: měří novou část `tools\over-skilly.py` (cesty v DELEGOVANÝCH
-dokumentech, přidáno 7. 10. 2026 při optimalizaci KB).
+dokumentech, přidáno 7. 10. 2026 při optimalizaci KB) **a nový TVAR cest
+(P28/B5, 8. 10. 2026)**.
 
 PROČ TENHLE TEST EXISTUJE: skilly `orchestra` a `game-developer` přesunuly část
 znalosti do projektových dokumentů (`PROVOZ-ORCHESTRA.md`, `BRANY-HRY.md`).
@@ -44,7 +45,7 @@ def test(popis, ok, detail=""):
         print(f"  CHYBA {popis}{(' — ' + detail) if detail else ''}")
 
 
-def spust_nad(fixtury):
+def spust_nad(fixtury, skills=None):
     """Spustí bránu s DELEGOVANÝMI dokumenty = fixturami. Vrací (exit, výstup).
 
     ⚠ `FORGE_SKILLS` míří na PRÁZDNÝ adresář: tenhle test měří část o
@@ -52,10 +53,11 @@ def spust_nad(fixtury):
     nový skill `dialog-s-uzivatelem` (cizí session) měl neplatný YAML a test
     kvůli němu hlásil „zdravá fixtura → exit 1" — tedy vadu, která s jeho věcí
     nesouvisela. Falešný poplach se hledá hůř než slepé místo.
+    ⚠ P28/B5: `skills` umí PŘEPIS (fixtury skillů pro měření deklarovaných výjimek).
     """
     env = dict(os.environ)
     env["FORGE_NAVAZANE"] = ";".join(str(p) for p in fixtury)
-    env["FORGE_SKILLS"] = str(SCRATCH / "prazdne-skilly")
+    env["FORGE_SKILLS"] = str(skills or (SCRATCH / "prazdne-skilly"))
     (SCRATCH / "prazdne-skilly").mkdir(parents=True, exist_ok=True)
     r = subprocess.run([sys.executable, str(BRANA)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
@@ -91,7 +93,7 @@ try:
     # 1) zdravý stav → zelená
     kod, out = spust_nad([f_ok])
     test("zdravá fixtura → exit 0", kod == 0, f"exit={kod}")
-    test("zdravá fixtura → počítadlo cest roste (68 zmínek = 26 ze skillů + 2)",
+    test("zdravá fixtura → počítadlo cest roste (a 0 mrtvých)",
          "zmínek" in out and "0 mrtvých" in out)
 
     # 2) mrtvá cesta → ČERVENÁ (tohle je jádro testu)
@@ -130,6 +132,64 @@ try:
     test("bez přepisu se skenují ŽIVÉ dokumenty (PROVOZ i BRANY-HRY)",
          "PROVOZ-ORCHESTRA.md" in vystup and "BRANY-HRY.md" in vystup,
          vystup[-200:])
+
+    # ── 7) P28/B5: TVAR CEST, KTERÝ BRÁNA DO 8. 10. 2026 NEVIDĚLA ───────────
+    # Nález §51.3: brána hledala cestu POUZE hned za backtickem — naměřeno
+    # sondou `_analyza/p28-sonda-cesty.py`: v dokumentech je 90 zmínek a brána
+    # jich viděla 71. „0 mrtvých cest" proto NEBYLO důkaz. Následující fixtury
+    # měří, že nový tvar (``` blok, příkaz za `python `) brána SKUTEČNĚ vidí.
+    f_blok = SCRATCH / "fixtura-code-blok.md"
+    f_blok.write_text("```\npython tools\\mrtvy-nastroj-blok.py\n```\n",
+                      encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_blok])
+    test("mrtvá cesta v ``` bloku → exit 1 (dřív ji brána NEVIDĚLA)",
+         kod == 1, f"exit={kod}")
+    test("a je POJMENOVANÁ (ne jen nenulový exit)",
+         "mrtvy-nastroj-blok.py" in out, out[-200:])
+
+    f_prikaz = SCRATCH / "fixtura-prikaz.md"
+    f_prikaz.write_text("Spusť `python _analyza\\mrtvy-nastroj-prikaz.py`.\n",
+                        encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_prikaz])
+    test("mrtvá cesta za `python ` v backticích → exit 1", kod == 1, f"exit={kod}")
+    test("a je pojmenovaná", "mrtvy-nastroj-prikaz.py" in out, out[-200:])
+
+    f_zdrava = SCRATCH / "fixtura-blok-zdrava.md"
+    f_zdrava.write_text("```\nnode tools\\validate-all.mjs\n```\n",
+                        encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_zdrava])
+    test("ZDRAVÁ cesta v ``` bloku → exit 0 (žádný falešný poplach)",
+         kod == 0, f"exit={kod}")
+
+    f_vzor = SCRATCH / "fixtura-vzor.md"
+    f_vzor.write_text("```\ntools/blender/sprites/body_d0_f*.png\n```\n",
+                      encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_vzor])
+    test("VZOR se zástupným znakem (`*`) není cesta → exit 0", kod == 0, f"exit={kod}")
+
+    # ── 8) DEKLAROVANÁ VÝJIMKA PLATÍ JEN PRO DEKLAROVANÝ SKILL ──────────────
+    # `vision` učí postup pro projekt s vlastním `.python` — jeho cesty na téhle
+    # stanici nejsou a být nemusí (je to ŠABLONA). Výjimka je klíčovaná dvojicí
+    # (skill, cesta); táž cesta v JINÉM skillu musí bránu shodit (jinak by se
+    # z výjimky stalo tiché vypnutí kontroly).
+    def fixtura_skillu(koren, jmeno):
+        (koren / jmeno).mkdir(parents=True, exist_ok=True)
+        (koren / jmeno / "SKILL.md").write_text(
+            "---\nname: %s\ndescription: fixtura pro test výjimky\n---\n\n"
+            "Postup pro projekt s vlastním pythonem: `tools\\vision.py`.\n" % jmeno,
+            encoding="utf-8", newline="\n")
+        return koren
+
+    s_vision = fixtura_skillu(SCRATCH / "fixtura-skilly-vision", "vision")
+    kod, out = spust_nad([f_ok], skills=s_vision)
+    test("deklarovaná výjimka (skill `vision` + `tools\\vision.py`) → exit 0",
+         kod == 0, f"exit={kod} — {out[-160:]}")
+
+    s_jiny = fixtura_skillu(SCRATCH / "fixtura-skilly-jiny", "jiny-skill")
+    kod, out = spust_nad([f_ok], skills=s_jiny)
+    test("TÁŽ cesta v JINÉM skillu → exit 1 (výjimka neprosakuje)",
+         kod == 1, f"exit={kod}")
+    test("a je pojmenovaná", "vision.py" in out, out[-200:])
 
 finally:
     shutil.rmtree(SCRATCH, ignore_errors=True)

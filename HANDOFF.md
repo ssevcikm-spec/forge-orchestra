@@ -2321,3 +2321,125 @@ brány (P27, poslední běh): test-tick-offline 205/0 · p27-a --plne 133/0 ·
 - **B5 slepé místo z `§51.3`** (brána měří jiný **tvar** cest, než dokumenty
   používají) — **zůstává otevřené**; dnešní oprava řešila jen **rozsah**.
 - **O7** — až vznikne druhá hra, bere se jako **testovací** (free kvóta se sdílí).
+
+## 59. P28 — PŘEMĚŘENÍ P27 VLASTNÍM MĚŘIDLEM, SLEPÉ MÍSTO `over-skilly` A ZTRACENÝ ZÁZNAM (8. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P28 + stav po P28**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**43**, nálezy **§2.21**), plán (`PLAN-ROZVOJ-ORCHESTRA.md` §6 a §6.1).
+Zadání P28 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **8. 10. 2026, 15:45–19:1x +02:00** (živý čas
+> brán z hodin, ne ze zadání — nález P27-O). Tvrzení o **stavu** (HEAD, hra,
+> živá služba) platí k tomu okamžiku; kdo to čte později, **přeměří**
+> (`python _analyza\p28-a-overeni.py --plne`).
+>
+> **⚠ HRA SE BĚHEM P28 POHNULA (cizí session) — DVAKRÁT:** `uo-shadows`
+> **`bc51e46` → `33d320b` → `d2976f3`** a **`origin/main..HEAD` je 0** (ta
+> session své commity i pushla; práce P28 v ní není). Hodnota `33d320b` platí
+> pro **měření** P28, `d2976f3` pro **zápis záznamu** — hra je **pohyblivý cíl**
+> a kdo ji cituje, musí se podívat, KDY to bylo. P28 do hry **nezapsala ani
+> bajt**; netrackovaný `_acl-recovery/` (cizí artefakt) zůstal a nesahal se.
+
+### 59.1 Co se udělalo
+
+| # | Co | Doklad |
+|---|---|---|
+| **A** | **Vlastní měřidlo P28** (`_analyza/p28-a-overeni.py`, A1–A7) — každý bod **jinak, než vznikl**: A2/A3 poškozuje **ODPOVĚĎ handleru** i **TEXT dotazu**, A4 čte čísla **parsováním z dokumentu**, A5 počítá rozsah **vlastním průchodem**, A7 přepočítává otisk **z uložených záznamů** | `python _analyza\p28-a-overeni.py --plne` → **122 kontrol, 14 chyb** (doklad `p28-a-overeni-vystup.txt`); **14 červených = 14 POJMENOVANÝCH ROZDÍLŮ** proti tvrzením P27, ne 14 vad kódu (viz 59.2). První plný běh dal 120/19 — měřidlo se mezi tím **opravilo** (kotva diferenciálu, přepočet otisku) a **kronika dostala zpět smazaný řádek** |
+| **B1** | **Důkaz, že i tohle měřidlo umí spadnout** — tři mutace **v kopiích**, každá se **třemi nohami** (živé→0 chyb, mutant→spadne, mutant+oslabené měřidlo→projde) | `_analyza/p28-b-mutace.py` → **27 kontrol, 0 chyb** (M1 číslo v dokumentu, M2 `g3` s 50. branou, M3 `ov-g` s nulovým rozsahem — každá se **třemi nohami**) |
+| **B5** | **OPRAVA SLEPÉHO MÍSTA `over-skilly.py`** (§51.3): hledala cestu **jen hned za backtickem** | `tools/over-skilly.py` → **90 zmínek** (bylo **71**; **16** v ``` bloku / za `python …`), **0 mrtvých**; mutační dvojče **8/0 → 17/0** |
+| **C** | Údržba měřidel: `kronika-kontrola.py` **nově hlídá kontinuitu id** řádků session; `p20-d-doklady.py` má sondu P28 v `PRESKIP`; inventář přegenerován **před** `g3` i po úklidu | `kronika-kontrola.py` → **SEDÍ** a vypisuje „chybějící id: (žádné)“; mutace (kopie bez řádku 30) → `exit 1` a id **pojmenuje** |
+| **D** | **Obnova smazaného záznamu**: řádek session **24** v kronice (smazal ho commit `c3ee946`) vrácen **bajt na bajt** z commitu `411f0bb` | `python _analyza\p28-obnov-kroniku.py` → **9 kontrol, 0 chyb**; `git diff --numstat` = **+1 řádek, −0** |
+
+### 59.2 Nálezy P28 (každý doložený měřením; plné znění v kronice §2.21)
+
+1. **TVRZENÍ P27 „`p27-a --plne` → 133/0“ DNES NEPLATÍ: naměřeno 139/5 + 5×
+   NEZMĚŘENO** (běh 60,4 min, doklad `p28-vzdy-p27a-plne-vystup.txt`). Tři chyby
+   jsou **vada POŘADÍ měření** v měřidle P27: jeho etapa A6 pouští `g3`
+   a `validate-all` **poté**, co jeho vlastní etapy zapsaly do stromu soubory →
+   inventář je „zastaralý“ → `g3` hlásí **2 NEDEKLAROVANÉ exity** a `validate-all`
+   padá. P28 proto inventář **před** `g3` přegenerovává a měří to.
+2. **SEDM ENDPOINTŮ JE VOLÁNO I KONTROLOVÁNO** — doloženo **poškozenou odpovědí**
+   (ne zarážkou): u každého endpointu zčervenala aspoň jedna kontrola **jeho
+   skupiny** a **žádná** z ostatních šesti; kontrolní `A: /tick odpoví 200`
+   zůstala zelená. A poškození **textu dotazu** zčervenalo kontroly, které
+   poškození hodnoty nechalo zelené → **TVAR i OBSAH**.
+3. **BRÁNA `over-skilly` BYLA SLEPÁ K TVARU CEST** (71 z 90). Opraveno
+   (B5) + **deklarované výjimky** pro 3 šablony skillu `vision` (cesta projektu
+   s vlastním `.python`, skill to říká slovem „v repu“); **táž cesta v jiném
+   skillu bránu pořád shodí** (měřeno).
+4. **ZTRACENÝ ZÁZNAM JE TICHO:** v kronice **chyběl řádek 24** a `kronika-kontrola`
+   to neviděla (kontrolovala počet, datum, typ). Obnoveno + doplněna kontrola
+   **kontinuity id**.
+5. **MĚŘIDLO P27 SNÍŽÍ ČÍTAČ, KDYŽ TVRZENÍ NENAJDE** (NEZMĚŘENO místo chyby) —
+   „brána, která čeká na vstup, jenž nikdy nepřijde“. P28 to má jako CHYBU.
+6. **ŽIVÝ STAV SE POSUNUL:** `/health` `ready=1` → **2**, `/roadmap` 21 → **22**
+   granul a 0 → **1 blokovaná**; ale **max pokusů = 5 < strop 8**, takže
+   **strop `B4` nic neblokuje** a jeho acceptance **pořád není splněna**.
+   `validate-all` tím hlásí **2 problémy** (cache hry 22 vs soubor 21 granul,
+   5 osiřelých řádků) — oba o **stavu HRY/D1**, ne o orchestra.
+7. **VLASTNÍ OMYLY P28 (4, všechny o měření)**: (a) dílčí běhy měřidla P27
+   **přepsaly jeho živý doklad** (chyběl `--vystup`); (b) **kotva diferenciálu
+   mimo §56** → falešný nález o měřidle; (c) `^--- A%s` s etapou `A4` hledalo
+   `--- AA4` → `None`; (d) `python -c` s „→“ přes PowerShell vrátil 0 výskytů.
+
+### 59.3 Živý stav při zápisu (8. 10. 2026, ~19:1x +02:00)
+
+```
+orchestra: HEAD fffc8e7 · origin/main fffc8e7 · nepushnutých 0 (P27 pushnuta)
+           + práce P28 (necommitnutá): tools/over-skilly.py, _analyza/kronika-kontrola.py,
+             _analyza/p20-d-doklady.py, _analyza/test-over-skilly-delegovane.py,
+             KRONIKA-PROJEKTU.md, HANDOFF.md, NEXT-SESSION-INSTRUKCE.md, _analyza/p28-*
+hra:       HEAD 8fe57ce = origin/main (CIZÍ session píše PRŮBĚŽNĚ: při MĚŘENÍ
+           P28 to bylo 33d320b, pak d2976f3, při ZÁPISU 8fe57ce — hra je
+           POHYBLIVÝ CÍL; P28 do ní nepsala. Pozor: cizí session tam během
+           běhu P28 vytvořila a zase smazala netrackovaný `_analyza/_ci-wait.mjs`,
+           což SAMO o sobě zneplatní obsahový otisk inventáře → `n1-over-inventar`
+           hlásí pojmenovaný stav „INVENTÁŘ JE ZASTARALÝ“)
+živá služba: /health ok=true ready=2 running=0 games=1 · /roadmap 22 granul
+           (done 19, queued 2, blocked 1; max pokusů 5) · 6 chráněných endpointů
+           bez tajemství 401, s tajemstvím 200
+brány:     g3 → 49 bran, 1 deklarovaný exit (`zadání kontrola`), 1 NEDEKLAROVANÝ
+           (`validate-all (CELEK)` — padá na stavu HRY) · validate-all → 2 problémy
+           (oba o hře/D1) · over-skilly → 90 zmínek, 0 mrtvých · test-over-skilly
+           (mutace) 17/0 · test-tick-offline 205/0 · kronika SEDÍ (42+1 řádků)
+```
+
+### 59.4 Co čeká na tebe (uživatel)
+
+- **PUSH — rozhodnutí uživatele.** Práce P28 je **necommitnutá**; mění
+  `tools/`, `_analyza/` a dokumenty, **žádný soubor pod `conductor/**`** →
+  **deploy živé služby to nemění** (`git diff --name-only`). Cesta zpět:
+  `git reset --soft` (nebo `git checkout -- <soubor>`).
+- **B2 `.gitattributes`** — pořád nerozhodnuto (`git checkout` nad
+  `conductor/src/index.ts` ho přepíše na CRLF a rozbije vícřádkové kotvy mutací).
+- **B3 — acceptance `B4` na ŽIVÉ službě** (`POST /game/active {active:false}` →
+  `games=0` a žádný dispatch) — **dočasně zastaví orchestra**, proto čeká na
+  výslovné „ano“. Dnešní měření k tomu přidává: strop 8 **nikoho neblokuje**
+  (max pokusů 5), takže ani „strop zastavil“ není čím doložit.
+- **Dva problémy `validate-all`** (cache hry 22 vs soubor 21, 5 osiřelých řádků)
+  jsou **stav HRY/D1** — patří session, která hru vede; orchestra je neopravuje.
+- **Cizí `_acl-recovery/` v `uo-shadows`** — netrackovaný artefakt cizí session;
+  **nemaže se** a **necommituje**.
+
+### 59.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+# 1) vlastní měřidlo P28 (A1–A7) a jeho mutační důkaz
+python _analyza\p28-a-overeni.py --plne     # 122 kontrol; červené = pojmenované ROZDÍLY
+python _analyza\p28-b-mutace.py             # tři mutace v kopiích, každá s diferenciálem
+python _analyza\p28-ziva-sluzba.mjs         # živá služba JEN ČTENÍM (JSON)
+# 2) oprava B5 a její důkaz
+python tools\over-skilly.py                 # 90 zmínek, 0 mrtvých, 16 mimo backticky
+python _analyza\test-over-skilly-delegovane.py   # 17/0
+# 3) ztracený záznam a nová pojistka
+python _analyza\p28-obnov-kroniku.py --kontrola  # řádek 24 je v kronice
+python _analyza\kronika-kontrola.py              # SEDÍ + "chybějící id: (žádné)"
+# 4) brány PO SOBĚ (ne současně; inventář jako poslední)
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
+python _analyza\g3-brany.py                 # 49 bran
+node tools\validate-all.mjs                 # 2 problémy = stav HRY (viz 59.2 bod 6)
+python _analyza\handoff-kontrola-uplnost.py # úplnost handoffu
+python _analyza\ov-g-neovereno.py           # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
+```

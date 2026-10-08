@@ -1,29 +1,31 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-08 14:07:32",
+  "kdy": "2026-10-08 19:58:05",
   "bran_celkem": 49,
   "s_nenulovym_exit": [
-    "over-skilly",
-    "over-skilly: mutace delegovaných cest"
+    "mutace B (combat)",
+    "validate-all (CELEK)"
   ],
   "ocekavane_nenulove": {
     "zadání kontrola": 1
   },
-  "bez_citace": [],
+  "bez_citace": [
+    "mutace B (combat)"
+  ],
   "neotevrene": [],
   "brany": [
     {
       "nazev": "testy hry (Godot)",
       "exit": 0,
-      "otevrela": "91 / 0",
+      "otevrela": "113 / 0",
       "ma_citac": true,
       "prikaz": "E:\\Tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path E:\\Workspaces\\uo-shadows --script res://tests/run_tests.gd"
     },
     {
       "nazev": "mutace B (combat)",
-      "exit": 0,
-      "otevrela": "2 / 2",
-      "ma_citac": true,
+      "exit": 2,
+      "otevrela": "—",
+      "ma_citac": false,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b-mutace.py E:/Workspaces/forge-orchestra/_analyza/a-ukol-scratch"
     },
     {
@@ -78,14 +80,14 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "392",
+      "otevrela": "408",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
     {
       "nazev": "zadání kontrola",
       "exit": 0,
-      "otevrela": "405",
+      "otevrela": "345",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -98,22 +100,22 @@
     },
     {
       "nazev": "over-skilly",
-      "exit": 1,
-      "otevrela": "13",
+      "exit": 0,
+      "otevrela": "14",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
     },
     {
       "nazev": "over-skilly: mutace delegovaných cest",
-      "exit": 1,
-      "otevrela": "8",
+      "exit": 0,
+      "otevrela": "17",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-over-skilly-delegovane.py"
     },
     {
       "nazev": "lint-roadmapa",
       "exit": 0,
-      "otevrela": "8 / 22",
+      "otevrela": "6 / 21",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/lint-roadmapa.py E:/Workspaces/uo-shadows"
     },
@@ -280,7 +282,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
@@ -295,7 +297,7 @@
     {
       "nazev": "chybějící importy (statická)",
       "exit": 0,
-      "otevrela": "76",
+      "otevrela": "77",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
     },
@@ -337,7 +339,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "175 / 0",
+      "otevrela": "187 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

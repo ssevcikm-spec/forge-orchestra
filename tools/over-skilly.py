@@ -97,28 +97,98 @@ _over = os.environ.get("FORGE_NAVAZANE")
 if _over:
     NAVAZANE = [pathlib.Path(x) for x in _over.split(";") if x.strip()]
 
-# Cesty k nástrojům projektu v backticích (např. `_analyza\g3-brany.py`, `tools\over-skilly.py`).
-VZOR_CESTY = re.compile(r"`((?:_analyza|tools)[\\/][^\s`\"']+)`")
+# Cesty k nástrojům projektu (např. `_analyza\g3-brany.py`, `tools\over-skilly.py`).
+#
+# ⚠ ROZŠÍŘENO 8. 10. 2026 (P28, nález **§51.3** — „brána měří jiný TVAR cest, než
+# dokumenty používají“). Do té doby se cesta hledala **POUZE hned za backtickem**.
+# Naměřeno sondou `_analyza/p28-sonda-cesty.py`: v týchž dokumentech je **80
+# zmínek**, brána jich viděla **65** — **15 jí unikalo** (cesty v ``` bloku,
+# za `python `/`node `, v `--json …`, s `.\`). **„0 mrtvých cest“ proto NEBYLO
+# důkaz.** Cesta se teď hledá **KDEKOLIV na řádku**; backtick není podmínka.
+VZOR_CESTY = re.compile(r"(?<![\w\\./-])((?:_analyza|tools)[\\/][A-Za-z0-9_\-\\/.]+)")
 
 # ⚠ DEKLAROVANÉ VÝJIMKY: cesty, které v textu být MOHOU, i když soubor neexistuje.
 # Každá má důvod; NOVÁ mrtvá cesta bránu SHODÍ (to je smysl kontroly).
 OCEKAVANE = {
-    # příklad: (jmeno_skillu, "cesta"): "důvod",
+    # ⚠ P28/B5 (8. 10. 2026): skill `vision` učí postup pro projekt, který má
+    # `.python` a `tools\vision.py` — a skill to ŘÍKÁ SLOVEM ("vygeneruj si
+    # testovací obrázek V REPU"). Ty cesty na TÉHLE stanici nikde nejsou; patří
+    # projektu, který tu není (bot má svůj python). Je to tedy **legitimní
+    # šablona, ne mrtvá cesta** — bez výjimky by je rozšířený vzor hlásil jako
+    # vadu a nutil "opravovat" správný text (přesně ta past, před kterou varuje
+    # hlavička tohohle souboru). Klíč je (jméno skillu, cesta) — výjimka platí
+    # JEN pro ten skill; táž cesta v jiném skillu bránu pořád shodí.
+    ("vision", "tools\\make_vision_test_shot.py"):
+        "šablona pro projekt s vlastním .python (skill to říká slovem: „v repu“)",
+    ("vision", "tools\\vision.py"):
+        "šablona pro projekt s vlastním .python (skill to říká slovem: „v repu“)",
+    ("vision", "tools\\vision-test-shot.png"):
+        "výstup toho nástroje (testovací obrázek), ne cesta k nástroji projektu",
 }
 
-# ⚠ DEKLAROVANÉ VÝJIMKY pro DELEGOVANÉ dokumenty (stejný smysl jako `OCEKAVANE`).
-# Historické zmínky se odchytávají slovem v řádku („neexistuje", „už není",
-# „smazán", „~~"); sem patří jen cesty, které slovem odchytit nelze.
+# ⚠ DEKLAROVANÉ VÝJIMKY pro DELEGOVANÉ dokumenty (stejný smysl jako `OCEKAVANE`;
+# klíč je taky `(jméno dokumentu, cesta)`).
+# Historické zmínky se odchytávají slovem v řádku ("neexistuje", "už není",
+# "smazán", "~~"); sem patří jen cesty, které slovem odchytit nelze.
 # Každá výjimka musí mít důvod — nová mrtvá cesta bránu SHODÍ.
 OCEKAVANE_DELEGOVANE = {
     # (zatím prázdné — oba dokumenty mají mrtvé cesty jen v historických
     #  zmínkách, a ty jsou označené slovem)
 }
 vsech_cest = 0
+mimo_backticku = 0      # kolik zmínek se našlo v TVARU, který brána dřív neviděla
 mrtvych = 0
 podezrele = []
 mimo_repo = []          # cesty, které se našly v JINÉM projektu (rozsah musí být vidět)
 chyb = 0
+
+
+def cesty_v_textu(radky):
+    """Najde cesty k nástrojům na řádcích — KDEKOLIV, ne jen za backtickem.
+
+    Vrací `(číslo_řádku, cesta, z_backticku)`. Zástupné znaky (`*`, `?`) nejsou
+    cesta: `tools/blender/sprites/body_d0_f*.png` je VZOR, ne odkaz — proto se
+    zahazuje i cesta, za kterou `*`/`?` následuje (jinak by se z ní uřízl
+    prefix a vypadala jako mrtvá).
+    """
+    nalezene = []
+    for i, radek in enumerate(radky, 1):
+        for mm in VZOR_CESTY.finditer(radek):
+            cesta = mm.group(1).rstrip(".,;:)`")
+            if "*" in cesta or "?" in cesta:
+                continue
+            if mm.end() < len(radek) and radek[mm.end()] in "*?":
+                continue
+            z_backticku = mm.start() > 0 and radek[mm.start() - 1] == "`"
+            nalezene.append((i, cesta, z_backticku))
+    return nalezene
+
+
+def posud_cesty(radky, jmeno, ocekavane):
+    """(mrtve, mimo) — táž pravidla pro skilly i delegované dokumenty.
+
+    * cesta se uzná, když existuje v orchestře, ve hře **nebo v sourozenci**;
+    * co se našlo jinde, se vrací jako `mimo` (rozsah musí být VIDĚT);
+    * zmínka, kterou text SÁM přiznává, není vada;
+    * deklarovaná výjimka má vždy důvod.
+    """
+    global vsech_cest, mimo_backticku
+    mrtve, mimo = [], []
+    for i, cesta, z_backticku in cesty_v_textu(radky):
+        vsech_cest += 1
+        if not z_backticku:
+            mimo_backticku += 1
+        if (jmeno, cesta) in ocekavane:
+            continue
+        najd = next((k for k in KORENY if (k / cesta).exists()), None)
+        if najd is not None:
+            if najd not in (REPO, HRA):
+                mimo.append((jmeno, cesta, najd.name))
+            continue
+        if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radky[i - 1], re.I):
+            continue
+        mrtve.append((i, cesta))
+    return mrtve, mimo
 for d in sorted(SKILLS.iterdir()):
     if not d.is_dir():
         continue
@@ -151,27 +221,9 @@ for d in sorted(SKILLS.iterdir()):
         chyb += 1
         continue
 
-    # --- PRAVDIVOST CEST (nové, P22) ------------------------------------------
-    radky = t.splitlines()
-    mrtve_tady = []
-    for i, radek in enumerate(radky, 1):
-        for mm in VZOR_CESTY.finditer(radek):
-            cesta = mm.group(1).rstrip(".,;:")
-            # Vzory s `*` nejsou cesty (např. `tools/blender/sprites/body_d0_f*.png`).
-            if "*" in cesta or "?" in cesta:
-                continue
-            vsech_cest += 1
-            if (d.name, cesta) in OCEKAVANE:
-                continue
-            najd = next((k for k in KORENY if (k / cesta).exists()), None)
-            if najd is not None:
-                if najd not in (REPO, HRA):
-                    mimo_repo.append((d.name, cesta, najd.name))
-                continue
-            # Zmínka o neexistující cestě, kterou text SÁM přiznává, není vada.
-            if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
-                continue
-            mrtve_tady.append((i, cesta))
+    # --- PRAVDIVOST CEST (nové, P22; rozsah tvarů rozšířen P28/B5) -------------
+    mrtve_tady, mimo_tady = posud_cesty(t.splitlines(), d.name, OCEKAVANE)
+    mimo_repo.extend(mimo_tady)
     if mrtve_tady:
         mrtvych += len(mrtve_tady)
         podezrele.append((d.name, mrtve_tady))
@@ -193,23 +245,9 @@ for p in NAVAZANE:
         print(f"  CHYBA delegovaný dokument NEEXISTUJE: {p}")
         chyb += 1
         continue
-    mrtve_tady = []
-    for i, radek in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
-        for mm in VZOR_CESTY.finditer(radek):
-            cesta = mm.group(1).rstrip(".,;:")
-            if "*" in cesta or "?" in cesta:
-                continue
-            vsech_cest += 1
-            if cesta in OCEKAVANE_DELEGOVANE:
-                continue
-            najd = next((k for k in KORENY if (k / cesta).exists()), None)
-            if najd is not None:
-                if najd not in (REPO, HRA):
-                    mimo_repo.append((p.name, cesta, najd.name))
-                continue
-            if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radek, re.I):
-                continue
-            mrtve_tady.append((i, cesta))
+    mrtve_tady, mimo_tady = posud_cesty(p.read_text(encoding="utf-8").splitlines(),
+                                        p.name, OCEKAVANE_DELEGOVANE)
+    mimo_repo.extend(mimo_tady)
     if mrtve_tady:
         mrtvych += len(mrtve_tady)
         chyb += 1
@@ -231,5 +269,11 @@ if mimo_repo:
 print()
 print(f"Skillů: {len([x for x in SKILLS.iterdir() if x.is_dir()])}, chyb: {chyb}")
 print(f"Cesty k nástrojům: {vsech_cest} zmínek, {mrtvych} mrtvých")
+# ⚠ ROZSAH MUSÍ BÝT VIDĚT (P28/B5): kdyby brána mlčela o tom, KTERÝ TVAR cest
+# viděla, „0 mrtvých“ by znovu nebylo důkaz — přesně to byl nález §51.3
+# (brána viděla 65 z 80 zmínek a hlásila zelenou).
+if mimo_backticku:
+    print(f"  (z toho {mimo_backticku} zmínek MIMO backticky — tvar, který brána"
+          f" do 8. 10. 2026 NEVIDĚLA; dřív by se do čítače vůbec nedostaly)")
 print("VŠE OK" if chyb == 0 else "NALEZENY CHYBY")
 sys.exit(0 if chyb == 0 else 1)

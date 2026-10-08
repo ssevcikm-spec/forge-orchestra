@@ -79,7 +79,13 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # `p27-sonda-inventar.py` vypisuje, co je v otisku vstupů inventáře
              # (obě repa, vyloučené artefakty) — podklad měření A7.
              # Obě jsou **jednorázové diagnostiky**, ne opakovatelné doklady.
-             "p27-sonda-endpointy.py", "p27-sonda-inventar.py"}
+             "p27-sonda-endpointy.py", "p27-sonda-inventar.py",
+             # ⚠ PŘESKOČENO 8. 10. 2026 (P28): SONDA, která odpovídala na JEDNU
+             # otázku a má odpovězeno. `p28-sonda-cesty.py` naměřila, které
+             # TVARY cest brána `over-skilly.py` neviděla (71 viděla, 90 jich
+             # v dokumentech je) — to je podklad opravy B5 (§51.3). Je to
+             # **jednorázová diagnostika**, ne opakovatelný doklad.
+             "p28-sonda-cesty.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
