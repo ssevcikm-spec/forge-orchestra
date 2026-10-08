@@ -347,7 +347,7 @@ mutačním testem) a `test-cooldown.py` měří **skutečný SQL** z conductora.
 |---|---|---|---|---|
 | **B1** | **L11 (S12)** — `roadmap` dostane sloupec `naposledy_selhalo` (NULL při založení) a guard se ptá **na něj**, ne na `updated_at` | `conductor/src/index.ts` (guard `:796-804`, `roadmapTick` `:643-646`), `schema.sql` | Replika SQL z `ANALYZA-PODKLADY` §1.2 dá po opravě **`[1]`, `[1]`, `[]`** (dnes `[]`, `[1]`, `[1]`). Nová granule se vydá v **následujícím tiku** | **Vysoké** — mění dispatch. Nasazovat **po jednom kroku**, měřit před/po. Migrace sloupce: `ALTER` v tiku s polknutou chybou (vzor už v kódu) |
 | **B2** | **L12 (S13)** — `/report` zapíše i `roadmap`, stejně jako `pollRuns:403-405` | `conductor/src/index.ts:1338` | Simulované selhání přes `/report` → granule se nevydá dřív než za `RETRY_HOURS` | ✅ **HOTOVO 7. 10. 2026** — vadu opravil už **B1**; chyběla jí **brána**, tu dodal `tools/test-report-cooldown.py` (8/0) + `_analyza/b2-mutace.py` (9/0). Nasazeno v `598e207` |
-| **B3** | **L14 (S14)** — strop a watchdog na **`item_id` granule**; `ESCALATE_AFTER` < `MAX_ATTEMPTS` | `conductor/src/index.ts:246,251,328,679,1338` | Granule, která selže 6×, se **ohlásí** (dnes nikdy) | ✅ **HOTOVO A NASAZENO 7. 10. 2026** — **B3a** (watchdog na granuli, prah 3) + **B3b** (strop `GRAIN_MAX_RUNS`, **výchozí vypnuto** = druhý krok). **Živě ověřeno:** `/tick` → `watchdog: 2 ohlášeno (prah 3)`. Brány: `test-watchdog-granule` 17/0 + 11/0, `test-grain-cap` 22/0 + 11/0 |
+| **B3** | **L14 (S14)** — strop a watchdog na **`item_id` granule**; `ESCALATE_AFTER` < `MAX_ATTEMPTS` | `conductor/src/index.ts:246,251,328,679,1338` | Granule, která selže 6×, se **ohlásí** (dnes nikdy) | ✅ **HOTOVO A NASAZENO 7. 10. 2026** — **B3a** (watchdog na granuli, prah 3) + **B3b** (strop `GRAIN_MAX_RUNS`, **výchozí vypnuto** = druhý krok). **Živě ověřeno:** `/tick` → `watchdog: 2 ohlášeno (prah 3)`. Brány: `test-watchdog-granule` 17/0 + 11/0, `test-grain-cap` 22/0 + 11/0 | | a **8. 10. 2026 strop ZAPNUT na `"8"` a NASAZEN** (push `07169c7` → `deploy.yml` #34 `success`) — ověřeno živě: `/health` ok, `/roadmap` 21 granul, **0 blokovaných** (strop blokuje až od 8 běhů) |
 | **B4** | **L15 (S16/inv. 18)** — `listGames` fallback **nesmí dispatchovat** | `conductor/src/index.ts:447-454` | `POST /game/active {active:false}` → `/health` `games=0` a **žádný dispatch** | ✅ **HOTOVO A NASAZENO 7. 10. 2026** (`598e207`) — fallback pryč **a** dispatch smyčka se ptá na aktivní hry. Brána `tools/test-listgames.py` (10/0) + `_analyza/b4-mutace.py` (9/0) + test tiku offline (kontroly A a C). ⚠ **Zbývá ověřit živě** vypnutím hry (`POST /game/active {active:false}`) — plán to má jako acceptance |
 | **B5** | **L17 komentář** — opravit komentáře `:31`, `:233` (`MAX_ATTEMPTS` živý) | `conductor/src/index.ts` | `grep -n "mrtvý kód" conductor/src/index.ts` → **0** | ✅ **HOTOVO 7. 10. 2026** — naměřeno **0 výskytů**; nasazeno v `598e207` |
 
@@ -434,20 +434,44 @@ je částečně, zbytek **čeká** — a u každé je vidět, co se s ní stalo.
 |---|---|---|---|
 | **O1** | Smím commitnout orchestra (bez push)? | ✅ **ZODPOVĚZENO — ANO** | F0 je commitnutá a pushnutá (`eac2790`, `525d45b`). **Ale:** v orchestra je teď **1 necommitnutá změna** — `README.md` (aktualizace „Stav obálky" z 1. 10. večer). Drift kontrola ho nesleduje, takže se s herním repem nerozejde |
 | **O2** | Smím smazat 10 jednorázových záplat a 27 jednorázových nástrojů? | ✅ **ZODPOVĚZENO — smazáno 8 záplat** | Uživatel: *„Tak je smaž."* → `525d45b`. **Druhá půlka (27 nástrojů) se rozhodla opačně:** byly commitnuté jako trvalé (`tools/` = 70). Reálných kandidátů bylo 9, ne 10 — `oprav-ps1-kodovani.py` je živý nástroj |
-| **O3** | Mám opravit vady conductoru? | ⏳ **ČEKÁ — a je to fáze B** | Zámek (`L13`) už hotový dřív. Zbývá **B1 `naposledy_selhalo`, B2 `/report`, B3 strop na granuli, B4 `listGames`** + komentář (`B5`). **Nasazení conductora je z gitu → rozhodnutí uživatele** |
+| **O3** | Mám opravit vady conductoru? | ✅ **ZODPOVĚZENO A NASAZENO 8. 10. 2026** (P27) | Zámek (`L13`) už hotový dřív. Zbývá **B1 `naposledy_selhalo`, B2 `/report`, B3 strop na granuli, B4 `listGames`** + komentář (`B5`). **Nasazení conductora je z gitu → rozhodnutí uživatele** |
 | **O4** | Je formát `ZMERENO: <co>=<počet>` přijatelný? | ⏳ **ČEKÁ** | Netýká se fáze A–C; je to F2.1. Alternativa (JSON z `--json`) je pořád otevřená |
-| **O5** | Cesty v `forge.config.json`, nebo konvencí? | ⏳ **ČEKÁ** | Fáze D5. Návrh agenta: **deklarace** |
-| **O6** | Které soubory **patří hře**? | ⏳ **ČEKÁ (věcné rozhodnutí uživatele)** | Fáze D. Návrh: `roadmap.json`, `vision-profile.json`, `spec.json`, `providers.json`, `CONVENTIONS.md`. **Agent to nesmí rozhodnout sám** |
-| **O7** | Druhá hra reálná, nebo testovací? | ⏳ **ČEKÁ** | F5. Návrh: testovací (free kvóta se **sdílí, nedělí**) |
-| **O8** | Fáze schvalovat jednotlivě, nebo F0–F2 jako celek? | ⏳ **ČEKÁ** | Platí: F0 hotová, F1–F5 neschválené |
-| **O9** | **NOVÉ:** Opravit `NAZEV-REPA` hned (`${{ github.repository }}`), nebo až v rámci onboardingu? | ⏳ **ČEKÁ** | Fáze D1. Návrh: **hned** — je to jeden řádek a dnes to znamená, že každá nová hra dostane nefunkční odkaz |
-| **O10** | **NOVÉ:** Má být **ST9-část** (testy conductora čtou SQL ze zdrojáku) součástí fáze B, ne až F2? | ⏳ **ČEKÁ** | Návrh: **ano** — bez toho B1–B3 nemají čím dokázat, že fungují. Je to **změna plánu**, proto se ptám |
+| **O5** | Cesty v `forge.config.json`, nebo konvencí? | ✅ **ZODPOVĚZENO 8. 10. 2026** (P27, uživatel: „souhlasím“) | Fáze D5. Návrh agenta: **deklarace** |
+| **O6** | Které soubory **patří hře**? | ✅ **ZODPOVĚZENO 8. 10. 2026** (P27, uživatel: „souhlasím“) | Fáze D. Návrh: `roadmap.json`, `vision-profile.json`, `spec.json`, `providers.json`, `CONVENTIONS.md`. **Agent to nesmí rozhodnout sám** |
+| **O7** | Druhá hra reálná, nebo testovací? | ⏳ **ODLOŽENO S PRAVIDLEM 8. 10. 2026** (P27) | F5. Návrh: testovací (free kvóta se **sdílí, nedělí**) |
+| **O8** | Fáze schvalovat jednotlivě, nebo F0–F2 jako celek? | ✅ **ZODPOVĚZENO 8. 10. 2026** (P27, uživatel) | Platí: F0 hotová, F1–F5 neschválené |
+| **O9** | **NOVÉ:** Opravit `NAZEV-REPA` hned (`${{ github.repository }}`), nebo až v rámci onboardingu? | ✅ **HOTOVO A OVĚŘENO 8. 10. 2026** (P27) | Fáze D1. Návrh: **hned** — je to jeden řádek a dnes to znamená, že každá nová hra dostane nefunkční odkaz |
+| **O10** | **NOVÉ:** Má být **ST9-část** (testy conductora čtou SQL ze zdrojáku) součástí fáze B, ne až F2? | ✅ **ZODPOVĚZENO 8. 10. 2026** (P27, uživatel: „souhlasím“) | Návrh: **ano** — bez toho B1–B3 nemají čím dokázat, že fungují. Je to **změna plánu**, proto se ptám |
 
 **Co z toho vyplývá pro novou session:** fáze **A nepotřebuje žádné rozhodnutí**
 (je to nástroj, ne chování orchestra). Fáze **B a D1 ano**. Doporučení je
 **začít fází A** a rozhodnutí o B a D1 nechat na člověka.
 
 ---
+
+### 6.1 ROZHODNUTÍ B5 — ROZSAH BRÁNY `over-skilly` (8. 10. 2026, P27)
+
+**Otázka:** které cesty má brána `tools/over-skilly.py` měřit a proti kterému
+projektu? Uživatel ji delegoval na agenta („Nevím podle čeho B5 rozhodnout.
+Nerozumíš tomu lépe? Můžeš určit ty?“), takže rozhodnutí je tady **zapsané
+i s důvodem**, aby se za měsíc nehádalo, proč to tak je.
+
+**Naměřeno před rozhodnutím:** skill `game-developer` (STANIČNÍ, přepsaný cizí
+session) odkazuje na `tools/plan-status.py` a `tools/roadmap-gen.py`; ty
+existují v sourozenci `E:\Workspaces\game-clone`, ale brána znala jen
+orchestra + hru → hlásila **3 mrtvé cesty** a shodila `g3` (2 nedeklarované
+exity). To je **falešný poplach** — a ten nutil „opravovat“ správný text.
+
+**ROZHODNUTÍ:** skilly jsou **STANIČNÍ**, ne projektové. Cesta se proto uzná,
+když existuje v orchestře, ve hře, **nebo v některém sourozeneckém projektu**
+(adresář v `REPO.parent` s `.git`). **Skutečně mrtvá cesta (nikde) bránu dál
+SHODÍ** — o to jde. A co se našlo mimo orchestra/hru, brána **vypíše jako
+poznámku** (rozsah musí být VIDĚT; tiché rozšíření rozsahu je táž vada, jakou
+popisuje P25-K).
+
+**Druhá část rozhodnutí:** slepé místo z `HANDOFF.md` §51.3 (brána měřila jiný
+tvar cest, než dokumenty používají) zůstává **otevřené jako samostatná práce**
+— dnešní oprava řeší **rozsah**, ne tvar cest.
 
 ## 7. Co se změnilo proti návrhu
 

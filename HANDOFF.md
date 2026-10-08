@@ -2256,3 +2256,68 @@ python _analyza\p25-a-overeni.py --plne   # 53/0
 python _analyza\p24-a-overeni.py          # 99/x (A8 = stav hry)
 python _analyza\tick-mutace.py            # 20 vrat / 41/0
 ```
+
+## 58. P27 — DODATEK: ROZHODNUTÍ UŽIVATELE, NASAZENÍ STROPU A ROZSAH BRÁNY (8. 10. 2026)
+
+**Co tenhle oddíl JE:** **dodatek k §57** — uživatel 8. 10. 2026 rozhodl o otevřených
+otázkách, **strop granulí se ZAPNUL a NASAZIL** a opravil se **rozsah brány**
+`over-skilly` (rozhodnutí **B5**, které uživatel delegoval na agenta).
+**Co NENÍ:** stav před rozhodnutím (to je §57), historie (kronika — řádek **42**,
+nálezy **§2.20**), plán (ten je `PLAN-ROZVOJ-ORCHESTRA.md` §6 a **§6.1**).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno a nasazeno **8. 10. 2026, ~14:30–15:30 +02:00**.
+> Živá služba se od té doby může změnit — kdo to čte později, **přeměří**
+> (`node _analyza\p27-over-nasazeni.mjs`).
+
+### 58.1 Co se udělalo
+
+| # | Co | Doklad |
+|---|---|---|
+| **B4** | **STROP NA GRANULI ZAPNUT na `"8"`** (byl `"0"` = vypnuto) a **NASAZEN** | `conductor/wrangler.toml` + push **`07169c7`** → Actions `deploy.yml` **#34 `completed/success`** na témž commitu; **živě:** `/health` `ok=true`, `/roadmap` 21 granul, **0 blokovaných** |
+| **B5** | **ROZSAH BRÁNY `over-skilly`** — skilly jsou STANIČNÍ, takže cesta smí patřit jinému projektu | `tools/over-skilly.py` → **0 mrtvých cest** (3 cesty se našly v `game-clone` a vypisují se jako **poznámka**); mutační dvojče **8/0** |
+| **—** | Mut. dvojče `test-over-skilly-delegovane.py` **odpojeno od cizích skillů** (přepis `FORGE_SKILLS`) | dřív padalo kvůli **cizímu** rozbitému skillu; dnes **8/0** |
+| **O9** | Ověřeno, že oprava `NAZEV-REPA` **drží** (hotová už 1. 10. 2026) | šablona `repo/.github/workflows/release.yml`: **0×** `NAZEV-REPA`, **5×** `github.repository`; `termux-setup.sh` 2× **záměrně** (návod pro člověka) |
+| **—** | **Rozhodnutí uživatele zapsána** do `PLAN-ROZVOJ-ORCHESTRA.md` §6 (+ nový **§6.1** = rozhodnutí B5 s důvodem) | `O5`, `O6`, `O10` = souhlas; `O7` odloženo s pravidlem; `O8` = celek, ale postupně; `O9` hotovo; `O3` zodpovězeno |
+
+### 58.2 Nálezy P27 (dodatek — každý doložený měřením)
+
+19. **CIZÍ SKILL MÁ NEPLATNÝ YAML — A SHODÍ NAŠE BRÁNY.** Během session vznikl
+    (jinou session, **mtime 14:26**) skill `dialog-s-uzivatelem` s **neplatným
+    frontmatterem** (neescapované uvozovky v `description`). `over-skilly` kvůli
+    němu hlásí 1 chybu a `g3` má nedeklarovaný exit — **přitom s orchestrou ten
+    soubor nemá nic společného**. **NEOPRAVOVAL jsem ho** (cizí rozdělaná práce);
+    patří té session. Naměřeno: `Skillů: 14, chyb: 1`, `Cesty k nástrojům: 71
+    zmínek, 0 mrtvých`.
+20. **MUTAČNÍ TEST BYL SVÁZANÝ S CIZÍMI SKILLY.** `_analyza/test-over-skilly-delegovane.py`
+    testuje část o **delegovaných dokumentech**, ale jeho „zdravá fixtura →
+    exit 0" padalo kvůli cizímu rozbitému skillu (2 chyby). Opraveno přepisem
+    **`FORGE_SKILLS`** (stejný vzor jako `FORGE_NAVAZANE`/`FORGE_KORENY`) → test
+    měří **svou věc**: **8/0**.
+21. **STROP GRANULÍ: PROČ PRÁVĚ 8.** Musí být **víc než `MAX_ATTEMPTS` (5)** —
+    jinak jen opisuje pokusový strop a nic dalšího nebrzdí (granule s jedním
+    úkolem spálí 5 běhů a stejně padne). `ESCALATE_AFTER` (3) musí zůstat **pod**
+    ním. 8 = 3 (ohlášení) + 5 (jeden plný rozpočet) → druhá šance ano, třetí ne.
+    **Mez acceptance:** že strop opravdu **zastaví**, se na živé službě projeví až
+    u granule s **≥ 8 běhy** (stejná mez jako u B3/B4) — dnes je blokovaných **0**.
+
+### 58.3 Stav po dodatku
+
+```
+orchestra: HEAD 07169c7 (PUSHNUTO, origin/main = HEAD)
+hra:       HEAD bc51e46 (cizí session, nepushnuté) — P27 do hry nezapsala
+živá služba: /health ok=true ready=1 running=0 games=1 · /roadmap 21 granul,
+           0 blokovaných · strop granulí ZAPNUTÝ na 8 (deploy.yml #34 success)
+brány (P27, poslední běh): test-tick-offline 205/0 · p27-a --plne 133/0 ·
+           p27-b 27/0 · b3b-mutace 11/0 · tick-mutace 20 vrat / 41/0 ·
+           over-skilly: 0 mrtvých cest, 1 CHYBA = CIZÍ skill (nález 19)
+```
+
+### 58.4 Co čeká na tebe
+
+- **Cizí skill `dialog-s-uzivatelem`** — neplatný YAML; dokud ho ta session
+  neopraví, bude `over-skilly` (a tím `g3`) červené. **Neopravoval jsem ho.**
+- **B2 `.gitattributes`** — nerozhodnuto (`git checkout` nad `conductor/src/index.ts`
+  ho přepíše na CRLF a rozbije vícřádkové kotvy mutací).
+- **B5 slepé místo z `§51.3`** (brána měří jiný **tvar** cest, než dokumenty
+  používají) — **zůstává otevřené**; dnešní oprava řešila jen **rozsah**.
+- **O7** — až vznikne druhá hra, bere se jako **testovací** (free kvóta se sdílí).
