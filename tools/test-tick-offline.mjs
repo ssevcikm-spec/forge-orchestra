@@ -40,6 +40,26 @@
 //   K) **/report**: neznámý `run_key` → 404 a **žádné zápisy**
 //   L) **/report**: špatné tajemství → 401 a **žádné zápisy**
 //   M) **/report**: `blocked`/`done` je TERMINÁLNÍ — report ho nesmí vzkřísit
+//
+// P27 / Úkol B1 — SEDM ENDPOINTŮ, KTERÉ NEVOLAL ŽÁDNÝ TEST (X–AD níž):
+//   X)  **/health** — stav SLUŽBY (`ok`, `ready`, `running`, `games`, `workers`)
+//       ZVLÁŠŤ od stavu CÍLE (`targets[].main_ci`, `forge.ok`,
+//       `forge.selhani_v_rade`). Veřejný (monitoring dostupnosti), takže se
+//       testuje GETem BEZ tajemství; „nezměřeno" (`error`) musí být VIDĚT.
+//   Y)  **/queue** — fronta úloh i se `status`/`attempts`
+//   Z)  **/roadmap** — cache roadmapy (LEFT JOIN, aby byly vidět i granule bez úkolu)
+//   AA) **/failed** — selhané úlohy s ROZBALENÝM `payload` a běhy přiřazenými
+//       podle `task_id` (podklad pro `forge replan`)
+//   AB) **/status** — běhy s `title` z JOINu
+//   AC) **/workers** — registrované uzly (podle nich se přiděluje práce)
+//   AD) **/games** — registr her VČETNĚ VYPNUTÝCH (na rozdíl od `/health`)
+//
+// Proč právě tyhle: P24 zavřela pět cest a P25 tři zapisující, ale tyhle
+// ČTECÍ endpointy — které orchestra používá pro diagnostiku i pro člověka —
+// nevolal NIKDO (naměřeno 7. 10. 2026: `post(mod, env, '/health'|…)` → 0×).
+// Test u každého tvrdí **TVAR i OBSAH** odpovědi, ne jen `status === 200`
+// (jinak by prošel i nad prázdným `{ tasks: null }`); doklad je
+// `_analyza/p27-a-overeni.py` etapa A3.
 
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
@@ -118,9 +138,13 @@ function fakeDb(cfg) {
 
   const first = async (sql) => {
     zapis(sql);
-    if (sql.includes("FROM tasks WHERE status='ready'")) return { n: 1 };
+    // `readyCount`: počet připravených úloh je v `/health` TVRZENÍ O STAVU —
+    // s natvrdo zapsanou 1 by kontrola „ready je z D1" nemohla nikdy spadnout.
+    if (sql.includes("FROM tasks WHERE status='ready'")) return { n: cfg.readyCount ?? 1 };
     if (sql.includes("FROM runs WHERE status='running'")) return { n: stav.bezi };
-    if (sql.includes('COUNT(*) AS n FROM games')) return { n: cfg.aktivniHra ? 1 : 0 };
+    if (sql.includes('COUNT(*) AS n FROM games')) {
+      return { n: cfg.gamesCount ?? (cfg.aktivniHra ? 1 : 0) };
+    }
     // `/claim`: hledá úlohu pro domácí uzel (`target='lan'` a druhy)
     if (sql.includes("target='lan'")) return cfg.claimTask ?? null;
     // `/roadmap/reset`: ověření, že hra existuje
@@ -137,14 +161,41 @@ function fakeDb(cfg) {
 
   const all = async (sql) => {
     zapis(sql);
+    // ── P27 / Úkol B1: ČTECÍ ENDPOINTY ────────────────────────────────────
+    // ⚠ POŘADÍ JE PODSTATNÉ: konkrétní vzory musí být PŘED obecným
+    // `sql.includes('FROM games')` níž — jinak by `/games` (registr)
+    // dostal řádek aktivní hry a test by měřil jiný dotaz, než si myslí.
+    if (sql.includes('SELECT * FROM games')) {
+      return { results: cfg.gamesRadky ?? [] };          // `/games`
+    }
+    if (sql.includes('SELECT * FROM workers')) {
+      return { results: cfg.workersVse ?? [] };          // `/workers`
+    }
+    if (sql.includes('SELECT name, kinds, last_seen')) {
+      return { results: cfg.workersRadky ?? [] };        // `/health`
+    }
+    if (sql.includes('FROM tasks ORDER BY id DESC LIMIT 50')) {
+      return { results: cfg.queueRadky ?? [] };          // `/queue`
+    }
+    if (sql.includes("FROM tasks WHERE status='failed'")) {
+      return { results: cfg.failedRadky ?? [] };         // `/failed`
+    }
+    if (sql.includes('FROM runs WHERE status NOT IN')) {
+      return { results: cfg.failedRuny ?? [] };          // `/failed`
+    }
+    if (sql.includes('FROM runs r LEFT JOIN tasks t')) {
+      return { results: cfg.statusRuny ?? [] };          // `/status`
+    }
     // pollRuns: které cloudové běhy mám vysledovat
     if (sql.includes('FROM runs r JOIN tasks t') && sql.includes("r.status = 'running'")) {
       return { results: cfg.sledovanyRun ? [cfg.sledovanyRun] : [] };
     }
+    // ⚠ `hryRadky` umí přepsat REPO aktivní hry — a to je nutné pro `/health`:
+    // `targetState` má TTL cache 2 minuty klíčovanou REPEM, takže by druhý
+    // scénář měření cíle dostal odpověď z cache prvního a měřil by NIC
+    // (naměřeno 7. 10. 2026 při psaní těchhle testů).
     if (sql.includes('FROM games')) {
-      return { results: cfg.aktivniHra
-        ? [{ game_id: 'test', repo: 'test/hra', roadmap_file: '.forge/roadmap.json', active: 1 }]
-        : [] };
+      return { results: cfg.hryRadky ?? (cfg.aktivniHra ? [GAME_ROW] : []) };
     }
     // `/tasks/cleanup`: co je v cache roadmapy (podle toho se hledají osiřelé)
     if (sql.includes('SELECT item_id, task_id FROM roadmap')) {
@@ -156,7 +207,9 @@ function fakeDb(cfg) {
     }
     if (sql.includes('FROM roadmap') && sql.includes('eskalovano')) return { results: [] };
     if (sql.includes('GROUP BY item_id')) return { results: [] };
-    if (sql.includes('FROM roadmap r LEFT JOIN tasks t')) return { results: [] };
+    if (sql.includes('FROM roadmap r LEFT JOIN tasks t')) {
+      return { results: cfg.roadmapRadky ?? [] };       // `/roadmap`
+    }
     if (sql.includes("SELECT payload FROM tasks WHERE status='running'")) return { results: [] };
     if (sql.includes("SELECT * FROM tasks WHERE status='ready'")) {
       return { results: stav.taskStatus === 'ready'
@@ -292,6 +345,17 @@ function stubGithub(calls, cfg) {
     const json = (data, status = 200) =>
       new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json' } });
     if (u.includes('/actions/workflows/') && u.includes('/dispatches')) return new Response(null, { status: 204 });
+    // P27 / Úkol B1: stav CÍLE pro `/health` (`targetState`). Do 7. 10. 2026
+    // tenhle stub na tuhle URL spadal (`necekana URL`), takže `/health` šel
+    // testovat JEN s chybou měření — a „nezměřeno" se nedalo odlišit od
+    // „naměřeno". `ciChyba` tu chybu umí vyrobit SCHVÁLNĚ.
+    if (u.includes('/actions/workflows/') && u.includes('/runs?')) {
+      if (cfg.ciChyba && u.includes('ci.yml')) {
+        return new Response('rozbito', { status: 500 });
+      }
+      return json({ workflow_runs: u.includes('ci.yml')
+        ? (cfg.ciRuny ?? []) : (cfg.agentRuny ?? []) });
+    }
     // pollRuns: výsledek běhu se hledá podle `run_key` ve jméně
     if (u.includes('/actions/runs?event=workflow_dispatch')) {
       return json({ workflow_runs: cfg.behNaGithubu ? [cfg.behNaGithubu] : [] });
@@ -353,8 +417,23 @@ async function post(mod, env, cesta, { telo, hlavicky = {}, secret = SECRET } = 
   return { status: res.status, body: b };
 }
 
-/** Jeden sledovaný běh (pollRuns) — payload nese hru i granuli. */
-const sledovanyRun = {
+/**
+ * Obecný GET na SKUTEČNÝ endpoint conductora (P27, Úkol B1).
+ *
+ * PROČ ZVLÁŠŤ: `/health` je **veřejný** (hlídá ho monitoring dostupnosti)
+ * a čte se **GETem** — test, který by ho volal POSTem s tajemstvím, by
+ * netvrdil nic o tom, co používá monitoring.
+ */
+async function get(mod, env, cesta, { hlavicky = {} } = {}) {
+  const res = await mod.default.fetch(new Request(`https://conductor.test${cesta}`, {
+    method: 'GET', headers: hlavicky,
+  }), env);
+  let b = null;
+  try { b = await res.json(); } catch { b = null; }
+  return { status: res.status, body: b };
+}
+
+/** Jeden sledovaný běh (pollRuns) — payload nese hru i granuli. */const sledovanyRun = {
   run_id: 7, run_key: RUN_KEY, task_id: 1, title: GRAIN.title,
   payload: JSON.stringify({ game: 'test', grain: GRAIN.id, repo: 'test/hra' }),
 };
@@ -365,6 +444,46 @@ const behNaGithubu = (conclusion) => ({
 
 /** Řádek běhu pro `/report` (worker: null → statistiky uzlu se přeskočí). */
 const behRow = () => ({ id: 1, task_id: 1, worker: null });
+
+// ── P27 / Úkol B1: FIXTURY PRO ČTECÍ ENDPOINTY ────────────────────────────
+// Hodnoty jsou ZÁMĚRNĚ nenulové a rozlišitelné: test, který tvrdí jen
+// `status === 200`, projde i nad prázdnou odpovědí — a to je přesně ta vada,
+// kvůli které tyhle testy vznikají (`overovani`: přítomnost ≠ chování).
+const TASK_ROW = {
+  id: 11, title: 'Hotová úloha', kind: 'code', target: 'cloud',
+  status: 'ready', attempts: 2, created_at: '2026-10-07T10:00:00Z',
+};
+const ROADMAP_ROW = {
+  item_id: 'test/grain.jedna', task_id: 11, status: 'queued',
+  created_at: '2026-10-07T09:00:00Z', updated_at: '2026-10-07T10:00:00Z',
+  task_status: 'ready', attempts: 2,
+};
+const FAILED_TASK = {
+  id: 12, title: 'Selhaná úloha', kind: 'code', target: 'cloud',
+  prompt: 'neco', payload: '{"game":"test","grain":"x"}',
+  status: 'failed', attempts: 5, created_at: '2026-10-07T08:00:00Z',
+};
+// `log_tail` je delší než strop v handleru (2000) — jinak by se zkrácení
+// nedalo změřit a kontrola by tvrdila jen to, že text „nějaký“ je.
+const FAILED_RUN = {
+  task_id: 12, run_key: 'klic-selhal', status: 'failed', summary: 'spadlo',
+  log_tail: 'x'.repeat(2500), pr_url: null, finished_at: '2026-10-07T08:10:00Z',
+};
+const STATUS_RUN = {
+  id: 3, task_id: 11, title: 'Hotová úloha', status: 'success', worker: 'pc-domaci',
+  started_at: '2026-10-07T10:00:00Z', finished_at: '2026-10-07T10:05:00Z',
+  summary: 'ok', pr_url: 'https://x/1',
+};
+const WORKER_ROW = {
+  name: 'pc-domaci', kinds: 'assets,test', last_seen: '2026-10-07T16:00:00Z', info: '{}',
+};
+const GAME_ROW = {
+  game_id: 'test', repo: 'test/hra', roadmap_file: '.forge/roadmap.json', active: 1,
+};
+// VYPNUTÁ hra: v registru být MUSÍ (`/games`), v `/health` být NESMÍ.
+const GAME_OFF = {
+  game_id: 'stara', repo: 'test/stara', roadmap_file: '.forge/roadmap.json', active: 0,
+};
 
 // ---------------------------------------------------------------- main ----
 async function main() {
@@ -763,8 +882,11 @@ async function main() {
   }
 
   // ── S) tajemství: všechny chráněné endpointy ho VYŽADUJÍ ─────────────────
+  // ⚠ `/health` tu ZÁMĚRNĚ NENÍ: je veřejný (hlídá ho monitoring dostupnosti)
+  // a jeho veřejnost testuje blok X.
   {
-    const chranene = ['/poll', '/claim', '/heartbeat', '/tasks/cleanup', '/roadmap/reset'];
+    const chranene = ['/poll', '/claim', '/heartbeat', '/tasks/cleanup', '/roadmap/reset',
+                      '/queue', '/roadmap', '/failed', '/status', '/workers', '/games'];
     const bez = [];
     for (const cesta of chranene) {
       const calls = [];
@@ -985,6 +1107,273 @@ async function main() {
     check('W: po ZAPNUTÍ hry tik dispatchuje PRÁVĚ JEDNOU',
       calls2.filter(jeDispatch).length, 1);
     check('W: přepnutí hry proběhla právě 2×', stav.prepnutoHry, 2);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // P27 / Úkol B1 — SEDM ENDPOINTŮ, KTERÉ NEVOLAL ŽÁDNÝ TEST
+  // (`/health`, `/queue`, `/roadmap`, `/failed`, `/status`, `/workers`, `/games`)
+  //
+  // PROČ: do 7. 10. 2026 je nevolal NIKDO (naměřeno: `post(mod, env, '/health'|…)`
+  // → 0 výskytů) — a to jsou endpointy, které orchestra používá pro diagnostiku
+  // i pro člověka. „Vada, kterou nikdo nezměří, se pozná až tím, že se něco
+  // stane." Každý blok tvrdí **TVAR i OBSAH** odpovědi, ne jen `status === 200`.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── X) /health: stav SLUŽBY zvlášť od stavu CÍLE (N0.3) ──────────────────
+  {
+    const calls = [];
+    const hra = { ...GAME_ROW, repo: 'test/hra1' };
+    stubGithub(calls, {
+      aktivniHra: true, hryRadky: [hra],
+      ciRuny: [{ status: 'completed', conclusion: 'success', head_sha: 'abc',
+                 run_number: 5, html_url: 'https://x/ci' }],
+      // 2 selhání, pak úspěch, pak nedokončený → `selhani_v_rade` musí být 2
+      // a `ok` musí být `false` (tvrzení o POSLEDNÍM DOKONČENÉM běhu).
+      agentRuny: [
+        { status: 'completed', conclusion: 'failure', run_number: 323, html_url: 'https://x/a1' },
+        { status: 'completed', conclusion: 'failure', run_number: 322, html_url: 'https://x/a2' },
+        { status: 'completed', conclusion: 'success', run_number: 321, html_url: 'https://x/a3' },
+        { status: 'in_progress', conclusion: null, run_number: 324, html_url: 'https://x/a4' },
+      ],
+    });
+    const { env } = envFor({ aktivniHra: true, readyCount: 4, bezi: 2,
+                             hryRadky: [hra], workersRadky: [WORKER_ROW] });
+    const { status, body } = await get(mod, env, '/health');
+    check('X: /health jde BEZ tajemství (veřejný pro monitoring)', status, 200);
+    check('X: /health hlásí `ok: true` (služba žije)', body?.ok, true);
+    check('X: `ready` je z D1 (ne zapečená 1)', body?.ready, 4);
+    check('X: `running` je z D1', body?.running, 2);
+    check('X: `games` = počet AKTIVNÍCH her z D1', body?.games, 1);
+    check('X: /health vrací uzly i s `kinds` a `last_seen`',
+      [body?.workers?.[0]?.name, body?.workers?.[0]?.kinds,
+       typeof body?.workers?.[0]?.last_seen],
+      ['pc-domaci', 'assets,test', 'string']);
+    check('X: stav CÍLE je v `targets` (ne v `ok`)', body?.targets?.[0]?.game_id, 'test');
+    check('X: a míří na REPO z D1', body?.targets?.[0]?.repo, 'test/hra1');
+    check('X: poslední CI cíle je naměřené (conclusion)',
+      body?.targets?.[0]?.main_ci?.conclusion, 'success');
+    check('X: `forge.ok` je tvrzení o POSLEDNÍM DOKONČENÉM běhu',
+      body?.targets?.[0]?.forge?.ok, false);
+    check('X: `selhani_v_rade` počítá do prvního ÚSPĚCHU (2, ne 3)',
+      body?.targets?.[0]?.forge?.selhani_v_rade, 2);
+    check('X: a cíl je NAMĚŘENÝ (`error` je null)', body?.targets?.[0]?.error, null);
+  }
+
+  // ── X2) /health: TTL cache stavu cíle (jinak by to byl GitHub provoz) ────
+  {
+    const calls = [];
+    const hra = { ...GAME_ROW, repo: 'test/hra2' };
+    stubGithub(calls, { aktivniHra: true, hryRadky: [hra], ciRuny: [], agentRuny: [] });
+    const { env } = envFor({ aktivniHra: true, hryRadky: [hra] });
+    const prvni = await get(mod, env, '/health');
+    const druhe = await get(mod, env, '/health');
+    check('X2: druhé volání /health nezatíží GitHub znovu (cache)',
+      calls.filter((u) => u.includes('/actions/workflows/')).length, 2);
+    check('X2: a obě odpovědi nesou TÝŽ stav cíle',
+      JSON.stringify(prvni.body?.targets), JSON.stringify(druhe.body?.targets));
+  }
+
+  // ── X3) /health: cíl NEJDE změřit → „nezměřeno“ musí být VIDĚT ───────────
+  {
+    const calls = [];
+    const hra = { ...GAME_ROW, repo: 'test/hra3' };
+    stubGithub(calls, { aktivniHra: true, hryRadky: [hra], ciChyba: true });
+    const { env } = envFor({ aktivniHra: true, hryRadky: [hra] });
+    const { status, body } = await get(mod, env, '/health');
+    check('X3: /health odpoví 200 i když cíl nejde změřit', status, 200);
+    check('X3: `main_ci` zůstane null (nezměřeno ≠ zelená)',
+      body?.targets?.[0]?.main_ci, null);
+    check('X3: `forge` zůstane null', body?.targets?.[0]?.forge, null);
+    check('X3: a JE VIDĚT důvod (`error` není null)',
+      typeof body?.targets?.[0]?.error, 'string');
+    check('X3: `ok` služby tím NENÍ dotčeno', body?.ok, true);
+  }
+
+  // ── Y) /queue: fronta úloh i se stavem a pokusy ──────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, queueRadky: [TASK_ROW] });
+    const { status, body } = await post(mod, env, '/queue');
+    check('Y: /queue odpoví 200', status, 200);
+    check('Y: /queue vrací úlohy z D1 (ne prázdno)', body?.tasks?.length, 1);
+    check('Y: a nese STAV i POKUSY (bez nich se fronta ladit nedá)',
+      [body?.tasks?.[0]?.status, body?.tasks?.[0]?.attempts], ['ready', 2]);
+    check('Y: a `title`/`kind`/`target` jdou z D1',
+      [body?.tasks?.[0]?.title, body?.tasks?.[0]?.kind, body?.tasks?.[0]?.target],
+      ['Hotová úloha', 'code', 'cloud']);
+    check('Y: čte se LIMIT 50 od NEJNOVĚJŠÍCH',
+      bylZapis(log, /FROM tasks ORDER BY id DESC LIMIT 50/), true);
+  }
+
+  // ── Y2) /queue: prázdná fronta je `[]`, ne `null` (tvar pro klienta) ────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, queueRadky: [] });
+    const { status, body } = await post(mod, env, '/queue');
+    check('Y2: prázdná fronta → 200 a `tasks: []`',
+      [status, body?.tasks], [200, []]);
+  }
+
+  // ── Y3) /queue GET se špatným tajemstvím → 401 a ŽÁDNÝ dotaz do D1 ───────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, queueRadky: [TASK_ROW] });
+    const { status } = await get(mod, env, '/queue',
+      { hlavicky: { 'x-forge-secret': 'spatne' } });
+    check('Y3: /queue GET se špatným tajemstvím → 401', status, 401);
+    check('Y3: a do D1 se vůbec nešlo', log.length, 0);
+  }
+
+  // ── Z) /roadmap: cache roadmapy (LEFT JOIN, aby byly vidět i osiřelé) ────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, roadmapRadky: [ROADMAP_ROW] });
+    const { status, body } = await post(mod, env, '/roadmap');
+    check('Z: /roadmap odpoví 200', status, 200);
+    check('Z: vrací granuli i se stavem ÚKOLU (z JOINu)',
+      [body?.roadmap?.[0]?.item_id, body?.roadmap?.[0]?.status,
+       body?.roadmap?.[0]?.task_status],
+      ['test/grain.jedna', 'queued', 'ready']);
+    check('Z: a s POKUSY (podle nich se pozná zaseknutá granule)',
+      body?.roadmap?.[0]?.attempts, 2);
+    check('Z: dotaz je LEFT JOIN — i granule BEZ úkolu musí být vidět',
+      bylZapis(log, /FROM roadmap r LEFT JOIN tasks t/), true);
+  }
+
+  // ── Z2) /roadmap: prázdná cache je `[]` ─────────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, roadmapRadky: [] });
+    const { body } = await post(mod, env, '/roadmap');
+    check('Z2: prázdná roadmapa → `roadmap: []`', body?.roadmap, []);
+  }
+
+  // ── AA) /failed: podklad pro `forge replan` ──────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, failedRadky: [FAILED_TASK],
+                                  failedRuny: [FAILED_RUN] });
+    const { status, body } = await post(mod, env, '/failed');
+    check('AA: /failed odpoví 200', status, 200);
+    check('AA: vrací SELHANOU úlohu', body?.tasks?.[0]?.id, 12);
+    check('AA: `payload` je ROZBALENÝ objekt (klient nemá parsovat řetězec)',
+      typeof body?.tasks?.[0]?.payload, 'object');
+    check('AA: a nese repo i grain',
+      [body?.tasks?.[0]?.payload?.game, body?.tasks?.[0]?.payload?.grain],
+      ['test', 'x']);
+    check('AA: běh je PŘIŘAZENÝ podle `task_id` (ne podle jména)',
+      body?.tasks?.[0]?.runs?.[0]?.run_key, 'klic-selhal');
+    // Strop 2000 znaků: bez něj by odpověď nesla celý log a `log_tail` by
+    // přestal být „ocásek" (a klient by dostal megabajty).
+    check('AA: `log_tail` je ZKRÁCENÝ na 2000 znaků',
+      body?.tasks?.[0]?.runs?.[0]?.log_tail?.length, 2000);
+    check('AA: úloha BEZ běhů má `runs: []` (ne `undefined`)',
+      Array.isArray(body?.tasks?.[0]?.runs), true);
+    check('AA: čtou se jen NEDOKONČENÉ a NEÚSPĚŠNÉ běhy',
+      bylZapis(log, /FROM runs WHERE status NOT IN \('success', 'running'\)/), true);
+  }
+
+  // ── AA2) /failed: úloha s nesmyslným `payload` neshodí endpoint ──────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, failedRuny: [],
+                             failedRadky: [{ ...FAILED_TASK, id: 13, payload: 'neni-json' }] });
+    const { status, body } = await post(mod, env, '/failed');
+    check('AA2: rozbitý `payload` neshodí endpoint', status, 200);
+    check('AA2: a vrátí `{}`, ne pád', body?.tasks?.[0]?.payload, {});
+  }
+
+  // ── AA3) /failed: prázdno → `tasks: []` ─────────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, failedRadky: [], failedRuny: [] });
+    const { body } = await post(mod, env, '/failed');
+    check('AA3: žádné selhané úlohy → `tasks: []`', body?.tasks, []);
+  }
+
+  // ── AB) /status: běhy i s titulem úlohy (JOIN) ───────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, statusRuny: [STATUS_RUN] });
+    const { status, body } = await post(mod, env, '/status');
+    check('AB: /status odpoví 200', status, 200);
+    check('AB: vrací běh i s `title` z JOINu a uzlem',
+      [body?.runs?.[0]?.title, body?.runs?.[0]?.status, body?.runs?.[0]?.worker],
+      ['Hotová úloha', 'success', 'pc-domaci']);
+    check('AB: a s odkazem na PR', body?.runs?.[0]?.pr_url, 'https://x/1');
+    check('AB: čte se 20 nejnovějších běhů',
+      bylZapis(log, /FROM runs r LEFT JOIN tasks t .*LIMIT 20/), true);
+  }
+
+  // ── AB2) /status: prázdno → `runs: []` ──────────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, statusRuny: [] });
+    const { body } = await post(mod, env, '/status');
+    check('AB2: žádné běhy → `runs: []`', body?.runs, []);
+  }
+
+  // ── AC) /workers: registrované uzly (podle nich se přiděluje práce) ──────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, workersVse: [WORKER_ROW] });
+    const { status, body } = await post(mod, env, '/workers');
+    check('AC: /workers odpoví 200', status, 200);
+    check('AC: vrací uzly z D1 včetně `last_seen`',
+      [body?.workers?.[0]?.name, body?.workers?.[0]?.last_seen],
+      ['pc-domaci', '2026-10-07T16:00:00Z']);
+    check('AC: a `kinds` (bez nich uzel žádnou práci nedostane)',
+      body?.workers?.[0]?.kinds, 'assets,test');
+    check('AC: čte se CELÝ řádek (`SELECT *`), ne vybrané sloupce',
+      bylZapis(log, /SELECT \* FROM workers ORDER BY last_seen DESC/), true);
+  }
+
+  // ── AC2) /workers: prázdno → `workers: []` ──────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, workersVse: [] });
+    const { body } = await post(mod, env, '/workers');
+    check('AC2: žádné uzly → `workers: []`', body?.workers, []);
+  }
+
+  // ── AD) /games: registr her VČETNĚ VYPNUTÝCH ────────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, gamesRadky: [GAME_ROW, GAME_OFF] });
+    const { status, body } = await post(mod, env, '/games');
+    check('AD: /games odpoví 200', status, 200);
+    // ⚠ ROZDÍL PROTI `/health`: `/health` vidí JEN aktivní hry, registr vidí
+    // i VYPNUTÉ — kdyby `/games` filtroval `active=1`, vypnutá hra by
+    // z administrace ZMIZELA (a nešla by znovu zapnout).
+    check('AD: registr vrací I VYPNUTOU hru',
+      body?.games?.map((g) => g.game_id), ['test', 'stara']);
+    check('AD: a `active` u každé hry', body?.games?.map((g) => g.active), [1, 0]);
+    check('AD: čte se BEZ filtru na `active`',
+      bylZapis(log, /SELECT \* FROM games ORDER BY game_id/), true);
+    check('AD: a filtr `active=1` v tom dotazu NENÍ',
+      bylZapis(log, /SELECT \* FROM games[^;]*active=1/), false);
+  }
+
+  // ── AD2) /games: prázdný registr → `games: []` ──────────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({ aktivniHra: true, gamesRadky: [] });
+    const { body } = await post(mod, env, '/games');
+    check('AD2: prázdný registr → `games: []`', body?.games, []);
   }
 
   console.log();
