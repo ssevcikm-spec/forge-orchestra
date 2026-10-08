@@ -73,7 +73,7 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # a `p24-sonda-*` z `PRESKOCIT` **vypadly** — chytila to až brána
              # `p25-a-overeni.py` (A6: „sondy nejsou v PRESKOCIT“).
              "p24-sonda-site.py", "p24-sonda-m2.py",
-             # ⚠ PŘESKOČENO 7. 10. 2026 (P27): SONDY, které odpovídaly na JEDNU
+             # ⚠ PŘESKOČENO 8. 10. 2026 (P27): SONDY, které odpovídaly na JEDNU
              # otázku a mají odpovězeno. `p27-sonda-endpointy.py` naměřila, které
              # endpointy volá test tiku (a které ne — na tom stál Úkol B1);
              # `p27-sonda-inventar.py` vypisuje, co je v otisku vstupů inventáře

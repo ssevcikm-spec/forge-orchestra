@@ -255,7 +255,7 @@ def a1():
     check("A1b1 kopie handoffu je vrácena (hash sedí s živým)", sha(kopie_h), sha(HANDOFF))
 
     # (2) `g3` s JEDNOU branou NAVÍC → měřidlo P26 to musí vidět.
-    # ⚠ NAMĚŘENO 7. 10. 2026: přepínač `--g3` je v DÁVKOVÉM režimu A4 **mrtvý** —
+    # ⚠ NAMĚŘENO 8. 10. 2026: přepínač `--g3` je v DÁVKOVÉM režimu A4 **mrtvý** —
     # kontrola počtu bran je v `a4()` AŽ ZA `if not plne: return`.
     print("    (2) kopie g3 s 50. branou v seznamu BRANY")
     try:
@@ -470,7 +470,7 @@ def ziva_sluzba():
     p = WS / ".env"
     # ⚠ `utf-8-sig`, NE `utf-8`: `.env` i `.secrets/cf-secrets.json` mají na
     # začátku **UTF-8 BOM**, takže klíč vyjde jako `"\ufeffFORGE_URL"` a hledání
-    # `env.get("FORGE_URL")` **tiše selže** (naměřeno 7. 10. 2026 v P27).
+    # `env.get("FORGE_URL")` **tiše selže** (naměřeno 8. 10. 2026 v P27).
     if p.is_file():
         for l in p.read_text(encoding="utf-8-sig", errors="replace").splitlines():
             if "=" in l and not l.strip().startswith("#"):
@@ -603,7 +603,7 @@ def a4(plne):
     # ⚠ PŘEDPOKLAD: měřidlo P26 má **90 kontrol nad ČERSTVÝM inventářem** a **86
     # nad ZASTARALÝM** — jeho A6 totiž u zastaralého inventáře hlásí pojmenovaný
     # STAV místo čtyř `check(...)` (g3 exit, g3 bez čítače, validate-all ×2).
-    # Naměřeno 7. 10. 2026 v P27 OBĚMA směry. Kdo to nezměří, zapíše „čítač
+    # Naměřeno 8. 10. 2026 v P27 OBĚMA směry. Kdo to nezměří, zapíše „čítač
     # nesedí" jako vadu měřidla, ačkoli je to STAV (`overovani` §7.13).
     k_riz, v_riz = cmd(["python", str(RIZIKA)], timeout=900)
     inventar_cerstvy = (k_riz == 0)
@@ -972,7 +972,7 @@ def a7():
     # (2) JINÝ nový `.txt` otisk ZMĚNÍ a brána spadne POJMENOVANÝM STAVEM
     # ⚠ POŘADÍ JE MĚŘENÁ VĚC: brána musí spadnout v OKNĚ mezi přidáním souboru
     # a přegenerováním. Kdo po přidání hned přegeneruje, měří ČERSTVÝ inventář
-    # a „brána nespadla" je falešný nález (naměřeno 7. 10. 2026 v P27).
+    # a „brána nespadla" je falešný nález (naměřeno 8. 10. 2026 v P27).
     # ⚠ A PREDIKÁT MUSÍ BÝT KONKRÉTNÍ: v ZELENÉM výstupu je slovo „nezměněno"
     # v próze („řetězce jako ‚schváleno a nezměněno'"), takže kontrola „obsahuje
     # ZASTARAL/NEZMĚNĚN" projde i nad zelenou — falešně pozitivní.

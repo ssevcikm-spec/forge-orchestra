@@ -2043,14 +2043,14 @@ node tools\test-tick-offline.mjs          # 146/0
 python _analyza\tick-mutace.py            # 20 vrat / 41/0
 ```
 
-## 57. P27 — PŘEMĚŘENÍ P26 A TESTY PRO SEDM ENDPOINTŮ BEZ TESTU (7. 10. 2026)
+## 57. P27 — PŘEMĚŘENÍ P26 A TESTY PRO SEDM ENDPOINTŮ BEZ TESTU (8. 10. 2026)
 
 **Co tenhle oddíl JE:** **záznam o provedení P27 + stav po P27**. **Co NENÍ:**
 pravidla (`AGENTS.md`), projektová znalost (`PROVOZ-ORCHESTRA.md`), historie
 (`KRONIKA-PROJEKTU.md` — řádek **42**, nálezy **§2.20**). Zadání P27 je
 v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 
-> **⚠ DATUM SPOTŘEBY:** měřeno **7. 10. 2026, večer +02:00**. Tvrzení o **stavu**
+> **⚠ DATUM SPOTŘEBY:** měřeno **8. 10. 2026, dopoledne +02:00**. Tvrzení o **stavu**
 > (HEAD, hra, živá služba) platí k tomu okamžiku; kdo to čte později,
 > **přeměří** (`python _analyza\p27-a-overeni.py --plne`).
 >
@@ -2156,11 +2156,20 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
     šlo obojí. Živý stav obou repů se proto ověřil **`git ls-remote`**
     (orchestra `92aa80a`, hra `932dc6f`) — ten se obejde bez zápisu do `.git`.
     Je to **stav prostředí**, ne vada skriptu (`dsh-prostredi` §4e).
+14. **VLASTNÍ ZÁZNAM MĚL NEPRAVDIVÉ DATUM MĚŘENÍ.** Zadání P27 vzniklo
+    **7. 10. 2026** večer — a do záznamů jsem **opsal jeho datum**, ačkoli
+    session P27 měřila **8. 10. 2026** dopoledne (živý čas
+    `2026-10-08 10:2x +02:00`, doloženo `Get-Date` i startem procesů).
+    Opraveno nástrojem `_analyza/p27-oprav-datum.py` (**jen vlastní výřez**:
+    `HANDOFF.md` §57, `KRONIKA` řádek 42 a §2.20, moje `_analyza/p27-*.py`;
+    cizí záznamy nedotčeny) a ověřeno, že v nich `7. 10. 2026` už není.
+    **Poučení: datum měření se NIKDY neopisuje ze zadání** — bere se z hodin;
+    „hlavička zadání je snapshot, ne stav" platí i pro její **čas**.
 
-### 57.3 Živý stav při zápisu (7. 10. 2026, večer +02:00)
+### 57.3 Živý stav při zápisu (8. 10. 2026, ~10:3x +02:00)
 
 ```
-orchestra: HEAD 1bdc982 + záznamy · origin/main 92aa80a · nepushnutých 5 (P25, 3× P26, P27)
+orchestra: HEAD 649ca9b · origin/main 92aa80a · nepushnutých 6 (P25, 3× P26, 2× P27)
 hra:       HEAD 125b062 · origin/main 932dc6f · nepushnuté 3 (SOUBĚŽNÁ session,
            15:50/15:58/16:02) · netrackovaný `_acl-recovery/` (cizí, nesahalo se)
 živá služba: /health → ok=true ready=1 running=0 games=1 · cíl měřen (`targets`)
@@ -2175,7 +2184,7 @@ p24-a:     99/x — každá červená je `A8` (dobový stav HRY, ne vada orchest
 ### 57.4 Co čeká na tebe (uživatel)
 
 - **PUSH — rozhodnutí uživatele.** P27 **commitla, nepushla**; `origin/main..HEAD`
-  bude **5** (P25, tři commity P26, P27). P27 mění **`tools/`**, **`_analyza/`**
+  bude **6** (P25, tři commity P26, dva commity P27). P27 mění **`tools/`**, **`_analyza/`**
   a **dokumenty** — **žádný soubor pod `conductor/**`**, takže **deploy živé
   služby to nemění** (ověř `git diff --name-only origin/main..HEAD`).
   Cesta zpět: `git reset --soft`.

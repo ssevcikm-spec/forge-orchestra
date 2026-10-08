@@ -199,7 +199,7 @@ def main() -> int:
         # ⚠ KOPIE MUSÍ LEŽET V `_analyza/`, NE V PODSLOŽCE: skript si kořen
         # repa odvozuje jako `Path(__file__).parents[1]`, takže kopie
         # v `_analyza/p27-b-scratch/` hledá `_analyza/KRONIKA-PROJEKTU.md`
-        # a SPADNE na `FileNotFoundError`. Naměřeno 7. 10. 2026 v P27: měřidlo
+        # a SPADNE na `FileNotFoundError`. Naměřeno 8. 10. 2026 v P27: měřidlo
         # pak „správně spadlo", ale z ÚPLNĚ JINÉHO důvodu — a odhalil to až
         # diferenciál (oslabená kopie taky spadla).
         uzka = ANALYZA / "_p27oslab-uzka.py"
@@ -228,7 +228,7 @@ def main() -> int:
              'len(otevreno), 3)\n', "    pass\n"),
             # ⚠ ČTVRTÁ KONTROLA TÉHOŽ ROZSAHU: zúžená brána přesune archiv
             # do „mimo živé zdroje", takže se rozejde i TENHLE součet
-            # (naměřeno 7. 10. 2026: bez tohohle oslabení diferenciál neshodí
+            # (naměřeno 8. 10. 2026: bez tohohle oslabení diferenciál neshodí
             # 0, protože kopie padá pořád — a to je NÁLEZ O MUTACI, ne o kódu).
             ('    check("A5 rozsah mimo živé zdroje = MŮJ vlastní součet",\n'
              '          (sum(mimo.values()), len(mimo)),\n'

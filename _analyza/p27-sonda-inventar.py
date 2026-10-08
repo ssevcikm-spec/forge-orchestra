@@ -46,7 +46,7 @@ print("  verze otisku:      %s" % ot.get("verze"))
 print("  sha256:            %s" % ot.get("sha256"))
 print("  souborů ve otisku: %s" % ot.get("souboru"))
 # ⚠ VYPISUJEME JEN JMÉNA REP A POČTY, ne celý seznam souborů: ten má tisíce
-# položek a jeho výpis zahltí konzoli (naměřeno 7. 10. 2026 v P27).
+# položek a jeho výpis zahltí konzoli (naměřeno 8. 10. 2026 v P27).
 repa = ot.get("repozitare") or []
 for r in repa:
     if isinstance(r, dict):

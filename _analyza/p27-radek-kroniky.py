@@ -23,14 +23,14 @@ H = WS / "HANDOFF.md"
 K = WS / "KRONIKA-PROJEKTU.md"
 
 # ── 1) HANDOFF: §57 ─────────────────────────────────────────────────────────
-ODDIL_57 = r"""## 57. P27 — PŘEMĚŘENÍ P26 A TESTY PRO SEDM ENDPOINTŮ BEZ TESTU (7. 10. 2026)
+ODDIL_57 = r"""## 57. P27 — PŘEMĚŘENÍ P26 A TESTY PRO SEDM ENDPOINTŮ BEZ TESTU (8. 10. 2026)
 
 **Co tenhle oddíl JE:** **záznam o provedení P27 + stav po P27**. **Co NENÍ:**
 pravidla (`AGENTS.md`), projektová znalost (`PROVOZ-ORCHESTRA.md`), historie
 (`KRONIKA-PROJEKTU.md` — řádek **42**, nálezy **§2.20**). Zadání P27 je
 v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 
-> **⚠ DATUM SPOTŘEBY:** měřeno **7. 10. 2026, večer +02:00**. Tvrzení o **stavu**
+> **⚠ DATUM SPOTŘEBY:** měřeno **8. 10. 2026, večer +02:00**. Tvrzení o **stavu**
 > (HEAD, hra, živá služba) platí k tomu okamžiku; kdo to čte později,
 > **přeměří** (`python _analyza\p27-a-overeni.py --plne`).
 >
@@ -136,8 +136,17 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
     šlo obojí. Živý stav obou repů se proto ověřil **`git ls-remote`**
     (orchestra `92aa80a`, hra `932dc6f`) — ten se obejde bez zápisu do `.git`.
     Je to **stav prostředí**, ne vada skriptu (`dsh-prostredi` §4e).
+14. **VLASTNÍ ZÁZNAM MĚL NEPRAVDIVÉ DATUM MĚŘENÍ.** Zadání P27 vzniklo
+    **7. 10. 2026** večer — a do záznamů jsem **opsal jeho datum**, ačkoli
+    session P27 měřila **8. 10. 2026** dopoledne (živý čas
+    `2026-10-08 10:2x +02:00`, doloženo `Get-Date` i startem procesů).
+    Opraveno nástrojem `_analyza/p27-oprav-datum.py` (**jen vlastní výřez**:
+    `HANDOFF.md` §57, `KRONIKA` řádek 42 a §2.20, moje `_analyza/p27-*.py`;
+    cizí záznamy nedotčeny) a ověřeno, že v nich `7. 10. 2026` už není.
+    **Poučení: datum měření se NIKDY neopisuje ze zadání** — bere se z hodin;
+    „hlavička zadání je snapshot, ne stav" platí i pro její **čas**.
 
-### 57.3 Živý stav při zápisu (7. 10. 2026, večer +02:00)
+### 57.3 Živý stav při zápisu (8. 10. 2026, ~10:3x +02:00)
 
 ```
 orchestra: HEAD 1bdc982 + záznamy · origin/main 92aa80a · nepushnutých 5 (P25, 3× P26, P27)
@@ -193,7 +202,7 @@ python _analyza\tick-mutace.py            # 20 vrat / 41/0
 
 # ── 2) KRONIKA: řádek 42 ────────────────────────────────────────────────────
 RADEK_42 = (
-    "| **42** | **7. 10. 2026** (odpoledne – večer +02:00) | "
+    "| **42** | **8. 10. 2026** (odpoledne – večer +02:00) | "
     "**ověřovací (Úkol A) + akční (Úkol B1)** | **Přeměřit práci P26 VLASTNÍM "
     "měřidlem — a dopsat testy pro SEDM endpointů, které nevolal žádný test.** "
     "Zadání P27 §2.1: záznamy i měřidlo P26 psal autor, který si je sám "
@@ -256,7 +265,7 @@ RADEK_42 = (
 )
 
 # ── 3) KRONIKA: §2.20 ───────────────────────────────────────────────────────
-ODDIL_220 = r"""### 2.20 Nálezy z P27 (7. 10. 2026) — sedm endpointů bez testu a měřidlo, které čte jeden historický oddíl
+ODDIL_220 = r"""### 2.20 Nálezy z P27 (8. 10. 2026) — sedm endpointů bez testu a měřidlo, které čte jeden historický oddíl
 
 **Vznikly tím, že se PRÁCE P26 PŘEMĚŘILA JINÝM MĚŘIDLEM** (ne čtením §56) a že
 se dodělal Úkol B1 — testy pro endpointy, které nevolal **nikdo**. Záznam:
@@ -279,6 +288,7 @@ se dodělal Úkol B1 — testy pro endpointy, které nevolal **nikdo**. Záznam:
 | **P27-L** | „Dva gate se vylučují jen v P26.“ | Přidání sond P27 do `_analyza/p20-d-doklady.py` (jeden z **pěti** souborů, které `p25-b-mutace.py` hlídá) → **27/1**; po commitu **27/0** | **POTVRZENO (P26-L).** Před commitem je `p25-b` červené **stavem stromu**, ne vadou kódu |
 | **P27-M** | „Když `git fetch` nejde, stav repů neověřím.“ | V `workspace-write` padá `git fetch` na `.git/FETCH_HEAD: Permission denied` a testy tiku na `spawn EPERM` (wrangler); po **plném přístupu** projde obojí | **STAV PROSTŘEDÍ, NE VADA SKRIPTU** (`dsh-prostredi` §4e). Živý stav jde ověřit **`git ls-remote`** (orchestra `92aa80a`, hra `932dc6f`) — bez zápisu do `.git` |
 | **P27-N** | „Do hry teď nikdo nepíše (je pozastavená).“ | **Píše** (jako v P26): `125b062` + tři nepushnuté commity + netrackovaný `_acl-recovery/`; P27 do hry **nezapsala ani bajt** a stav se **nezměnil** | **ZAPSÁNO JAKO STAV.** Na práci té session se nesahalo |
+| **P27-O** | „Datum měření se dá vzít ze zadání.“ | Zadání P27 vzniklo **7. 10. 2026** večer — a do vlastních záznamů jsem **opsal jeho datum**, ačkoli session P27 měřila **8. 10. 2026** dopoledne (živý čas `2026-10-08 10:2x +02:00`, doloženo `Get-Date` i startem procesů) | **VLASTNÍ VADA ZÁPISU, OPRAVENA** nástrojem `_analyza/p27-oprav-datum.py` (jen vlastní výřez: `HANDOFF.md` §57, `KRONIKA` řádek 42 a §2.20, `_analyza/p27-*.py`; cizí záznamy nedotčeny). **Datum měření se NIKDY neopisuje ze zadání** — bere se z hodin |
 """
 
 kontrol = 0
