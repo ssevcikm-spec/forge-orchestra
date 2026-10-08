@@ -2068,7 +2068,7 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 | **A** | **Důkaz, že i tohle měřidlo umí spadnout** — tři mutace **v KOPIÍCH**, každá s **diferenciálem** (originál spadne / oslabená kopie projde) | `_analyza/p27-b-mutace.py` → **27 kontrol, 0 chyb** |
 | **B1** | **Testy pro SEDM endpointů, které dnes nevolal žádný test** (`/health`, `/queue`, `/roadmap`, `/failed`, `/status`, `/workers`, `/games`) — TVAR i OBSAH odpovědi | `tools/test-tick-offline.mjs` → **205 kontrol, 0 chyb** (tedy **205/0**; bylo **146 kontrol / 146/0**, **+59 kontrol**); zarážka v HANDLERU u každého zvlášť (A2) |
 | **B1** | Dvě sondy, které měřily, NA ČEM Úkol B1 stojí | `_analyza/p27-sonda-endpointy.py` (které endpointy test volá) a `_analyza/p27-sonda-inventar.py` (co je v otisku vstupů) — obě v `PRESKOCIT` dávky `p20-d` |
-| **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran**; nenulové exity **2, oba NEDEKLAROVANÉ a oba MIMO REPO** (`over-skilly`, `over-skilly: mutace delegovaných cest`) → **exit 1** (stav mimo repo, nález **P27-R**) · `validate-all` → **NENÍ zelený, padá na `over-skilly`** (týž stav) · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
+| **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran**; nenulové exity **2, oba NEDEKLAROVANÉ a oba MIMO REPO** (`over-skilly`, `over-skilly: mutace delegovaných cest`) → **exit 1** (stav mimo repo, nález **P27-R**) · `validate-all` → **VŠE V POŘÁDKU** (exit 0; `over-skilly` v ní **není**) · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
 
 ### 57.2 Nálezy P27 (každý doložený měřením)
 
@@ -2211,8 +2211,9 @@ hra:       HEAD af6abd8 · origin/main 932dc6f · nepushnutých 5 (SOUBĚŽNÁ
 živá služba: /health → ok=true ready=1 running=0 games=1 · cíl měřen (`targets`)
            /tick se NEVOLAL (mění stav) — jen čtení sedmi endpointů
 brány:     g3 → 49 bran; 2 NEDEKLAROVANÉ exity, oba MIMO REPO (`over-skilly`
-           a její mutační dvojče) → exit 1; validate-all padá na TÝŽ stav
-           (cizí session přepsala SKILL `game-developer`, mtime 11:22)
+           a její mutační dvojče) → exit 1 · validate-all → VŠE V POŘÁDKU
+           (exit 0; `over-skilly` v něm NENÍ) — cizí stav: session přepsala
+           SKILL `game-developer` (mtime 11:22)
 p27-a:     --plne → 133 kontrol, 0 chyb (sondy/klasifikátory P27)
 test-tick-offline: 205/0 (bylo 146/0; +59 kontrol z B1)
 p24-a:     99/x — každá červená je `A8` (dobový stav HRY, ne vada orchestra)
