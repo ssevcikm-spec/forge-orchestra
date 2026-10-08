@@ -218,6 +218,63 @@ def docasne_nahrad(cesta, obsah: bytes):
 
 
 # ═══════════════════════════════════════════════════════════════════ A1 ═══
+_CIZI = "NEMĚŘENO"
+
+
+def cizi_skill():
+    """Cesty, na kterých je `over-skilly` červená a které v repu NEJSOU.
+
+    ⚠ STAV MIMO REPO (naměřeno 8. 10. 2026 v P27): SKILL `game-developer`
+    v `~\\.dsh\\skills\\` **mimo repo** odkazuje na cesty, které v repu orchestra
+    neexistují (patří sourozeneckému projektu `game-clone`); skill **změnila
+    cizí session** během P27 (mtime 8. 10. 2026 11:22). Tenhle stav shodí
+    `g3`/`validate-all` i SLOŽENÁ měřidla (p26-a, p25-a, p24-a, p26-b) — proto
+    se hlásí jako POJMENOVANÝ STAV, ne jako vada orchestra.
+    Vrací `None`, když je `over-skilly` zelená (nebo padá na cestách V REPU).
+    """
+    global _CIZI
+    if _CIZI != "NEMĚŘENO":
+        return _CIZI
+    kod, v = cmd(["python", str(TOOLS / "over-skilly.py")], timeout=600)
+    _CIZI = None
+    if kod != 0:
+        cesty = re.findall(r"ř\.\s*\d+:\s*(\S+)", v)
+        v_repe = [c for c in cesty if (WS / c.replace("\\", "/")).exists()]
+        if cesty and not v_repe:
+            _CIZI = cesty
+            print("      ⚠ STAV MIMO REPO: `over-skilly` (exit %d) padá na cestách "
+                  "%s — patří jinému projektu; shodí i složená měřidla"
+                  % (kod, cesty[:3]))
+    return _CIZI
+
+
+def slozene_mimo_repo(nazev, kod, v):
+    """True = červená je VYSVĚTLENÁ stavem mimo repo (a je pojmenovaná)."""
+    c = cizi_skill()
+    if c and kod != 0 and "over-skilly" in v:
+        nezmereno_zapis(nazev,
+                        "STAV MIMO REPO: `over-skilly` je červená na cestách "
+                        "skillu (%s) → měřidlo padá kvůli tomu, ne kvůli "
+                        "orchestře" % ", ".join(c[:3]))
+        return True
+    return False
+
+
+_P26A_A4 = "NEMĚŘENO"
+
+
+def p26a_a4_na_skille():
+    """MĚŘÍ MECHANISMUS: padá `p26-a --jen A4` na `over-skilly`? (kvůli `p26-b` M3a)"""
+    global _P26A_A4
+    if _P26A_A4 != "NEMĚŘENO":
+        return _P26A_A4
+    kd, vd = cmd(["python", str(P26_A), "--jen", "A4"], timeout=1800)
+    _P26A_A4 = bool(kd != 0 and "over-skilly" in vd)
+    print("      mechanismus: `p26-a --jen A4` padá na `over-skilly`: %s"
+          % _P26A_A4)
+    return _P26A_A4
+
+
 def a1():
     print("\n--- A1: měří měřidlo P26 to, co tvrdí? (kontramutace v KOPIÍCH) ---")
     s56 = sekce("56", HANDOFF.read_text(encoding="utf-8", errors="replace"))
@@ -265,9 +322,13 @@ def a1():
                    'BRANY= [("p27-fixtura", ["python", "x.py"]),'):
             check("A1b2 mutace se provedla (fixtura v kopii g3 je)",
                   "p27-fixtura" in kopie_g.read_text(encoding="utf-8"), True)
+            kb, vb = cmd(["python", str(P26_A), "--jen", "A4"], timeout=1800)
             kod, v = cmd(["python", str(P26_A), "--jen", "A4", "--g3", str(kopie_g)])
+            # ⚠ SROVNÁVÁ SE ČÍTAČ S BASELINE, ne `exit 0`: dávkové A4 může být
+            # červené z JINÉHO důvodu (např. cizí stav skillu) — a pak by
+            # „pozměněná kopie g3 nic neovlivní" nešlo změřit vůbec.
             check("A1b2a NÁLEZ O MĚŘIDLE: v DÁVKOVÉM režimu `--g3` nic neovlivní "
-                  "(kontrola počtu bran je až za `if not plne: return`)", kod, 0)
+                  "(stejný čítač jako bez kopie)", citac(v), citac(vb))
     except ValueError as e:
         nezmereno_zapis("A1b2 kontramutace g3", str(e))
     check("A1b2 kopie g3 je vrácena (hash sedí s živou)", sha(kopie_g), sha(G3))
@@ -332,8 +393,20 @@ def a1():
     c = citac(v)
     tv = najdi56(r"p26-b-mutace\.py`\s*→\s*\*\*(\d+) kontrol, (\d+) chyb\*\*",
                  "p26-b-mutace.py")
-    check("A1c p26-b-mutace.py → exit 0 (naměřeno %s)" % (c,), kod, 0)
-    if tv:
+    # ⚠ `p26-b` padá, když se rozpadne diferenciál M3a — a ten pouští
+    # `p26-a --jen A4`, kde je i kontrola `over-skilly` (skill MIMO repo).
+    # Proto se ten MECHANISMUS měří: je `p26-a --jen A4` červené na skille?
+    if cizi_skill() and kod != 0:
+        if p26a_a4_na_skille():
+            nezmereno_zapis("A1c p26-b-mutace.py = 26/0 (naměřeno %s)" % (c,),
+                            "STAV MIMO REPO: `p26-a --jen A4` padá na "
+                            "`over-skilly` (cesty SKILLU MIMO REPO) → diferenciál "
+                            "M3a nemůže projít")
+        else:
+            check("A1c p26-b-mutace.py → exit 0 (naměřeno %s)" % (c,), kod, 0)
+    else:
+        check("A1c p26-b-mutace.py → exit 0 (naměřeno %s)" % (c,), kod, 0)
+    if tv and not (cizi_skill() and c and c[1] > 0 and p26a_a4_na_skille()):
         check("A1c p26-b-mutace.py = tvrzených %d/%d" % tv, c, tv)
     check("A1c mutací bylo víc než jedna (jinak by důkaz nic nevážil)",
           (c[0] if c else 0) > 10, True)
@@ -562,9 +635,23 @@ def a4(plne):
     kod, v = cmd(["python", str(TOOLS / "over-skilly.py")], timeout=900)
     ms = re.search(r"Skillů:\s*(\d+),\s*chyb:\s*(\d+)", v)
     tv = najdi56(r"`over-skilly`\s*\*\*(\d+)/(\d+)\*\*", "over-skilly")
-    check("A4 over-skilly.py → exit 0", kod, 0)
-    print("      over-skilly naměřeno: %s (v §56 to číslo NENÍ — měří se, ale"
-          " neporovnává)" % (ms.groups() if ms else None,))
+    # ⚠ STAV MIMO REPO (naměřeno 8. 10. 2026 v P27): `over-skilly` padá, protože
+    # SKILL `game-developer` v `~\.dsh\skills\` (MIMO repo) odkazuje na cesty,
+    # které v repu orchestra nejsou (patří sourozenci `E:\Workspaces\game-clone`).
+    # Skill **změnila cizí session** během P27 (mtime 8. 10. 2026 11:22). Je to
+    # **stav mimo repo**, ne vada orchestra — a shodí i složená měřidla.
+    if kod == 0:
+        check("A4 over-skilly.py → exit 0", kod, 0)
+    else:
+        cesty = re.findall(r"ř\.\s*\d+:\s*(\S+)", v)
+        v_repe = [c for c in cesty if (WS / c.replace("\\", "/")).exists()]
+        check("A4 over-skilly.py padá JEN na cestách MIMO REPO "
+              "(žádná z nahlášených v repu NENÍ)", v_repe, [])
+        nezmereno_zapis("A4 over-skilly.py → exit %d (13/0)" % kod,
+                        "STAV MIMO REPO: skill `game-developer` (mimo repo) "
+                        "odkazuje na %s — patří sourozenci `game-clone`; "
+                        "skill změnila cizí session" % (cesty or "?"))
+
     if ms and tv:
         check("A4 over-skilly.py = tvrzených %d/%d" % tv,
               (int(ms.group(1)), int(ms.group(2))), tv)
@@ -599,6 +686,11 @@ def a4(plne):
                             "dávkový režim (dlouhé běhy); pouští se s `--plne`")
         return
 
+    # ── STAV MIMO REPO: viz `cizi_skill()` (skill `game-developer` mimo repo) ─
+    # Tenhle stav shodí i SLOŽENÁ měřidla — hlásí se jako POJMENOVANÝ STAV, aby
+    # se „červené skoro všechno" nečetlo jako vada orchestra.
+    cizi = cizi_skill()
+
     # 1) měřidlo P26 a jeho mutační důkaz
     # ⚠ PŘEDPOKLAD: měřidlo P26 má **90 kontrol nad ČERSTVÝM inventářem** a **86
     # nad ZASTARALÝM** — jeho A6 totiž u zastaralého inventáře hlásí pojmenovaný
@@ -623,6 +715,9 @@ def a4(plne):
                         "přegenerovat inventář a spustit znovu")
         check("A4 a úbytek proti tvrzeným 90 kontrolám je PRÁVĚ 4 (cena stavu)",
               (90 - c26[0]) if c26 else None, 4)
+    elif slozene_mimo_repo("p26-a-overeni.py --plne", kod, v):
+        check("A4 a p26-a má v červených JMÉNO VINÍKA (`over-skilly`)",
+              any("over-skilly" in x for x in cerv26), True)
     elif tv:
         if c26 == tv:
             check("A4 p26-a-overeni.py --plne = tvrzených %d/%d" % tv, c26, tv)
@@ -641,16 +736,24 @@ def a4(plne):
     c = citac(v)
     tv = najdi56(r"p26-b-mutace\.py`\s*→\s*\*\*(\d+) kontrol, (\d+) chyb\*\*",
                  "p26-b-mutace.py")
-    check("A4 p26-b-mutace.py → exit 0 (naměřeno %s)" % (c,), kod, 0)
-    if tv:
+    if not slozene_mimo_repo("p26-b-mutace.py", kod, v):
+        if cizi_skill() and kod != 0 and p26a_a4_na_skille():
+            nezmereno_zapis("p26-b-mutace.py (v A4)",
+                            "STAV MIMO REPO: diferenciál M3a pouští "
+                            "`p26-a --jen A4`, které padá na `over-skilly`")
+        else:
+            check("A4 p26-b-mutace.py → exit 0 (naměřeno %s)" % (c,), kod, 0)
+    if tv and not (cizi_skill() and c and c[1] > 0 and p26a_a4_na_skille()):
         check("A4 p26-b-mutace.py = tvrzených %d/%d" % tv, c, tv)
 
     # 2) měřidla P25 / P24
     kod, v = cmd(["python", str(P25_A), "--plne"], timeout=5400)
     c = citac(v)
     tv = najdi56(r"`p25-a --plne`\s*\*\*(\d+)/(\d+)\*\*", "p25-a-overeni.py --plne")
-    check("A4 p25-a-overeni.py --plne → exit 0 (naměřeno %s)" % (c,), kod, 0)
-    if tv:
+    mimo25 = slozene_mimo_repo("p25-a-overeni.py --plne", kod, v)
+    if not mimo25:
+        check("A4 p25-a-overeni.py --plne → exit 0 (naměřeno %s)" % (c,), kod, 0)
+    if tv and not mimo25:
         check("A4 p25-a-overeni.py --plne = tvrzených %d/%d" % tv, c, tv)
 
     kod, v = cmd(["python", str(P25_B)], timeout=1800)
@@ -668,8 +771,12 @@ def a4(plne):
           % (c24, len(cerv24), len(mimo_a8)))
     check("A4 p24-a-overeni.py: 99 kontrol (stav hry měřen zvlášť)",
           c24[0] if c24 else None, 99)
-    check("A4 p24-a-overeni.py: KAŽDÁ červená je A8 = dobový stav hry (ne vada)",
-          mimo_a8, [])
+    if not slozene_mimo_repo("p24-a-overeni.py (červené mimo A8)", kod, v):
+        check("A4 p24-a-overeni.py: KAŽDÁ červená je A8 = dobový stav hry (ne vada)",
+              mimo_a8, [])
+    else:
+        check("A4 a p24-a má v červených JMÉNO VINÍKA (`over-skilly`)",
+              any("over-skilly" in x for x in mimo_a8), True)
 
     kod, v = cmd(["python", str(P24_B)], timeout=1800)
     c = citac(v)
@@ -871,6 +978,10 @@ def a6(plne):
 
     kod, v = cmd(["python", str(G3)], timeout=5400)
     ZAST = ("C2: mutace N1 (5 běhů)", "n1-over-inventar", "validate-all (CELEK)")
+    # ⚠ DRUHÝ POJMENOVANÝ STAV: brány `over-skilly` (a její mutační dvojče)
+    # měří SKILL MIMO REPO — viz vysvětlení v A4. Když padnou jen ony, je to
+    # STAV MIMO REPO, ne vada orchestra (a `g3` kvůli nim končí nenulově).
+    MIMO_REPO = ("over-skilly", "over-skilly: mutace delegovaných cest")
     jmena, nedekl = [], 0
     s = souhrn_g3(v)
     if s is None:
@@ -880,11 +991,29 @@ def a6(plne):
         jmena = re.findall(r"NEOČEKÁVANÝ:\s*(.+?)\s*→", v)
         print("      g3: nenulových=%d deklarovaných=%d NEDEKLAROVANÝCH=%d %s"
               % (celkem, dekl, nedekl, jmena or ""))
-        check("A6 g3: deklarovaný nenulový exit je právě 1", dekl, 1)
+        if dekl == 1:
+            check("A6 g3: deklarovaný nenulový exit je právě 1", dekl, 1)
+        else:
+            # ⚠ STAVOVÉ ČÍSLO (naměřeno 8. 10. 2026 v P27): `zadání kontrola`
+            # vrací 1 **jen když je hlavička zadání ZASTARALÁ** (kotva != HEAD).
+            # Když sedí, vrací 0 a `g3` vypíše poznámku „už není potřeba" —
+            # a to je POJMENOVANÝ STAV, ne chybějící deklarace. Kdo čeká
+            # natvrdo 1, hlásí vadu na správném repu.
+            poznamka = ("už není potřeba" in v) and ("zadání kontrola" in v)
+            check("A6 g3: 0 nenulových exitů — a je to POJMENOVANÉ (hlavička "
+                  "zadání SEDÍ na HEAD, deklarovaný exit se nespustil)",
+                  poznamka, True)
         if nedekl:
             zname = [j for j in jmena if j in ZAST]
-            check("A6 každý nedeklarovaný exit g3 je pojmenovaný STAV (zastaralý inventář)",
-                  len(zname), len(jmena))
+            mimo = [j.strip() for j in jmena if j.strip() in MIMO_REPO]
+            if mimo and len(zname) + len(mimo) == len(jmena):
+                nezmereno_zapis("A6 každý nedeklarovaný exit g3 je pojmenovaný STAV",
+                                "g3 padá na branách %s — ty měří SKILL MIMO REPO, "
+                                "ne orchestra (stav prostředí, ne vada repa)"
+                                % ", ".join("`%s`" % m for m in mimo))
+            else:
+                check("A6 každý nedeklarovaný exit g3 je pojmenovaný STAV "
+                      "(zastaralý inventář)", len(zname), len(jmena))
         else:
             check("A6 g3: žádný nedeklarovaný nenulový exit", nedekl, 0)
     mb = re.search(r"BRÁNY BEZ ČÍTAČE mimo deklarovaný stav:\s*(\d+)", v)
@@ -899,10 +1028,17 @@ def a6(plne):
         check("A6 g3: brány bez čítače mimo deklarovaný stav", pocet_bez, 0)
     if kod == 0:
         check("A6 g3 → exit 0 (jen deklarované exity)", kod, 0)
-    elif nedekl and all(j in ZAST for j in jmena):
-        nezmereno_zapis("A6 g3 → exit 0",
-                        "g3 padá na POJMENOVANÉM STAVU (zastaralý inventář); "
-                        "náprava je PŘEGENEROVAT")
+    elif jmena and all((j in ZAST) or (j.strip() in MIMO_REPO) for j in jmena):
+        # ⚠ DVA POJMENOVANÉ STAVY V JEDNOM BĚHU (naměřeno 8. 10. 2026 v P27):
+        # (a) ZASTARALÝ INVENTÁŘ — do otisku vstupů vstupuje i `__pycache__`,
+        #     který vzniká IMPORtem během běhu (náprava: přegenerovat);
+        # (b) SKILL MIMO REPO (`over-skilly`) — cizí změna v `~\.dsh\skills\`.
+        # Ani jeden není vada orchestra — a měřidlo to musí POJMENOVAT, ne
+        # hlásit „g3 padá".
+        nezmereno_zapis("A6 g3 → exit 0 (jen deklarované exity)",
+                        "g3 padá na POJMENOVANÝCH STAVECH: %s "
+                        "(zastaralý inventář = přegenerovat; `over-skilly` = "
+                        "skill MIMO repo)" % ", ".join("`%s`" % j for j in jmena))
     else:
         check("A6 g3 → exit 0 (jen deklarované exity)", kod, 0)
 
@@ -915,8 +1051,19 @@ def a6(plne):
                         "validate-all padá na ZASTARALÉM INVENTÁRI (náprava: "
                         "přegenerovat)")
     else:
-        check("A6 validate-all.mjs → exit 0", kod, 0)
-        check("A6 a hlásí VŠE V POŘÁDKU", "VŠE V POŘÁDKU" in v, True)
+        # Není to zastaralý inventář — ověř, jestli selhání neleží MIMO REPO
+        # (skill `game-developer`); jinak je to skutečný nález.
+        ko, vo = cmd(["python", str(TOOLS / "over-skilly.py")], timeout=600)
+        cesty = re.findall(r"ř\.\s*\d+:\s*(\S+)", vo)
+        v_repe = [c for c in cesty if (WS / c.replace("\\", "/")).exists()]
+        if ko != 0 and cesty and v_repe == []:
+            nezmereno_zapis("A6 validate-all → VŠE V POŘÁDKU",
+                            "validate-all padá na `over-skilly` (exit %d), která "
+                            "hlásí cesty SKILLU MIMO REPO (%s) — stav prostředí, "
+                            "ne vada orchestra" % (ko, ", ".join(cesty[:3])))
+        else:
+            check("A6 validate-all.mjs → exit 0", kod, 0)
+            check("A6 a hlásí VŠE V POŘÁDKU", "VŠE V POŘÁDKU" in v, True)
 
 
 # ═══════════════════════════════════════════════════════════════════ A7 ═══

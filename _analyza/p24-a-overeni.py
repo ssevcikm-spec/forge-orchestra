@@ -676,12 +676,25 @@ def main() -> int:
         if smazano == 0:
             continue
         # Když se mazalo, smí to být JEN souhrnný řádek.
+        # ⚠ OPRAVA 8. 10. 2026 (P27, nález P27-P): PŘEPSANÝ řádek (např. oprava
+        # data v řádku session) ukáže `git diff` jako `-` **i** `+` se STEJNÝM
+        # id — a původní verze to hlásila jako „SMAZAL ŘÁDEK SESSION“ na
+        # správném dokumentu (falešný poplach). Za smazaný se počítá jen id,
+        # které na `+` straně diffu NENÍ.
         _, d = git("diff", "%s~1" % rev, rev, "--", "KRONIKA-PROJEKTU.md")
+        smaz, prid = [], set()
         for radek in d.splitlines():
-            if not radek.startswith("-") or radek.startswith("---"):
+            m = re.match(r"-\|\s*\*\*(\d+)\*\*\s*\|", radek)
+            if m:
+                smaz.append((m.group(1), radek))
                 continue
-            if re.match(r"-\|\s*\*\*\d+\*\*\s*\|", radek):
-                porad.append("%s SMAZAL ŘÁDEK SESSION: %s" % (rev[:7], radek[:70]))
+            m = re.match(r"\+\|\s*\*\*(\d+)\*\*\s*\|", radek)
+            if m:
+                prid.add(m.group(1))
+        for ident, radek in smaz:
+            if ident not in prid:
+                porad.append("%s SMAZAL ŘÁDEK SESSION %s: %s"
+                             % (rev[:7], ident, radek[:70]))
     check("A5 KRONIKA: v %d posledních commitech se neSmazal žádný ŘÁDEK SESSION"
           % len(revize), porad, [])
     # Dobové (zadání §2.1 A5): P23 přidával, nemazal.

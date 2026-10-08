@@ -647,21 +647,62 @@ def a4(pocitadlo_p24):
 
 
 # ═══════════════════════════════════════════════════════════════════ A5 ═══
+def _radky_session(diff_text, znak):
+    """Id řádků session na jedné straně diffu (`-`/`+`)."""
+    out = []
+    for radek in diff_text.splitlines():
+        if not radek.startswith(znak) or radek.startswith(znak * 3):
+            continue
+        m = re.match(re.escape(znak) + r"\|\s*\*\*(\d+)\*\*\s*\|", radek)
+        if m:
+            out.append(m.group(1))
+    return out
+
+
+def _smazane_session(diff_text):
+    """Řádky session, které v tomhle diffu SKUTEČNĚ zmizely.
+
+    ⚠ OPRAVA 8. 10. 2026 (P27, nález P27-P): původní verze brala **každý**
+    odečtený řádek `-| **N** |` jako smazaný. Když se ale řádek PŘEPÍŠE
+    (např. oprava data v řádku 42), `git diff` ukáže `-` i `+` **se stejným id**
+    — a brána hlásila „smazal se řádek session" na SPRÁVNÉM dokumentu
+    (falešný poplach). Přepsaný řádek je ten, jehož id je i na `+` straně.
+    """
+    smaz = _radky_session(diff_text, "-")
+    prid = set(_radky_session(diff_text, "+"))
+    return [i for i in smaz if i not in prid]
+
+
+def _kontrola_klasifikatoru():
+    """NEGATIVNÍ KONTROLA: klasifikátor musí rozlišit PŘEPSANÝ a SMAZANÝ řádek."""
+    prepsany = ("-| **42** | **7. 10. 2026** | stary text |\n"
+                "+| **42** | **8. 10. 2026** | novy text |\n")
+    smazany = "-| **41** | cely radek je pryc |\n"
+    return (_smazane_session(prepsany), _smazane_session(smazany))
+
+
 def a5():
     print("\n--- A5: nepřepsala se historie KRONIKY? ---")
     kod, v = cmd(["python", "_analyza/kronika-kontrola.py"])
     check("A5 kronika-kontrola.py → exit 0", kod, 0)
     check("A5 a řekla SEDÍ (ne jen nespadla)", "SEDÍ" in v.upper(), True)
+    # NEGATIVNÍ KONTROLA klasifikátoru (musí projít, jinak brána měří špatně).
+    neg = _kontrola_klasifikatoru()
+    print("      klasifikátor: přepsaný řádek → %s ; skutečně smazaný → %s"
+          % (neg[0], neg[1]))
+    if neg != ([], ["41"]):
+        print("  CHYBA: klasifikátor smazaných řádků je rozbitý "
+              "(přepsaný=%s, smazaný=%s) — brána by hlásila falešný poplach"
+              % (neg[0], neg[1]))
+        sys.exit(2)
     # SMazané ŘÁDKY SESSION v posledních commitech, které na kroniku sáhly.
     _, revize = git("log", "--format=%H", "-n", "8", "--", "KRONIKA-PROJEKTU.md")
     revize = [x for x in revize.splitlines() if x.strip()]
     nalezy = []
     for rev in revize:
         _, d = git("diff", "%s~1" % rev, rev, "--", "KRONIKA-PROJEKTU.md")
-        for radek in d.splitlines():
-            if radek.startswith("-") and not radek.startswith("---") \
-                    and re.match(r"-\|\s*\*\*\d+\*\*\s*\|", radek):
-                nalezy.append("%s: %s" % (rev[:7], radek[:60]))
+        for i in _smazane_session(d):
+            nalezy.append("%s: smazán řádek session %s" % (rev[:7], i))
     check("A5 v %d commitech se nesmazal žádný ŘÁDEK SESSION" % len(revize),
           nalezy, [])
     # NEcommitnutý strom: i ten se měří (P24 psala záznamy před commitem).

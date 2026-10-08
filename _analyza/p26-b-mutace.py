@@ -141,9 +141,16 @@ def main() -> int:
         # ⚠ NE `HEAD` NASLEPO: po commitu opravy je v `HEAD` už OPRAVENÁ verze
         # (naměřeno 7. 10. 2026). Hledá se ZPĚT, dokud se nenajde verze, která
         # čte 1 řádek — jinak by „důkaz P25-K" spadl na správně opraveném repu.
+        # ⚠ OKNO SE ROZŠÍŘILO 8. 10. 2026 (P27, nález P27-Q): původní rozsah
+        # `HEAD`…`HEAD~4` stačil, dokud byly P25+P26 poslední commity. Po dvou
+        # commitech P27 se verze PŘED opravou (`ef58327`) posunula na `HEAD~5`
+        # — a **důkaz P25-K se tiše rozpadl** (naměřeno: `p26-b` **26/4**,
+        # „verze měřidla PŘED opravou nalezena v historii (None)").
+        # Pevné okno je **křehké**: s každým dalším commitem se zub posouvá.
+        # Hledá se proto dál (a když se nenajde, hlásí se to NAHLAS).
         hist = ANALYZA / "_p26-blind-head.py"
         nalezeno = None
-        for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3", "HEAD~4"):
+        for rev in ["HEAD"] + ["HEAD~%d" % k for k in range(1, 21)]:
             b = blob(rev, "_analyza/ov-g-neovereno.py")
             if b is None:
                 continue

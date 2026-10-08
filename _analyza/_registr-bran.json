@@ -1,14 +1,21 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-08 10:24:26",
+  "kdy": "2026-10-08 13:45:34",
   "bran_celkem": 49,
   "s_nenulovym_exit": [
+    "C2: mutace N1 (5 běhů)",
+    "n1-over-inventar",
+    "over-skilly",
+    "over-skilly: mutace delegovaných cest",
+    "validate-all (CELEK)",
     "zadání kontrola"
   ],
   "ocekavane_nenulove": {
     "zadání kontrola": 1
   },
-  "bez_citace": [],
+  "bez_citace": [
+    "C2: mutace N1 (5 běhů)"
+  ],
   "neotevrene": [],
   "brany": [
     {
@@ -34,9 +41,9 @@
     },
     {
       "nazev": "C2: mutace N1 (5 běhů)",
-      "exit": 0,
-      "otevrela": "5 / 0",
-      "ma_citac": true,
+      "exit": 2,
+      "otevrela": "—",
+      "ma_citac": false,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/c2-mutace.py"
     },
     {
@@ -77,14 +84,14 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "384",
+      "otevrela": "386",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
     {
       "nazev": "zadání kontrola",
       "exit": 1,
-      "otevrela": "391",
+      "otevrela": "402",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -97,14 +104,14 @@
     },
     {
       "nazev": "over-skilly",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "13",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
     },
     {
       "nazev": "over-skilly: mutace delegovaných cest",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "8",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-over-skilly-delegovane.py"
@@ -265,7 +272,7 @@
     },
     {
       "nazev": "n1-over-inventar",
-      "exit": 0,
+      "exit": 2,
       "otevrela": "0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n1-over-inventar.py"
@@ -279,7 +286,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
@@ -336,7 +343,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "161 / 0",
+      "otevrela": "171 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

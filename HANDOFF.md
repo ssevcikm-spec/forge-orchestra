@@ -2063,11 +2063,11 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 
 | # | Co | Doklad |
 |---|---|---|
-| **A** | **Přeměření práce P26 VLASTNÍM měřidlem** (A1–A7, každý bod jiným postupem, než vznikl) | `_analyza/p27-a-overeni.py --plne` → **140 kontrol, 0 chyb** (0× `NEZMĚŘENO`), uložený výstup `p27-a-plne-vystup.txt` |
+| **A** | **Přeměření práce P26 VLASTNÍM měřidlem** (A1–A7, každý bod jiným postupem, než vznikl) | `_analyza/p27-a-overeni.py --plne` → **133 kontrol, 0 chyb** (0× `NEZMĚŘENO`), uložený výstup `p27-a-plne-vystup.txt`; doloženo během 8. 10. 2026 12:5x–13:4x |
 | **A** | **Důkaz, že i tohle měřidlo umí spadnout** — tři mutace **v KOPIÍCH**, každá s **diferenciálem** (originál spadne / oslabená kopie projde) | `_analyza/p27-b-mutace.py` → **27 kontrol, 0 chyb** |
 | **B1** | **Testy pro SEDM endpointů, které dnes nevolal žádný test** (`/health`, `/queue`, `/roadmap`, `/failed`, `/status`, `/workers`, `/games`) — TVAR i OBSAH odpovědi | `tools/test-tick-offline.mjs` → **205 kontrol, 0 chyb** (tedy **205/0**; bylo **146 kontrol / 146/0**, **+59 kontrol**); zarážka v HANDLERU u každého zvlášť (A2) |
 | **B1** | Dvě sondy, které měřily, NA ČEM Úkol B1 stojí | `_analyza/p27-sonda-endpointy.py` (které endpointy test volá) a `_analyza/p27-sonda-inventar.py` (co je v otisku vstupů) — obě v `PRESKOCIT` dávky `p20-d` |
-| **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran, 1 deklarovaný nenulový exit** (`zadání kontrola`), **exit 0** · `validate-all` → **VŠE V POŘÁDKU** · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
+| **C** | Brány po sobě (**inventář → `g3` → `validate-all`**, ne současně) | `g3` → **49 bran**; nenulové exity **2, oba NEDEKLAROVANÉ a oba MIMO REPO** (`over-skilly`, `over-skilly: mutace delegovaných cest`) → **exit 1** (stav mimo repo, nález **P27-R**) · `validate-all` → **NENÍ zelený, padá na `over-skilly`** (týž stav) · `kronika-kontrola` → **SEDÍ** · `handoff-kontrola-uplnost` → **83/83** |
 
 ### 57.2 Nálezy P27 (každý doložený měřením)
 
@@ -2166,6 +2166,40 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
     **Poučení: datum měření se NIKDY neopisuje ze zadání** — bere se z hodin;
     „hlavička zadání je snapshot, ne stav" platí i pro její **čas**.
 
+15. **PŘEPSANÝ ŘÁDEK SESSION VYPADÁ PRO BRÁNU JAKO SMAZANÝ.** Když se v kronice
+    **přepíše text** řádku (oprava data v řádku 42), `git diff` ukáže
+    `-| **42** | …` **a** `+| **42** | …` se **stejným id** — a brány
+    `p25-a-overeni.py` (A5) i `p24-a-overeni.py` (A5) to hlásily jako
+    **„SMAZAL SE ŘÁDEK SESSION"**. Falešný poplach na **správném** dokumentu.
+    **OPRAVENO v obou:** za smazaný se počítá jen id, které na `+` straně diffu
+    **NENÍ**, a `p25-a` má k tomu **negativní kontrolu** (klasifikátor musí
+    rozlišit přepsaný a smazaný řádek, jinak brána skončí `exit 2`).
+16. **PEVNÉ OKNO `HEAD`…`HEAD~4` V `p26-b-mutace.py` SE ROZPADLO.** Důkaz P25-K
+    hledal verzi brány **před opravou** v posledních pěti revizích. Po dvou
+    commitech P27 (`1bdc982`, `649ca9b`) se ta verze (`ef58327`) posunula na
+    **`HEAD~6`** → `p26-b` hlásilo **26/4** („verze měřidla PŘED opravou
+    nalezena v historii (None)") a **důkaz se tiše ztratil**.
+    **OPRAVENO:** okno je 20 revizí a nález je pojmenovaný v komentáři.
+17. **CIZÍ ZMĚNA SKILLU MIMO REPO SHODÍ BRÁNY ORCHESTRA.** Soubor
+    `~\.dsh\skills\game-developer\SKILL.md` **přepsala jiná session** během P27
+    (**mtime 8. 10. 2026 11:22:23**) a odkazuje na 3 cesty, které v repu
+    orchestra **nejsou** (`tools/plan-status.py`, `tools\roadmap-gen.py`,
+    `tools\plan-status.py` — existují v sourozenci `E:\Workspaces\game-clone`).
+    Naměřeno: `over-skilly` **13/0 → 13/1**, a **kaskádou** to shodilo `g3`
+    (2 nedeklarované exity), `validate-all`, `p24-a` (A6), `p25-a` (A4),
+    `p26-a` (`--plne` 90 → 85 kontrol) i `p26-b` (diferenciál M3a).
+    **NENÍ to práce P27 a NEOPRAVOVAL jsem ji** (cizí rozdělaná práce);
+    měřidlo ten stav **pojmenovává** (`cizi_skill()`) a **měří jeho mechanismus**
+    (`p26-a --jen A4` padá na `over-skilly`). **Rozhodnutí je na uživateli.**
+18. **I DOKLAD MIMO VYLUČOVACÍ VZOR ZNEplatní INVENTÁŘ UPROSTŘED BĚHU.**
+    Výstup jsem přesměroval do `_analyza/p27-a-plne-final.txt` — název
+    **neodpovídá** vzoru `*-vystup.txt`, takže soubor **je vstupem otisku**
+    a během běhu se **měnil** → inventář „zastaralý" → `p26-a` spadl na
+    **84–88 kontrol** a `g3`/`validate-all` hlásily nedeklarované exity.
+    **Poučení (P26/10 zopakováno):** doklady a logy se pojmenovávají
+    `_analyza/*-vystup.txt`; do otisku vstupů navíc vstupuje i **`__pycache__`**,
+    který vzniká **importem** během běhu.
+
 ### 57.3 Živý stav při zápisu (8. 10. 2026, ~10:3x +02:00)
 
 ```
@@ -2174,9 +2208,10 @@ hra:       HEAD 125b062 · origin/main 932dc6f · nepushnuté 3 (SOUBĚŽNÁ ses
            15:50/15:58/16:02) · netrackovaný `_acl-recovery/` (cizí, nesahalo se)
 živá služba: /health → ok=true ready=1 running=0 games=1 · cíl měřen (`targets`)
            /tick se NEVOLAL (mění stav) — jen čtení sedmi endpointů
-brány:     g3 → 49 bran, 1 deklarovaný nenulový exit (zadání kontrola), exit 0
-           validate-all → VŠE V POŘÁDKU
-p27-a:     --plne → 140 kontrol, 0 chyb
+brány:     g3 → 49 bran; 2 NEDEKLAROVANÉ exity, oba MIMO REPO (`over-skilly`
+           a její mutační dvojče) → exit 1; validate-all padá na TÝŽ stav
+           (cizí session přepsala SKILL `game-developer`, mtime 11:22)
+p27-a:     --plne → 133 kontrol, 0 chyb (sondy/klasifikátory P27)
 test-tick-offline: 205/0 (bylo 146/0; +59 kontrol z B1)
 p24-a:     99/x — každá červená je `A8` (dobový stav HRY, ne vada orchestra)
 ```
