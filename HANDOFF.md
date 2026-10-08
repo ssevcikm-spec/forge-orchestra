@@ -2055,9 +2055,10 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 > **přeměří** (`python _analyza\p27-a-overeni.py --plne`).
 >
 > **⚠ POZOR NA SOUBĚŽNOU SESSION:** do hry (`uo-shadows`) **zapsal NĚKDO JINÝ**
-> tři commity (`6796188`, `43a2004`, `125b062`, **nepushnuté**) a nechal tam
-> netrackovaný `_acl-recovery/`. **Není to práce P27** a **nesahalo se na to**;
-> stav hry se proti P26 **nezměnil** (P27 do hry nezapsala ani bajt).
+> tři commity (`6796188`, `43a2004`, `125b062`, **nepushnuté**) a **během P27
+> k tomu dva další** (`origin/main..HEAD` je **5**, HEAD **`af6abd8`**, naposledy
+> 8. 10. ~13:44) a nechal tam netrackovaný `_acl-recovery/`. **Není to práce P27**
+> a **nesahalo se na to**; P27 do hry **nezapsala ani bajt**.
 
 ### 57.1 Co se udělalo
 
@@ -2204,8 +2205,9 @@ v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 
 ```
 orchestra: HEAD 649ca9b · origin/main 92aa80a · nepushnutých 6 (P25, 3× P26, 2× P27)
-hra:       HEAD 125b062 · origin/main 932dc6f · nepushnuté 3 (SOUBĚŽNÁ session,
-           15:50/15:58/16:02) · netrackovaný `_acl-recovery/` (cizí, nesahalo se)
+hra:       HEAD af6abd8 · origin/main 932dc6f · nepushnutých 5 (SOUBĚŽNÁ
+           session: 3× 7. 10. 15:50–16:02 + 2× 8. 10. ~13:44) · netrackovaný
+           `_acl-recovery/` (cizí, nesahalo se) — stav se BĚHEM P27 ZMĚNIL
 živá služba: /health → ok=true ready=1 running=0 games=1 · cíl měřen (`targets`)
            /tick se NEVOLAL (mění stav) — jen čtení sedmi endpointů
 brány:     g3 → 49 bran; 2 NEDEKLAROVANÉ exity, oba MIMO REPO (`over-skilly`
