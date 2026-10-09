@@ -2951,7 +2951,9 @@ to hlásí **CHYBA** (`exit 1`); po testu je vše uklizené.
 ### 62.5 Živý stav při zápisu (9. 10. 2026, ~14:2x +02:00)
 
 ```
-orchestra: HEAD 0c0eb18 · origin/main 0c0eb18 (P30 PUSHNUTA) · hra 01a9649 (cizí session)
+orchestra: HEAD 0c0eb18 · origin/main 0c0eb18 (P30 PUSHNUTA) · hra e4dccdb (cizí session)
+           ⚠ hra se pohnula 9. 10. 11:56 +02:00 (01a9649 → e4dccdb) — UPROSTŘED téhle session;
+           kotva se proto bere z ŽIVÉHO měření (`ls-remote`/`rev-parse`), ne ze zadání
 živá služba: /tasks/cleanup {dry_run} → osiřelých 0 · tik: "spusteno: 0 úloh; …
              roadmapa je hotová (nebo čeká na závislosti / cooldown), watchdog: 0 ohlášeno"
              (cooldown je dnes PRÁZDNÝ — proto zpráva neuvádí seznam úloh)
