@@ -13,8 +13,11 @@ CO TEST DOKAZUJE (7 skupin kontrol):
 4. **nový text obsahuje starý** → `ValueError` (přesně omyly #18/#106),
 5. **soubor se vrátí i při výjimce** uvnitř bloku (`try/finally`),
 6. **skutečné použití na ŽIVÉ bráně** — zmutuje `tools/over-skilly.py` tak, že
-   přestane nacházet kořeny, spustí ho a ověří, že **verdikt se změní**
-   (to je důkaz, že funkce mění CHOVÁNÍ, ne jen text),
+   přestane nacházet kořeny, spustí ho a ověří, že **verdikt se změnil**
+   (to je důkaz, že funkce mění CHOVÁNÍ, ne jen text); čítač se přitom bere
+   z **MĚŘENÉHO ŘÁDKU** (`Cesty k nástrojům: N zmínek, M mrtvých`), protože
+   **podřetězcová** kontrola `"0 mrtvých"` se nechá uspokojit `"40 mrtvých"`
+   (nález **H140**, naměřeno v P32),
 7. **nástroj sám sobě** — soubor testu se po všech mutacích nezměnil.
 
 Použití: python _analyza/p22-test-mutace.py
@@ -22,6 +25,7 @@ Použití: python _analyza/p22-test-mutace.py
 
 import hashlib
 import pathlib
+import re
 import subprocess
 import sys
 import tempfile
@@ -145,8 +149,29 @@ def spust_branu():
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
+# ⚠ MĚŘENÝ ŘÁDEK SE PARSuje, NEHLEDÁ PODŘETĚZCEM (P32/H140).
+# Naměřeno 9. 10. 2026 v P32 (sonda `_analyza/p32-sonda-h139.py`): P31 zapsala
+# H139 s tvrzením „mutace `REPO` nic nezmění" — **NEREPRODUKOVALO SE**. Zdravá
+# brána hlásí `92 zmínek, 0 mrtvých`, zmutovaná `43 zmínek, 40 mrtvých`, tedy
+# **verdikt se MĚNÍ**. Vadná byla KONTROLA: `"0 mrtvých" not in v1` je
+# **podřetězcová** podmínka a `"40 mrtvých"` řetězec `"0 mrtvých"` **obsahuje** —
+# kontrola by se nechala uspokojit každým číslem končícím na nulu (10/20/30/40…).
+# Je to táž past, kterou projekt zná jako „brána našla řetězec na jiném místě".
+VZOR_CESTY = re.compile(r"Cesty k nástrojům:\s*(\d+)\s*zmínek,\s*(\d+)\s*mrtvých")
+
+
+def mrtve_cesty(v):
+    """(zmínek, mrtvých) z MĚŘENÉHO řádku — nebo None, když tam ten řádek není."""
+    n = VZOR_CESTY.findall(v)
+    return (int(n[-1][0]), int(n[-1][1])) if n else None
+
+
 kod0, v0 = spust_branu()
 zk(kod0 == 0, "zdravá brána prochází", f"exit={kod0}")
+z0 = mrtve_cesty(v0)
+zk(z0 is not None and z0[0] > 0 and z0[1] == 0,
+   "zdravá brána hlásí 0 mrtvých cest k nástrojům (a NĚCO změřila)",
+   f"měřený řádek: {z0}")
 pred_brana = sha(BRANA)
 
 # Zmutujeme KOŘEN, proti kterému brána ověřuje cesty → přestane je nacházet.
@@ -158,17 +183,19 @@ pred_brana = sha(BRANA)
 # ⚠ H139 (P31): CÍL MUTACE MUSÍ BÝT HLUBŠÍ NEŽ `REPO.parent`. Naměřeno
 # 9. 10. 2026: s `REPO = E:\Workspaces\NEEXISTUJE-tato-cesta` brána cesty
 # **pořád našla** — `over-skilly.py` je od P25-K uznává i v **sourozeneckých
-# projektech** (`REPO.parent`) a `E:\Workspaces` je má. Mutace tedy nic
-# nezměnila (a test hlásil jen „výstup nehlásí mrtvé cesty"). Hluboká
-# neexistující cesta nemá sourozence s `.git`, takže se cesty opravdu ztratí.
+# projektech** (`REPO.parent`) a `E:\Workspaces` je má. Hluboká neexistující
+# cesta nemá sourozence s `.git`, takže se cesty opravdu ztratí (P32 to
+# PŘEMĚŘILA: 92 zmínek/0 mrtvých → 43/40 — mutace tedy mění MĚŘENOU věc).
 with mutuj(BRANA, KOTVA_REPO,
            KOTVA_REPO.replace(
                'pathlib.Path(__file__).resolve().parents[1]',
                'pathlib.Path(r"E:\\NEEXISTUJE-tato-cesta\\hluboko\\tam")')) as m:
     kod1, v1 = spust_branu()
+    z1 = mrtve_cesty(v1)
     zk(kod1 != 0, "zmutovaná brána SPADLA (verdikt se změnil)", f"exit={kod1}")
-    zk("mrtvých" in v1 and "0 mrtvých" not in v1, "výstup hlásí mrtvé cesty",
-       [l for l in v1.splitlines() if "mrtv" in l][:2])
+    zk(z1 is not None and z1[1] > 0,
+       "a její MĚŘENÝ řádek hlásí mrtvé cesty (diferenciál, ne podřetězec)",
+       f"zdravá {z0} → zmutovaná {z1}")
 
 zk(sha(BRANA) == pred_brana, "brána je po testu bajt na bajt původní")
 kod2, v2 = spust_branu()

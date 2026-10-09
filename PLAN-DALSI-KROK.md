@@ -344,3 +344,45 @@ v `tools/over-skilly.py:28,56`).
 
 **Co NEDĚLAT:** nepouštět `g3` z harnessu bez `FORGE_REGISTR` (H137); nepsat
 do hry; nemazat `E:\Workspaces\_acl-oprava-p31\` (cesta zpět k oprávněním).
+---
+
+## P32 (9. 10. 2026) — CO JE OPRAVENÉ A CO JE NA ŘADĚ
+
+> **Datum spotřeby:** 9. 10. 2026, **~20:23 +02:00**. Platí pro stav po P32;
+> kdo to čte později, **přeměří** (`python _analyza\p32-a-overeni.py --plne`).
+
+**Hotovo (neopakovat):** P31 je **přeměřená vlastním měřidlem**
+(`_analyza/p32-a-overeni.py` → **51/0**, 2 ROZDÍLY, 0 NEZMĚŘENO) a jsou
+**zavřené tři vady**:
+
+1. **C3′/H139 → H140 + H141:** kontrola v `p22-test-mutace.py` se nechala
+   uspokojit **podřetězcem** (`"0 mrtvých"` je v `"40 mrtvých"`); dnes se čítač
+   **parsuje z měřeného řádku** → **20/0** (bylo 19/1). Závěr P31 *„mutace nic
+   nemění“* je **vyvrácený** (sonda `p32-sonda-h139.py`: 92/0 → 43/40).
+2. **C2′/H136 → H142:** `p27-dopln-zaznamy.py` **zapisoval i bez kotvy**; dnes
+   se kotvy ověří PŘED zápisem a při neshodě se **nezapisuje** →
+   `p32-test-zapis-kotvy.py` **16/0** (s diferenciálem).
+3. **H145:** **vlastní záznam P31 zdvojil kotvu** `test-tick-offline → 215/0`,
+   čímž shodil `p30-mutace.py` (ValueError) a diferenciál A1; dnes je kotva
+   z **MĚŘENÉHO oddílu** §60 a dvojznačná kotva se hlásí pojmenovaně →
+   `p30-mutace.py` **16/0**, `p31-a-overeni.py --jen A1 --plne` **11/0**.
+
+**Nejbližší práce (P33) — v tomto pořadí:**
+
+1. **H133 — `p28-a-overeni.py` A6 čeká `g3 → exit 0`**, ale `g3` končí `exit 1`
+   **pojmenovaně** (1 brána bez čítače: `mutace B (combat)`). Baseline A6 má proto
+   **trvale 1 chybu**; buď stav deklarovat (`OCEKAVANE_*`-style), nebo vázat na
+   pojmenovaný stav.
+2. **H112 — brána „cron běží (čas)“ nemůže selhat** (`validate-all` testuje jen
+   `!!h.time`) — a přesně ten tik se 9. 10. zastavil.
+3. **C4′ — zavádějící komentáře v conductu** (`index.ts:1558–1559`,
+   `:1489–1493`): změna textu = **změna kódu → nasazení z pushe** (tři kroky).
+4. **B3 (`/game/active {active:false}`)** — čeká na výslovné „ano“ uživatele.
+5. **H143/H144 zůstávají jako poučení**: čísla o výskytech kotvy a o počtu řádků
+   se **měří**, neopisují do záznamu (a záznam, který kotvu cituje, mění
+   jednoznačnost kotev měřidel).
+
+**Co NEDĚLAT:** nepsat do hry; nepouštět harness z `g3` bez
+`FORGE_REGISTR`/`FORGE_BEZ_REGISTRU` (H137); nemazat
+`E:\Workspaces\_acl-oprava-p31\`; **needitovat záznamy** (HANDOFF/KRONIKA se jen
+doplňují) — měřidlo se opravuje, záznam ne.

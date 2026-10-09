@@ -722,6 +722,15 @@ def a3():
     except ValueError as e:
         nezmereno_zapis("A3 kopie testu s prázdnou falešnou D1", str(e))
         return
+    finally:
+        # ⚠ H146 (P32): KOPIE TESTU SE UKLIDÍ **VŽDY** — ne jen v A1M/A1M13.
+        # Naměřeno 9. 10. 2026: **plný běh** (jak ho pouští dávka
+        # `p20-d-doklady.py`) nechal `_analyza/p29-kopie-tick.mjs` (**75 395 B**) —
+        # úklid H124 byl jen v A1M/A1M13, kdežto kopie se tvoří **až v A3**
+        # (a dávka A3 pouští). Pojistka dávky to nevidí: hlídá **4 dokumenty**,
+        # ne `_analyza/`. Proto je úklid tady a kontrola je součástí výsledku.
+        check("A3 úklid: po běhu nezůstala kopie testu tiku (H124/H146)",
+              uklid_mutanty(), [])
     zapis_doklad("p29-a3-prazdna-d1-vystup.txt", v)
     cr, zl = cervene(v), zelene(v)
     print("      s PRÁZDNOU falešnou D1: čítač=%s, červených=%d, zelených=%d"

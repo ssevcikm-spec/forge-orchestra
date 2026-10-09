@@ -171,7 +171,14 @@ def sekce_A1(m, plne, cache):
 
     # ── VLASTNÍ diferenciál měřidla P30 (ne opis jeho M1) ───────────────────
     text = HANDOFF.read_text(encoding="utf-8")
-    kotva = "test-tick-offline → 215/0"
+    # ⚠ P32 (H145): kotva MUSÍ BÝT V DOKUMENTU JEDNOZNAČNÁ. Naměřeno 9. 10. 2026
+    # v P32: P31 do svého záznamu **§62 citovala** přesně `test-tick-offline → 215/0`
+    # → původní kotva byla **2×**, `mutuj` spadl na `ValueError` a VLASTNÍ
+    # diferenciál se stal `NEZMĚŘENO` (a `p30-mutace.py` tím přišlo o celý běh).
+    # Je to táž past jako H131, jen na kotvě DOKUMENTU: kotva proto nese i okolní
+    # text z §60 (záznam, který se needituje).
+    kotva = "test-tick-offline → 215/0 (bylo 205/0) · tick-mutace → 20 vrat, 41/0"
+    kotva_nova = kotva.replace("215/0", "216/0")
     k_ok = text.count(kotva) == 1
     m.ok_(k_ok, "A1 kotva %r je v HANDOFF.md právě 1× (%d×)" % (kotva, text.count(kotva)))
     text_mer = P30A.read_text(encoding="utf-8")
@@ -198,17 +205,22 @@ def sekce_A1(m, plne, cache):
     m.ok_(k0 == 0, "A1-a ŽIVÉ měřidlo P30 nad živým dokumentem → exit 0")
     k1, _, _ = beh(osl, "p31-a1-oslabene-zdrave-vystup.txt")
     m.ok_(k1 == 0, "A1 POJISTKA: oslabená kopie ve zdravém stavu projde (exit=%d)" % k1)
-    with mutuj(HANDOFF, kotva, "test-tick-offline → 216/0") as mut:
-        p("            kotva %d× · %s → %s" % (mut.pocet_vyskytu, mut.hash_pred[:12],
-                                               mut.hash_po_mutaci[:12]))
-        k2, o2, _ = beh(P30A, "p31-a1-mutant-vystup.txt")
-        k3, _, _ = beh(osl, "p31-a1-mutant-oslabene-vystup.txt")
-    m.ok_(k2 == 1, "A1-b MUTANTNÍ dokument + živé měřidlo → exit 1 (spadlo)")
-    m.ok_(("ROZCHOD" in o2) and ("test-tick-offline" in o2),
-          "A1-b a spadlo NA KONTROLE, která to číslo čte (ROZCHOD `test-tick-offline`)")
-    m.ok_(k3 == 0, "A1-c MUTANTNÍ dokument + OSLABENÉ měřidlo → exit 0 "
-                   "(červená šla z TOHO porovnání, ne odjinud)")
-    m.ok_(mut.hash_po_navratu == mut.hash_pred, "A1 HANDOFF.md vrácen bajt na bajt")
+    # ⚠ P32 (H145): dvojznačná kotva NESMÍ SHODIT CELOU ETAPU — dnes se hlásí
+    # pojmovanou chybou a zbytek A1 (úklid oslabené kopie) doběhne.
+    try:
+        with mutuj(HANDOFF, kotva, kotva_nova) as mut:
+            p("            kotva %d× · %s → %s" % (mut.pocet_vyskytu, mut.hash_pred[:12],
+                                                   mut.hash_po_mutaci[:12]))
+            k2, o2, _ = beh(P30A, "p31-a1-mutant-vystup.txt")
+            k3, _, _ = beh(osl, "p31-a1-mutant-oslabene-vystup.txt")
+        m.ok_(k2 == 1, "A1-b MUTANTNÍ dokument + živé měřidlo → exit 1 (spadlo)")
+        m.ok_(("ROZCHOD" in o2) and ("test-tick-offline" in o2),
+              "A1-b a spadlo NA KONTROLE, která to číslo čte (ROZCHOD `test-tick-offline`)")
+        m.ok_(k3 == 0, "A1-c MUTANTNÍ dokument + OSLABENÉ měřidlo → exit 0 "
+                       "(červená šla z TOHO porovnání, ne odjinud)")
+        m.ok_(mut.hash_po_navratu == mut.hash_pred, "A1 HANDOFF.md vrácen bajt na bajt")
+    except ValueError as e:
+        m.ok_(False, "A1 diferenciál NELZE provést (dvojznačná kotva): %s" % str(e)[:130])
     osl.unlink(missing_ok=True)
     m.ok_(not osl.exists(), "A1 oslabená kopie měřidla je smazaná")
     p("            (doklady: p31-a1-*-vystup.txt)")

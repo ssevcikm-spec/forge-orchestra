@@ -46,8 +46,16 @@ DOKLAD = WS / "_analyza" / "p30-mutace-vystup.txt"
 
 # ⚠ Kotvy jsou Z MĚŘENÉHO ODDÍLU (§60) a MUSÍ být v souboru právě 1×.
 #    215/0 se v HANDOFF.md vyskytuje 4× — proto je kotva delší.
-KOTVA_DOK = "test-tick-offline → 215/0"
-KOTVA_DOK_NOVA = "test-tick-offline → 216/0"
+# ⚠ P32 (H145): ANI „delší" kotva nestačila. P31 do svého záznamu **§62 CITOVALA**
+#    přesně `test-tick-offline → 215/0` — takže kotva byla v dokumentu **2×**
+#    a `mutuj` spadl na `ValueError: kotva je v souboru 2×`. Tím měřidlo přišlo
+#    o CELÝ diferenciál (exit 1, žádný čítač) — a to je TÁŽ past jako **H131**,
+#    jen na kotvě DOKUMENTU místo kotvy v kódu: **záznam, který tvrzení cituje,
+#    rozbije měřidlo vázané na jediný výskyt v CELÉM dokumentu.**
+#    Kotva proto nese i okolní text z §60 (nikdo ho needituje — §60 je záznam)
+#    a P0 navíc ověřuje, že leží uvnitř MĚŘENÉHO oddílu.
+KOTVA_DOK = "test-tick-offline → 215/0 (bylo 205/0) · tick-mutace → 20 vrat, 41/0"
+KOTVA_DOK_NOVA = KOTVA_DOK.replace("215/0", "216/0")
 KOTVA_BRANY = "{vsech_cest} zmínek, {mrtvych} mrtvých"
 # ⚠ Sabotuje se KONTRAKT („0 mrtvých cest“), ne počet zmínek: ten je STAV
 # (mění ho každá editace skillu) a měřidlo ho hlásí jako ROZDÍL, ne CHYBU.
@@ -77,6 +85,15 @@ def kontrola(podminka, text):
         chyby.append(text)
 
 
+def sekce(cislo, text):
+    """Tělo oddílu `## <cislo>.` — kotva se bere z MĚŘENÉHO oddílu (vzor P28/B, H131)."""
+    m = re.search(r"^## %s\." % re.escape(str(cislo)), text, re.M)
+    if not m:
+        return ""
+    m2 = re.search(r"^## ", text[m.end():], re.M)
+    return text[m.start(): m.end() + m2.start()] if m2 else text[m.start():]
+
+
 def spust_meridlo(cesta, vystup):
     env = dict(os.environ)
     env["PYTHONIOENCODING"] = "utf-8"
@@ -103,8 +120,15 @@ def main():
     # ── pojistky proti tichému omylu ────────────────────────────────────────
     p("── P0: POJISTKY (kotvy a oslabená kopie) ──")
     text_dok = HANDOFF.read_text(encoding="utf-8")
-    kontrola(text_dok.count(KOTVA_DOK) == 1,
-             f"kotva v dokumentu je 1× ({text_dok.count(KOTVA_DOK)}×): {KOTVA_DOK!r}")
+    # ⚠ P32 (H145): kotva musí být v dokumentu 1× **A ZÁROVEŇ ležet v MĚŘENÉM
+    #    oddílu (§60)** — jinak by se mutovalo místo, které měřidlo nečte.
+    #    Obě podmínky jsou v JEDNÉ kontrole SCHVÁLNĚ: přidání další kontroly by
+    #    posunulo čítač (16 → 17) a tím i baseline tvrzení v §61 — přesně to je
+    #    churn, který projekt už jednou platil (H135).
+    _s60 = sekce("60", text_dok)
+    kontrola(text_dok.count(KOTVA_DOK) == 1 and _s60.count(KOTVA_DOK) == 1,
+             f"kotva v dokumentu 1× ({text_dok.count(KOTVA_DOK)}×) "
+             f"A v MĚŘENÉM oddílu §60 1× ({_s60.count(KOTVA_DOK)}×): {KOTVA_DOK!r}")
     text_brany = BRANA.read_text(encoding="utf-8")
     kontrola(text_brany.count(KOTVA_BRANY) == 1,
              f"kotva v bráně je 1× ({text_brany.count(KOTVA_BRANY)}×): {KOTVA_BRANY!r}")
@@ -139,11 +163,19 @@ def main():
     # ── 2. M1: MUTACE ČÍSLA V DOKUMENTU ────────────────────────────────────
     p("")
     p("── M1: DOKUMENT TVRDÍ JINÉ ČÍSLO (měřidlo ho musí PŘEČÍST) ──")
-    with mutuj(HANDOFF, KOTVA_DOK, KOTVA_DOK_NOVA) as m1:
-        p(f"         kotva nalezena {m1.pocet_vyskytu}× · {m1.hash_pred[:12]} → {m1.hash_po_mutaci[:12]}")
-        leg("M1 mutant", MERIDLO, "_analyza/p30-mutace-m1-mutant-vystup.txt", 1, "ROZCHOD")
-        leg("M1 mutant + oslabené měřidlo", OSLABENE, "_analyza/p30-mutace-m1-oslabene-vystup.txt", 0)
-    kontrola(m1.hash_po_navratu == m1.hash_pred, "M1: HANDOFF.md vrácen bajt na bajt")
+    # ⚠ P32 (H145): dvojznačná kotva NESMÍ SHODIT CELÝ TEST. Naměřeno 9. 10. 2026:
+    #    `mutuj` vyhodil `ValueError` a měřidlo skončilo **exit 1 bez čítače** —
+    #    „brána, která na nález spadne, hlásí míň než brána, která ho vypíše“.
+    #    Dnes se to hlásí jako POJMENOVANÁ chyba a zbytek testu (M2) doběhne.
+    try:
+        with mutuj(HANDOFF, KOTVA_DOK, KOTVA_DOK_NOVA) as m1:
+            p(f"         kotva nalezena {m1.pocet_vyskytu}× · {m1.hash_pred[:12]} → {m1.hash_po_mutaci[:12]}")
+            leg("M1 mutant", MERIDLO, "_analyza/p30-mutace-m1-mutant-vystup.txt", 1, "ROZCHOD")
+            leg("M1 mutant + oslabené měřidlo", OSLABENE, "_analyza/p30-mutace-m1-oslabene-vystup.txt", 0)
+        kontrola(m1.hash_po_navratu == m1.hash_pred, "M1: HANDOFF.md vrácen bajt na bajt")
+    except ValueError as e:
+        kontrola(False, f"M1 NELZE PROVÉST (dvojznačná kotva v dokumentu): {str(e)[:130]}")
+        p("         → diferenciál M1 je NEZMĚŘENÝ; příčina je kotva, ne měřená věc")
 
     # ── 3. M2: MUTACE ZDROJE BRÁNY ─────────────────────────────────────────
     p("")

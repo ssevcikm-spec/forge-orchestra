@@ -144,7 +144,30 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # ho hned opravil zpět (proto se na konci tvářily jako nezměněné).
              # Je to TÁŽ TŘÍDA jako tři patchery výš — P30 ho do `PRESKIP`
              # nedala, protože viděla jen ČISTÝ VÝSLEDEK (po opravě).
-             "p27-oprav-datum.py"}
+             "p27-oprav-datum.py",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P32) — čtyři nové soubory, každý z JINÉHO
+             # důvodu (a každý s KÓDEM, ne jen se jménem):
+             #  * `p32-mutace.py` je MUTAČNÍ TEST měřidla P32 a oprav H136/H140 —
+             #    vrací vady do KOPIÍ a ověřuje diferenciál; dávka má POJISTKU
+             #    PROTI ZÁPISU, která hash dokumentů sleduje, takže mutační test
+             #    do ní nepatří (stejný důvod jako `p30-mutace.py`/`p31-mutace.py`).
+             #  * `p32-test-zapis-kotvy.py` je TEST PATCHERU (H136): spouští
+             #    `p27-dopln-zaznamy.py` na FIXTURÁCH přes `P27_HANDOFF`/
+             #    `P27_KRONIKA` — tedy pouští patcher, kterého se dávka záměrně
+             #    bojí (`p27-*` je v PRESKIP). Do dávky nepatří.
+             #  * `p32-sonda-h139.py` je JEDNORÁZOVÁ DIAGNOSTIKA (odpověděla na
+             #    otázku „mění mutace `REPO` verdikt brány?") — naměřila, že
+             #    MĚNÍ, a že vadná byla kontrola, ne mutace (H140/H141).
+             #  * `p32-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — běží v LEVNÉM
+             #    režimu (~30 s, bez sítě) a vypisuje čítač pro tuhle dávku;
+             #    `--plne` (p28-b-mutace, diferenciál úklidu, živé sondy) se
+             #    v dávce NEPOUŽÍVÁ (rekurze a čas).
+             "p32-mutace.py", "p32-test-zapis-kotvy.py", "p32-sonda-h139.py",
+             #  * `p32-zapis-zaznamu.py` je ZÁPISOVÝ patcher (píše `HANDOFF.md`,
+             #    `KRONIKU` a `NEXT-SESSION-INSTRUKCE.md`) — stejná třída jako
+             #    `p27-*` patchery výš. V dávce se spouštět NESMÍ: dávka má
+             #    POJISTKU PROTI ZÁPISU a tenhle skript jediný zapisuje ZÁMĚRNĚ.
+             "p32-zapis-zaznamu.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

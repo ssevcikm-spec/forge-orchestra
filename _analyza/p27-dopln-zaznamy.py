@@ -7,6 +7,7 @@ PROČ SKRIPTEM: texty mají tisíce znaků a musí se měnit JEN v MÝCH oddíle
 Použití: python _analyza/p27-dopln-zaznamy.py
 """
 
+import os
 import pathlib
 import re
 import sys
@@ -15,8 +16,12 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 WS = pathlib.Path(__file__).resolve().parents[1]
-H = WS / "HANDOFF.md"
-K = WS / "KRONIKA-PROJEKTU.md"
+# ⚠ TEST SEAM (P32, H136): cesty jdou přepsat z PROSTŘEDÍ, aby je test mohl
+# poslat na FIXTURY a měřit, jestli skript zapíše, nebo ne. Bez toho by test
+# musel sáhnout na ŽIVÉ dokumenty — a to je přesně to, co H130/H136 zakazuje.
+# Výchozí hodnota je živý dokument (chování se pro normální běh NEMĚNÍ).
+H = pathlib.Path(os.environ.get("P27_HANDOFF") or (WS / "HANDOFF.md"))
+K = pathlib.Path(os.environ.get("P27_KRONIKA") or (WS / "KRONIKA-PROJEKTU.md"))
 
 kontrol = 0
 chyb = []
@@ -31,15 +36,28 @@ def k(ok, popis):
 
 
 def vymen(cesta, dvojice, popis):
+    """Nahradí dvojice v souboru — ale ZAPÍŠE JEN, KDYŽ JSOU VŠECHNY KOTVY 1×.
+
+    ⚠ H136 (opraveno v P32): do P32 se soubor zapsal **i když kotva nalezena
+    nebyla** (`cesta.write_bytes(...)` byl bez podmínky) a `exit 1` hlásal až
+    potom — „doklad, který spadl, a přesto zapsal“. Následek: dávka dokladů
+    i ruční běh přepsaly ŽIVÝ dokument (a převedly konce řádků), i když skript
+    sám hlásil chybu. Kotvy se proto ověří **PŘED** zápisem a při neshodě se
+    **nezapisuje vůbec**.
+    """
     text = cesta.read_text(encoding="utf-8")
+    chyby = ["%s: kotva %d× (musí 1×): %r" % (popis, text.count(stary), stary[:60])
+             for stary, _ in dvojice if text.count(stary) != 1]
+    if chyby:
+        for c in chyby:
+            k(False, c)
+        k(False, "%s: NEZAPSÁNO (kotvy nesedí) — soubor zůstal NEDOTČEN" % popis)
+        return False
     for stary, novy in dvojice:
-        n = text.count(stary)
-        if n != 1:
-            k(False, "%s: kotva %d× (musí 1×): %r" % (popis, n, stary[:60]))
-            continue
         text = text.replace(stary, novy, 1)
     cesta.write_bytes(text.encode("utf-8"))
-    k(True, "%s: zapsáno" % popis)
+    k(True, "%s: zapsáno (všech %d kotev 1×)" % (popis, len(dvojice)))
+    return True
 
 
 DOPLNENI_57 = r"""
@@ -89,9 +107,12 @@ text = H.read_text(encoding="utf-8")
 kotva = "### 57.3 Živý stav při zápisu"
 k(kotva in text, "HANDOFF: kotva 57.3 nalezena")
 if "15. **PŘEPSANÝ ŘÁDEK SESSION" not in text:
-    text = text.replace(kotva, DOPLNENI_57.strip("\n") + "\n\n" + kotva, 1)
-    H.write_bytes(text.encode("utf-8"))
-    k(True, "HANDOFF: nálezy 15–18 doplněny do §57.2")
+    if kotva in text:
+        text = text.replace(kotva, DOPLNENI_57.strip("\n") + "\n\n" + kotva, 1)
+        H.write_bytes(text.encode("utf-8"))
+        k(True, "HANDOFF: nálezy 15–18 doplněny do §57.2")
+    else:
+        k(False, "HANDOFF: kotva 57.3 NENÍ → NEZAPISUJI (H136)")
 else:
     k(True, "HANDOFF: nálezy 15–18 už tam jsou")
 
