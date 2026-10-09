@@ -13,6 +13,7 @@ Použití: python _analyza\p32-prepis-zadani.py
 
 import pathlib
 import re
+import subprocess
 import sys
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -21,15 +22,32 @@ if hasattr(sys.stdout, "reconfigure"):
 WS = pathlib.Path(__file__).resolve().parents[1]
 SABLONA = pathlib.Path(r"E:\Workspaces\_p33-next-session-draft.md")
 CIL = WS / "NEXT-SESSION-INSTRUKCE.md"
+GIT = WS / "tools" / "git.cmd"
+
+
+def git(*args):
+    r = subprocess.run([str(GIT), "-C", str(WS), *args], capture_output=True)
+    return (r.stdout or b"").decode("utf-8", "replace").strip()
+
+
+# ⚠ HEAD SE ČTE Z GITU, NEZAPEKÁVÁ SE. Naměřeno 9. 10. 2026 (vlastní omyl P32):
+# s zapečeným `8bf36ff` skript po druhém commitu spadl na VLASTNÍ kontrole
+# („v textu chybí kotva orchestry“) — a zadání by tvrdilo zastaralý commit.
+# Kotva zadání se přitom porovnává na ROVNOST s živým `HEAD` (`zadani-kontrola.py`).
+HEAD = git("rev-parse", "--short", "HEAD")
+STAT = git("diff", "--shortstat", "d3f1a48..HEAD")
+_m = re.search(r"(\d+) files? changed, (\d+) insertions?\(\+\), (\d+) deletions?\(-\)", STAT)
+COMMIT_INFO = ("`%s` (%s souborů, +%s/−%s)"
+               % (HEAD, _m.group(1), _m.group(2), _m.group(3))) if _m else "`%s`" % HEAD
 
 NAHRADY = {
-    "__HEAD__": "8bf36ff",
-    "__HEAD_SHORT__": "8bf36ff",
-    "__HRA__": "e4dccdb",
+    "__HEAD__": HEAD,
+    "__HEAD_SHORT__": HEAD,
+    "__HRA__": git("-C", r"E:\Workspaces\uo-shadows", "rev-parse", "--short", "HEAD"),
     "__HRA_STAV__": "naposledy se pohnula **9. 10. 2026 11:56 +02:00** "
                     "a od té doby stojí",
-    "__DATUM__": "9. 10. 2026, 20:3x +02:00",
-    "__COMMIT_INFO__": "`8bf36ff` (18 souborů, +1 948/−54)",
+    "__DATUM__": "9. 10. 2026, 20:4x +02:00",
+    "__COMMIT_INFO__": COMMIT_INFO,
     "__A4__": "A4 (dávka dokladů `--jen A4`) → **3/0**: „žádný z 4 sledovaných "
               "dokumentů se nezměnil“ a „KDO ZAPSAL“ prázdné (H130/H138 zavřené); "
               "`p32-a-overeni.py` v dávce **39/0** za 33 s",
@@ -48,8 +66,10 @@ if zbytek:
     sys.exit(1)
 
 # Pojistky nad obsahem, který se čte měřidlem `zadani-kontrola.py`.
-for kotva, popis in ((r"`forge-orchestra` = `8bf36ff`", "kotva orchestry"),
-                     (r"`uo-shadows` = `e4dccdb`", "kotva hry"),
+# ⚠ Kotvy se berou Z `NAHRADY` — jinak by kontrola zůstala na starém commitu
+# a spadla by na SOBĚ (naměřeno 9. 10. 2026: přesně to se stalo).
+for kotva, popis in ((r"`forge-orchestra` = `%s`" % NAHRADY["__HEAD__"], "kotva orchestry"),
+                     (r"`uo-shadows` = `%s`" % NAHRADY["__HRA__"], "kotva hry"),
                      ("## 2.1 Úkol A", "oddíl Úkol A"),
                      ("STAVOVÝ ŘÁDEK", "stavový řádek")):
     if not re.search(kotva, text):
