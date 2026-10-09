@@ -178,7 +178,12 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    (`POST /game/active` false/true) a volá `POST /tick`. Dávka
              #    hledá jen `*.py`, takže se jí netýká — je tady proto, aby bylo
              #    VIDĚT, že ji nikdo nemá pouštět „naslepo“ (vzor `p30-sonda-*`).
-             "p32-sonda-b3.mjs"}
+             "p32-sonda-b3.mjs",
+             #  * `p32-sonda-cf-verze.mjs` je SONDA K NASAZENÍ (krok 3 ověření
+             #    „server posílá nový artefakt“): stahuje LOG nasazovacího běhu
+             #    (`/actions/jobs/<id>/logs`, 302 na blob storage) a vytahuje
+             #    z něj `Current Version ID` / `Uploaded`. Pouští se ručně.
+             "p32-sonda-cf-verze.mjs"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

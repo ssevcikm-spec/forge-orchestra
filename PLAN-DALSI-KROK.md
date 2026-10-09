@@ -375,8 +375,12 @@ do hry; nemazat `E:\Workspaces\_acl-oprava-p31\` (cesta zpět k oprávněním).
    pojmenovaný stav.
 2. **H112 — brána „cron běží (čas)“ nemůže selhat** (`validate-all` testuje jen
    `!!h.time`) — a přesně ten tik se 9. 10. zastavil.
-3. **C4′ — zavádějící komentáře v conductu** (`index.ts:1558–1559`,
-   `:1489–1493`): změna textu = **změna kódu → nasazení z pushe** (tři kroky).
+3. **C4′ — ✅ OPRAVENO, NASAZENO A OVĚŘENO** (9. 10. 2026, na pokyn uživatele):
+   přepsal se **jen text** dvou komentářů v `conductor/src/index.ts` a nasadil:
+   `deploy.yml` **#36 na `0b86c2d`** `completed/success`, nahraná verze
+   **`bb32fe74-2e50-47a3-9677-70a77469d4e1`**, ověřeno třemi kroky
+   (`_analyza/p32-cf-verze-vystup.txt`). Nasazený kód je odteď **`0b86c2d`**
+   (dřív `cf1f280`); **chování kódu se nezměnilo** (změnil se text). Nález **H148**.
 4. **B3 — ✅ OVĚŘENO 9. 10. 2026 (P32)** na živé službě (uživatel dal „ano“):
    hra vypnuta → tik **nedispatchuje** a hlásí **„nedispatchuji (B4)“**
    (`spusteno: 0 úloh`), `/tasks/cleanup` → **503** (H128 potvrzeno ŽIVĚ =

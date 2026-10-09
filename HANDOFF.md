@@ -2996,7 +2996,7 @@ python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 python _analyza\kronika-kontrola.py                # SEDÍ + id 1..46 bez děr
 python _analyza\ov-g-neovereno.py                  # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
 ```
-## 63. P32 — PŘEMĚŘENÍ P31 VLASTNÍM MĚŘIDLEM A ČTYŘI ZAVŘENÉ VADY (9. 10. 2026)
+## 63. P32 — PŘEMĚŘENÍ P31 VLASTNÍM MĚŘIDLEM A PĚT ZAVŘENÝCH VAD (9. 10. 2026)
 
 **Co tenhle oddíl JE:** **záznam o provedení P32 + stav po P32**.
 **Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
@@ -3023,7 +3023,10 @@ Zadání P32 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKC
 > tvoří až v A3; dnes je úklid v `finally` i tam · H147 = **B3 OVĚŘENO NA ŽIVÉ
 > SLUŽBĚ**: s vypnutou hrou (`/game/active false`) tik hlásí **„nedispatchuji
 > (B4)“** a spustí **0 úloh** a `/tasks/cleanup` vrací **503** — tím je **H128
-> potvrzeno ŽIVĚ** (dosud jen offline testem); hra byla vrácena do stavu AKTIVNÍ.
+> potvrzeno ŽIVĚ** (dosud jen offline testem); hra byla vrácena do stavu AKTIVNÍ ·
+> H148 = **C4′ ZAVŘENO**: dva zavádějící komentáře v conductu **opraveny, nasazeny
+> a ověřeny třemi kroky** (`deploy.yml` #36 na `0b86c2d`, verze `bb32fe74-…`;
+> kód se nezměnil — jen text).
 
 ### 63.1 Úkol A — VLASTNÍ MĚŘIDLO P32 (`_analyza/p32-a-overeni.py`)
 
@@ -3045,9 +3048,11 @@ ne opisy těch P31:
   v této session) → **24/0** (doklad `_analyza/p31-mutace-vystup.txt`).
 * **B2 — co P31 nasadila? Nic.** `git show --name-only` u `41aa981` (21 souborů)
   i `d3f1a48` (1 soubor) → **0 souborů** z `conductor/` nebo `.github/`;
-  `ls-remote` = `HEAD` = `d3f1a48`; nasazený kód je **`cf1f280`**
+  `ls-remote` = `HEAD` = `d3f1a48`; nasazený kód byl **`cf1f280`**
   (`deploy.yml` **#35** `completed/success`); živá služba
-  `/tasks/cleanup {dry_run}` → **osiřelých 0**.
+  `/tasks/cleanup {dry_run}` → **osiřelých 0**. ⚠ **Později, na pokyn uživatele,
+  P32 nasadila JEDNU změnu — text komentářů (C4′): `deploy.yml` #36 na
+  `0b86c2d`, verze `bb32fe74-…`; chování kódu se nezměnilo (viz §63.9).**
 * **B3 — sedí čísla z §62?** Shoda: `test-tick-offline` **215/0**,
   `over-skilly` **92/0**, `p29-b6-mutace` **15/0**, `over-dokumentaci` **64/0**,
   `p28-b-mutace` **30/0**, `ov-g` **99 řádků Hxx** a **0 NEOVĚŘENO**, registr
@@ -3086,7 +3091,7 @@ ne opisy těch P31:
   a `p31-a-overeni.py --jen A1 --plne` **11/0** (před opravou 3 chyby +
   1 NEZMĚŘENO) — doklad `_analyza/p31-a1-po-oprave-vystup.txt`.
 
-### 63.3 Úkol B — ČTYŘI ZAVŘENÉ VADY (C2′, C3′, H145, H146)
+### 63.3 Úkol B — ČTYŘI VADY MĚŘIDEL (C2′, C3′, H145, H146) + C4′ v §63.9
 
 * **C3′ — H139 → H140 + H141 (kontrola, která se nechala uspokojit „40 mrtvými“).**
   `p22-test-mutace.py` byl **19/1** a P31 zapsala, že *„mutace `REPO` nic
@@ -3144,9 +3149,11 @@ nezapisuje**. Tím je **H130/H138 pořád zavřené** a zároveň je vidět, že
 ### 63.5 Živý stav při zápisu (9. 10. 2026, ~20:23 +02:00)
 
 ```
-orchestra: HEAD d3f1a48 · origin/main d3f1a48 (P31 PUSHNUTA) · hra e4dccdb (cizí session)
-           ⚠ P32 NIC NENASADILA: `41aa981` i `d3f1a48` mají 0 souborů z `conductor/`
-             a `.github/`; nasazený kód je `cf1f280` (`deploy.yml` #35 completed/success)
+orchestra: HEAD 0b86c2d · origin/main 0b86c2d (P32 PUSHNUTA) · hra e4dccdb (cizí session)
+           ⚠ NASAZENÍ: P32 změnila `conductor/` JEDNOU — text komentářů (C4′, §63.9):
+             `deploy.yml` **#36 na `0b86c2d`** completed/success (20:03:12Z),
+             nahraná verze **`bb32fe74-2e50-47a3-9677-70a77469d4e1`** (20:03:43Z);
+             chování kódu se NEZMĚNILO (jen text). Předtím byl nasazen `cf1f280` (#35).
 živá služba: /tasks/cleanup {dry_run} → osiřelých 0 · tik (volán JEDNOU v A3):
              "spusteno: 0 úloh; … v cooldownu 3 úloh: #244, #245, #246"
 brány:       g3 → 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (combat)`; exit 1)
@@ -3161,16 +3168,17 @@ brány:       g3 → 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (
 
 ### 63.6 Co čeká na tebe (uživatel)
 
-* **Nic zásadního.** P32 **nenasadila nic** (měřidla a dokumenty) — nasazený kód
-  i živá služba jsou beze změny (`cf1f280`).
+* **Nic zásadního.** P32 nasadila **jedinou** změnu — **text komentářů** v conductu
+  (C4′, §63.9; `deploy.yml` **#36 na `0b86c2d`**, verze `bb32fe74-…`). **Chování
+  kódu se nezměnilo** a živá služba je zdravá (`/health` 200, `games=1`).
 * **B3 — OVĚŘENO 9. 10. 2026** (uživatel dal výslovné „ano“): hra byla na ~2 s
   vypnuta a **vrácena do AKTIVNÍHO stavu**; podrobnosti a čísla v §63.8.
   **Nic z toho na tebe nečeká.**
-* **Zavádějící komentáře v conductu** (`index.ts:1558–1559`, `:1489–1493`) —
-  oprava textu je **změna kódu + nasazení z pushe**; **rozhodnutí o směru**.
-  Co přesně je v nich nepravdivé, je vysvětlené v §63.9.
-* **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`)** zůstává otevřené (P32
-  zavřela tři jiné vady) — buď stav deklarovat, nebo vázat na pojmenovaný stav.
+* **C4′ — ✅ OPRAVENO, NASAZENO A OVĚŘENO** (text komentářů v conductu; uživatel
+  dal pokyn „oprav komentáře“). Podrobnosti, verze a tři kroky ověření: §63.9.
+  **Nic z toho na tebe nečeká.**
+* **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`)** zůstává otevřené — buď stav
+  deklarovat, nebo vázat na pojmenovaný stav.
 * **H112** (brána „cron běží (čas)“ nemůže selhat) zůstává otevřené.
 
 ### 63.7 Jak to ověřit (co spustit)
@@ -3250,6 +3258,29 @@ Dvě místa v `conductor/src/index.ts` tvrdí něco jiného, než kód dělá:
   cleanup**.
 
 **Oprava = změna TEXTU** v `conductor/src/index.ts` (kód se nemění) → je to
-**změna kódu v repu → nasazení z pushe** a ověření **třemi kroky**
-(`ls-remote` → `deploy.yml` na TOM commitu `completed/success` → živá služba).
-Je to **rozhodnutí o směru**, proto ho P32 sama neprovedla.
+**změna kódu v repu → nasazení z pushe** a ověření **třemi kroky** (viz níž).
+
+### 63.10 C4′ — OPRAVENO, NASAZENO A OVĚŘENO (9. 10. 2026, ~20:0x +02:00)
+
+**Uživatel dal pokyn „oprav komentáře“**, takže se to provedlo **i s nasazením**:
+
+| Co | Naměřeno |
+|---|---|
+| změna | **jen text komentářů** (`git diff` = 17 přidaných / 6 odebraných řádků, všechny začínají `//`; **kód se nemění**) |
+| brána před commitem | `node node_modules/typescript/bin/tsc --noEmit` (tj. `npm run check`) → **exit 0** |
+| commit | `0b86c2d` („conductor: oprava DVOU ZAVADEJICICH KOMENTARU …“) |
+| **krok 1 — push dorazil** | `ls-remote` = `HEAD` = `0b86c2db29de17c9f2a5a16bbd55715e88defef5` |
+| **krok 2 — deploy na TOM commitu** | `deploy.yml` **#36** na `0b86c2d` → `completed/success` (created **20:03:12Z**), `p30-sonda-deploy.mjs` → **VŠE OK (0 chyb)** |
+| **krok 3 — nový artefakt u poskytovatele** | z logu běhu (sonda `p32-sonda-cf-verze.mjs`): `Total Upload: 50.80 KiB / gzip: 13.21 KiB` · `Uploaded forge-conductor (5.91 s)` (**20:03:43Z**) · `Deployed forge-conductor triggers` (**20:03:46Z**) · **`Current Version ID: bb32fe74-2e50-47a3-9677-70a77469d4e1`** |
+| živá služba po nasazení | `GET /health` → **200**, `games=1`, `ready=3`, `running=0` (doklad `_analyza/p32-stav-po-nasazeni-vystup.txt`) |
+
+**⚠ HTTP 200 NENÍ DŮKAZ** (starý worker odpovídá taky) — proto krok 3 stojí na
+**verzi z logu nasazení**, ne na odpovědi služby. A protože změna mění **jen
+komentáře**, na chování není co vidět: dokladem je **nová verze** + **nezměněné
+chování** (`/health`, `/tasks/cleanup {dry_run}` → 200, osiřelých 0).
+
+**Důsledek pro stav:** nasazený kód už **není** `cf1f280` (#35), ale **`0b86c2d`**
+(#36, verze `bb32fe74-…`). Historie zůstává: v době A2/B2 P32 opravdu nenasazovala nic.
+
+Tím je **C4′ zavřené** (nález **H148**) a z nabídky Úkolu B zbývají jen
+**H133** a **H112** (obě v §63.6).
