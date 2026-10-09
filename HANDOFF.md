@@ -2996,7 +2996,7 @@ python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 python _analyza\kronika-kontrola.py                # SEDÍ + id 1..46 bez děr
 python _analyza\ov-g-neovereno.py                  # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
 ```
-## 63. P32 — PŘEMĚŘENÍ P31 VLASTNÍM MĚŘIDLEM A TŘI ZAVŘENÉ VADY (9. 10. 2026)
+## 63. P32 — PŘEMĚŘENÍ P31 VLASTNÍM MĚŘIDLEM A ČTYŘI ZAVŘENÉ VADY (9. 10. 2026)
 
 **Co tenhle oddíl JE:** **záznam o provedení P32 + stav po P32**.
 **Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
@@ -3020,7 +3020,10 @@ Zadání P32 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKC
 > P31 se **NEREPRODUKUJE** · H146 = **H124 MĚLA DÍRU**: plný běh
 > `p29-a-overeni.py` (jak ho pouští dávka dokladů) nechal v živém `_analyza/`
 > `p29-kopie-tick.mjs` (**75 395 B**) — úklid byl jen v A1M/A1M13, kopie se ale
-> tvoří až v A3; dnes je úklid v `finally` i tam.
+> tvoří až v A3; dnes je úklid v `finally` i tam · H147 = **B3 OVĚŘENO NA ŽIVÉ
+> SLUŽBĚ**: s vypnutou hrou (`/game/active false`) tik hlásí **„nedispatchuji
+> (B4)“** a spustí **0 úloh** a `/tasks/cleanup` vrací **503** — tím je **H128
+> potvrzeno ŽIVĚ** (dosud jen offline testem); hra byla vrácena do stavu AKTIVNÍ.
 
 ### 63.1 Úkol A — VLASTNÍ MĚŘIDLO P32 (`_analyza/p32-a-overeni.py`)
 
@@ -3083,7 +3086,7 @@ ne opisy těch P31:
   a `p31-a-overeni.py --jen A1 --plne` **11/0** (před opravou 3 chyby +
   1 NEZMĚŘENO) — doklad `_analyza/p31-a1-po-oprave-vystup.txt`.
 
-### 63.3 Úkol B — TŘI ZAVŘENÉ VADY (C2′, C3′, H145)
+### 63.3 Úkol B — ČTYŘI ZAVŘENÉ VADY (C2′, C3′, H145, H146)
 
 * **C3′ — H139 → H140 + H141 (kontrola, která se nechala uspokojit „40 mrtvými“).**
   `p22-test-mutace.py` byl **19/1** a P31 zapsala, že *„mutace `REPO` nic
@@ -3160,10 +3163,12 @@ brány:       g3 → 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (
 
 * **Nic zásadního.** P32 **nenasadila nic** (měřidla a dokumenty) — nasazený kód
   i živá služba jsou beze změny (`cf1f280`).
-* **B3 (`/game/active {active:false}` na živé službě)** pořád čeká na výslovné
-  „ano“ (dočasně zastaví orchestra).
+* **B3 — OVĚŘENO 9. 10. 2026** (uživatel dal výslovné „ano“): hra byla na ~2 s
+  vypnuta a **vrácena do AKTIVNÍHO stavu**; podrobnosti a čísla v §63.8.
+  **Nic z toho na tebe nečeká.**
 * **Zavádějící komentáře v conductu** (`index.ts:1558–1559`, `:1489–1493`) —
   oprava textu je **změna kódu + nasazení z pushe**; **rozhodnutí o směru**.
+  Co přesně je v nich nepravdivé, je vysvětlené v §63.9.
 * **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`)** zůstává otevřené (P32
   zavřela tři jiné vady) — buď stav deklarovat, nebo vázat na pojmenovaný stav.
 * **H112** (brána „cron běží (čas)“ nemůže selhat) zůstává otevřené.
@@ -3191,4 +3196,60 @@ python _analyza\kronika-kontrola.py               # SEDÍ + id 1..47 bez děr
 python _analyza\handoff-kontrola-uplnost.py       # 0 chybějících
 python _analyza\ov-g-neovereno.py                 # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
 python _analyza\zadani-kontrola.py                # kotva zadání P33 vs. živý HEAD
+python _analyza\p32-sonda-b3.mjs                  # B3: vypne/zapne hru a měří B4 (MĚNÍ STAV)
 ```
+
+### 63.8 B3 — OVĚŘENÍ „B4“ NA ŽIVÉ SLUŽBĚ (9. 10. 2026, ~21:4x +02:00)
+
+**Uživatel dal výslovné „ano“** (B3 dočasně zastaví orchestra), takže se to
+měřilo na **ŽIVÉ službě**, ne jen offline. Sonda `_analyza/p32-sonda-b3.mjs`
+(doklad `_analyza/p32-b3-vystup.txt`) hru **vypne a v `finally` VŽDY zase
+zapne**; výsledek **8 kontrol, 0 chyb**, stav služby **„hra uo-shadows =
+AKTIVNÍ (obnoveno)“**.
+
+| Krok | Naměřeno |
+|---|---|
+| PŘED | registr: 1 hra, **aktivní 1** (`uo-shadows`); `/health` **games=1**; `/tasks/cleanup {dry_run}` → **200** (`platnych_granuli_v_souborech` 21, `radku_v_cache` 20, `osirelych_radku` **0**) |
+| `POST /game/active {active:false}` | **200** `{active: 0}` |
+| VYPNUTO | `/health` → **games=0**, `targets` **prázdné**; `/games` → aktivních **0** |
+| VYPNUTO — `POST /tick` | **`spusteno: 0 úloh`** … `žádná aktivní hra – roadmapu neřeším (B4)` … **`POZOR: žádná AKTIVNÍ hra → nedispatchuji (B4)`** |
+| VYPNUTO — `/tasks/cleanup {dry_run}` | **503** `„žádná platná granule – roadmapy jsou prázdné, nemažu“` |
+| `POST /game/active {active:true}` | **200** `{active: 1}` |
+| PO ZAPNUTÍ | `/health` **games=1**; `/games` aktivních **1**; cleanup **200**; tik **`spusteno: 0 úloh`** … `roadmapa je hotová (nebo čeká na závislosti / cooldown)` |
+
+**Co to dokazuje:** (1) **B4 funguje ŽIVĚ** — s vypnutou hrou tik **nedispatchuje**
+a **řekne to v odpovědi** (ne jen do logu, který nikdo nečte); (2) **H128 je
+potvrzené ŽIVĚ, ne jen offline** (nový nález **H147**): `/tasks/cleanup` bere
+**jen hry `active = 1`**, takže s vypnutou hrou vrací **503** a neudělá nic;
+(3) **stav služby byl vrácen** (hra aktivní, tik normálně funguje).
+
+**⚠ Zásahy do stavu (zapsané — nejsou to jen čtení):** `POST /game/active` byl
+volán **2×** (false, true) a `POST /tick` **5×**: 1× v A3 (`p31-a-overeni.py
+--plne`), 2× při PRVNÍM běhu sondy (ta spadla na `ReferenceError` **až po**
+měření i po návratu stavu — proto se opravila a běžela znovu), 2× při druhém.
+S vypnutou hrou byly tiky **2** (oba `spusteno: 0 úloh`); po zapnutí vykázal
+první běh `spusteno: 3 úloh` = **normální dispatch**, ne následek měření.
+
+### 63.9 C4′ — CO JE NEPRAVDIVÉHO V KOMENTÁŘÍCH CONDUCTORA (nález H128)
+
+Dvě místa v `conductor/src/index.ts` tvrdí něco jiného, než kód dělá:
+
+* **`:1489–1493` (hlavička `/roadmap/reset`) tvrdí, že reset „vrátí jejich
+  selhané úkoly do fronty (`status='ready'`, `attempts=0`)“.** **Kód to NEDĚLÁ**
+  — a **schválně**: o ~35 řádků níž (`:1525–1535`) stojí „Reset teď dělá JEDNU
+  věc: vyprázdní cache“ a vysvětluje, že první verze (která úkoly vracela)
+  vyráběla **zombie úlohy běžící dvakrát** (naměřeno 30. 9. 2026: #115–#118 jely
+  paralelně s #119–#122). **Dvě tvrzení v témže bloku si tedy odporují** a platí
+  to druhé (kód smaže jen řádky `roadmap`; frontu postaví znovu `roadmapTick`).
+* **`:1558–1559` (hlavička `/tasks/cleanup`) doporučuje „nejdřív se hra vypne
+  (`/game/active` false), pak cleanup, pak se hra zapne“.** To je
+  **NEPROVEDITELNÉ** a P32 to naměřila **na živé službě** (§63.8): cleanup bere
+  hry přes `listGames` → `WHERE active = 1`, takže **s vypnutou hrou vrací 503
+  a neudělá nic**. Navíc roadmapu čte z **`main` v GitHubu** (`:1576`), takže
+  **push musí být první**. Správné pořadí je: **push → (hra zůstane zapnutá) →
+  cleanup**.
+
+**Oprava = změna TEXTU** v `conductor/src/index.ts` (kód se nemění) → je to
+**změna kódu v repu → nasazení z pushe** a ověření **třemi kroky**
+(`ls-remote` → `deploy.yml` na TOM commitu `completed/success` → živá služba).
+Je to **rozhodnutí o směru**, proto ho P32 sama neprovedla.

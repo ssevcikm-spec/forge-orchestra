@@ -173,7 +173,12 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    nést commit, který vznikne až commitem). V dávce se spouštět
              #    NESMÍ: přepsal by ZADÁNÍ — a to je jeden ze čtyř dokumentů,
              #    jejichž hash pojistka dávky hlídá (H130/H138).
-             "p32-prepis-zadani.py"}
+             "p32-prepis-zadani.py",
+             #  * `p32-sonda-b3.mjs` je SONDA ŽIVÉ SLUŽBY (Úkol B3): mění stav
+             #    (`POST /game/active` false/true) a volá `POST /tick`. Dávka
+             #    hledá jen `*.py`, takže se jí netýká — je tady proto, aby bylo
+             #    VIDĚT, že ji nikdo nemá pouštět „naslepo“ (vzor `p30-sonda-*`).
+             "p32-sonda-b3.mjs"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

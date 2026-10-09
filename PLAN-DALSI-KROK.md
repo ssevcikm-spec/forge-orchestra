@@ -377,7 +377,11 @@ do hry; nemazat `E:\Workspaces\_acl-oprava-p31\` (cesta zpět k oprávněním).
    `!!h.time`) — a přesně ten tik se 9. 10. zastavil.
 3. **C4′ — zavádějící komentáře v conductu** (`index.ts:1558–1559`,
    `:1489–1493`): změna textu = **změna kódu → nasazení z pushe** (tři kroky).
-4. **B3 (`/game/active {active:false}`)** — čeká na výslovné „ano“ uživatele.
+4. **B3 — ✅ OVĚŘENO 9. 10. 2026 (P32)** na živé službě (uživatel dal „ano“):
+   hra vypnuta → tik **nedispatchuje** a hlásí **„nedispatchuji (B4)“**
+   (`spusteno: 0 úloh`), `/tasks/cleanup` → **503** (H128 potvrzeno ŽIVĚ =
+   **H147**); hra **vrácena AKTIVNÍ** (sonda `_analyza/p32-sonda-b3.mjs`, **8/0**).
+   **Na uživatele tu tedy nic nečeká** — zbývá jen rozhodnutí o C4′ (bod 3).
 5. **H143/H144 zůstávají jako poučení**: čísla o výskytech kotvy a o počtu řádků
    se **měří**, neopisují do záznamu (a záznam, který kotvu cituje, mění
    jednoznačnost kotev měřidel).
