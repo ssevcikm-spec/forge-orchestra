@@ -17,6 +17,19 @@ Tři mutace:
   * **M3** — `ov-g` s vypnutým hlášením rozsahu: měřidlo musí měřit ROZSAH
     (zúžení rozsahu je vada P25-K — „zelená nad 1 % rozsahu“).
 
+⚠ OPRAVENO V P31 (9. 10. 2026, Úkol B = C1, nálezy **H131** a **H132**): měřidlo
+hlásilo **27/2**, ačkoli v živém stromě nic vadného nebylo — obě chyby byly v TOMHLE
+souboru:
+  * **M1** počítala kotvu `**99 řádků Hxx**` v **CELÉM** dokumentu a srovnávala ji
+    s počtem v **§57** → každý nový záznam, který tvrzení **cituje**, kontrolu
+    shodil. Dnes se počítá **v měřeném oddílu** (vzor: `p29-a-overeni.py`).
+  * **M2** vkládala do `BRANY` záznam o **DVOU** prvcích, ale `g3` čte
+    `for popis, prikaz, vzor in BRANY` (tři) → mutant **spadl na `ValueError`**
+    a diferenciál se měřil na tracebacku. Dnes je záznam platný (3 prvky) a
+    divergenci hlídá nová kontrola „mutant přidal PRÁVĚ JEDNU chybu".
+Důkaz: `_analyza/p31-mutace.py` (mutační test OPRAVY, tři nohy) a
+`_analyza/p31-sonda-g3-vystup.txt` (naměřený `ValueError`).
+
 ⚠ VŠECHNY MUTACE JSOU V KOPIÍCH (`_analyza/p28-b-scratch/`) — živý dokument,
 živé `g3` ani živý `ov-g` se nemutují. Kopie měřidla se po běhu mažou.
 ⚠ `FORGE_REGISTR` míří do scratch: měřidlo NESMÍ přepsat živý registr bran
@@ -89,6 +102,18 @@ def cervene(v):
     return [l.strip()[6:].strip() for l in v.splitlines() if l.strip().startswith("CHYBA ")]
 
 
+def cervene_z_behu(jmeno):
+    """MNOŽINA červených kontrol z uloženého běhu měřidla (`SCRATCH/<jmeno>`).
+
+    ⚠ Pro diferenciál je důležitější JMÉNO kontroly než počet: naměřeno 9. 10.
+    2026, kdy se „stejný počet chyb" dal splnit i mutantem, který SPADL.
+    """
+    q = SCRATCH / jmeno
+    if not q.is_file():
+        return None
+    return {x for x in cervene(q.read_text(encoding="utf-8", errors="replace"))}
+
+
 def sekce(cislo, text):
     """Tělo oddílu `## <cislo>.` — mutuje se V NĚM, ne přes celý dokument."""
     m = re.search(r"^## %s\." % re.escape(str(cislo)), text, re.M)
@@ -96,6 +121,28 @@ def sekce(cislo, text):
         return ""
     m2 = re.search(r"^## ", text[m.end():], re.M)
     return text[m.start(): m.end() + m2.start()] if m2 else text[m.start():]
+
+
+def kotva_m1(text, s57, kopie_text):
+    """(naměřeno, očekáváno) kontroly „M1 mutace se provedla v MĚŘENÉM oddílu".
+
+    ⚠ H131 (P31): kotva se počítá **v oddílu §57**, ne v celém dokumentu.
+    `**99 řádků Hxx**` je v `HANDOFF.md` **3×** (a bez bold **13×**) — každý nový
+    záznam tvrzení **cituje**, takže kontrola vázaná na CELÝ dokument hlásila
+    `(1, 3) != (1, 1)` a shodila měřidlo za cizí zápis (přesně to se stalo P29
+    a P30). Parametr `text` (celý dokument) tu zůstává SCHVÁLNĚ: bez něj by
+    nešlo postavit oslabenou kopii s PŮVODNÍ formulací a diferenciál by se
+    nedal změřit (`_analyza/p31-mutace.py`, noha C1).
+    """
+    return ((sekce("57", kopie_text).count("**98 řádků Hxx**"),
+             s57.count("**98 řádků Hxx**")), (1, 0))
+
+
+# ⚠ H132 (P31): ZÁZNAM FIXTURY MUSÍ MÍT TŘI PRVKY (`popis`, `prikaz`, `vzor`) —
+# `g3` čte `for popis, prikaz, vzor in BRANY`. Původní text měl dva prvky, mutant
+# `g3` pak spadl na `ValueError: not enough values to unpack (expected 3, got 2)`
+# a diferenciál se měřil na tracebacku, ne na 50. bráně.
+ZAZNAM_FIXTURY = 'BRANY= [("p28-fixtura", ["python", %r], r"(\\d+)"),'
 
 
 def vypis_cervene(v, popis):
@@ -176,10 +223,18 @@ def main():
     i57 = text.find(s57)
     k_mut.write_text(text[:i57] + s57.replace(kotva, "**98 řádků Hxx**", 1)
                      + text[i57 + len(s57):], encoding="utf-8")
-    k("M1 kotva „99 řádků Hxx“ je v §57 právě 1×", s57.count(kotva), 1)
-    k("M1 a mutace se provedla (v kopii je 98, v živém dokumentu ne)",
-      (k_mut.read_text(encoding="utf-8").count("**98 řádků Hxx**"), text.count(kotva)),
-      (1, s57.count(kotva)))
+    k("M1 kotva „99 řádků Hxx“ je v §57 ASPOŇ 1× (měřený oddíl, ne celý dokument)",
+      s57.count(kotva) >= 1, True)
+    # ⚠ H131 (P31): KOTVA SE POČÍTÁ V MĚŘENÉM ODDÍLU, NE V CELÉM DOKUMENTU.
+    # Naměřeno 9. 10. 2026: `**99 řádků Hxx**` je v `HANDOFF.md` **3×** (a bez
+    # bold **13×**) — každý nový záznam tvrzení **cituje**. Původní kontrola
+    # srovnávala `text.count(kotva)` (celý dokument) s `s57.count(kotva)` (§57)
+    # a hlásila `(1, 3) != (1, 1)` → **shodila měřidlo za to, že si záznamy
+    # citují vlastní číslo**. Vzor, jak to má být, je v `p29-a-overeni.py`
+    # (`_m1_handoff`): mutace i kontrola se vážou na oddíl.
+    # ⚠ MĚŘENÁ PODMÍNKA SE NEMĚNÍ: v §57 KOPIE je mutace, v §57 živého ne.
+    k("M1 a mutace se provedla: v §57 KOPIE je 98 právě 1×, v živém dokumentu 0×",
+      *kotva_m1(text, s57, k_mut.read_text(encoding="utf-8")))
 
     kod, v = beh(P28A, "--jen", "A5", "--handoff", str(k_ctl), jmeno="m1a.txt")
     ca = citac(v)
@@ -220,14 +275,21 @@ def main():
     k("M2a živé g3 + živé měřidlo → měřidlo má čítač", ca is not None, True)
     chyby_a6 = ca[1] if ca else -1
 
-    with mutuj(k_g, "BRANY = [",
-               'BRANY= [("p28-fixtura", ["python", %r]),' % str(fixtura)):
+    # ⚠ H132 (P31): ZÁZNAM FIXTURY MUSÍ MÍT TŘI PRVKY — viz konstanta výš.
+    with mutuj(k_g, "BRANY = [", ZAZNAM_FIXTURY % str(fixtura)):
         kod, v = beh(P28A, "--plne", "--jen", "A6", "--g3", str(k_g), jmeno="m2b.txt")
     cb = citac(v)
     k("M2b g3 s 50. branou + živé měřidlo → VÍC chyb než baseline",
       (cb[1] if cb else -1) > chyby_a6, True)
     k("M2b a spadlo na kontrole počtu bran",
       any("49 bran" in x for x in cervene(v)), True)
+    # ⚠ DIFERENCIÁL PŘESNĚ 1. Kdyby mutant `g3` spadl (rozbitý seznam), A6 by
+    # hlásila TŘI nové chyby (`exit`, počet bran `None`, NEDEKLAROVANÉ `None`) —
+    # a „spadlo na počtu bran" by prošlo TAKY, protože jméno kontroly obsahuje
+    # „49 bran". Proto se měří POČET: +1 znamená, že mutant opravdu vykázal
+    # 50 bran a rozešla se JEN kontrola počtu.
+    k("M2b a mutant g3 přidal PRÁVĚ JEDNU chybu (50. brána, ne rozbitý seznam)",
+      (cb[1] if cb else -99) - chyby_a6, 1)
 
     osl.append(oslabena_kopie(
         ANALYZA / "_p28b-oslabene-m2.py",
@@ -237,10 +299,30 @@ def main():
     if osl[-1] is None:
         print("  ??    M2c se neměří (oslabenou kopii nešlo vyrobit)")
     else:
-        with mutuj(k_g, "BRANY = [",
-                   'BRANY= [("p28-fixtura", ["python", %r]),' % str(fixtura)):
+        with mutuj(k_g, "BRANY = [", ZAZNAM_FIXTURY % str(fixtura)):
             kod, v = beh(osl[-1], "--plne", "--jen", "A6", "--g3", str(k_g), jmeno="m2c.txt")
         cc = citac(v)
+        k("M2c g3 s 50. branou + OSLABENÉ měřidlo → stejně chyb jako baseline (diferenciál)",
+          cc[1] if cc else None, chyby_a6)
+        # ⚠ MNOŽINOVĚ, NE JEN POČTEM (doplněno v P31): rozhoduje JMÉNO kontroly.
+        # Naměřeno 9. 10. 2026: M2c používala STARÝ dvouprvkový zápis fixtury,
+        # mutant `g3` spadl na `ValueError` a „diferenciál" se měřil na tracebacku
+        # (`NEDEKLAROVANÉ` bylo `None`) — proto se teď zvlášť ověřuje, že kontrola
+        # POČTU BRAN v oslabené kopii opravdu ZMIZELA.
+        s_c = cervene_z_behu("m2c.txt")
+        if s_c is not None:
+            k("M2c a kontrola POČTU BRAN v oslabené kopii UŽ NENÍ červená (diferenciál)",
+              any("49 bran" in x for x in s_c), False)
+        if (cc[1] if cc else -1) != (ca[1] if ca else -1):
+            # ⚠ PŘIDÁNO V P31: bez vypsání červených se „M2c naměřeno 2" NEDÁ
+            # vysvětlit (přesně to se stalo: diferenciál nevycházel a nebylo
+            # vidět, KTERÁ druhá kontrola spadla). Vypisují se uložené běhy
+            # VŠECH TŘÍ noh — dokud je scratch naživu.
+            for _jm in ("m2a.txt", "m2b.txt", "m2c.txt"):
+                _q = SCRATCH / _jm
+                if _q.is_file():
+                    vypis_cervene(_q.read_text(encoding="utf-8", errors="replace"),
+                                  "M2 %s" % _jm)
         k("M2c g3 s 50. branou + OSLABENÉ měřidlo → stejně chyb jako baseline (diferenciál)",
           cc[1] if cc else None, chyby_a6)
 

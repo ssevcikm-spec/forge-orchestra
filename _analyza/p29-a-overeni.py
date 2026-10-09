@@ -86,6 +86,28 @@ SCRATCH = ANALYZA / "p29-scratch"
 PY = sys.executable
 NODE = "node"
 
+# ⚠ H124 (OPRAVENO V P31, 9. 10. 2026): MUTANTNÍ KOPIE SE MUSÍ UKLIDIT.
+# Tenhle soubor zapisoval `p29-mut-handoff.md` (**186 kB**), `p29-mut-g3.py`,
+# `p29-mut-fixtura.py` i `p29-mut-ovg.py` do ŽIVÉHO `_analyza/` a **nikdy je
+# nemazal** — a **nejsou gitignorované**, takže vstupovaly do inventáře, do
+# `git status` i do `git add -A` a rozladily dvě brány (`n1-over-inventar`,
+# `C2: mutace N1` — H126). Úklid je proto v `try/finally` (nezůstane ani po
+# výjimce) a **sám se kontroluje** (`uklid_mutanty()` vrací, co zbylo).
+MUTANTI = ["p29-mut-handoff.md", "p29-mut-g3.py", "p29-mut-fixtura.py",
+           "p29-mut-ovg.py", "p29-mut-meridlo-m1.py", "p29-mut-meridlo-m2.py",
+           "p29-mut-meridlo-m3.py",
+           # ⚠ DOPLNĚNO V P31 (naměřeno, ne odhadnuto): měřidlo nechávalo
+           # i **`p29-kopie-tick.mjs`** (kopie testu tiku pro etapu A3) —
+           # a ta NENÍ gitignorovaná, takže by ji `git add -A` poslal do repa.
+           "p29-kopie-tick.mjs"]
+
+
+def uklid_mutanty():
+    """Smaže mutantní kopie a vrátí, co ZŮSTALO (prázdný seznam = uklizeno)."""
+    for jmeno in MUTANTI:
+        (ANALYZA / jmeno).unlink(missing_ok=True)
+    return [jmeno for jmeno in MUTANTI if (ANALYZA / jmeno).exists()]
+
 kontrol = 0
 chyb = 0
 nezmereno = []
@@ -278,7 +300,9 @@ def tvrzeni_v(vzor, popis, okno=140):
 # ═══════════════════════════════════════════════════════ měření (cachovaná) ═══
 def mer_g3():
     if "g3" not in MER:
-        MER["g3"] = cmd([PY, str(G3)], timeout=3600)
+        # ⚠ H138 (P31): `FORGE_BEZ_REGISTRU` — měřidlo NESMÍ přepsat ŽIVÝ
+        # `_analyza/_registr-bran.json` (dávka dokladů to hlásí jako „ZMĚNĚN").
+        MER["g3"] = cmd([PY, str(G3)], timeout=3600, env={"FORGE_BEZ_REGISTRU": "1"})
     return MER["g3"]
 
 
@@ -460,9 +484,15 @@ def a1m():
         c = citac_obecny(dok.read_text(encoding="utf-8", errors="replace"))
         print("      baseline z dokladu %s: čítač=%s" % (dok.name, c))
     SCRATCH.mkdir(parents=True, exist_ok=True)
-    _m1_handoff()
-    _m2_g3()
-    _m3_ovg()
+    # ⚠ try/finally (H124): ať etapa spadne, nebo ne, mutantní kopie NESMÍ
+    # zůstat v živém `_analyza/` — a kontrola to musí ŘÍCT, ne předpokládat.
+    try:
+        _m1_handoff()
+        _m2_g3()
+        _m3_ovg()
+    finally:
+        check("A1M úklid: po běhu nezůstal v `_analyza/` ŽÁDNÝ mutant (H124)",
+              uklid_mutanty(), [])
 
 
 def _cervene_a6_z_dokladu():
@@ -487,8 +517,14 @@ def _cervene_a6_z_dokladu():
 def a1m13():
     """M1 + M3 (LEVNÉ kontramutace) — opakovatelný běh po opravě `oslab_check`."""
     print("\n--- A1M13: DVĚ LEVNÉ KONTRAMUTACE (M1 §57, M3 ov-g) ---")
-    _m1_handoff()
-    _m3_ovg()
+    # ⚠ try/finally (H124): mutanty (`p29-mut-handoff.md` 186 kB, `p29-mut-ovg.py`)
+    # se uklízejí VŽDY a kontrola uklizení je součástí výsledku.
+    try:
+        _m1_handoff()
+        _m3_ovg()
+    finally:
+        check("A1M13 úklid: po běhu nezůstal v `_analyza/` ŽÁDNÝ mutant (H124)",
+              uklid_mutanty(), [])
 
 
 def _m1_handoff():
@@ -894,7 +930,7 @@ def a7():
     print("\n--- A7: INVENTÁŘ → g3 → validate-all (V TOMTO POŘADÍ, nic mezi tím) ---")
     kod_i, v_i = cmd([PY, str(NEANGL), "--json", str(INVENTAR)], timeout=3600)
     check("A7 inventář přegenerován (exit 0)", kod_i, 0)
-    kod_g, v_g = cmd([PY, str(G3)], timeout=3600)
+    kod_g, v_g = cmd([PY, str(G3)], timeout=3600, env={"FORGE_BEZ_REGISTRU": "1"})
     kod_v, v_v = cmd([NODE, str(VALIDATE)], timeout=3600)
     MER["g3"] = (kod_g, v_g)
     MER["validate"] = (kod_v, v_v)

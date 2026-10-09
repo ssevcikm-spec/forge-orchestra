@@ -2775,3 +2775,222 @@ python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
 python _analyza\g3-brany.py                       # 49 bran
 node tools\validate-all.mjs                       # 0 problémů
 ```
+## 62. P31 — PŘEMĚŘENÍ P30 A OPRAVA DVOU VAD MĚŘIDLA P28/B (9. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P31 + stav po P31**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**46**, nálezy **§2.24**), plán (`PLAN-DALSI-KROK.md`, dodatek P31).
+Zadání P31 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **9. 10. 2026, 11:30–14:2x +02:00** (živý čas
+> z hodin, ne ze zadání). Tvrzení o **stavu** (HEAD, hra, živá služba) platí
+> k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.24), aby každý nález byl dohledatelný
+> z HANDOFF.md:** H131 = `p28-b-mutace.py` M1 počítala kotvu v CELÉM dokumentu
+> (a spadla na cizí citaci) · H132 = M2 vkládala do `BRANY` záznam o DVOU
+> prvcích → mutant `g3` spadl na `ValueError` · H133 = `g3` končí `exit 1`
+> POJMENOVANĚ (1 brána bez čítače) a `p28-a-overeni.py` A6 na tom stojí ·
+> H134 = **H124 ZAVŘENO**: měřidlo P29 po sobě uklízí (a test to dokazuje) ·
+> H135 = tvrzení „`p30-a` → 35/0“ se NEREPRODUKUJE (32/3, tři pojmenované
+> příčiny) · H136 = **H130 OVĚŘENO** (dávka dokumenty nepíše) — ale KOŘEN
+> vady žije dál · H137 = harness z `g3` bez `FORGE_REGISTR` přepsal ŽIVÝ
+> registr (50 bran) a shodil `ag-over-cisla.py` ·
+> H138 = dávka dokladů PŘESTO přepisovala dokumenty (a pojistka
+> neříkala KOHO) — tři viníci opraveni, TŘETÍ běh dávky je zelený ·
+> H139 = mutační test P22 spadl na dvojznačné kotvě a jeho mutace nic nemění.
+
+### 62.1 Cíl a co bylo hotové před P31 (neopakovat)
+
+Zadání P31 chtělo dvě věci: **přeměřit práci P30 vlastním měřidlem** a
+**zavřít aspoň jednu ze tří doložených vad měřidel** (H123, H124, H130).
+P30 byla hotová: oprava **B6** nasazená a živá, **H111** (strop granule) a
+**H114** (`entity.move.smooth` čeká na `engine.input`) rozhodnuté, **B8**
+(návod pro architekta ve skillu `game-developer`) hotový — viz §61.
+
+### 62.2 Úkol A — VLASTNÍ MĚŘIDLO P31 (`_analyza/p31-a-overeni.py`)
+
+**Plný běh: 54 kontrol, 1 chyba, 2 pojmenované ROZDÍLY, 0 NEZMĚŘENO**
+(doklad `_analyza/p31-a-overeni-vystup.txt`). Každé tvrzení se **PŘEČTE
+Z §61** (vypisuje se okno, které vzor trefil) a pak se měří; co nesedí, je
+**ROZDÍL s vysvětlením** — nebo **CHYBA**.
+
+* **A1 — umí měřidlo P30 spadnout?** `p30-mutace.py` → **16/0** (tvrzení
+  §61.5 reprodukováno) a **VLASTNÍ diferenciál** měřidla P30: kotva
+  `test-tick-offline → 215/0` je v `HANDOFF.md` **1×**; živé měřidlo →
+  `exit 0`; **mutant** dokumentu → `exit 1` s `ROZCHOD test-tick-offline`;
+  **mutant + oslabené měřidlo** → `exit 0`. `HANDOFF.md` vrácen **bajt na bajt**.
+* **A2 — nasazení TŘEMI kroky:** (1) `ls-remote` = `HEAD` = `0c0eb18`;
+  (2) `deploy.yml` **#35 na `cf1f280`** je `completed/success` (sha se ČTE
+  z §61); (3) živá služba `/tasks/cleanup {dry_run}` → **osiřelých 0**
+  (bylo 5) a tik **pojmenovává, co přeskočil**. ⚠ `POST /tick` byl **volán
+  jednou** (mění stav) — doklad `_analyza/p31-stav-vystup.txt`.
+* **A3 — sedí čísla z §61?** Shoda: `test-tick-offline` **215/0**,
+  `over-skilly` **92/0**, `ov-g` **99 řádků Hxx**, `p29-b6-mutace` **15/0**,
+  `over-dokumentaci` **64/0**, `p30-mutace` **16/0**, `tick-mutace`
+  **20 vrat/41/0**, `g3` **49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače**,
+  `validate-all` **0 problémů**, kronika **SEDÍ**. Neshoda je **jediná**:
+  `p30-a` (viz 62.4 / H135).
+* **A4 — H130** (dávka dokladů nepíše do dokumentů): **TŘI běhy**
+  `--jen A4`; teprve **třetí je zelený** — „žádný z 4 sledovaných
+  dokumentů se nezměnil“ (2149 s). První dva našly **čtyři viníky**
+  (H138) — viz 62.4.
+* **A5 — H111** (strop vs. zámek), nezávisle z D1 (jen SELECT, doklad
+  `_analyza/p31-d1-vystup.txt`): **zámek VYLOUČEN** (žádná úloha není
+  `running`), **`engine.registry` má počítadlo 5** (mechanismus stropu: roste
+  od vzniku řádku), **za stropem není žádná vydávaná granule** (jediná ≥ 8 je
+  `sim.crafting` = 12, a ta je `done`).
+* **A6 — H124:** `p29-a-overeni.py --jen A1M13` → **8/0** a v `_analyza/`
+  **nezůstal žádný mutant** (a měřidlo to ŘEKLO — kontrola úklidu).
+* **A7 — nic se nerozbilo:** záznamy se jen přidávaly (**0 smazaných
+  řádků**), `kronika-kontrola` **SEDÍ**, `handoff-kontrola-uplnost`
+  **0 chybějících**, `ov-g` **0 NEOVĚŘENO** (rozsah **99 řádků Hxx**).
+
+### 62.3 Úkol B — VĚCNÁ PRÁCE: **C1** (H131 + H132) a **C2** (H124)
+
+**C1 — `p28-b-mutace.py` bylo 27/2 a je 30/0.** Příčiny byly DVĚ a obě
+v tom souboru (doklad `_analyza/p31-mutace-vystup.txt` → **24/0**, vlastní
+diferenciál; a `_analyza/p31-mutace-p28b-vystup.txt` = celý běh opraveného
+měřidla):
+
+* **H131:** kontrola M1 srovnávala `text.count(kotva)` (**celý dokument**, dnes
+  **3×**) s `s57.count(kotva)` (**§57**, **1×**) → hlásila `(1, 3) != (1, 1)`
+  a shazovala měřidlo **za to, že si novější záznamy tvrzení citují**. Kotva
+  se teď počítá **v měřeném oddílu** (funkce `kotva_m1`, vzor
+  `p29-a-overeni.py`). Diferenciál: **živá** `kotva_m1` → `((1,0),(1,0))`;
+  **oslabená kopie s PŮVODNÍ vadou** → `((1,3),(1,1))` = ROZCHOD.
+* **H132:** mutace M2 vkládala do `BRANY` záznam o **DVOU** prvcích, ale `g3`
+  čte `for popis, prikaz, vzor in BRANY` → mutant **spadl na
+  `ValueError: not enough values to unpack (expected 3, got 2)`** a diferenciál
+  se měřil **na tracebacku** (doklad `_analyza/p31-sonda-g3-vystup.txt`).
+  Dnes je záznam platný (`ZAZNAM_FIXTURY`, 3 prvky) a **obě nohy M2 ho berou**
+  (první oprava zapomněla na M2c — chytila to vlastní mutační zkouška) a
+  přibyla kontrola **„mutant přidal PRÁVĚ JEDNU chybu“** + množinová kontrola
+  **„kontrola POČTU BRAN v oslabené kopii UŽ NENÍ červená“**.
+
+**C2 — měřidlo P29 po sobě uklízí (H124 ZAVŘENO).** `p29-a-overeni.py`
+zapisoval `_analyza/p29-mut-handoff.md` (**196 092 B**), `_analyza/p29-mut-g3.py`,
+`p29-mut-fixtura.py` a `p29-mut-ovg.py` do ŽIVÉHO `_analyza/` a **nemazal je**
+(nejsou gitignorované → vstupovaly do inventáře i do `git add -A` a shazovaly
+dvě brány). Dnes je úklid v **`try/finally`** a **sám se kontroluje**
+(`uklid_mutanty()`); důkaz je v `p31-mutace.py` **třemi nohami**: živé měřidlo
+→ **8/0** a žádný mutant; **oslabená kopie bez úklidu** → mutanty **ZŮSTANOU**
+(`_analyza/p29-mut-handoff.md` 196 092 B + `_analyza/p29-mut-ovg.py` 8 545 B) a její kontrola
+to hlásí **CHYBA** (`exit 1`); po testu je vše uklizené.
+
+### 62.4 Co se naměřilo navíc (a co to znamená)
+
+* **H133 — `g3` končí `exit 1` POJMENOVANĚ, ne rozpadem.** Naměřeno: **49 bran,
+  0 NEDEKLAROVANÝCH, 1 bez čítače** (`mutace B (combat)` — cizí brána hry;
+  `OCEKAVANE_BEZ_CITACE` je záměrně prázdný) → `g3` je `exit 1` **za
+  deklarovaný stav**. `p28-a-overeni.py` A6 ale čeká `g3 → exit 0`, takže
+  **baseline A6 má trvale 1 chybu**. A do toho **H126 žije dál**: sonda, která
+  `g3` pustí **bez přegenerování inventáře**, dostane **2 NEDEKLAROVANÉ exity
+  a 2 brány bez čítače** (`n1-over-inventar`, `C2: mutace N1`) — přesně to
+  naměřil **první běh A3** (54/6) a **`p30-a-overeni.py`** uvnitř (32/3).
+  Náprava je **přegenerovat**, ne deklarovat (a taky se to v P31 stalo).
+  **Poučení pro měřidla:** *tvar hlášení je STAV, ne měřidlo* — týž den se to
+  projevilo i u tiku: seznam `v cooldownu N úloh` se **nepřipojí, když je
+  prázdný**, a kontrola vázaná na ten seznam byla falešně červená.
+* **H135 — tvrzení „`p30-a` → 35/0“ se NEREPRODUKUJE: dnes 32 kontrol / 3 chyby**
+  (doklad `_analyza/p31-p30a-plne-vystup.txt`). Tři příčiny, každá měřená:
+  (a) a (b) **moje oprava C2 přidala do `--jen A1M13` jednu kontrolu** (7 → 8)
+  → dvě tvrzení měřidla P30 o téže etapě hlásí ROZCHOD
+  (`A1 kontramutace … 7/0`, `A3 p29-a A1M13 … ('7','0') vs ('8','0')`);
+  (c) kontrola **„`deploy.yml` na živém HEAD je completed/success“ nemůže
+  projít** — `deploy.yml` má `paths: ['conductor/**']` a `HEAD` (`0c0eb18`)
+  mění jen dokumenty a `_analyza/`, takže **žádný běh nasazení na HEAD není**
+  (nasazený je `cf1f280` — to ověřil A2-2). Je to **dobová kontrola**: v P30
+  platila, protože HEAD tehdy byl `cf1f280`.
+* **H137 — harness z `g3` bez `FORGE_REGISTR` přepíše ŽIVÝ registr.** Naměřeno
+  v P31 **vlastním omylem**: nový `p31-mutace.py` pustil mutant `g3` (50 bran)
+  bez `FORGE_REGISTR` → do `_analyza/_registr-bran.json` se zapsalo
+  **`bran_celkem: 50`** a **`ag-over-cisla.py` spadl** („bran v registru:
+  tvrdí 49, naměřeno 50") → tím spadl i `ag-mutace` (jeho baseline je ten
+  skript) → `g3` hlásil **2 NEDEKLAROVANÉ exity**. Náprava je **pustit `g3`**
+  (zapsal 49 bran) a v harnessu **vždy** předat `FORGE_REGISTR`/`FORGE_BEZ_REGISTRU`.
+  Past je v `g3-brany.py` popsaná od P20 — **a stala se znovu**.
+* **H136 — dávka dokladů (`p20-d-doklady.py`) už živé dokumenty NEPŘEPISUJE**
+  (H130 ověřeno: pojistka hlásí „žádný z 4 sledovaných dokumentů se nezměnil“
+  a **hash před/po je shodný** — doklad `_analyza/p31-a4-davka-vystup.txt`).
+  **Ale kořen vady žije:** `p27-dopln-zaznamy.py` zapisuje soubor **i když
+  kotvy nenašel** (řádek 41 je bez podmínky) a `exit 1` hlásí **až po zápisu**;
+  `PRESKIP` tu vadu jen **schová před dávkou** — kdo ten skript pustí ručně,
+  přepíše dokument znovu.
+
+* **H138 — dávka dokladů PŘESTO přepisovala dokumenty (a pojistka neříkala KOHO).**
+  První běh A4 našel jediný změněný soubor (`_analyza/_registr-bran.json`) —
+  a **nebylo vidět, který doklad ho zapsal**. Pojistka se proto nově ptá
+  **PO KAŽDÉM DOKLADU** a viníka vypíše; druhý běh pak ukázal **čtyři**:
+  `ov-d-klasifikator.py` a `p20-a-kontroly.py` (harness `g3` bez
+  `FORGE_BEZ_REGISTRU` → **zapsaly ŽIVÝ registr svým seznamem**; naměřeno:
+  `bran_celkem: 5` a v něm `D-fixtura A…`) a `p27-oprav-datum.py` (zapsal
+  `HANDOFF.md` i `KRONIKA-PROJEKTU.md` — jednorázový patcher, který P30
+  do `PRESKIP` **nedala**, protože viděla jen ČISTÝ VÝSLEDEK po
+  `p30-oprav-datum.py`, a ten ho hned vrátil). **Náprava:** šest nástrojů dostalo
+  `FORGE_BEZ_REGISTRU=1` (`ov-d-klasifikator`, `p20-a-kontroly`, `p25-a`,
+  `p26-a`, `p27-a`, `p29-a`), `p27-oprav-datum.py` je v `PRESKIP` a **živý
+  registr se opravil `g3`** (49 bran). **Třetí běh dávky (2149 s): „žádný
+  z 4 sledovaných dokumentů se nezměnil“** — teprve tím je **H130 doložené**
+  (H136); bez toho by se „opraveno“ četlo z čistého výsledku, který vyráběl
+  jiný nástroj.
+
+* **H139 — mutační test P22 SPADL, neměřil — a jeho mutace nemění měřenou věc.**
+  Naměřeno při ověřování úklidu: `p22-test-mutace.py` končil **neodchyceným
+  `ValueError`** (`mutuj: kotva je v souboru 2×`) — v `tools/over-skilly.py` je
+  `REPO = pathlib.Path(__file__).resolve().parents[1]` **2×** (řádky 28 a 56) —
+  a v `_analyza/` po něm zůstaly **4** adresáře `p22-mutace-*/fixtura.txt`
+  (nejsou gitignorované). Kotva je teď **kontextovaná a míří na DRUHÝ (účinný)
+  výskyt** a scratch se uklízí i při pádu (`atexit`). **ALE:** test dál hlásí
+  **1 chybu — „výstup hlásí mrtvé cesty"**: mutace `REPO` **nic nezmění**,
+  protože `over-skilly.py` od P25-K uznává cesty i v **sourozeneckých
+  projektech** (`REPO.parent`) a `E:\Workspaces` je má; hluboká neexistující
+  cesta to nespravila (naměřeno). **Mutace, která prokazatelně nic nemění, není
+  test** — patří do P32.
+
+### 62.5 Živý stav při zápisu (9. 10. 2026, ~14:2x +02:00)
+
+```
+orchestra: HEAD 0c0eb18 · origin/main 0c0eb18 (P30 PUSHNUTA) · hra 01a9649 (cizí session)
+živá služba: /tasks/cleanup {dry_run} → osiřelých 0 · tik: "spusteno: 0 úloh; …
+             roadmapa je hotová (nebo čeká na závislosti / cooldown), watchdog: 0 ohlášeno"
+             (cooldown je dnes PRÁZDNÝ — proto zpráva neuvádí seznam úloh)
+brány:       g3 → 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (combat)`; exit 1)
+             · validate-all → 0 problémů · ov-g → 0 NEOVĚŘENO (99 řádků Hxx)
+             · test-tick-offline 215/0 · tick-mutace 20 vrat/41/0 · p29-b6-mutace 15/0
+             · p30-a 32/3 (bylo 35/0 — viz H135) · p30-mutace 16/0
+             · p28-b-mutace 30/0 (bylo 27/2 — oprava C1) · p31-mutace 24/0
+             · over-skilly 92/0 · over-dokumentaci 64/0 · kronika SEDÍ (45 řádků)
+```
+
+### 62.6 Co čeká na tebe (uživatel)
+
+* **Nic zásadního.** Push P30 byl ověřený, nasazení taky (`deploy.yml` #35 na
+  `cf1f280`, živá služba posílá nový kód) a **opravená dvě měřidla** jsou
+  zelená. **Nic se nemusí nasazovat** — opravy jsou v nástrojích a dokumentech.
+* **B3 (`/game/active {active:false}` na živé službě)** pořád čeká na výslovné
+  „ano“ (dočasně zastaví orchestra).
+* **Zavádějící komentáře v conductu** (`index.ts:1558–1559`, `:1489–1493`) —
+  oprava je změna kódu + nasazení z pushe; **rozhodnutí o směru**, ne úklid.
+* **⚠ Zásah do oprávnění (mimo repo):** tato session **nesměla zapisovat do
+  `_analyza/`** (Windows oprávnění) a jednou spuštěný opravný nástroj přidal
+  plná práva přihlášenému uživateli u `E:\Workspaces\forge-orchestra\_analyza`.
+  Záloha i příkaz pro vrácení jsou v **`E:\Workspaces\_acl-oprava-p31\`**
+  (`acl-backup-*.json` + `.ps1`); **nemaž to**, dokud nejsi spokojený.
+
+### 62.7 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p31-a-overeni.py --plne            # celé přeměření P30 (~45 min)
+python _analyza\p31-a-overeni.py                   # LEVNÉ kontroly (§61, ~1 min)
+python _analyza\p31-a-overeni.py --jen A4          # H130: dávka dokladů (~35 min)
+python _analyza\p31-mutace.py                      # důkaz, že opravy C1/C2 MĚŘÍ (24/0)
+python _analyza\p28-b-mutace.py                    # opravené měřidlo P28/B (30/0)
+python _analyza\p29-a-overeni.py --jen A1M13       # měřidlo P29 + ÚKLID mutantů (8/0)
+python _analyza\g3-brany.py                        # 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače
+node tools\validate-all.mjs                        # 0 problémů
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
+python _analyza\kronika-kontrola.py                # SEDÍ + id 1..46 bez děr
+python _analyza\ov-g-neovereno.py                  # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
+```

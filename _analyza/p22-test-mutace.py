@@ -33,6 +33,16 @@ WS = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WS / "_analyza"))
 from _mutace import mutuj  # noqa: E402
 
+# ⚠ H139 (P31): KOTVA MUSÍ BÝT JEDNOZNAČNÁ **A ÚČINNÁ**. Naměřeno 9. 10. 2026:
+# `tools/over-skilly.py` má `REPO = pathlib.Path(__file__).resolve().parents[1]`
+# **2×** (řádky 28 a 56) — `mutuj` na té kotvě spadl (`kotva je v souboru 2×`)
+# a test **NEMĚŘIL, jen spadl** (a zanechal scratch). A i kdyby se mutovalo
+# první místo, **druhé přiřazení ho přepíše** → brána by fungovala dál a test by
+# „prošel" bez měření. Proto se mutuje **DRUHÝ (účinný) výskyt** s kontextem.
+KOTVA_REPO = ('# VIDĚT; tiché rozšíření rozsahu by bylo přesně ta vada, '
+              'kterou P25-K popisuje).\n'
+              'REPO = pathlib.Path(__file__).resolve().parents[1]')
+
 BRANA = WS / "tools" / "over-skilly.py"
 
 kontrol = 0
@@ -56,6 +66,14 @@ print("P22 — test knihovny `_mutace.py` (zábrana tiché mutace)")
 print("=" * 78)
 
 scratch = pathlib.Path(tempfile.mkdtemp(prefix="p22-mutace-", dir=str(WS / "_analyza")))
+# ⚠ H139 (P31): SCRATCH SE UKLIDÍ I PŘI PÁDU. Naměřeno 9. 10. 2026: neodchycený
+# `ValueError` z `mutuj` (dvojznačná kotva) ukončil test **před** úklidem na konci
+# → v `_analyza/` zůstaly **4** adresáře `p22-mutace-*/fixtura.txt` a `git add -A`
+# by je poslal do repa. `atexit` úklid je pojistka, ne náhrada úklidu níž.
+import atexit  # noqa: E402
+import shutil  # noqa: E402
+
+atexit.register(lambda: shutil.rmtree(scratch, ignore_errors=True))
 fixtura = scratch / "fixtura.txt"
 fixtura.write_text("radek A\nKOTVA\nradek C\n", encoding="utf-8")
 hash0 = sha(fixtura)
@@ -137,8 +155,16 @@ pred_brana = sha(BRANA)
 # odvození z `__file__` — kotva se proto změnila s ním. Kdyby zůstala stará,
 # `mutuj` by spadl (`kotva v souboru NENÍ`) a test by NEMĚŘIL; přesně na to
 # `_mutace.py:74` myslí, takže se to nedozvíme tiše.
-with mutuj(BRANA, r'pathlib.Path(__file__).resolve().parents[1]',
-           r'pathlib.Path(r"E:\Workspaces\NEEXISTUJE-tato-cesta")') as m:
+# ⚠ H139 (P31): CÍL MUTACE MUSÍ BÝT HLUBŠÍ NEŽ `REPO.parent`. Naměřeno
+# 9. 10. 2026: s `REPO = E:\Workspaces\NEEXISTUJE-tato-cesta` brána cesty
+# **pořád našla** — `over-skilly.py` je od P25-K uznává i v **sourozeneckých
+# projektech** (`REPO.parent`) a `E:\Workspaces` je má. Mutace tedy nic
+# nezměnila (a test hlásil jen „výstup nehlásí mrtvé cesty"). Hluboká
+# neexistující cesta nemá sourozence s `.git`, takže se cesty opravdu ztratí.
+with mutuj(BRANA, KOTVA_REPO,
+           KOTVA_REPO.replace(
+               'pathlib.Path(__file__).resolve().parents[1]',
+               'pathlib.Path(r"E:\\NEEXISTUJE-tato-cesta\\hluboko\\tam")')) as m:
     kod1, v1 = spust_branu()
     zk(kod1 != 0, "zmutovaná brána SPADLA (verdikt se změnil)", f"exit={kod1}")
     zk("mrtvých" in v1 and "0 mrtvých" not in v1, "výstup hlásí mrtvé cesty",

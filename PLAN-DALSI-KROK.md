@@ -304,3 +304,43 @@ potřeba (a dnes naštěstí funguje taky).
 **Co NEDĚLAT:** neměnit architekturu orchestra kvůli konceptu od Gemini
 (rozhodnuto v P29); nepsat do hry; nepřidávat do skillu `game-developer`
 schéma granule (druhý zdroj pravdy).
+---
+
+## P31 (9. 10. 2026) — CO JE OPRAVENÉ A CO JE NA ŘADĚ
+
+> **Datum spotřeby:** 9. 10. 2026, ~14:2x +02:00. Platí pro stav po P31;
+> kdo to čte později, **přeměří** (`python _analyza\p31-a-overeni.py`).
+
+**Hotovo (neopakovat):** obě vady měřidel z nabídky P31 jsou **zavřené** —
+**C1** (`p28-b-mutace.py` **27/2 → 30/0**; H131 kotva v celém dokumentu,
+H132 dvouprvkový záznam fixtury) a **C2** (H124: měřidlo P29 uklízí mutanty
+v `try/finally` a samo to kontroluje). Důkaz: `_analyza/p31-mutace.py` → **24/0**.
+**P30 je přeměřená** (`p31-a-overeni.py` → 54/1/2 ROZDÍLY, 0 NEZMĚŘENO);
+jediná neshoda je `p30-a` **35/0 → 32/3** (H135: dvě příčiny z opravy C2,
+jedna dobová kontrola nasazení na živém HEAD). **H130 je doložené až
+TŘETÍM během dávky** (H138: pojistka nově jmenuje viníka; šest nástrojů
+dostalo `FORGE_BEZ_REGISTRU`, `p27-oprav-datum.py` je v `PRESKIP`) —
+a teprve pak platí „žádný z 4 sledovaných dokumentů se nezměnil“.
+
+**Nový otevřený bod (H139):** `p22-test-mutace.py` **běží, ale jeho mutace nic
+nemění** — `tools/over-skilly.py` uznává cesty i v sourozeneckých projektech
+(`REPO.parent`), takže přepsaný `REPO` mu nevadí; test proto hlásí „výstup
+nehlásí mrtvé cesty“ (19 kontrol / 1 chyba). **Mutace, která prokazatelně nic
+nemění, není test** — opravit ji patří do P32 (spolu s dvojím `REPO`
+v `tools/over-skilly.py:28,56`).
+
+**Nejbližší práce (P32) — v tomto pořadí:**
+
+1. **`p28-a-overeni.py` A6 čeká `g3 → exit 0`** (H133) — dnes **trvale 1 chyba**
+   baseline, protože `g3` končí `exit 1` za **pojmenovaný** stav (1 brána bez
+   čítače). Buď to deklarovat jako `OCEKAVANE_*`, nebo vázat na ten stav.
+2. **`p27-dopln-zaznamy.py` zapisuje i bez kotvy** (H136) — `PRESKIP` ho jen
+   schová; oprava = zápis **až po ověření kotvy** + test, který to zavolá.
+3. **Zavádějící komentáře v conductu** (`index.ts:1558–1559`, `:1489–1493`) —
+   změna textu + **nasazení z pushe** (ne lokální wrangler).
+4. **H112 — brána „cron běží (čas)“ nemůže selhat** (`validate-all` testuje jen
+   `!!h.time`) — a přesně ten tik se 9. 10. zastavil.
+5. **B3 (`/game/active {active:false}`)** — čeká na výslovné „ano“ uživatele.
+
+**Co NEDĚLAT:** nepouštět `g3` z harnessu bez `FORGE_REGISTR` (H137); nepsat
+do hry; nemazat `E:\Workspaces\_acl-oprava-p31\` (cesta zpět k oprávněním).

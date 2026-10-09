@@ -14,6 +14,7 @@
 # Proto se komentáře PŘED hledáním odstraní (P17 na tom spadla dvakrát, omyl 171).
 import hashlib
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -205,6 +206,7 @@ kont("BRANY v harnessu mají 5 položek (moje fixtury A–E), ne 37 (živé)",
 print("\n--- 4) BĚH HARNESSU (živý klasifikátor, moje fixtury) ---")
 v = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                    text=True, encoding="utf-8", errors="replace",
+                   env={**os.environ, "FORGE_BEZ_REGISTRU": "1"},
                    cwd=str(REPO), timeout=900)
 out = (v.stdout or "") + (v.stderr or "")
 print(out.rstrip())
@@ -271,8 +273,14 @@ MUT_EXIT = """    text = vystup.strip()
 def spust_harness(text: str) -> dict:
     """Zapíše harness, spustí ho a vrátí MNOŽINY zařazených bran."""
     HARNESS.write_text(text, encoding="utf-8", newline="\n")
+    # ⚠ H138 (P31): HARNESS `g3` NESMÍ PŘEPSAT ŽIVÝ REGISTR BRAN. Bez tohohle
+    # řádku se do `_analyza/_registr-bran.json` zapíše seznam Z HARNESSU
+    # (naměřeno 9. 10. 2026 v dávce dokladů: `ov-d-klasifikator.py` i
+    # `p20-a-kontroly.py` měnily živý registr; `FORGE_BEZ_REGISTRU` je
+    # deklarovaný způsob, jak harnessu říct „nepiš registr").
     r = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
+                       env={**os.environ, "FORGE_BEZ_REGISTRU": "1"},
                        cwd=str(REPO), timeout=900)
     o = (r.stdout or "") + (r.stderr or "")
     b1 = re.search(r"BRÁNY, KTERÉ VŮBEC NEZAČALY \(\d+\)[^\n]*\n(.*?)(?=\n\n|\Z)",

@@ -26,6 +26,7 @@ Použití: python _analyza/p20-a-kontroly.py
 
 import ast
 import hashlib
+import os
 import pathlib
 import re
 import subprocess
@@ -98,8 +99,11 @@ def brana(popis: str, soubor: str) -> str:
 
 def spust(text: str) -> dict:
     HARNESS.write_text(text, encoding="utf-8", newline="\n")
+    # ⚠ H138 (P31): viz `ov-d-klasifikator.py` — harness `g3` bez
+    # `FORGE_BEZ_REGISTRU` přepíše ŽIVÝ `_analyza/_registr-bran.json`.
     r = subprocess.run([sys.executable, "-B", str(HARNESS)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace",
+                       env={**os.environ, "FORGE_BEZ_REGISTRU": "1"},
                        cwd=str(WS), timeout=900)
     return {"exit": r.returncode, "vystup": (r.stdout or "") + (r.stderr or "")}
 

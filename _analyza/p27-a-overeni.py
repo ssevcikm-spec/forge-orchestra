@@ -128,7 +128,11 @@ def nezmereno_zapis(popis, duvod):
 
 
 def cmd(argumenty, cwd=None, timeout=3600):
+    # ⚠ H138 (P31): viz `p25-a-overeni.py` — `g3-brany.py` bez `FORGE_REGISTR`/
+    # `FORGE_BEZ_REGISTRU` zapíše ŽIVÝ `_analyza/_registr-bran.json`, a dávka
+    # dokladů to hlásí jako „ZMĚNĚN dokument".
     r = subprocess.run(argumenty, cwd=str(cwd or WS), capture_output=True,
+                       env={**os.environ, "FORGE_BEZ_REGISTRU": "1"},
                        timeout=timeout)
     return r.returncode, (r.stdout.decode("utf-8", "replace")
                           + r.stderr.decode("utf-8", "replace"))

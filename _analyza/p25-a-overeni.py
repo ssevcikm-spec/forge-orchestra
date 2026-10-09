@@ -99,7 +99,13 @@ def nezmereno_zapis(popis, duvod):
 
 
 def cmd(argumenty, cwd=None, timeout=1800):
+    # ⚠ H138 (P31): MĚŘIDLO NESMÍ PŘEPSAT ŽIVÝ REGISTR BRAN. Naměřeno 9. 10. 2026:
+    # tahle etapa pouští `g3-brany.py`, který bez `FORGE_REGISTR`/`FORGE_BEZ_REGISTRU`
+    # zapíše `_analyza/_registr-bran.json` — a dávka dokladů (`p20-d-doklady.py`) to
+    # vidí jako „ZMĚNĚN dokument" (ačkoli obsah je správný). `FORGE_BEZ_REGISTRU`
+    # je deklarovaný způsob, jak harnessu říct „nepiš registr".
     r = subprocess.run(argumenty, cwd=str(cwd or WS), capture_output=True,
+                       env={**os.environ, "FORGE_BEZ_REGISTRU": "1"},
                        timeout=timeout)
     return r.returncode, (r.stdout.decode("utf-8", "replace")
                           + r.stderr.decode("utf-8", "replace"))

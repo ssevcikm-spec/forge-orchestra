@@ -121,7 +121,30 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # `p27-aktualizuj-zadani.py` a `p27-patch-zadani.py` píšou do téhož
              # souboru. **Patcher staré session nepatří do dávky** — jeho práce je
              # hotová (stejný důvod, jako je v PRESKIP `p21-zapis-kroniky.py`).
-             "p27-dopln-zaznamy.py", "p27-aktualizuj-zadani.py", "p27-patch-zadani.py"}
+             "p27-dopln-zaznamy.py", "p27-aktualizuj-zadani.py", "p27-patch-zadani.py",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P31) — dva nové soubory, každý z JINÉHO
+             # důvodu (a oba s KÓDEM, ne jen se jménem):
+             #  * `p31-mutace.py` je MUTAČNÍ TEST OPRAV C1/C2 — dočasně mění
+             #    `p28-b-mutace.py` a `p29-a-overeni.py` v KOPIÍCH a sám pouští
+             #    měřidla, která sahají na `HANDOFF.md`. Dávka má POJISTKU PROTI
+             #    ZÁPISU, která hash dokumentů sleduje — pouštět v ní test, který
+             #    dokumenty čte a kopie mutuje, je přesně to, před čím pojistka je.
+             #    (Stejný důvod jako u `p30-mutace.py`.)
+             #  * `p31-sonda-g3.py` je JEDNORÁZOVÁ DIAGNOSTIKA (odpověděla na
+             #    otázku „proč je `p28-b-mutace.py` 27/2": H131 + H132) a pouští
+             #    přitom DVĚ `g3` — v dávce by to bylo 2× 200 s navíc a nic by
+             #    neměřila. `p31-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) —
+             #    běží v LEVNÉM režimu a vypisuje čítač pro tuhle dávku.
+             "p31-mutace.py", "p31-sonda-g3.py",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P31) — NAMĚŘENO, NE ODHADNUTO: tahle dávka
+             # **přesto přepsala dokumenty**. Nová pojistka (viz níž) ukázala
+             # doklad po dokladu, KDO to byl: **`p27-oprav-datum.py`** zapsal
+             # `HANDOFF.md` i `KRONIKA-PROJEKTU.md` (jednorázový patcher data —
+             # jeho DRUHÝ běh je vždy nová editace), a **`p30-oprav-datum.py`**
+             # ho hned opravil zpět (proto se na konci tvářily jako nezměněné).
+             # Je to TÁŽ TŘÍDA jako tři patchery výš — P30 ho do `PRESKIP`
+             # nedala, protože viděla jen ČISTÝ VÝSLEDEK (po opravě).
+             "p27-oprav-datum.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
@@ -168,6 +191,8 @@ print(f"  ⚠ z toho ZAPISUJÍCÍCH do souborů: {len(zapisove)} — {', '.join(
 print(f"  hlídám změnu: {', '.join(p.name for p in SLEDOVANE)}\n")
 
 vysledky = []
+vinnici = []
+po_jednom = dict(pred)
 for p in skripty:
     t0 = time.time()
     try:
@@ -186,6 +211,16 @@ for p in skripty:
     vysledky.append((p.name, kod, trvani, citac, v))
     stav = "OK   " if kod == 0 else f"exit={kod}"
     print(f"  {stav:8} {p.name:34} {trvani:6.1f}s  kontroly: {citac}")
+    # ⚠ H138 (P31): POJISTKA SE PTÁ PO KAŽDÉM DOKLADU ZVLÁŠŤ, ne jen na konci.
+    # Naměřeno 9. 10. 2026: na konci se našel JEDEN změněný soubor
+    # (`_registr-bran.json`) a **nebylo vidět, který doklad ho zapsal** — muselo
+    # se to dohledávat ručně. Kdo ho změnil, se teď VYPÍŠE.
+    po_tomto = {q.name: hash_souboru(q) for q in SLEDOVANE}
+    zmenil = [n for n in po_jednom if po_jednom[n] != po_tomto[n]]
+    if zmenil:
+        vinnici.append((p.name, zmenil))
+        print(f"           ⚠ ZAPSAL DO DOKUMENTU: {', '.join(zmenil)}")
+    po_jednom = po_tomto
 
 selhale = [x for x in vysledky if x[1] != 0]
 po = {p.name: hash_souboru(p) for p in SLEDOVANE}
@@ -195,6 +230,10 @@ print("\n" + "=" * 78)
 print(f"SOUHRN: {len(vysledky)} dokladů, {len(selhale)} s nenulovým exit")
 print("=" * 78)
 print("\nZÁPIS DO DOKUMENTŮ (pojistka, P22):")
+if vinnici:
+    print("  KDO ZAPSAL (po každém dokladu):")
+    for jmeno, co in vinnici:
+        print(f"    {jmeno:34} → {', '.join(co)}")
 if zmenene:
     for n in zmenene:
         print(f"  ⚠ ZMĚNĚN: {n}  ({pred[n][:12] if pred[n] else '—'} → {po[n][:12] if po[n] else '—'})")
