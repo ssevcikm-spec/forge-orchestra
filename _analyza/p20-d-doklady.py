@@ -167,7 +167,13 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    `KRONIKU` a `NEXT-SESSION-INSTRUKCE.md`) — stejná třída jako
              #    `p27-*` patchery výš. V dávce se spouštět NESMÍ: dávka má
              #    POJISTKU PROTI ZÁPISU a tenhle skript jediný zapisuje ZÁMĚRNĚ.
-             "p32-zapis-zaznamu.py"}
+             "p32-zapis-zaznamu.py",
+             #  * `p32-prepis-zadani.py` je JEDNORÁZOVÝ PŘEPIS
+             #    `NEXT-SESSION-INSTRUKCE.md` ze šablony mimo repo (hlavička musí
+             #    nést commit, který vznikne až commitem). V dávce se spouštět
+             #    NESMÍ: přepsal by ZADÁNÍ — a to je jeden ze čtyř dokumentů,
+             #    jejichž hash pojistka dávky hlídá (H130/H138).
+             "p32-prepis-zadani.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů
