@@ -1031,6 +1031,40 @@ interface Task {
   attempts: number;
 }
 
+// ------------------------------------------------- tep (heartbeat) cronu ----
+// PROČ (H112, P33): `/health` umělo říct jen „služba žije“ (`time`), ale o tom,
+// jestli se cron opravdu spouští, netvrdilo NIC — a brána `validate-all` na tom
+// stála (`!!h.time`). Naměřeno 9. 10. 2026: tik se zastavil a žádná brána to
+// neohlásila. Tep se proto ZAPISUJE a rozlišuje ZDROJ:
+//   * `last_cron` — jen PLÁNOVANÝ tik (cron trigger, `scheduled`),
+//   * `last_tick` — jakýkoli tik (i ruční `POST /tick`), se zdrojem v `last_tick_zdroj`.
+// Ruční tik `last_cron` NEOBNOVÍ, takže brána „cron běží“ se nedá uspokojit
+// ručním zavoláním — to je celý rozdíl mezi bránou a tlačítkem.
+//
+// ⚠ Tabulka `state` se zakládá TADY (idempotentní `CREATE TABLE IF NOT EXISTS`),
+// NE v `schema.sql`: `ag-over-cisla.py` měří počet tabulek/sloupců PRÁVĚ
+// v `schema.sql` proti číslu v `AGENTS.md`, takže nová tabulka tam by shodila
+// trvalá pravidla (H135 — „kdo přidá kontrolu, přeměří cizí tvrzení, které na
+// tom čítači stojí“). Stejný vzor už v kódu je: `roadmapTick` přidává sloupce
+// přes idempotentní `ALTER` a chybu „duplicate column“ tiše polkne.
+let tepTabulkaHotova = false;
+
+async function zapisTep(env: Env, zdroj: "cron" | "manual"): Promise<void> {
+  if (!tepTabulkaHotova) {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS state (k TEXT PRIMARY KEY, v TEXT)").run();
+    tepTabulkaHotova = true;
+  }
+  const ted = new Date().toISOString();
+  const uloz = (k: string, v: string) =>
+    env.DB.prepare(
+      `INSERT INTO state (k, v) VALUES (?, ?)
+         ON CONFLICT(k) DO UPDATE SET v = excluded.v`,
+    ).bind(k, v).run();
+  await uloz("last_tick", ted);
+  await uloz("last_tick_zdroj", zdroj);
+  if (zdroj === "cron") await uloz("last_cron", ted);
+}
+
 // ------------------------------------------------------------------ tick ----
 async function tick(env: Env): Promise<string> {
   const maxConcurrent = Number(env.MAX_CONCURRENT || "1");
@@ -1311,7 +1345,17 @@ async function claim(env: Env, worker: string, kinds: string[]): Promise<Respons
 // --------------------------------------------------------------- handler ----
 export default {
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(tick(env).then((msg) => console.log("tick:", msg)));
+    // H112 (P33): tep se zapisuje AŽ PO DOKONČENÍ tiku — kdyby tik spadl,
+    // `last_cron` zestárne a brána to řekne. Zapisuje se tu, ne v `tick()`,
+    // aby se zdroj (cron vs. ruční tik) nedal splést.
+    ctx.waitUntil(
+      tick(env)
+        .then((msg) => {
+          console.log("tick:", msg);
+          return zapisTep(env, "cron").catch((e) => console.log("tep cronu selhal:", String(e)));
+        })
+        .catch((e) => console.log("tik selhal:", String(e))),
+    );
   },
 
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -1342,15 +1386,42 @@ export default {
           error: String(e).slice(0, 200), measured_at: new Date().toISOString(),
         }))),
       );
+      // H112 (P33): TEP CRONU. Když tabulka `state` ještě není (starý deploy),
+      // vrátí se `null` — a brána to hlásí jako VADU. „Neměřeno“ se nesmí tvářit
+      // jako zelená; to je přesně vada, kterou tenhle tep zavírá.
+      let tep: {
+        last_tick: string | null; last_tick_zdroj: string | null;
+        last_cron: string | null; last_cron_min: number | null;
+      } = { last_tick: null, last_tick_zdroj: null, last_cron: null, last_cron_min: null };
+      try {
+        const st = await env.DB.prepare(
+          "SELECT k, v FROM state WHERE k IN ('last_tick','last_tick_zdroj','last_cron')",
+        ).all<{ k: string; v: string }>();
+        const mapa = new Map((st.results || []).map((r) => [r.k, r.v] as const));
+        const iso = (k: string): string | null => mapa.get(k) ?? null;
+        const stari = (t: string | null): number | null => {
+          const ms = t ? Date.parse(t) : NaN;
+          return Number.isFinite(ms) ? Math.round((Date.now() - ms) / 60000) : null;
+        };
+        const cron = iso("last_cron");
+        tep = { last_tick: iso("last_tick"), last_tick_zdroj: iso("last_tick_zdroj"),
+                last_cron: cron, last_cron_min: stari(cron) };
+      } catch (e) {
+        console.log("tep cronu nelze precist: " + String(e).slice(0, 120));
+      }
       return json({ ok: true, time: new Date().toISOString(), ready: t?.n ?? 0,
                     running: r?.n ?? 0, games: g?.n ?? 0, workers: w.results,
-                    targets });
+                    targets, ...tep });
     }
 
     // Ruční tik (testování i externí budík typu cron-job.org)
     if (path === "/tick" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
-      return json({ message: await tick(env) });
+      const msg = await tick(env);
+      // H112 (P33): ruční tik se ZAPÍŠE taky, ale jako `manual` — `last_cron`
+      // neobnoví, takže brána „cron běží (čas)“ se nedá uspokojit ručním tiky.
+      await zapisTep(env, "manual").catch((e) => console.log("tep (manual) selhal:", String(e)));
+      return json({ message: msg });
     }
 
     // Ruční vyzvednutí výsledků z GitHubu (jinak to dělá tik každých 15 min)
