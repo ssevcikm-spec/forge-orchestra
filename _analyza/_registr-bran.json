@@ -1,8 +1,10 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-09 07:37:45",
+  "kdy": "2026-10-09 10:01:04",
   "bran_celkem": 49,
   "s_nenulovym_exit": [
+    "ag-mutace (autorita)",
+    "ag-over-cisla",
     "mutace B (combat)",
     "validate-all (CELEK)"
   ],
@@ -10,6 +12,7 @@
     "zadání kontrola": 1
   },
   "bez_citace": [
+    "ag-mutace (autorita)",
     "mutace B (combat)"
   ],
   "neotevrene": [],
@@ -80,14 +83,14 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "461",
+      "otevrela": "488",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
     {
       "nazev": "zadání kontrola",
       "exit": 0,
-      "otevrela": "367",
+      "otevrela": "369",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -233,16 +236,16 @@
     },
     {
       "nazev": "ag-over-cisla",
-      "exit": 0,
+      "exit": 1,
       "otevrela": "2026",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/ag-over-cisla.py"
     },
     {
       "nazev": "ag-mutace (autorita)",
-      "exit": 0,
-      "otevrela": "2 / 2",
-      "ma_citac": true,
+      "exit": 1,
+      "otevrela": "—",
+      "ma_citac": false,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/ag-mutace.py"
     },
     {
@@ -297,7 +300,7 @@
     {
       "nazev": "chybějící importy (statická)",
       "exit": 0,
-      "otevrela": "82",
+      "otevrela": "86",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
     },
@@ -339,7 +342,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "192 / 0",
+      "otevrela": "195 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },

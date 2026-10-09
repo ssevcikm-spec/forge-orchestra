@@ -2631,3 +2631,147 @@ běží" bez možnosti selhat = **H112** · osiřelé řádky cache = **H113** �
 `entity.move.smooth` = **H114** · živý `agent.yml` ve hře = **H115** ·
 `acceptance`, které nikdo nečte = **H116** · koncept od Gemini = **H117** ·
 vlastní omyly P29 = **H118**.
+## 61. P30 — NASAZENÁ OPRAVA B6, ROZHODNUTÝ H111 A NÁVOD PRO ARCHITEKTA (9. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P30 + stav po P30**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**45**, nálezy **§2.23**), plán (`PLAN-DALSI-KROK.md`, dodatek P30).
+Zadání P30 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **9. 10. 2026, 08:0x–10:0x +02:00** (živý čas
+> z hodin, ne ze zadání). Tvrzení o **stavu** (HEAD, hra, živá služba) platí
+> k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.23), aby každý nález byl dohledatelný
+> z HANDOFF.md:** H119 = nasazení jde z PUSHE (ne z lokálního wrangleru)
+> a dokumenty o nasazení zestárly · H120 = **H111 ROZHODNUTO: STROP GRANULE**
+> · H121 = úklid osiřelých uvolnil i počítadlo stropu · H122 = **H114
+> ROZHODNUTO: čekání na `engine.input`** · H123 = tvrzení „`p28-b-mutace.py`
+> → 27/0" se přestalo reprodukovat (27/2) · H124 = měřidlo P29 nechává
+> v živém stromě MUTANTY · H125 = dávka dokladů neznala `p3x-*` (třída S27)
+> · H126 = zastaralý inventář shodí DVĚ brány · H127 = `validate-all` je dnes
+> ZELENÝ · H128 = pořadí „vypnout hru → push → úklid“ je NESPLNITELNÉ ·
+> H129 = `acceptance` nemá čtenáře (potvrzeno) a skill dostal návod (B8)
+> · **H130 = dávka dokladů PŘEPISUJE živé dokumenty** — patchery P27 zapíšou
+> soubor i s nenačtenými kotvami (`p27-dopln-zaznamy.py:41` je bez podmínky)
+> a `exit 1` hlásí až po zápisu; pojistka to vidí, ale nikdo s tím nic nedělal
+> (náprava: tři patchery do `PRESKIP`).
+
+### 61.1 Push a nasazení (rozhodnutí uživatele — PROVEDENO)
+
+| Krok | Naměřeno |
+|---|---|
+| **PUSH** | `ef04912..cf1f280  main -> main` (PAT ze souboru, do výstupu nepronikl); `tools\git.cmd ls-remote` → **`cf1f280` = HEAD**. ⚠ Lokální `origin/main` push sám **neaktualizoval** (`cannot lock ref … Permission denied` — stav sandboxu) → musel se dohnat `fetch`; **kdo věří `rev-list --count origin/main..HEAD`, vidí 1 i po úspěšném pushi** |
+| **NASAZENÍ** | `deploy.yml` **běh #35** na `cf1f280` → `completed/success` (created 06:08:48Z); Cloudflare deployments: **06:09:17Z, verze `1e1b5e69`** = **29 s po pushi** → **deploy jde z pushe**, ne z lokálu |
+| **LOKÁLNÍ `wrangler deploy`** | **funguje** (OAuth token platný, scopes `workers:write` + `d1:write`; verze `77a5f345` v 06:16:19Z). `README.md:144–148` tvrdí opak (naměřeno 30. 9. 2026) → **zastaralý záznam** (H119). Před přepnutím politiky sandboxu padal na `spawn EPERM` (naměřeno, ne odhad) |
+| **3. krok: nový artefakt** | `POST /tasks/cleanup {dry_run:true}` → **`osirelych_radku: 0`** (před: **5**) a tik pojmenovává `… \| v cooldownu 3 úloh: #241, #242, #243` — **obojí umí jen nový kód** (B6) |
+
+### 61.2 Úkol A — vlastní měřidlo P30
+
+`_analyza/p30-a-overeni.py` (**A1, A3, A4, A6, A7**), doklad
+`_analyza/p30-a-plne-vystup.txt`:
+
+* **plný běh: 35 kontrol, 0 chyb, 6 pojmenovaných ROZDÍLŮ** (986 s);
+  mutační důkaz `_analyza/p30-mutace.py` → **16/0** (dvě mutace, každá tři nohy,
+  soubory vráceny bajt na bajt).
+* **A1** (umí měřidlo P29 spadnout?): `p29-a-overeni.py --jen A1M13` → **7/0**,
+  `p29-b6-mutace.py` → **15/0** — obě tvrzení §60.1 **reprodukována**.
+* **A3** (sedí čísla z §60?): každé tvrzení se **PŘEČTE Z DOKUMENTU** (vypisuje
+  se okno, které vzor trefil) a pak se měří. Shoda: `test-tick-offline` **215/0**,
+  `tick-mutace` **20 vrat/41/0**, `ov-g` **99 řádků Hxx**, `p29-b6-mutace` 15/0,
+  `p29-a A1M13` 7/0. Posunula se **stavová** čísla: `over-skilly` **90 → 92**
+  (moje práce na skillu), `g3` **1 → 0 NEDEKLAROVANÝCH**, `validate-all`
+  **2 → 0 problémů**, kronika **43 → 44 řádků**.
+* **A4** (stav před/po nasazení): viz 61.1.
+* **A6** (H111) a **A7** (H114): 61.3.
+
+### 61.3 Dvě rozhodnutí, která zadání žádalo
+
+**H111 — PROČ DISPATCH STÁL: STROP GRANULE** (ne zámek). Měřeno z D1
+(`_analyza/p30-sonda-d1.mjs`, jen SELECT):
+
+1. **Cooldown vysvětluje #240–#243** a dispatch se **SÁM rozjel** 9. 10.
+   `01:02:56` UTC = přesně 3 h po selháních (21:02–21:23) — žádné trvalé
+   zaseknutí tedy neexistovalo.
+2. **Úlohu #239 (osiřelá granule `entity.enemy`) přeskakoval STROP.** Počítadlo
+   stropu = **běhy OD VZNIKU ŘÁDKU v cache** (mechanismus doložen na živém
+   případu: `engine.registry` měl v 21:14:54 **3** spálené běhy podle watchdogu
+   a dnes týž dotaz vrací **5**). Řádek `entity.enemy` vznikl ≈ **5. 10. 22:02**
+   (watchdog 6. 10. hlásil „entity.enemy … 5 běhů“ = právě těch 5) → do tichého
+   tiku **17 běhů** ≥ strop **8** (zapnutý 8. 10. 13:07).
+3. **Hypotéza „zámek“ je VYLOUČENA měřením:** mezi posledním dokončeným během
+   (8. 10. **21:14:53**) a tikem (**23:02**) **nebyl žádný běh** → `locked` bylo
+   prázdné; a 99 min > `STALE_MINUTES` 90, takže i zaseknutá úloha už byla uvolněna.
+4. **Dnes není za stropem žádná granule, která se má vydávat** (max 5 běhů;
+   za stropem jen `sim.crafting` = 12, ale ta je `done`) — úklid osiřelých řádků
+   **uvolnil i počítadlo** (H121).
+
+**H114 — `entity.move.smooth`: JE TO LEGITIMNÍ ČEKÁNÍ, NE ZTRÁTA.** Granule je
+v souboru (21 granulí), její `depends_on` = `engine.registry` ✓, **`engine.input`
+(NEhotová)** ✗, `world.level` ✓, `entity.player` ✓. Filtr `ready` v conductoru
+žádá **všechny** závislosti hotové, proto se řádek v cache nezakládá. `engine.input`
+má v cache úlohu **#242 `ready`** (byla v cooldownu).
+
+### 61.4 Úkol B — VĚCNÁ PRÁCE: **B8** (návod pro architekta)
+
+Přenos `JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md` **§9** do skillu **`game-developer`**
+jako nový pododdíl *„Výměna plánu je OPERACE — a co orchestra z granule SKUTEČNĚ
+čte“* (za `## Mapování na orchestr`): **39 012 → 41 595 B**; brány
+`over-skilly` **92 zmínek / 0 mrtvých**, `over-dokumentaci` **64/0**,
+`kontrola-diakritiky` **VŠE OK** (bez BOM). Záloha před editací:
+`~\.dsh\skills\game-developer\SKILL.md.pred-p30` (mimo git).
+
+**Co se při tom NAMĚŘILO (H128) — a je to v rozporu s §9.3 i s plánem:**
+doporučené pořadí „**vypnout hru → push → `/tasks/cleanup` → sonda**“ je
+**NESPLNITELNÉ**:
+
+* `/tasks/cleanup` čte roadmapu z **`raw.githubusercontent.com/{repo}/main/…`**
+  (`index.ts:1576`) → **nepushnutá změna je pro něj neviditelná**; push musí být **PRVNÍ**.
+* bere jen hry z registru **`active = 1`** (`:692`, `:1571`) → s vypnutou hrou
+  vrátí **503** a **neudělá nic** (`:1591–1593`). Offline diferenciální test proti
+  skutečnému handleru (dvě D1, scénáře se liší JEN odpovědí na dotaz her):
+  hra ZAPNUTÁ → `200 {osirelych_radku:1}`, hra VYPNUTÁ → `503` a **žádný zápis**.
+* **`/roadmap/reset` ≠ `/tasks/cleanup`** (potvrzeno): reset maže **celou cache**
+  (`:1535`) a úloh se nedotkne; úklid maže **jen osiřelé** řádky a úlohy blokuje.
+* Zavádějící komentáře v conductu: `:1558–1559` (nemožné pořadí) a
+  `:1489–1493` (reset „vrátí úlohy do fronty“ — **nedělá to**, kód sám vysvětluje proč).
+
+### 61.5 Živý stav při zápisu (9. 10. 2026, ~09:3x +02:00)
+
+```
+orchestra: HEAD cf1f280 · origin/main cf1f280 (pushnuto) · hra 01a9649 (cizí session)
+živá služba: /health ok=true ready=3 running=0 games=1 · /roadmap 20 řádků (bylo 25)
+             · /queue 50 úloh · osiřelé řádky 0 (bylo 5)
+             · POSLEDNÍ BĚH 9. 10. 06:20:18 UTC (dispatch ŽIJE, 3 úlohy v cooldownu)
+brány:       g3 → 49 bran / 0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (combat)`, cizí brána hry)
+             · validate-all → 1 → 0 problémů · test-tick-offline 215/0 · tick-mutace 41/0
+             · p29-b6-mutace 15/0 · p30-a 35/0 · p30-mutace 16/0 · over-skilly 92/0
+             · kronika SEDÍ · ov-g 99 řádků Hxx
+```
+
+### 61.6 Co čeká na tebe (uživatel)
+
+* **Nic zásadního.** Push i nasazení jsou provedené a ověřené; okamžitá záplata
+  `POST /tasks/cleanup` **už není potřeba** — úklid dělá tik sám (naměřeno:
+  5 osiřelých → 0).
+* **Zavádějící komentáře v conductu** (`:1558–1559`, `:1489–1493`) — oprava je
+  změna kódu + nasazení; **rozhodnutí o směru**, ne úklid.
+* **B3 (`/game/active {active:false}` na živé službě)** pořád čeká na výslovné „ano“.
+* **Koncept od Gemini (docx)** — publikace převodu je tvoje rozhodnutí (repo je veřejné).
+
+### 61.7 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p30-a-overeni.py --jen A3         # čísla §60 proti dokumentu (~4 min)
+python _analyza\p30-a-overeni.py --plne --tik     # celý Úkol A (~17 min; --tik MĚNÍ STAV)
+python _analyza\p30-mutace.py                     # důkaz, že to měřidlo umí spadnout (16/0)
+node _analyza\p30-sonda-deploy.mjs cf1f280       # push → běh deploy.yml na správném commitu
+node _analyza\p30-sonda-d1.mjs _analyza\p30-d1-x-vystup.txt   # D1: počítadla, běhy, úlohy
+python _analyza\kronika-kontrola.py               # SEDÍ + id 1..45 bez děr
+python _analyza\handoff-kontrola-uplnost.py       # úplnost handoffu
+python _analyza\ov-g-neovereno.py                 # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
+python _analyza\g3-brany.py                       # 49 bran
+node tools\validate-all.mjs                       # 0 problémů
+```

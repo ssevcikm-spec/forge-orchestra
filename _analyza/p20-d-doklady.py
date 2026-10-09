@@ -30,7 +30,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 WS = pathlib.Path(__file__).resolve().parents[1]
 ANALYZA = WS / "_analyza"
-VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[0-9]-)")
+VZOR = re.compile(r"^(ov-|p1[6-9]-|p2[0-9]-|p3[0-9]-)")
 
 # Sonda `p20-sonda-*` a `p20-c-kandidati` jsou JEDNORÁZOVÉ diagnostiky —
 # spouštět je znovu nemá smysl (a `p20-c-kandidati` pouští ostatní doklady).
@@ -92,7 +92,36 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # spouštět NESMÍ (podruhé by kotvy nenašel a nejde o měření).
              # Ostatní `p29-*` doklady bere `VZOR` sám (ověřeno: `p29-a-overeni.py`
              # i `p29-b6-mutace.py` odpovídají vzoru `p2[0-9]-`).
-             "p29-docx-vytah.py", "p29-b6-patch.py"}
+             "p29-docx-vytah.py", "p29-b6-patch.py",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P30) — a je to VĚDOMÉ OPAK pravidla
+             # „VZOR ho bere sám“, proto s důvodem:
+             #  * `p30-mutace.py` je MUTAČNÍ TEST, který dočasně mění
+             #    `HANDOFF.md` a `tools/over-skilly.py`. Tahle dávka má přitom
+             #    POJISTKU PROTI ZÁPISU, která hash `HANDOFF.md` sleduje —
+             #    pouštět v dávce skript, který sledovaný dokument mutuje, je
+             #    přesně to, před čím ta pojistka je. Patří mimo dávku.
+             #  * `p30-a-overeni.py` dávka BERE (vzor `p3[0-9]-` výš) — běží
+             #    v LEVNÉM režimu (~1,5 min) a vypisuje čítač pro tuhle dávku.
+             #    S `--plne` by pouštěl `g3` (rekurze) a `validate-all`, proto
+             #    se v dávce `--plne` NEPOUŽÍVÁ.
+             #  * `p30-sonda-stav.mjs`, `p30-sonda-d1.mjs`, `p30-sonda-deploy.mjs`
+             #    jsou SONDY (živá služba, D1, GitHub API). Dávka hledá jen
+             #    `*.py`, takže se jí netýkají — jsou tady proto, aby bylo
+             #    vidět, že je nikdo nemá pouštět „naslepo“ v gatu.
+             "p30-mutace.py", "p30-sonda-stav.mjs", "p30-sonda-d1.mjs", "p30-sonda-deploy.mjs",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P30) — NAMĚŘENO, NE ODHADNUTO: tahle dávka
+             # **přepsala živé dokumenty**. Pojistka proti zápisu níž ohlásila změnu
+             # u **čtyř** sledovaných souborů (HANDOFF, KRONIKA, NEXT-SESSION,
+             # `_registr-bran.json`) — a `mtime` ukázal, že HANDOFF, KRONIKA
+             # i NEXT-SESSION mají **týž čas 9:41:55**, tedy je zapsal JEDEN skript.
+             # Je to `p27-dopln-zaznamy.py`: jeho `vymen()` zapíše soubor
+             # **i když kotvy nenašel** (řádek 41 je bez podmínky) a `exit 1` hlásí
+             # až potom — „doklad, který spadl“, tedy **přesto zapsal**.
+             # Následek: v zadání P30 zmizel STAVOVÝ ŘÁDEK (vrátil se text z P27).
+             # `p27-aktualizuj-zadani.py` a `p27-patch-zadani.py` píšou do téhož
+             # souboru. **Patcher staré session nepatří do dávky** — jeho práce je
+             # hotová (stejný důvod, jako je v PRESKIP `p21-zapis-kroniky.py`).
+             "p27-dopln-zaznamy.py", "p27-aktualizuj-zadani.py", "p27-patch-zadani.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

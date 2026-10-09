@@ -340,7 +340,23 @@ def main() -> int:
     k = KRONIKA.read_text(encoding="utf-8")
     p = PLAN.read_text(encoding="utf-8") if PLAN.is_file() else ""
 
-    check("HANDOFF §60 ještě NENÍ (skript je idempotentní)", "## 60. P29" in h, False)
+    # ⚠ IDEMPOTENTNÍ BĚH MUSÍ SKONČIT NULOU (a pojmenovat to), ne „CHYBA“:
+    # tenhle skript pouští i dávka dokladů (`p20-d-doklady.py`, vzor `VZOR` bere
+    # `p29-*` sám). Kdyby po zápisu hlásil chyby, vypadalo by to v každé další
+    # session jako rozbitý doklad — a někdo by „opravoval“ správná data
+    # (přesně ta třída, kterou má `PRESKIP` v `p20-d-doklady.py` dokumentovat).
+    uz_h = "## 60. P29" in h
+    uz_k = bool(re.search(r"^\|\s*\*\*44\*\*\s*\|", k, re.M))
+    if uz_h and uz_k:
+        print("  OK    záznamy P29 UŽ JSOU zapsané (HANDOFF §60 + KRONIKA řádek 44) "
+              "— idempotentní běh, nic se nemění")
+        check("KRONIKA: id 1..44 bez děr (kontrola i při idempotentním běhu)",
+              [n for n in range(1, 45)
+               if not re.search(r"^\|\s*\*\*%d\*\*\s*\|" % n, k, re.M)], [])
+        print("VÝSLEDEK: %d kontrol, %d chyb" % (kontrol, chyb))
+        return 0 if chyb == 0 else 1
+
+    check("HANDOFF §60 ještě NENÍ (skript je idempotentní)", uz_h, False)
     check("KRONIKA řádek 44 ještě NENÍ", bool(re.search(r"^\|\s*\*\*44\*\*\s*\|", k, re.M)), False)
     check("KRONIKA má řádek 43 (kotva pro vložení)",
           bool(re.search(r"^\|\s*\*\*43\*\*\s*\|", k, re.M)), True)

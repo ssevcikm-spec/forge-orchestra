@@ -273,3 +273,34 @@ GitHub Actions + 49 bran) — měnit ji kvůli konceptu by bylo **zhoršení**.
 novou odpověď tiku → rozhodne H111; (2) `entity.move.smooth` (H{P7});
 (3) B8 — návod pro architekta; (4) B7 — jen jako nabídka pro session, která
 vede hru.
+---
+
+## P30 (9. 10. 2026) — CO JE NASAZENÉ A CO JE NA ŘADĚ
+
+> **Datum spotřeby:** 9. 10. 2026, ~10:0x +02:00. Platí pro stav po P30;
+> kdo to čte později, **přeměří** (`python _analyza\p30-a-overeni.py`).
+
+**Hotovo a nasazeno (neopakovat):** oprava **B6** je v živé službě — tik sám
+uklízí osiřelé řádky cache (naměřeno **5 → 0**) a **pojmenovává**, co přeskočil
+(`v cooldownu 3 úloh: #241, #242, #243`). Nález **H111** je rozhodnutý
+(**strop granule**, ne zámek), **H114** taky (`entity.move.smooth` čeká na
+`engine.input`). **Nasazení jde z pushe** — lokální `wrangler deploy` není
+potřeba (a dnes naštěstí funguje taky).
+
+**Nejbližší práce (P31) — v tomto pořadí:**
+
+1. **Zavádějící komentáře v conductu** (`index.ts:1558–1559` „nejdřív vypni hru,
+   pak cleanup“ a `:1489–1493` „reset vrátí úlohy do fronty“) — **jsou to
+   tvrzení, která kód neplní**; oprava = změna textu + nasazení z pushe.
+2. **`p28-b-mutace.py` je dnes 27/2** (H123) — měřidlo P28 stojí na kotvě
+   v CELÉM dokumentu a na společné chybě obou noh; buď opravit měřidlo
+   (kotva vázaná na oddíl), nebo tvrzení v §60 označit za neplatné.
+3. **Měřidlo P29 neuklízí mutanty** (H124) — dokud to neopraví, každý plný běh
+   A1 zanechá v `_analyza/` 186 kB mutanta a rozhodí inventář.
+4. **B7 (řetěz poskytovatelů při kvótě)** — patří **session, která vede hru**
+   (živý `agent.yml` je ve hře, orchestra do ní nepíše).
+5. **B3 (`/game/active {active:false}`)** — čeká na výslovné „ano“ uživatele.
+
+**Co NEDĚLAT:** neměnit architekturu orchestra kvůli konceptu od Gemini
+(rozhodnuto v P29); nepsat do hry; nepřidávat do skillu `game-developer`
+schéma granule (druhý zdroj pravdy).
