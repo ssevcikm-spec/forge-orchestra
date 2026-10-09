@@ -2475,3 +2475,159 @@ python _analyza\ov-g-neovereno.py           # 0 NEOVĚŘENO, rozsah 99 řádků 
 **Co z toho plyne pro orchestra (a patří do P29):** osiřelé úlohy se **nemají
 dispatchovat** (dnes se to děje) a řetěz poskytovatelů se má při `RateLimitError`
 **posunout na dalšího**, ne skončit jako „agent nic nezměnil“.
+## 60. P29 — PŘEMĚŘENÍ P28 VLASTNÍM MĚŘIDLEM, OPRAVA OSIŘELÝCH GRANULÍ A KONCEPT OD GEMINI (9. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P29 + stav po P29**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**44**, nálezy **§2.22**), plán (`PLAN-DALSI-KROK.md`).
+Zadání P29 je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **9. 10. 2026, 00:2x–07:3x +02:00** (živý čas
+> z hodin, ne ze zadání — nález P27-O). Tvrzení o **stavu** (HEAD, hra, živá
+> služba) platí k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ ŽIVÁ SLUŽBA SE BĚHEM P29 ZASTAVILA V DISPATCHI** (nález P29-D níž):
+> ruční `/tick` vrátil `spusteno: 0 úloh` a poslední běh v `/status` byl
+> z **8. 10. 21:12 UTC**. To je **stav před opravou** — kód, který to umí
+> pojmenovat, je v této session hotový, ale **NENÍ NASAZENÝ** (čeká na push).
+
+### 60.1 Co se udělalo
+
+| # | Co | Doklad |
+|---|---|---|
+| **A1** | **Umí měřidlo P28 spadnout?** — reprodukován jeho vlastní důkaz a přidány **tři VLASTNÍ kontramutace**, každá se **třemi nohami** (živé → baseline; mutant → spadne NA TÉ kontrole; mutant + oslabené měřidlo → projde) | `p28-b-mutace.py` → **27/0** (přeměřeno, tvrzení §59.1 sedí); `p28-a-overeni.py --plne` → **122/14** (přeměřeno, **15,3 min**, tvrzení sedí); vlastní mutace: **M1** (§57 `99 řádků Hxx` → `98`) a **M3** (ov-g hlásí nulový rozsah) → `p29-a1m13-vystup.txt` **7/0**; **M2** (g3 s 50. branou) → `p29-a1m-vystup.txt` (dvě nohy OK, třetí noha doběhla s (12,4) → (11,3)) |
+| **A2** | **Volá test tiku sedm endpointů?** — ZARÁŽKOU V HANDLERU (P28 poškozovala odpověď) **a nově i IZOLACÍ**: zarážka na jednom endpointu nesmí zčervenat skupinu jinou | všech 7 endpointů: `X: 12`, `Y: 5`, `Z: 4`, `AA: 8`, `AB: 4`, `AC: 4`, `AD: 4` červených ve SVÉ skupině, **jiné skupiny: —**; `A: /tick odpoví 200` vždy zelená; zdroj conductora na konci **čistý (disk == HEAD)** |
+| **A3** | **Tvrdí testy TVAR i OBSAH?** — kopie testu s **PRÁZDNOU falešnou D1** (P28 poškozovala text dotazu) | čítač **(205, 55)** při prázdné D1: u **každé** ze sedmi skupin zčervenaly obsahové kontroly a **TVAROVÁ zůstala zelená** (`/health`: „jde BEZ tajemství", „hlásí `ok: true`"; ostatní: „odpoví 200") |
+| **A4** | **Sedí čísla v §59?** — každý tvrzený čítač **znovu spuštěn**, čísla **čtena z dokumentu** (a u dvou i ze zadání), u každého tvrzení se **vypisuje okno, které vzor trefil** | **6 pojmenovaných ROZDÍLŮ** (60.2): `test-tick-offline` **205/0 → 215/0** (moje práce, +10 kontrol), `p28-obnov-kroniku --kontrola` čítač **nevypisuje** (jiná větev), živě `/health` `ready=2 → 5`, živě `/roadmap` `22/19/2/1/5 → 25/20/4/1/5`, běhy #240–#243 = **9, ne 4**, `RateLimitError` **6/9, ne 9/9** |
+| **A5** | **Rozsah `ov-g` a kontinuita id** vlastním počítadlem | **99 řádků Hxx** (1 + 98) vlastním průchodem, brána hlásí totéž, mimo živé zdroje **139 v 7**; kronika **43 řádků, id 1..43 bez děr**; fixtura bez řádku 30 → `exit 1` a id **pojmenuje**; prázdná fixtura → **NEMĚŘENO** a `exit 1` |
+| **A6** | **Oprava B5 měří, co tvrdí** — fixtury přes `FORGE_SKILLS` | cesta v ``` bloku se počítá **STEJNĚ** jako tatáž cesta inline (fixtura 49+1 = 50 v obou); **mrtvá** cesta v bloku bránu **shodí**; starý tvar se nezhoršil; **deklarovaná výjimka NEPROSÁKNE** do jiného skillu (`tools\vision.py` v cizím skillu → `exit 1`) |
+| **A7** | **Inventář → `g3` → `validate-all`** v tomto pořadí, nic mezi tím | `g3` **49 bran**, **1 NEDEKLAROVANÝ** exit (`validate-all (CELEK)`) a každý **pojmenovaný**; `validate-all` **2 problémy** (oba o stavu HRY/D1); inventář **čerstvý** — a to **dvěma nezávislými přepočty**: (a) uložený `sha256` = přepočet z uložených záznamů, (b) `--otisk` z dnešních bajtů = uložený |
+| **B6** | **OSIŘELÉ GRANULE SE UKLÍZEJÍ SAMY + tik ŘEKNE, PROČ NIC NESPUSTIL** (dvě opravy v `conductor/src/index.ts`) | `_analyza/p29-b6-patch.py` (7 záměn, každá ověřená: kotva právě 1×); `tsc` **exit 0**; `tools/test-tick-offline.mjs` **205/0 → 215/0** (10 nových kontrol `AE*`); mutační důkaz `_analyza/p29-b6-mutace.py` → **15/0** (tři vraty, každá dvě nohy, soubor vrácen **bajt na bajt**) |
+| **C** | Doklady a sondy: `p29-a-overeni.py`, `p29-b6-mutace.py`, `p29-b6-patch.py`, `p29-sonda-ulohy.mjs`, `p29-sonda-tik.mjs`, `p29-sonda-ntfy.mjs`, `p29-sluzba-rows.mjs`, `p29-docx-vytah.py`; **všechny doklady zapsané BAJTY (UTF-8)**, ne přesměrováním v PowerShellu | registrace v `_analyza/p20-d-doklady.py`: `p29-a-overeni.py` i `p29-b6-mutace.py` bere `VZOR` sám (ověřeno), `p29-b6-patch.py` a `p29-docx-vytah.py` jsou v `PRESKIP` (patcher se v dávce spouštět nesmí) |
+| **D** | **Posouzení konceptu „Gemini architektonika"** (docx od uživatele) proti současnému designu orchestry | `_analyza/_archiv/p29-gemini-architektonika.txt` (převod vstupu, ARCHIV) + rozhodnutí v **KRONIKA §2.22** a v `PLAN-DALSI-KROK.md` — **architekturu NEPŘEDĚLÁVAT**, převzít 4 věci (60.4) |
+
+### 60.2 Nálezy P29 (každý doložený měřením; plné znění v kronice §2.22)
+
+1. **DOKLAD, KTERÝ §59.1 UVÁDÍ, NENÍ DOKLADEM PLNÉHO BĚHU.** `p28-a-overeni-vystup.txt`
+   obsahoval **jen dílčí běh A5** (11 kontrol), ne tvrzených 122/14 — P28 si ho
+   přepsala vlastním dílčím během (přesně ta vada, kterou sama pojmenovala u P27).
+   Zachován jako `_analyza/p29-p28a-doklad-jaky-byl.txt` (sha256 v kronice).
+   **Číslo 122/14 je správné** — přeměřeno vlastním plným během (15,3 min).
+2. **TŘI DOKLADY P28 JSOU V UTF-16LE** (`p28-b-mutace-vystup.txt`,
+   `p28-baseline-p27a-vystup.txt`, `p28-p26b-dnes-vystup.txt`): vznikly
+   přesměrováním v PowerShellu, `read` tool je odmítne jako binárku. V `_analyza`
+   je takových `.txt` **48** (naměřeno). Nové doklady se zapisují bajty (UTF-8).
+3. **TVRZENÍ §59.6 „poslední 4 běhy (#240–#243) a VŠECHNY na `RateLimitError`"
+   NEPLATÍ.** Sonda `p29-sonda-ulohy.mjs` páruje běhy podle **ID ÚLOHY v názvu**
+   (ne podle pořadí) a v posledních 60 bězích našla **9 běhů** těchto úloh:
+   **všechny `failure`**, ale `litellm.RateLimitError` jen v **6 z 9**; mezi
+   selhavšími kroky jsou **„Kontrola parsování (rychlá brána)"**, **„Testy hry
+   (Godot headless)"** a **„Agent nic nezměnil"**. Navíc: **`#240–#243` jsou ID
+   ÚLOH, kdežto `#341` je `run_number`** — dva čítače téhož jména (past projektu).
+4. **⚠ ŽIVÁ SLUŽBA NEDISPATCHUJE A NEŘEKNE PROČ** (nález **P29-D**): ruční
+   `POST /tick` (9. 10. 2026, 23:02:16 UTC) → **`spusteno: 0 úloh`**, přitom
+   `/health` `ready=5 running=0`; poslední běh v `/status` je z **21:12:57 UTC**.
+   **Cooldown (3 h) vysvětluje 4 z 5** úloh (#240–#243 selhaly 21:02–21:23),
+   ale **NE #239**: ta selhala 11:40:55 (cooldown vypršel 14:40:55), má
+   `attempts=2 < 8` a nic neběží. Dvě **pojmenované** možné příčiny v kódu:
+   (a) **strop granule** (`GRAIN_MAX_RUNS=8`, počítadlo se nikdy neresetuje
+   a `/roadmap` ho nevydává), (b) **zámek souboru** od úlohy, která zůstala
+   v `tasks.status='running'` (a `/queue` je `LIMIT 50`, takže ji nevidí).
+   **Obě jsou TICHÉ** — a proto je oprava B6 pojmenovává (60.1).
+   **Další měření, které to rozhodne:** přečíst D1 (`wrangler d1 execute --remote`)
+   nebo nasadit opravu a přečíst novou odpověď tiku.
+5. **BRÁNA „cron běží (čas)" NEMŮŽE SELHAT:** `tools/validate-all.mjs` testuje
+   jen `!!h.time` — tedy že `/health` odpovídá. O tom, jestli tik opravdu běží,
+   netvrdí **nic** (a přitom je to právě ten stav, který se 9. 10. zastavil).
+6. **OSIŘELÉ ŘÁDKY POTVRZENY ŽIVĚ** (`POST /tasks/cleanup?dry_run`): 21 granulí
+   v souborech, **25 řádků v cache, 5 osiřelých, 5 osiřelých úkolů**, 0 úloh bez
+   vazby. Z toho `entity.enemy` = úloha **#239 `ready`**.
+7. **V SOUBORU JE GRANULE, KTEROU CACHE NEMÁ:** `entity.move.smooth` (opačný
+   rozpor, než popisuje P28) — **nevyřešeno**, patří do P30 (čeká na závislosti,
+   nebo se ztratila?).
+8. **CIZÍ PRÁCE VE HŘE MÁ VLASTNÍ PŘÍČINU SELHÁNÍ** (měřeno sondou + nezávislou
+   analýzou): živý `agent.yml` je **ve HŘE** (`uo-shadows/.github/workflows/`),
+   a jeho `:197` zakládá **PRÁZDNÝ soubor** granule (`: > "$f"`), který kontrola
+   „změnil agent něco?" (`:236–243`, `:464`) **počítá jako práci** → rate-limitovaný
+   běh se hlásí jako **success** a spadne až na jobu „Otevři pull request"
+   (chybějící credential, `exit 128`; **6 z posledních 24 běhů**). Větev, která má
+   kvůli kvótě přejít na dalšího poskytovatele (`:253`), fallback **ZAKAZUJE**.
+   → **do orchestra to nepatří** (orchestra do hry nepíše); nabídka B7 pro session,
+   která hru vede.
+9. **POLE, KTERÉ NIKDO NEČTE, NENÍ KONTRAKT:** `acceptance` je ve všech 21
+   granulích, ale `dispatchWorkflow` je **neposílá** (posílá `task_id`, `run_key`,
+   `kind`, `title`, `prompt`, `max_lines`, `model`, `grain`, `attempt`).
+   „Je to v souboru" ≠ „má to účinek" — patří do procesu design dokumentů (B8).
+10. **VLASTNÍ OMYLY P29 (4, všechny o měření):** (a) `oslab_check` nahrazoval
+    jen PRVNÍ řádek víceřádkové kontroly → oslabená kopie spadla na `SyntaxError`
+    a její prázdný výstup vypadal jako „kontrola zmizela"; (b) `_leg` pouštěl
+    **živé** měřidlo místo oslabené kopie → třetí noha byla prázdná; (c) kotva
+    `99 řádků Hxx` je v dokumentu **5×** (v §57 2×) → mutace musí být vázaná na
+    **měřený oddíl** a na **první** výskyt; (d) `kronika-kontrola.py` bere cestu
+    **POZICIONÁLNĚ** — `--kronika <cesta>` skončí `CHYBA: --kronika neexistuje`
+    a `exit 1`, což vypadá jako nalezená vada (první verze mého A5 na tom měla
+    falešně zelenou kontrolu).
+
+### 60.3 Živý stav při zápisu (9. 10. 2026, ~07:4x +02:00)
+
+```
+orchestra: HEAD ef04912 · origin/main ef04912 · nepushnutých 0 (P28 pushnuta)
+           + práce P29 (necommitnutá): conductor/src/index.ts, tools/test-tick-offline.mjs,
+             HANDOFF.md, KRONIKA-PROJEKTU.md, PLAN-DALSI-KROK.md, NEXT-SESSION-INSTRUKCE.md,
+             _analyza/p29-* (doklady, sondy, patcher, mutační důkaz)
+hra:       HEAD 01a9649 (při MĚŘENÍ); vede ji CIZÍ session, která ji posunula 5×
+           (bc51e46 → … → 01a9649); P29 do ní nezapsala ani bajt
+živá služba: /health ok=true ready=5 running=0 games=1 · /roadmap 25 řádků
+           (done 20, queued 4, blocked 1; max pokusů 5) · /queue 50 úloh
+           (ready 5, failed 1, blocked 44) · 6 chráněných endpointů bez tajemství 401,
+           s tajemstvím 200 · POSLEDNÍ BĚH 21:12:57 UTC (dispatch stojí)
+brány:     g3 → 49 bran, 1 NEDEKLAROVANÝ exit (`validate-all (CELEK)`) ·
+           validate-all → 2 problémy (oba o stavu HRY/D1) ·
+           test-tick-offline → 215/0 (bylo 205/0) · tick-mutace → 20 vrat, 41/0 ·
+           over-skilly → 90 zmínek, 0 mrtvých · kronika SEDÍ · ov-g → 99 řádků Hxx
+```
+
+### 60.4 Co čeká na tebe (uživatel)
+
+- **PUSH je ROZHODNUTÍ UŽIVATELE** — a u `conductor/**` navíc **nasadí živou
+  službu** (`npx wrangler deploy` z `conductor/`). **Bez nasazení oprava B6
+  neúčinkuje**: živá služba běží starý kód (dispatch stojí, nález P29-D).
+  Před pushnutím: `git status` + `git diff --stat` (vyžádáno pravidly).
+- **Koncept od Gemini (docx) — rozhodnutí o publikaci:** převod vstupu leží
+  v `_analyza/_archiv/p29-gemini-architektonika.txt` (přesunu do archivu se
+  dočkej při úklidu). **Repo je veřejné** → publikovat cizí dialog s AI je
+  **tvoje** rozhodnutí, ne moje. Věcné závěry jsou v KRONICE §2.22 (bez citací).
+- **Okamžitá záplata bez nasazení** (kdybys chtěl uklidit hned): `POST /tasks/cleanup`
+  s tajemstvím smaže 5 osiřelých řádků a zablokuje jejich úlohy. Nedělal jsem to
+  sám — je to **zásah do živého stavu** (a chtěl jsem ti nechat i doklad vady).
+- **B3 (acceptance `B4` na živé službě) pořád čeká na „ano"** — dočasně zastaví orchestra.
+- **Strop granule je tichý** — dokud se nenasadí B6, nedozvíš se, která granule
+  a proč se přestala vydávat.
+
+### 60.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+# 1) vlastní měřidlo P29 (A2–A7) a jeho doklady
+python _analyza\p29-a-overeni.py                 # A2,A3,A5,A6,A7,A4 (~10 min)
+python _analyza\p29-a-overeni.py --jen A1M13     # dvě levné kontramutace P28 (7/0)
+python _analyza\p29-b6-mutace.py                 # mutační důkaz opravy B6 (15/0)
+# 2) oprava B6 a její testy
+node tools\test-tick-offline.mjs                 # 215/0 (bylo 205/0)
+node conductor\node_modules\typescript\bin\tsc --noEmit -p conductor
+# 3) záznamy a brány PO SOBĚ (ne současně; inventář jako poslední)
+python _analyza\kronika-kontrola.py              # SEDÍ + "chybějící id: (žádné)"
+python _analyza\handoff-kontrola-uplnost.py      # úplnost handoffu
+python _analyza\ov-g-neovereno.py                # 0 NEOVĚŘENO, rozsah 99 řádků Hxx
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
+python _analyza\g3-brany.py                      # 49 bran
+node tools\validate-all.mjs                      # 2 problémy = stav HRY
+```
+
+**Mapování nálezů P29 na kroniku (§2.22)** — plné znění je tam, tady je jen
+číslo a zkratka: dílčí doklad P28 = **H108** · doklady v UTF-16 = **H109** ·
+tvrzení §59.6 o bězích = **H110** · tichý dispatch = **H111** · brána „cron
+běží" bez možnosti selhat = **H112** · osiřelé řádky cache = **H113** ·
+`entity.move.smooth` = **H114** · živý `agent.yml` ve hře = **H115** ·
+`acceptance`, které nikdo nečte = **H116** · koncept od Gemini = **H117** ·
+vlastní omyly P29 = **H118**.

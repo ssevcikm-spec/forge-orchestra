@@ -1,0 +1,24 @@
+==============================================================================
+P28/A — NEZÁVISLÉ PŘEMĚŘENÍ PRÁCE P27 (A1–A7)
+==============================================================================
+  OK    P28 §57 existuje (délka 14977)
+  OK    P28 §58 existuje (délka 4396)
+
+--- A5: ROZSAH MĚŘIDLA `ov-g-neovereno` (VLASTNÍ počítadlo, ne výpis) ---
+      vlastní počet: HANDOFF.md                      1 řádků Hxx
+      vlastní počet: HANDOFF-HISTORIE.md            98 řádků Hxx
+      vlastní počet: HANDOFF-OMYLY.md                0 řádků Hxx
+  OK    A5 vlastní počet řádků Hxx v ŽIVÝCH zdrojích = tvrzených 99
+  OK    A5 živých zdrojů je víc než jeden (jinak by rozsah mohl být zúžený)
+  OK    A5 brána hlásí TOTÉŽ číslo jako vlastní počítadlo
+  OK    A5 ROZSAH MIMO živé zdroje = vlastní počet
+  OK    A5 a je to NENULOVÝ rozsah (zúžení by muselo být vidět)
+  OK    A5 fixtura s NEOVĚŘENO → exit 1
+  OK    A5 a je to kvůli tomu nálezu (ne z jiného důvodu)
+  OK    A5 PRÁZDNÁ fixtura → NEMĚŘENO (nula není úspěch)
+  OK    A5 a prázdná fixtura → exit 1
+
+==============================================================================
+NEZMĚŘENO (není nula a není zelená): 0
+==============================================================================
+VÝSLEDEK: 11 kontrol, 0 chyb

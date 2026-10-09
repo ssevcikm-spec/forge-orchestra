@@ -219,3 +219,57 @@ místo, kde žijí otevřené body) a **nezavádí nový repozitář**.
 | `HANDOFF.md` **§8k** | **vlastní omyly** téhle ověřovací session (**97–101**) |
 | `KRONIKA-PROJEKTU.md` **§6** | rozhodnuté návrhy **NA17–NA23** (s důvodem) |
 | `NEXT-SESSION-INSTRUKCE.md` | **NEPŘEPISOVAT** — zadání souběžné session (viz §3 bod 6) |
+---
+
+## P29 (9. 10. 2026) — ROZHODNUTÍ O KONCEPTU A CO DÁL
+
+> **Datum spotřeby:** 9. 10. 2026, ~07:4x +02:00. Platí pro stav po P29;
+> kdo to čte později, **přeměří** (`python _analyza\p29-a-overeni.py`).
+
+**Vstup:** koncept „Orchestrace vývoje hry pomocí AI" (docx od uživatele,
+převod `_analyza/_archiv/p29-gemini-architektonika.txt`) + měření P29.
+
+**Rozhodnutí (ne návrh):** **architekturu orchestra NEPŘEDĚLÁVAT.** Koncept
+popisuje **tutéž** architekturu (architekt → mozek → dělníci → sklady; kvalitní
+model plánuje, free modely vykonávají, stav drží databáze, brány rozhodují),
+jen ji navrhuje na **dražší a křehčí** infrastruktuře (Oracle + R2 + PM2 +
+Python). Orchestra ji má **levněji a ověřeně** (Cloudflare Worker + D1 + cron +
+GitHub Actions + 49 bran) — měnit ji kvůli konceptu by bylo **zhoršení**.
+
+**Co z konceptu PŘEVZÍT (v tomto pořadí):**
+
+1. **Čestné hlášení selhání** — „tik nic nespustil" musí být **vysvětlené**.
+   → **APLIKOVÁNO v P29 (B6)**: pojmenované přeskočení (strop granule, zámek,
+   cooldown) + automatický úklid osiřelých řádků. Bez nasazení neúčinkuje.
+2. **Řetěz poskytovatelů při `RateLimitError`** (koncept: Tier 1→2→3, vypínač
+   placeného API, hibernace). **ODLOŽENO na P30** — měřeno: živý `agent.yml`
+   je **ve hře** a jeho větev pro kvótu fallback **zakazuje**; orchestra do hry
+   nepíše (nabídka **B7**).
+3. **Proces design dokumentů** = „super-prompt pro architekta" + sokratovský
+   dialog (koncept: Ideation Bot → GCD → schválení → architekt).
+   **ODLOŽENO na P30** (nabídka **B8**): ověřit `JAK-PSAT-…` §9 a přenést do
+   skillu `game-developer`; §9.3 (výměna roadmapy) je **nedostatečná** —
+   pořadí je vypnout hru → push → `/tasks/cleanup` → sonda a `/roadmap/reset`
+   **NENÍ** totéž co cleanup.
+4. **Pět vrstev pro sandbox** (micro/macro LOD, kombinatorické itemy,
+   automatický balanc simulací, knihovna UI komponent, centrální stav od 1. dne)
+   → **patří do design dokumentů** nové hry, ne do orchestry. **ODLOŽENO**.
+5. **`task_type` modularita** (code / lore / asset / review jako tentýž řetěz)
+   → **ODLOŽENO** — měřeno: orchestra dnes **neumí ani číst `acceptance`**
+   (H116), takže další vrstvy by jen přidaly pole, která nikdo nečte.
+
+**Co z konceptu ZAMÍTnout (a proč):**
+- **Oracle Cloud + R2 + PM2 + Python orchestrátor** → nahrazuje funkční
+  a ověřený stack dražší a křehčí variantou (server k údržbě, druhý stavový
+  sklad, vlastní CI mimo GitHub).
+- **RAG / vektorová paměť, dashboard, audio automatizace** → hra má dnes
+  `scripts/game.gd` ~12,5 kB a 21 granulí; RAG by řešil problém, který nemáme,
+  a dashboard je nahrazen `g3` + `/health` + notifikacemi.
+- **Milníkové revize generující tikety** → orchestra **už** staví na branách
+  a PR recenzi; přidávat k tomu druhou roli „revizor" znamená dvě místa, která
+  rozhodují o tomtéž (a koncept sám říká, že AI nemá přepisovat hotový kód).
+
+**Nejbližší práce (P30):** (1) nasadit B6 (push + `wrangler deploy`) a přečíst
+novou odpověď tiku → rozhodne H111; (2) `entity.move.smooth` (H{P7});
+(3) B8 — návod pro architekta; (4) B7 — jen jako nabídka pro session, která
+vede hru.

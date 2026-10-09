@@ -85,7 +85,14 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              # TVARY cest brána `over-skilly.py` neviděla (71 viděla, 90 jich
              # v dokumentech je) — to je podklad opravy B5 (§51.3). Je to
              # **jednorázová diagnostika**, ne opakovatelný doklad.
-             "p28-sonda-cesty.py"}
+             "p28-sonda-cesty.py",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P29): `p29-docx-vytah.py` je JEDNORÁZOVÝ
+             # převod vstupu (docx od uživatele na ploše → text pro analýzu) a
+             # `p29-b6-patch.py` je ZÁPISOVÝ patcher conductora — ten se v dávce
+             # spouštět NESMÍ (podruhé by kotvy nenašel a nejde o měření).
+             # Ostatní `p29-*` doklady bere `VZOR` sám (ověřeno: `p29-a-overeni.py`
+             # i `p29-b6-mutace.py` odpovídají vzoru `p2[0-9]-`).
+             "p29-docx-vytah.py", "p29-b6-patch.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

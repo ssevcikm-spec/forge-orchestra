@@ -6,19 +6,20 @@
 ani kronika (ta je v `KRONIKA-PROJEKTU.md`, nejnovější **řádek 43**,
 nálezy **§2.21**).
 
-**Stav obou repů při psaní:** `forge-orchestra` = `fffc8e7` · `uo-shadows` = `8fe57ce`
-(hra patří **cizí session**, která ji **během psaní tohohle zadání posunula
-TŘIKRÁT**: `bc51e46` → `33d320b` → `d2976f3` → `8fe57ce`, a nechává v ní
-netrackované soubory; P28 do hry nezapsala ani bajt).
-`origin/main` orchestry je **`fffc8e7`** (P27 pushnuta); **necommitnutá je
-práce P28** (`tools/`, `_analyza/`, dokumenty — **žádný soubor pod `conductor/**`**).
-**Zkontrolováno při:** **8. 10. 2026, ~20:3x +02:00 = 18:3x UTC**
+**Stav obou repů při psaní:** `forge-orchestra` = `ef04912` · `uo-shadows` = `01a9649`
+(**oba repy PUSHNUTÉ**: orchestra `origin/main..HEAD` = 0, hra taky 0; hra patří
+**cizí session**, která ji **během P28 posunula čtyřikrát**: `bc51e46` →
+`33d320b` → `d2976f3` → `8fe57ce` → `01a9649` — **píše do ní průběžně, klidně i během psaní tohohle zadání**; P28 do ní nezapsala ani bajt).
+Práce P28 je **commitnutá a pushnutá** (`683e142` + dodatek `ef04912`);
+**hlavička tohohle zadání je záměrně NEcommitnutá** (viz §2.3 níž: dva gate se
+vylučují).
+**Zkontrolováno při:** **8. 10. 2026, ~21:0x +02:00 = 19:0x UTC**
 
 > **⚠ DATUM MĚŘENÍ SE NEOPISUJE ZE ZADÁNÍ — BERE SE Z HODIN** (nález P27-O;
 > v P28 se to vyplatilo: session začala 15:45 a končila po 19:00).
 
 **Kotva pro měření (tvar, který čte `_analyza/zadani-kontrola.py`):**
-`forge-orchestra` = `fffc8e7` · `uo-shadows` = `8fe57ce`
+`forge-orchestra` = `ef04912` · `uo-shadows` = `01a9649`
 
 > **⚠ PRVNÍ VĚC, KTEROU UDĚLEJ:** `git status --porcelain` v obou repech
 > a **ověř živý stav** — `git fetch` v sandboxu padá (`.git/FETCH_HEAD`),
@@ -137,6 +138,9 @@ Kdo přidá doklad do `_analyza/`, **přidá ho i do `_analyza/p20-d-doklady.py`
 | **B3** | **Ověřit `B4` na ŽIVÉ službě** — `POST /game/active {active:false}` → `/health` `games=0` a **žádný dispatch**, pak hru vrátit | `HANDOFF.md` §45, §59.4, `PLAN-ROZVOJ-ORCHESTRA.md` §3.5 (B4) | **Dočasně zastaví orchestra** → chce výslovné „ano“ uživatele. ⚠ Dnešní měření: **strop 8 nikoho neblokuje** (max pokusů **5**), takže acceptance „strop zastaví“ **není čím doložit** |
 | **B4** | **Dva problémy `validate-all`** (cache hry 22 vs soubor 21 granul, 5 osiřelých řádků) | `HANDOFF.md` §59.2 bod 6 | Je to **stav HRY/D1** — patří session, která vede hru; orchestra to **neopravuje**. Rozhodni, jestli to má být **pojmenovaný stav** v bráně, nebo práce pro hru |
 | **B5** | **Kontinuita id i pro ostatní evidence** (nálezy Hxx, omyly, PR) | `KRONIKA-PROJEKTU.md` §2.21 (P28-E) | U řádků session to dnes hlídá `kronika-kontrola`; u **nálezů Hxx** a **bloků omylů** ji nehlídá nikdo — a přesně tam vzniká „tichá ztráta“ |
+| **B6** | **OSIŘELÉ ÚLOHY: conductor dispatchuje granuli, která v roadmapě NENÍ** | `HANDOFF.md` §59.6, `JAK-PSAT-…` §9.3 | **Naměřeno 8. 10. 2026:** úloha **#239 je `ready`** a míří na `entity.enemy`, což v roadmapě hry **není** (architekt roadmapu přepsal) → agent nemá co dělat → „agent nic nezměnil“ = **failure**. Úloh #238/#239 se to týká přímo, v cache je **5 osiřelých** řádků. **To je nejspíš hlavní smyčka, kterou fronta „nadále selhává“** |
+| **B7** | **ŘETĚZ POSKYTOVATELŮ při `RateLimitError`** (+ rozbitý název modelu) | `HANDOFF.md` §59.6 | **Naměřeno:** poslední **4 běhy** (`#240`–`#243`) selhaly na `litellm.RateLimitError` (`Tokens per minute` i `Request too large`); workflow to hlásí jako „agent nic nezměnil“. V běhu #341 byl navíc **`Model: openai/openai/gpt-oss-120b`** (dvojitý prefix). Probe poskytovatele TPM neměří |
+| **B8** | **NÁVOD PRO ARCHITEKTA — ověřit a předat** | `JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md` **§9** | Návod vznikl v P28 z měření (§9.1–§9.4: kvóty, kontrakt polí, procedura výměny roadmapy, checklist + anti-vzory). **Ověř ho vlastním měřením** a rozhodni, co z něj patří do skillu `game-developer` a co hře |
 
 **Podmínky:** vybrat **JEDNU** a říct kterou · než začneš měnit kód, **změř
 současný stav** (ne z dokumentu) · u conductoru **zavolej živou službu** a ukaž
@@ -238,24 +242,36 @@ ruční výčet v `HANDOFF.md` §6 (ten je **záznam z 2. 10. 2026**).
 
 ```
 # hlavička a stav (8. 10. 2026, ~19:2x +02:00)
-git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD            -> fffc8e7
-git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 0 (P27 PUSHNUTA)
-git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD            -> 8fe57ce
+git -C E:\Workspaces\forge-orchestra rev-parse --short HEAD            -> ef04912
+git -C E:\Workspaces\forge-orchestra rev-list --count origin/main..HEAD -> 0 (P28 PUSHNUTA)
+git -C E:\Workspaces\uo-shadows      rev-parse --short HEAD            -> 01a9649
 git -C E:\Workspaces\uo-shadows      rev-list --count origin/main..HEAD -> 0 (CIZI session pushla)
 tools\git.cmd ls-remote origin refs/heads/main   # zivy stav bez zapisu do .git
 
-# ziva sluzba (8. 10. 2026, ~19:0x +02:00) - JEN CTENI
+# ziva sluzba (8. 10. 2026, ~20:0x +02:00) - JEN CTENI
 node _analyza\p28-ziva-sluzba.mjs
-#   /health ok=true ready=2 running=0 games=1 · /roadmap 22 granul (19 done, 2 queued,
+#   /health ok=true ready=4 running=1 games=1 · /roadmap 25 granul (20 done, 4 queued,
 #   1 blocked), max pokusu 5 · 6 chranenych endpointu: bez tajemstvi 401, s nim 200
+
+# PROC SELHAVAJI GRANULE (nove mereno 8. 10. 2026 vecer; VSE JEN CTE):
+node _analyza\p28-sonda-granule.mjs              # /failed: log_tail je PRAZDNY (duvod v orchestra neni)
+node _analyza\p29-sonda-fronta-vs-roadmapa.mjs   # 2 ulohy (#238/#239) na granule, ktere v roadmape NEJSOU
+node _analyza\p29-sonda-selhani.mjs 12           # posledni behy agent.yml z GitHubu
+node _analyza\p29-sonda-agenta.mjs <run_id>      # log kroku agenta (RateLimitError, model)
+#  * posledni 4 behy (#240-#243) = failure, vsechny na litellm.RateLimitError
+#    ("Tokens per minute" i "Request too large for ...") -> workflow to hlasi jako
+#    "agent nic nezmenil"; v behu #341 byl model "openai/openai/gpt-oss-120b"
+#  * kontrakt roadmapy: 6/21 bez size_lines, 11/21 bez model, 0/21 bez acceptance
+#  * cache D1: 25 radku vs 21 granul v souboru -> 5 OSIRELYCH; fronta 44 blokovanych
 
 # brany po P28
 python _analyza\p28-a-overeni.py --plne     -> 122 kontrol, 14 chyb (= pojmenovane rozdily)
-python _analyza\p28-b-mutace.py             -> tri mutace v kopiich, kazda s diferencialem
+python _analyza\p28-b-mutace.py             -> 27/0 (tri mutace v kopiich, kazda s diferencialem)
 node tools\test-tick-offline.mjs            -> 205/0
 python _analyza\tick-mutace.py              -> 20 vrat, 41/0
 python _analyza\g3-brany.py                 -> 49 bran, 1 deklarovany + 1 NEDEKLAROVANY exit
 node tools\validate-all.mjs                 -> 2 problemy (cache hry 22 vs soubor 21; 5 osirelych)
+python tools\lint-roadmapa.py E:\Workspaces\uo-shadows -> 2 blokujici + 12 poradnich
 python _analyza\kronika-kontrola.py         -> KRONIKA SEDI (43 radku, zadna dira)
 python _analyza\handoff-kontrola-uplnost.py -> uplnost handoffu
 python _analyza\ov-g-neovereno.py           -> 0 NEOVERENO, ROZSAH 99 radku Hxx
@@ -319,8 +335,11 @@ MĚŘENÍ BER Z HODIN, ne ze zadání.
 
 TVŮJ ÚKOL: přeměř P28 vlastním měřidlem (§2.1 A1–A7) a pak si vyber JEDNU věcnou
 práci (§2.2) — na řadě je B2 (.gitattributes), B3 (acceptance B4 živě — chce
-"ano" uživatele), B4 (dva problémy validate-all = stav hry) nebo B5 (kontinuita
-id i pro nálezy Hxx a bloky omylů).
+"ano" uživatele), B4 (dva problémy validate-all = stav hry), B5 (kontinuita id
+i pro nálezy Hxx a bloky omylů), B6 (osiřelé úlohy: conductor dispatchuje granuli,
+která v roadmapě NENÍ — dnes #239 ready), B7 (řetěz poskytovatelů při
+RateLimitError + rozbitý název modelu) nebo B8 (ověřit návod pro architekta,
+JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md §9).
 
 Na konci povinně: přepiš NEXT-SESSION-INSTRUKCE.md, zapiš výsledky do HANDOFF.md
 (nový oddíl §60) a do KRONIKY (řádek 44 + nálezy; omyly = "—"), ověř, že
@@ -331,15 +350,18 @@ slova), přegeneruj inventář JAKO POSLEDNÍ KROK, spusť g3 a pak validate-all
 
 ---
 
-**STAVOVÝ ŘÁDEK (8. 10. 2026, ~20:3x +02:00):** orchestra **`fffc8e7`**
-= `origin/main` (**P27 PUSHNUTA**, 0 nepushnutých) + **necommitnutá práce P28**
-(`tools/over-skilly.py`, `_analyza/kronika-kontrola.py`, `_analyza/p20-d-doklady.py`,
-`_analyza/test-over-skilly-delegovane.py`, `_analyza/p28-*`, `KRONIKA-PROJEKTU.md`,
-`HANDOFF.md`) · hra **`8fe57ce`** = `origin/main` (cizí session píše PRŮBĚŽNĚ;
-P28 do ní nezapsala) · živá služba `/health` →
-`ok=true ready=2 running=0 games=1`, `/roadmap` **22 granul** (19 done, 2 queued,
-1 blocked; **max pokusů 5**) · brány: `g3` **49 bran / 1 deklarovaný + 1
-NEDEKLAROVANÝ exit** (`validate-all` kvůli **stavu HRY**), `validate-all`
-**2 problémy** (oba o hře/D1), `test-tick-offline` **205/0**, `over-skilly`
-**90 zmínek / 0 mrtvých** (B5), mutační dvojče **17/0**, `kronika-kontrola`
-**SEDÍ** (43 řádků, kontinuita id) · inventář **čerstvý** (přegenerován poslední).
+**STAVOVÝ ŘÁDEK (8. 10. 2026, ~21:2x +02:00):** orchestra **`ef04912`**
+= `origin/main` (**P28 PUSHNUTA** — `683e142` + dodatek `ef04912`, 0 nepushnutých);
+**necommitnutá je jen hlavička zadání** (`NEXT-SESSION-INSTRUKCE.md`) a generovaný
+`_analyza/_registr-bran.json` · hra **`01a9649`** = `origin/main` (cizí session
+píše PRŮBĚŽNĚ — během P28 se posunula 5×; P28 do ní nezapsala ani bajt) · živá
+služba `/health` → `ok=true ready=5 running=0 games=1`, `/roadmap` **25 granul**
+(20 done, 4 queued, 1 blocked; **max pokusů 5**) · **fronta: 44 blokovaných úloh,
+1 `failed` (#238) a #239 `ready` na granuli, která v roadmapě NENÍ** (nález
+**P28-I**) · brány: `g3` **49 bran / 1 NEDEKLAROVANÝ exit** (`validate-all` kvůli
+**stavu HRY**) + 1 brána bez čítače (`mutace B (combat)` — **cizí brána hry**),
+`validate-all` **2 problémy** (osiřelé řádky cache hry — oba o hře/D1),
+`test-tick-offline` **205/0**, `p28-a --plne` **122/14** (14 = pojmenované
+rozdíly), `p28-b` **27/0**, `over-skilly` **90 zmínek / 0 mrtvých** (B5),
+mutační dvojče **17/0**, `kronika-kontrola` **SEDÍ** (43 řádků, kontinuita id) ·
+inventář **čerstvý** (přegenerován poslední).

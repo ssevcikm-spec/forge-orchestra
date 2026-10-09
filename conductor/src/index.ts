@@ -838,6 +838,8 @@ async function roadmapTick(
 
   let created = 0;
   const createdKeys: string[] = [];
+  // P29/B6: kolik osiřelých řádků se uklidilo (viz blok níž) — tik to hlásí.
+  let smazanoOsirelych = 0;
 
   for (const g of games) {
     let items: RoadmapItem[] = [];
@@ -856,6 +858,26 @@ async function roadmapTick(
       continue; // hra bez čitelné roadmapy se přeskakuje, ostatní jedou dál
     }
     if (!items.length) continue;
+
+    // ── P29/B6: OSIŘELÉ ŘÁDKY CACHE SE UKLÍZEJÍ SAMY ──────────────────────
+    // `roadmap` je jen CACHE toho, co conductor vydal. Když soubor granulí
+    // změní (architekt přepíše roadmapu), staré řádky v cache zůstanou — a jejich
+    // úlohy pak vypadají jako legitimní práce, i když je granule v souboru dávno
+    // není. Naměřeno 9. 10. 2026 (`POST /tasks/cleanup?dry_run`): 21 granulí
+    // v souborech, 25 řádků v cache, **5 osiřelých** — z toho `entity.enemy`
+    // s úlohou **#239 `ready`**. Ruční úklid (`/tasks/cleanup`) to uměl, ale
+    // NIKDO HO NEVOLAL, takže se stav jen ručně opravoval a vracel.
+    // Tady se uklidí sám — v tiku, který roadmapu stejně čte.
+    // ⚠ Úloha se tady NEBLOKUJE: udělá to invariant „úkol bez řádku v roadmapě“
+    // níž v témže tiku. Jedno místo, ne dvě.
+    const platneKlice = new Set(items.map((i) => `${g.game_id}/${i.id}`));
+    const osireleRadky = (rows.results || []).filter(
+      (r) => r.item_id.startsWith(`${g.game_id}/`) && !platneKlice.has(r.item_id));
+    for (const r of osireleRadky) {
+      const del = await env.DB.prepare("DELETE FROM roadmap WHERE item_id = ?")
+        .bind(r.item_id).run().catch(() => undefined);
+      smazanoOsirelych += del?.meta?.changes ?? 0;
+    }
 
     // Granule, jejichž PR (podle názvu) už je sloučené, se označí hotové –
     // pokryje to i staré úkoly pod jiným item_id (přechod default → hra).
@@ -984,10 +1006,17 @@ async function roadmapTick(
     }
   }
 
-  if (!created) return "roadmapa je hotová (nebo čeká na závislosti / cooldown)";
+  if (smazanoOsirelych) {
+    await notify(env, "Forge: osiřelé granule uklizeny",
+      `${smazanoOsirelych} řádků cache bylo mimo aktuální roadmapu — jejich úlohy\n`
+      + `zablokuje invariant „úkol bez řádku v roadmapě“ v témže tiku.`,
+      "warning").catch(() => undefined);
+  }
+  const osirMsg = smazanoOsirelych ? `; osiřelých řádků uklizeno: ${smazanoOsirelych}` : "";
+  if (!created) return "roadmapa je hotová (nebo čeká na závislosti / cooldown)" + osirMsg;
   await notify(env, "Forge: z roadmapy",
     `založeno ${created} granulí: ${createdKeys.join(", ")}`, "clipboard");
-  return `z roadmapy založeno ${created} granulí`;
+  return `z roadmapy založeno ${created} granulí` + osirMsg;
 }
 
 // ----------------------------------------------------------------- typy ----
@@ -1107,6 +1136,14 @@ async function tick(env: Env): Promise<string> {
 
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
+  // P29/B6: „spusteno: 0“ musí být VYSVĚTLENÉ. Naměřeno 9. 10. 2026: ruční
+  // tik vrátil „spusteno: 0 úloh“ a přitom bylo 5 úloh `ready` — a z odpovědi
+  // se NEDALO zjistit, která a proč se přeskočila (`find()` je zahazoval tiše).
+  // „Nula a nezměřeno nejsou úspěch.“
+  // ⚠ Deklarace je SCHVÁLNĚ NAD `const started`: brány `tools/test-listgames.py`
+  // a `_analyza/b4-mutace.py` hledají v kódu dvojici `const started … while (true) {`
+  // a vložený řádek MEZI ně by z nich udělal slepé kontroly (naměřeno 9. 10. 2026).
+  const preskoceno: string[] = [];
   const started: number[] = [];
   while (true) {
     // B4: bez AKTIVNÍ hry se nedispatchuje (registr her je zdroj pravdy).
@@ -1166,8 +1203,23 @@ async function tick(env: Env): Promise<string> {
     const task = (readyAll.results || []).find((t) => {
       // B3b: zastavenou granuli nevydávej — i kdyby jí v D1 zůstal úkol 'ready'
       // (cooldown i strop se musí ptát na TÝŽ klíč: `grainKeyOf` × `GRAIN_KEY_SQL`).
-      if (grainCapped(grainRunsMap?.get(grainKeyOf(t.payload) || ""), cap)) return false;
-      return !lockKeys(t.payload, env).some((k) => locked.has(k));
+      // P29/B6: každé `return false` se POJMENUJE — viz `preskoceno` výš.
+      // ⚠ KONTROLA STROPU MUSÍ ZŮSTAT JEDNOŘÁDKOVÁ a BEZ `;` PŘED SEBOU:
+      // brána `tools/test-grain-cap.py` vytahuje úsek `const task = (readyAll…`
+      // až po první `;` a hledá v něm `grainCapped(` i `grainKeyOf(` — pomocná
+      // proměnná s `;` by úsek ukončila dřív a kontrola by byla slepá.
+      if (grainCapped(grainRunsMap?.get(grainKeyOf(t.payload) || ""), cap)) {
+        preskoceno.push(`#${t.id} STROP GRANULE `
+          + `${grainRunsMap?.get(grainKeyOf(t.payload) || "")}/${cap} `
+          + `(${grainKeyOf(t.payload)})`);
+        return false;
+      }
+      const kolize = lockKeys(t.payload, env).filter((k) => locked.has(k));
+      if (kolize.length) {
+        preskoceno.push(`#${t.id} ZÁMEK ${kolize.join(", ")}`);
+        return false;
+      }
+      return true;
     });
     if (!task) break;
 
@@ -1204,7 +1256,28 @@ async function tick(env: Env): Promise<string> {
     started.push(task.id);
   }
 
-  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}`
+  const preskocenoMsg = preskoceno.length
+    ? ` | přeskočeno: ${[...new Set(preskoceno)].slice(0, 6).join("; ")}` : "";
+  // Cooldown vyfiltruje SQL JEŠTĚ PŘED `find()`, takže ho `preskoceno` nevidí.
+  // Když se nic nespustilo, musí být vidět i on — jinak zůstane „0 úloh“ tiché.
+  let cooldownMsg = "";
+  if (!started.length) {
+    // ⚠ FORMULACE JE SCHVÁLNĚ JINÁ, NEž MÁ PŮVODNÍ DOTAZ VÝŠ: `_analyza/b2-mutace.py`
+    // mutuje porovnání `naposledy_selhalo` s `datetime('now', ?)` v původním dotazu
+    // a svou kotvu potřebuje v souboru PRÁVĚ JEDNOU — kdyby tu byla dvakrát
+    // (i v komentáři!), mutace by se neprovedla (naměřeno 9. 10. 2026: „kotva je
+    // v souboru 2×“). `julianday` je navíc robustnější na tvar uloženého času
+    // a při `NULL` vyjde NULL (tedy „není v cooldownu“) — stejná sémantika.
+    const cd = await env.DB.prepare(
+      `SELECT t.id FROM tasks t JOIN roadmap rm ON rm.task_id = t.id
+        WHERE t.status='ready' AND t.target='cloud'
+          AND julianday(rm.naposledy_selhalo) > julianday('now', ?)
+        ORDER BY t.id LIMIT 10`,
+    ).bind(`-${retryH} hours`).all<{ id: number }>().catch(() => null);
+    const ids = (cd?.results || []).map((r) => `#${r.id}`);
+    if (ids.length) cooldownMsg = ` | v cooldownu ${ids.length} úloh: ${ids.join(", ")}`;
+  }
+  return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}${cooldownMsg}${preskocenoMsg}`
     + (aktivniHry.length ? "" : " | POZOR: žádná AKTIVNÍ hra → nedispatchuji (B4)");
 }
 

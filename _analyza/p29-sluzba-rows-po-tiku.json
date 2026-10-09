@@ -1,0 +1,988 @@
+{
+ "url": "https://forge-conductor.ssevcikm.workers.dev",
+ "chyba": null,
+ "roadmap": [
+  {
+   "item_id": "uo-shadows/core.attributes",
+   "task_id": null,
+   "status": "done",
+   "created_at": "2026-10-03 22:17:54",
+   "updated_at": "2026-10-03 22:17:54",
+   "task_status": null,
+   "attempts": null
+  },
+  {
+   "item_id": "uo-shadows/core.skills",
+   "task_id": 133,
+   "status": "done",
+   "created_at": "2026-09-30 16:09:50",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 1
+  },
+  {
+   "item_id": "uo-shadows/data.content",
+   "task_id": null,
+   "status": "done",
+   "created_at": "2026-09-30 18:04:49",
+   "updated_at": "2026-09-30 18:04:49",
+   "task_status": null,
+   "attempts": null
+  },
+  {
+   "item_id": "uo-shadows/engine.input",
+   "task_id": 242,
+   "status": "queued",
+   "created_at": "2026-10-08 16:51:57",
+   "updated_at": "2026-10-08 21:03:53",
+   "task_status": "ready",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/engine.registry",
+   "task_id": 240,
+   "status": "done",
+   "created_at": "2026-10-08 14:47:55",
+   "updated_at": "2026-10-08 21:14:58",
+   "task_status": "ready",
+   "attempts": 3
+  },
+  {
+   "item_id": "uo-shadows/engine.shell",
+   "task_id": 241,
+   "status": "queued",
+   "created_at": "2026-10-08 16:51:56",
+   "updated_at": "2026-10-08 21:23:53",
+   "task_status": "ready",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/entity.enemy",
+   "task_id": 239,
+   "status": "queued",
+   "created_at": "2026-10-01 10:09:15",
+   "updated_at": "2026-10-08 11:40:55",
+   "task_status": "ready",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/entity.item",
+   "task_id": null,
+   "status": "done",
+   "created_at": "2026-10-03 22:17:54",
+   "updated_at": "2026-10-03 22:17:54",
+   "task_status": null,
+   "attempts": null
+  },
+  {
+   "item_id": "uo-shadows/entity.npc",
+   "task_id": 238,
+   "status": "blocked",
+   "created_at": "2026-09-30 16:18:51",
+   "updated_at": "2026-10-08 14:38:55",
+   "task_status": "failed",
+   "attempts": 5
+  },
+  {
+   "item_id": "uo-shadows/entity.player",
+   "task_id": 134,
+   "status": "done",
+   "created_at": "2026-09-30 22:33:50",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 1
+  },
+  {
+   "item_id": "uo-shadows/entity.player.api",
+   "task_id": 146,
+   "status": "done",
+   "created_at": "2026-10-02 08:28:54",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 3
+  },
+  {
+   "item_id": "uo-shadows/persist.save",
+   "task_id": 139,
+   "status": "done",
+   "created_at": "2026-10-01 01:36:00",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/persist.save.state",
+   "task_id": 150,
+   "status": "done",
+   "created_at": "2026-10-02 21:32:56",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 5
+  },
+  {
+   "item_id": "uo-shadows/sim.assist",
+   "task_id": 138,
+   "status": "done",
+   "created_at": "2026-10-01 01:36:00",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 1
+  },
+  {
+   "item_id": "uo-shadows/sim.combat",
+   "task_id": 135,
+   "status": "done",
+   "created_at": "2026-09-30 22:33:50",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/sim.crafting",
+   "task_id": 149,
+   "status": "done",
+   "created_at": "2026-09-30 22:33:51",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/sim.economy",
+   "task_id": 130,
+   "status": "done",
+   "created_at": "2026-09-30 16:09:51",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 4
+  },
+  {
+   "item_id": "uo-shadows/sim.mining",
+   "task_id": 136,
+   "status": "done",
+   "created_at": "2026-09-30 22:33:50",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 5
+  },
+  {
+   "item_id": "uo-shadows/sim.offline",
+   "task_id": 151,
+   "status": "done",
+   "created_at": "2026-10-03 01:32:03",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/tests.harness",
+   "task_id": 148,
+   "status": "done",
+   "created_at": "2026-10-02 18:07:55",
+   "updated_at": "2026-10-03 22:20:50",
+   "task_status": "done",
+   "attempts": 5
+  },
+  {
+   "item_id": "uo-shadows/ui.hud",
+   "task_id": 140,
+   "status": "done",
+   "created_at": "2026-10-01 01:36:00",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/world.bodies",
+   "task_id": 243,
+   "status": "queued",
+   "created_at": "2026-10-08 16:51:57",
+   "updated_at": "2026-10-08 21:22:53",
+   "task_status": "ready",
+   "attempts": 2
+  },
+  {
+   "item_id": "uo-shadows/world.level",
+   "task_id": null,
+   "status": "done",
+   "created_at": "2026-09-30 18:04:50",
+   "updated_at": "2026-09-30 18:04:50",
+   "task_status": null,
+   "attempts": null
+  },
+  {
+   "item_id": "uo-shadows/world.map",
+   "task_id": 129,
+   "status": "done",
+   "created_at": "2026-09-30 16:09:50",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 4
+  },
+  {
+   "item_id": "uo-shadows/world.nodes",
+   "task_id": 145,
+   "status": "done",
+   "created_at": "2026-10-02 08:28:54",
+   "updated_at": "2026-10-08 23:02:15",
+   "task_status": "done",
+   "attempts": 2
+  }
+ ],
+ "queue": [
+  {
+   "id": 243,
+   "title": "Kolize těles a spojité řazení hloubky (M1)",
+   "kind": "code",
+   "target": "cloud",
+   "status": "ready",
+   "attempts": 2,
+   "created_at": "2026-10-08 16:51:57"
+  },
+  {
+   "id": 242,
+   "title": "Vstup — záměr pohybu z myši a kláves (M1)",
+   "kind": "code",
+   "target": "cloud",
+   "status": "ready",
+   "attempts": 2,
+   "created_at": "2026-10-08 16:51:56"
+  },
+  {
+   "id": 241,
+   "title": "M0: Kostra — scéna z komponent přes registr (přepis monolitu)",
+   "kind": "code",
+   "target": "cloud",
+   "status": "ready",
+   "attempts": 2,
+   "created_at": "2026-10-08 16:51:56"
+  },
+  {
+   "id": 240,
+   "title": "Registr komponent, pevný tik a fronty (M0 — rozsekává sémantický cyklus)",
+   "kind": "code",
+   "target": "cloud",
+   "status": "ready",
+   "attempts": 3,
+   "created_at": "2026-10-08 14:47:55"
+  },
+  {
+   "id": 239,
+   "title": "Nepřítel — kostlivec, boj a loot",
+   "kind": "code",
+   "target": "cloud",
+   "status": "ready",
+   "attempts": 2,
+   "created_at": "2026-10-08 08:35:31"
+  },
+  {
+   "id": 238,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "failed",
+   "attempts": 5,
+   "created_at": "2026-10-07 21:47:55"
+  },
+  {
+   "id": 237,
+   "title": "Nepřítel — kostlivec, boj a loot",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-07 15:20:02"
+  },
+  {
+   "id": 236,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-07 06:08:29"
+  },
+  {
+   "id": 235,
+   "title": "Nepřítel — kostlivec, boj a loot",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-06 22:59:52"
+  },
+  {
+   "id": 234,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-06 13:06:54"
+  },
+  {
+   "id": 233,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-06 10:55:58"
+  },
+  {
+   "id": 232,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-06 10:31:51"
+  },
+  {
+   "id": 231,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-06 09:59:51"
+  },
+  {
+   "id": 230,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-06 09:44:50"
+  },
+  {
+   "id": 229,
+   "title": "Nepřítel — kostlivec, boj a loot",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-05 22:02:54"
+  },
+  {
+   "id": 228,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 5,
+   "created_at": "2026-10-05 02:00:56"
+  },
+  {
+   "id": 227,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 13:32:54"
+  },
+  {
+   "id": 226,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 12:32:54"
+  },
+  {
+   "id": 225,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 12:24:54"
+  },
+  {
+   "id": 224,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 12:01:54"
+  },
+  {
+   "id": 223,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 12:00:54"
+  },
+  {
+   "id": 222,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:49:54"
+  },
+  {
+   "id": 221,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:42:54"
+  },
+  {
+   "id": 220,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:41:54"
+  },
+  {
+   "id": 219,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:40:54"
+  },
+  {
+   "id": 218,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:38:54"
+  },
+  {
+   "id": 217,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:35:54"
+  },
+  {
+   "id": 216,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:33:54"
+  },
+  {
+   "id": 215,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:31:54"
+  },
+  {
+   "id": 214,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:15:54"
+  },
+  {
+   "id": 213,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:04:54"
+  },
+  {
+   "id": 212,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:03:54"
+  },
+  {
+   "id": 211,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 11:02:54"
+  },
+  {
+   "id": 210,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:51:54"
+  },
+  {
+   "id": 209,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:50:54"
+  },
+  {
+   "id": 208,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:49:54"
+  },
+  {
+   "id": 207,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:47:54"
+  },
+  {
+   "id": 206,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:46:54"
+  },
+  {
+   "id": 205,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:31:54"
+  },
+  {
+   "id": 204,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:25:54"
+  },
+  {
+   "id": 203,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:14:54"
+  },
+  {
+   "id": 202,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:12:54"
+  },
+  {
+   "id": 201,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:11:54"
+  },
+  {
+   "id": 200,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:02:54"
+  },
+  {
+   "id": 199,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 10:01:54"
+  },
+  {
+   "id": 198,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 09:51:54"
+  },
+  {
+   "id": 197,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 09:50:54"
+  },
+  {
+   "id": 196,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 09:39:54"
+  },
+  {
+   "id": 195,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 09:37:54"
+  },
+  {
+   "id": 194,
+   "title": "NPC — obchodník",
+   "kind": "code",
+   "target": "cloud",
+   "status": "blocked",
+   "attempts": 0,
+   "created_at": "2026-10-04 09:35:54"
+  }
+ ],
+ "status": {
+  "runs": [
+   {
+    "id": 465,
+    "task_id": 240,
+    "title": "Registr komponent, pevný tik a fronty (M0 — rozsekává sémantický cyklus)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 21:12:57",
+    "finished_at": "2026-10-08 21:14:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 464,
+    "task_id": 243,
+    "title": "Kolize těles a spojité řazení hloubky (M1)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 21:02:02",
+    "finished_at": "2026-10-08 21:22:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 463,
+    "task_id": 242,
+    "title": "Vstup — záměr pohybu z myši a kláves (M1)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 21:01:59",
+    "finished_at": "2026-10-08 21:03:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 462,
+    "task_id": 241,
+    "title": "M0: Kostra — scéna z komponent přes registr (přepis monolitu)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 21:01:55",
+    "finished_at": "2026-10-08 21:23:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 461,
+    "task_id": 240,
+    "title": "Registr komponent, pevný tik a fronty (M0 — rozsekává sémantický cyklus)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 17:51:56",
+    "finished_at": "2026-10-08 18:12:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 460,
+    "task_id": 243,
+    "title": "Kolize těles a spojité řazení hloubky (M1)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 16:52:05",
+    "finished_at": "2026-10-08 16:54:54",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 459,
+    "task_id": 242,
+    "title": "Vstup — záměr pohybu z myši a kláves (M1)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 16:52:02",
+    "finished_at": "2026-10-08 17:12:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 458,
+    "task_id": 241,
+    "title": "M0: Kostra — scéna z komponent přes registr (přepis monolitu)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 16:51:59",
+    "finished_at": "2026-10-08 16:56:04",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 457,
+    "task_id": 240,
+    "title": "Registr komponent, pevný tik a fronty (M0 — rozsekává sémantický cyklus)",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 14:47:57",
+    "finished_at": "2026-10-08 14:51:07",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 456,
+    "task_id": 239,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 11:39:07",
+    "finished_at": "2026-10-08 11:40:54",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 455,
+    "task_id": 238,
+    "title": "NPC — obchodník",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 11:36:51",
+    "finished_at": "2026-10-08 11:38:50",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 454,
+    "task_id": 239,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 08:35:33",
+    "finished_at": "2026-10-08 08:37:53",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 453,
+    "task_id": 238,
+    "title": "NPC — obchodník",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 08:35:31",
+    "finished_at": "2026-10-08 08:36:48",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 452,
+    "task_id": 238,
+    "title": "NPC — obchodník",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 05:16:57",
+    "finished_at": "2026-10-08 05:18:52",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 451,
+    "task_id": 237,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 05:16:53",
+    "finished_at": "2026-10-08 05:19:49",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 450,
+    "task_id": 238,
+    "title": "NPC — obchodník",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 02:01:11",
+    "finished_at": "2026-10-08 02:02:51",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 449,
+    "task_id": 237,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-08 02:01:08",
+    "finished_at": "2026-10-08 02:02:50",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 448,
+    "task_id": 238,
+    "title": "NPC — obchodník",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-07 21:48:00",
+    "finished_at": "2026-10-07 21:49:50",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 447,
+    "task_id": 237,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-07 21:47:57",
+    "finished_at": "2026-10-07 21:51:00",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   },
+   {
+    "id": 446,
+    "task_id": 237,
+    "title": "Nepřítel — kostlivec, boj a loot",
+    "status": "failure",
+    "worker": null,
+    "started_at": "2026-10-07 18:23:03",
+    "finished_at": "2026-10-07 18:24:52",
+    "summary": "GitHub Actions: failure",
+    "pr_url": null
+   }
+  ]
+ },
+ "health": {
+  "ok": true,
+  "time": "2026-10-08T23:02:39.288Z",
+  "ready": 5,
+  "running": 0,
+  "games": 1,
+  "workers": [
+   {
+    "name": "oracle-frankfurt",
+    "kinds": "test,build,assets",
+    "last_seen": "2026-10-08 23:00:47",
+    "minutes_ago": 1
+   },
+   {
+    "name": "pc-domaci",
+    "kinds": "assets,test,build",
+    "last_seen": "2026-10-04 21:29:13",
+    "minutes_ago": 5853
+   }
+  ],
+  "targets": [
+   {
+    "game_id": "uo-shadows",
+    "repo": "ssevcikm-spec/uo-shadows",
+    "branch": "main",
+    "main_ci": {
+     "workflow": "ci.yml",
+     "status": "completed",
+     "conclusion": "success",
+     "created_at": "2026-10-08T19:09:11Z",
+     "head_sha": "01a9649ff5c75816ed2c24611203ffcca3ae35bf",
+     "run_number": 124,
+     "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37829781589"
+    },
+    "forge": {
+     "ok": false,
+     "selhani_v_rade": 20,
+     "posledni": [
+      {
+       "run_number": 346,
+       "conclusion": "failure",
+       "created_at": "2026-10-08T21:12:58Z",
+       "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37845182179"
+      },
+      {
+       "run_number": 345,
+       "conclusion": "failure",
+       "created_at": "2026-10-08T21:02:03Z",
+       "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37843861714"
+      },
+      {
+       "run_number": 344,
+       "conclusion": "failure",
+       "created_at": "2026-10-08T21:02:00Z",
+       "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37843855679"
+      },
+      {
+       "run_number": 343,
+       "conclusion": "failure",
+       "created_at": "2026-10-08T21:01:57Z",
+       "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37843848703"
+      },
+      {
+       "run_number": 342,
+       "conclusion": "failure",
+       "created_at": "2026-10-08T17:51:58Z",
+       "url": "https://github.com/ssevcikm-spec/uo-shadows/actions/runs/37819850060"
+      }
+     ]
+    },
+    "measured_at": "2026-10-08T23:02:38.508Z",
+    "error": null
+   }
+  ]
+ },
+ "stavy": {
+  "roadmap_status": 200,
+  "queue_status": 200,
+  "status_status": 200,
+  "health_status": 200
+ }
+}

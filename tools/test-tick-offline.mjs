@@ -201,12 +201,20 @@ function fakeDb(cfg) {
     if (sql.includes('SELECT item_id, task_id FROM roadmap')) {
       return { results: cfg.roadmapRadky ?? [] };
     }
+    // P29/B6: kolik běhů spálila KTERÁ granule (`grainRuns` → strop `GRAIN_MAX_RUNS`).
+    // Bez tohohle přepínače se scénář „granule nad stropem se POJMENUJE“ nedá
+    // sestrojit — a `find()` by se zase jen tvrdil z kódu.
+    if (sql.includes('GROUP BY item_id')) return { results: cfg.granuleRuns ?? [] };
+    // P29/B6: úlohy, které drží cooldown. SQL je vyfiltruje DŘÍV, než je vidí
+    // `find()`, takže tik musí umět říct, kolik jich bylo (jinak zůstane „0 úloh“).
+    if (sql.includes('JOIN roadmap rm ON rm.task_id = t.id')) {
+      return { results: cfg.cooldownUlohy ?? [] };
+    }
     // `/tasks/cleanup` (dry_run): ukázka úloh bez vazby
     if (sql.includes('SELECT id, title, status FROM tasks')) {
       return { results: cfg.ukazkaUkolu ?? [] };
     }
     if (sql.includes('FROM roadmap') && sql.includes('eskalovano')) return { results: [] };
-    if (sql.includes('GROUP BY item_id')) return { results: [] };
     if (sql.includes('FROM roadmap r LEFT JOIN tasks t')) {
       return { results: cfg.roadmapRadky ?? [] };       // `/roadmap`
     }
@@ -327,7 +335,8 @@ function envFor(cfg) {
       RETRY_HOURS: '3',
       MAX_ATTEMPTS: '5',
       ESCALATE_AFTER: '3',
-      GRAIN_MAX_RUNS: '0',
+      // P29/B6: strop granule musí jít v testu ZAPNOUT i vypnout (scénář AE3).
+      GRAIN_MAX_RUNS: cfg.grainMaxRuns ?? '0',
       STALE_MINUTES: '90',
       ROADMAP_FILE: '.forge/roadmap.json',
     },
@@ -370,6 +379,11 @@ function stubGithub(calls, cfg) {
       return json({ grains: cfg.grainsSoubor ?? [GRAIN] });
     }
     if (u.includes('/contents/') && cfg.aktivniHra) {
+      // P29/B6: `contentsChyba` umí čtení roadmapy hry ZVÝŠIT (HTTP 500) —
+      // právě na tom stojí pojistka „nenačtená roadmapa NESMÍ mazat osiřelé
+      // řádky cache“ (scénář AE2). Bez tohohle přepínače by se pojistka
+      // testovat nedala a tvrdila by se jen z kódu.
+      if (cfg.contentsChyba) return new Response('rozbito', { status: 500 });
       const doc = { grains: [GRAIN] };
       return json({ content: Buffer.from(JSON.stringify(doc), 'utf8').toString('base64'), encoding: 'base64' });
     }
@@ -1374,6 +1388,74 @@ async function main() {
     const { env } = envFor({ aktivniHra: true, gamesRadky: [] });
     const { body } = await post(mod, env, '/games');
     check('AD2: prázdný registr → `games: []`', body?.games, []);
+  }
+
+  // ── AE) P29/B6: OSIŘELÉ ŘÁDKY CACHE SE UKLÍZEJÍ SAMY ─────────────────────
+  // Naměřeno ŽIVĚ 9. 10. 2026 (`POST /tasks/cleanup?dry_run`): 21 granulí
+  // v souborech, **25 řádků v cache, 5 osiřelých** — z toho `entity.enemy`
+  // s úlohou **#239 `ready`**. Ruční úklid existoval, ale nikdo ho nevolal.
+  {
+    const ORPHAN = {
+      item_id: 'test/stara', task_id: 9, rstatus: 'queued', tstatus: 'ready',
+      rupd: '2026-10-07T10:00:00Z',
+    };
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav, vazby } = envFor({
+      aktivniHra: true, roadmapRadky: [ROADMAP_ROW, ORPHAN],
+    });
+    const { body } = await tick(mod, env);
+    check('AE: osiřelý řádek cache se SMAŽE', stav.smazaneRadky, 1);
+    check('AE: a maže se KONKRÉTNÍ item_id (ne naslepo)',
+      vazby.filter((v) => /DELETE FROM roadmap WHERE item_id = \?/.test(v.sql))
+        .map((v) => v.args[0]), ['test/stara']);
+    check('AE: řádek, jehož granule V SOUBORU JE, se NEMAŽE',
+      vazby.some((v) => v.args?.[0] === 'test/grain.jedna'), false);
+    check('AE: tik počet uklizených řádků VYPÍŠE (jinak je úklid tichý)',
+      /osiřelých řádků uklizeno: 1/.test(String(body?.message || '')), true);
+  }
+
+  // ── AE2) POJISTKA: nenačtená roadmapa NESMÍ mazat ───────────────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true, contentsChyba: true });
+    const { env, stav, log } = envFor({
+      aktivniHra: true,
+      roadmapRadky: [ROADMAP_ROW, { item_id: 'test/stara', task_id: 9 }],
+    });
+    await tick(mod, env);
+    check('AE2: roadmapu hry jsme se OPRAVDU pokusili přečíst',
+      calls.some((u) => u.includes('/contents/')), true);
+    check('AE2: nenačtená roadmapa → ŽÁDNÉ mazání', stav.smazaneRadky, 0);
+    check('AE2: a v logu není ani DELETE', bylZapis(log, /DELETE FROM roadmap/), false);
+  }
+
+  // ── AE3) STROP GRANULE SE POJMENUJE (dřív `find()` mlčel) ───────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({
+      aktivniHra: true, roadmapRadky: [ROADMAP_ROW], grainMaxRuns: '8',
+      granuleRuns: [{ item_id: 'test/grain.jedna', runs: 9 }],
+    });
+    const { body } = await tick(mod, env);
+    const zprava = String(body?.message || '');
+    check('AE3: granule nad stropem se NEVYDÁ', /spusteno: 0 úloh/.test(zprava), true);
+    check('AE3: a tik strop POJMENUJE i s číslem (dřív ticho)',
+      /STROP GRANULE 9\/8 \(test\/grain\.jedna\)/.test(zprava), true);
+  }
+
+  // ── AE4) COOLDOWN SE POJMENUJE (SQL ho vyfiltruje dřív, než ho `find()` vidí)
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env } = envFor({
+      aktivniHra: true, roadmapRadky: [ROADMAP_ROW], taskStatus: 'failed',
+      cooldownUlohy: [{ id: 7 }, { id: 8 }],
+    });
+    const { body } = await tick(mod, env);
+    check('AE4: tik vypíše, KOLIK úloh drží cooldown a které',
+      /v cooldownu 2 úloh: #7, #8/.test(String(body?.message || '')), true);
   }
 
   console.log();
