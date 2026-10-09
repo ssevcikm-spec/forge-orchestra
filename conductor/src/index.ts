@@ -1486,10 +1486,15 @@ export default {
     // orchestra na mrtvých granulích a granule s `model: strong` se pouštěly
     // slabým modelům (úloha #103 měla 15 pokusů).
     //
-    // Co dělá:
-    //   - smaže řádky v `roadmap` (pro jednu hru, nebo všechny),
-    //   - vrátí jejich selhané úkoly do fronty (status='ready', attempts=0),
-    //     aby se rozjely znovu — už se správným modelem z roadmapy.
+    // Co dělá: VYPRAZDNÍ CACHE — smaže řádky v `roadmap` (pro jednu hru, nebo
+    // všechny). Frontu postaví znovu až další tik (`roadmapTick`) z AKTUÁLNÍHO
+    // souboru roadmapy; tenhle endpoint úkoly do fronty NEVRACÍ.
+    // ⚠ OPRAVENO 9. 10. 2026 (nález H128): dřív tu stálo „vrátí jejich selhané
+    // úkoly do fronty (status='ready', attempts=0)". To platilo pro PRVNÍ verzi
+    // a od 30. 9. 2026 je to NEPRAVDA — vracení úkolů vyrábělo ZOMBIE úlohy
+    // (stejná práce jela dvakrát: #115–#118 paralelně s #119–#122). Podrobně to
+    // vysvětluje komentář u samotného DELETE níž („POZOR — historie a proč to je
+    // takhle“), se kterým byl tenhle odstavec v ROZPORU.
     // Co NEDĚLÁ: nemaže úkoly ani běhy (historie zůstává) a nemaže `games`.
     //
     // Po resetu se stav obnoví sám: conductor si v dalším tiku načte roadmapu
@@ -1555,8 +1560,14 @@ export default {
     // řádek `roadmap` a které nejsou zrovna `running`.
     // Co NEDĚLÁ: nesahá na běžící ani hotové úkoly, nemaže běhy.
     //
-    // Doporučený postup: nejdřív se hra vypne (`/game/active` false), pak
-    // cleanup, pak se hra zapne — tiky mezitím nezakládají nové úkoly.
+    // ⚠ SPRÁVNÉ POŘADÍ (opraveno 9. 10. 2026, nález H128): **nejdřív PUSH**
+    // (roadmapa se čte z `main` v GitHubu — odtud, řádek s `raw.githubusercontent.com`),
+    // **pak cleanup — a hru NECH ZAPNUTOU**. Dřív tu stálo „nejdřív se hra vypne
+    // (`/game/active` false), pak cleanup, pak se hra zapne“; to je
+    // NEPROVEDITELNÉ, protože `listGames` vrací jen hry `active = 1`: s vypnutou
+    // hrou je seznam her prázdný → `platne` prázdné → endpoint vrátí **503**
+    // („žádná platná granule – roadmapy jsou prázdné, nemažu“) a neudělá NIC.
+    // Naměřeno na živé službě 9. 10. 2026: hra vypnutá → 503, hra zapnutá → 200.
     if (path === "/tasks/cleanup" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
       const body = await request.json<{ dry_run?: boolean }>()
