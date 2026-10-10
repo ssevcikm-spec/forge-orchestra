@@ -183,7 +183,33 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    „server posílá nový artefakt“): stahuje LOG nasazovacího běhu
              #    (`/actions/jobs/<id>/logs`, 302 na blob storage) a vytahuje
              #    z něj `Current Version ID` / `Uploaded`. Pouští se ručně.
-             "p32-sonda-cf-verze.mjs"}
+             "p32-sonda-cf-verze.mjs",
+             # ⚠ PŘESKOČENO 9. 10. 2026 (P33) — tři nové soubory, každý z JINÉHO
+             # důvodu (a každý s KÓDEM, ne jen se jménem):
+             #  * `p33-mutace.py` je MUTAČNÍ TEST měřidla P33: vrací vadu do KOPIE
+             #    dokumentu (seam `P33_HANDOFF`) a podstrkuje POST-nasazovací
+             #    `/health` jako „stav před nasazením“ (seam `P33_HEALTH`). Dávka
+             #    má POJISTKU PROTI ZÁPISU, která hash dokumentů sleduje — mutační
+             #    test do ní nepatří (stejný důvod jako `p30-mutace.py`/
+             #    `p31-mutace.py`/`p32-mutace.py`).
+             #  * `p33-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — běží v LEVNÉM
+             #    režimu (~30 s, bez mutací a bez `g3`) a vypisuje čítač pro tuhle
+             #    dávku. `--plne` (kontramutace, úklid) a `--jen C4`/`--jen C9`
+             #    se v dávce NEPOUŽÍVAJÍ: mutují živé soubory, jsou drahé, nebo
+             #    by rekurzivně pouštěly `p20-d`/`g3`.
+             #  * `p33-sonda-health.mjs` je SONDA ŽIVÉ SLUŽBY (přečte `/health`,
+             #    uloží odpověď a zhodnotí ji predikátem brány) — dávka hledá jen
+             #    `*.py`, takže se jí netýká; je tady proto, aby bylo VIDĚT, že se
+             #    pouští ručně (vzor `p30-sonda-*`).
+             #  * `p33-sonda-inventar.py` je DIAGNOSTIKA „který soubor rozešel
+             #    otisk vstupů inventáře" — pouští skener znovu a porovnává
+             #    seznamy; v dávce by jen zdržovala a nic netvrdila o projektu.
+             #  * `p33-zapis-zaznamu.py` je ZÁPISOVÝ PATCHER (píše `HANDOFF.md`,
+             #    `KRONIKU` a `PLAN-DALSI-KROK.md`) — stejná třída jako `p27-*`
+             #    a `p32-zapis-zaznamu.py`. V dávce se spouštět NESMÍ: dávka má
+             #    POJISTKU PROTI ZÁPISU a tenhle skript zapisuje ZÁMĚRNĚ.
+             "p33-mutace.py", "p33-sonda-health.mjs", "p33-sonda-inventar.py",
+             "p33-zapis-zaznamu.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

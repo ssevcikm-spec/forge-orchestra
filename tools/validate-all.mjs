@@ -8,6 +8,9 @@ const PARENT = dirname(__dir);
 // Kompletni validace infrastruktury orchestra.
 import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+// H112 (P33): predikát „běží cron?“ je VYTAŽENÝ do čisté funkce, aby se dal
+// ověřit fixturami (`tools/test-cron-stav.mjs`) — ne jen proti živé službě.
+import { zhodnotCron } from './cron-stav.mjs';
 
 const ORCH = join(PARENT);
 // ⚠ P13c (4. 10. 2026): hra je SOUROZENEC repa, ne `PARENT/games/uo-shadows`.
@@ -42,10 +45,35 @@ const test = (nazev, podminka, detail = '') => {
   console.log(`  ${OK(podminka)} ${nazev}${detail ? '  — ' + detail : ''}`);
 };
 
+// POZOR NA SANDBOX: spouštíme s `stdio: 'inherit'`, ne s `pipe`. V DSH sandboxu
+// podproces s pipovaným stdio spadne na `spawn EPERM` (ověřeno 30. 9. 2026) –
+// a vypadalo by to jako vada testu, ne jako omezení prostředí. S `inherit`
+// funguje obojí a stav je pořád spolehlivý.
+// ⚠ P33 (H112): definice je ODSUD (dřív stála až u sekce J), protože ji nově
+// používá i sekce A na offline test predikátu cronu.
+const spust = (prikaz, parametry) => {
+  const vysledek = spawnSync(prikaz, parametry, { stdio: 'inherit', cwd: `${ORCH}/..` });
+  if (vysledek.error) return { stav: `chyba: ${vysledek.error.code || vysledek.error.message}` };
+  return { stav: vysledek.status };
+};
+
 console.log('════ A. CONDUCTOR (runtime) ════');
 const h = await cond('/health');
 test('conductor odpovídá', h.ok === true);
-test('cron běží (čas)', !!h.time, h.time);
+// ⚠ H112 (P33): tady dřív stálo `!!h.time` — tedy jen „služba odpovídá na
+// `/health`“. O běhu CRONU to netvrdilo NIC, a když se 9. 10. 2026 tik
+// zastavil, žádná brána to neohlásila (brána, která nemá jak selhat).
+// Dnes se měří TEP: `last_cron` zapisuje VÝHRADNĚ plánovaný tik (`scheduled`),
+// ruční `POST /tick` ho neobnoví (`last_tick` ano, ale ten se nepoužívá).
+// Limit 10 min při cronu každou minutu znamená „netiká“.
+// Predikát je v `tools/cron-stav.mjs`; hned po něm se pouští jeho offline test
+// s fixturami (starý tep, chybějící tep, ruční tik) — jinak by „zelená proti
+// živé službě“ nebyla k rozeznání od slepé brány (`overovani` §7.13).
+const cron = zhodnotCron(h, Date.now(), 10);
+test('cron běží (čas)', cron.ok, cron.duvod);
+const cronTest = spust(process.execPath, [`${ORCH}/tools/test-cron-stav.mjs`]);
+test('brána cronu umí spadnout (fixtury: starý tep / chybějící tep / ruční tik)',
+  cronTest.stav === 0, `exit=${cronTest.stav}`);
 test('je registrovaná hra', (h.games ?? 0) >= 1, `games=${h.games}`);
 test('žádná úloha nevisí', (h.running ?? 0) < 10, `running=${h.running}`);
 
@@ -145,16 +173,8 @@ test('.secrets má PAT', readFileSync(`${ORCH}/.secrets/github_pat.txt`, 'utf8')
 // a musí být ověřené stejně jako zbytek pipeline – jinak by se licenční díra
 // jen přesunula z hlavy do souboru, kterému nikdo nerozumí.
 //
-// POZOR NA SANDBOX: spouštíme s `stdio: 'inherit'`, ne s `pipe`. V DSH sandboxu
-// podproces s pipovaným stdio spadne na `spawn EPERM` (ověřeno 30. 9. 2026) –
-// a vypadalo by to jako vada testu, ne jako omezení prostředí. S `inherit`
-// funguje obojí a stav je pořád spolehlivý.
-const spust = (prikaz, parametry) => {
-  const vysledek = spawnSync(prikaz, parametry, { stdio: 'inherit', cwd: `${ORCH}/..` });
-  if (vysledek.error) return { stav: `chyba: ${vysledek.error.code || vysledek.error.message}` };
-  return { stav: vysledek.status };
-};
-
+// ⚠ `spust()` je od P33 definovaný NAHOŘE (u sekce A) — používá ho offline test
+// predikátu cronu; sem se už neopisuje (druhá definice téhož = druhá pravda).
 console.log('\n════ J. ASSETY: REGISTR A LICENČNÍ BRÁNA ════');
 const registrCesta = `${ORCH}/assets/asset-registry.json`;
 let registr = null;

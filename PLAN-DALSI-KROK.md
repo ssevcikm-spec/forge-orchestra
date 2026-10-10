@@ -394,3 +394,44 @@ do hry; nemazat `E:\Workspaces\_acl-oprava-p31\` (cesta zpět k oprávněním).
 `FORGE_REGISTR`/`FORGE_BEZ_REGISTRU` (H137); nemazat
 `E:\Workspaces\_acl-oprava-p31\`; **needitovat záznamy** (HANDOFF/KRONIKA se jen
 doplňují) — měřidlo se opravuje, záznam ne.
+
+## P33 (9.–10. 10. 2026) — CO JE OPRAVENÉ A CO JE NA ŘADĚ
+
+> **Datum spotřeby:** měřeno **9. 10. 2026 22:5x – 10. 10. 2026 0x:xx +02:00**.
+> Co z toho platí dnes, se pozná podle živého `HEAD` (viz `HANDOFF.md` §64).
+
+1. **H112 JE ZAVŘENÉ A NASAZENÉ** (H149): conductor zapisuje tep cronu, `/health`
+   ho posílá a brána `cron běží (čas)` ho **měří** (fixtury + živý tep + uložený
+   stav před nasazením, na který brána spadne). **Nezbývá na tom nic dělat** —
+   jen to příští session **přeměří** (je to tvrzení o měřidle, ne o stavu).
+   **A hned to našlo skutečný výpadek (H156): plánovaný tik neběžel ~5 h**
+   (`15:40:58Z` → `20:40:55Z`), orchestra nevydávala práci a **stará kontrola by
+   byla zelená**. Kdo u orchestra vidí „nic se neděje“, ať se **nejdřív zeptá na
+   `last_cron` v `/health`** — a když je starý > 10 min, tik neběží (stav, ne
+   náhoda). **Příčinu výpadku nikdo nezměřil** (chybí přístup k logům Cloudflare)
+   — je to otevřené pozorování pro příště: **když se to zopakuje, je to úkol.**
+2. **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`) JE NA ŘADĚ** — `g3` končí
+   `exit 1` **pojmenovaně** (1 brána bez čítače: `mutace B (combat)`). Dvě cesty:
+   (a) **deklarovat stav** — v `p28-a-overeni.py` A6 vázat kontrolu na
+   **pojmenovaný** výsledek (`0 NEDEKLAROVANÝCH` + `1 bez čítače`, jménem), nebo
+   (b) **opravit bránu** `mutace B (combat)`, aby čítač měla. ⚠ U (a) pozor na
+   **H135**: přidání kontroly posune čítač a shodí cizí tvrzení — měnit
+   PREDIKÁT, ne počet kontrol.
+3. **Nálezy o vlastním měřidle (H150–H155) jsou poučení, ne práce**: podřetězcová
+   podmínka místo rovnosti jmen, kopie měřidla v podadresáři, mutace mimo měřené
+   okno, krátký sha v API filtru, zápis po přegenerování inventáře a vzor
+   tvrzení, který přeskočí měření. **Kdo staví nové měřidlo, projde si je.**
+4. **P33 NIC NEPŘEPISOVALA**: `HANDOFF.md` i `KRONIKA-PROJEKTU.md` se jen
+   doplňují (řádek 48 + §2.26) a vlastní kontrola to ověřuje (žádný starý
+   neprázdný řádek nesmí v novém textu chybět).
+
+**Co NEDĚLAT:** nepsat do hry; nepouštět harness z `g3` bez
+`FORGE_REGISTR`/`FORGE_BEZ_REGISTRU` (H137); nespouštět `g3` a `validate-all`
+současně; **needitovat záznamy** (HANDOFF/KRONIKA se jen doplňují); a **BĚHEM
+PLNÉHO BĚHU MĚŘIDLA NEPISOVAT DO STROMU** — i vlastní diagnostický skript mění
+otisk vstupů inventáře (H154).
+
+**STAV NALEZENÝ P33 (nezaměňovat s tvrzením P32):** `g3` → 49 bran /
+0 NEDEKLAROVANÝCH / 1 bez čítače (`mutace B (combat)`, `exit 1`) ·
+`validate-all` → **0 problémů** · vlastní měřidlo P33 (C0–C8) → **112/3/2/4** ·
+`p32-a-overeni.py --plne` → **51/0/2/0** (§63.1 se REPRODUKUJE).

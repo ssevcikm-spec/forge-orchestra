@@ -3284,3 +3284,203 @@ chování** (`/health`, `/tasks/cleanup {dry_run}` → 200, osiřelých 0).
 
 Tím je **C4′ zavřené** (nález **H148**) a z nabídky Úkolu B zbývají jen
 **H133** a **H112** (obě v §63.6).
+
+## 64. P33 — PŘEMĚŘENÍ P32 VLASTNÍM MĚŘIDLEM A ZAVŘENÍ H112 (9.–10. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P33 + stav po P33**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**48**, nálezy **§2.26**), plán (`PLAN-DALSI-KROK.md`, dodatek P33). Zadání P33
+je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **9. 10. 2026 22:5x – 10. 10. 2026 0x:xx +02:00**
+> (živý čas z hodin, ne ze zadání). Tvrzení o **stavu** (HEAD, hra, živá služba)
+> platí k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.26), aby každý nález byl dohledatelný
+> z HANDOFF.md:** H149 = **H112 ZAVŘENO** — brána „cron běží (čas)“ měřila
+> `!!h.time` (tj. že služba odpovídá) a o běhu cronu netvrdila nic; služba dnes
+> zapisuje **TEP** (`last_cron` jen z `scheduled`, ruční `POST /tick` ho
+> NEOBNOVÍ), `/health` ho posílá a brána ho **měří** · H150 = **podřetězcová
+> kontrola v novém nástroji** (`endsWith("cron-stav.mjs")`) se nechala uspokojit
+> `test-cron-stav.mjs` (táž třída jako H140) · H151 = **kopie spustitelného
+> měřidla v PODADRESÁŘI `_analyza/` neměří nic** (`ModuleNotFoundError` na
+> `_mutace` → kontramutace „prošla“ bez čítače) · H152 = **mutace „prvního
+> výskytu v CELÉM dokumentu“ mine okno, které měřidlo měří** · H153 = **GitHub
+> API `?head_sha=<KRÁTKÝ sha>` tiše vrátí prázdno** → krok 3 ověření nasazení
+> hlásil „na commitu NENÍ žádný běh“, ačkoli tam JE · H154 = **vlastní
+> diagnostické skripty session rozešly otisk vstupů inventáře** (napsané PO
+> přegenerování) → `g3` i `validate-all` hlásily „zastaralý inventář“ a vypadalo
+> to jako vada bran.
+
+### 64.1 Úkol A — VLASTNÍ MĚŘIDLO P33 (`_analyza/p33-a-overeni.py`)
+
+**Plný běh (C0–C8): 112/3/2/4** (doklad `_analyza/p33-a-overeni-vystup.txt`).
+Každé tvrzení se **PŘEČTE Z §63** (vypisuje se okno, které vzor trefil) a pak se
+měří; **C1** má **VLASTNÍ kontramutace** (vady se vracejí do KOPIÍ měřidel, u
+H142 do ŽIVÉHO patcheru pod `mutuj`), **C8** měří Úkol B ve TŘECH vrstvách.
+**Dlouhé nohy mají vlastní běhy** (`--jen C9`, `--jen C4`) a jejich čísla se
+do záznamu **čtou z dokladů**.
+
+**Úkol A1 (umí opravy P32 spadnout?):**   * OK        C1-a ŽIVÝ `p22-test-mutace.py` → exit 0 a 20/0 (naměřeno 0, ('20', '0'), 0 s)
+  * OK        C1-a s VRÁCENOU vadnou kontrolou test SPADNE (exit=1, čítač ('20', '1')) — verdikt se MĚNÍ, kontrola je nosná
+  * OK        C1-b ALE fixturu ZAPSAL (f5bd9bd81a2d → d5866bf112ed) → kontrola „nezapsáno“ MĚŘÍ
+  * OK        C1-c a DOBĚHNE S ČÍTAČEM (('11', '2')) — dřív to byl `exit 1` BEZ čítače, takže se ztratil celý diferenciál
+  * OK        C1-c a vadná kotva se hlásí POJMENOVANĚ (ne jen pád)
+  * OK        C1-d `p32-mutace.py` → exit 0 a 18/0 (naměřeno 0, ('18', '0'), 71 s)
+  * OK        C1-f `p32-test-zapis-kotvy.py` → exit 0 a 16/0 (naměřeno 0, ('16', '0'), 0 s)
+
+**Úkol A2 (co P32 nasadila?):**   * OK        C2 41aa981 (21 souborů): ŽÁDNÝ z `conductor/` ani `.github/`
+  * OK        C2 0b86c2d: mění PRÁVĚ `conductor/src/index.ts` (['conductor/src/index.ts'])
+  * OK        C2-1 `ls-remote` = živý `HEAD` (675f13ab076e)
+  * OK        C2-2 `deploy.yml` na `0b86c2d` → completed/success (exit=0, 1 s)
+  * OK        C2-3 verze z LOGU nasazení obsahuje `bb32fe74` (exit=0, 2 s)
+
+**Úkol A3 (sedí čísla z §63?):**   * ROZDÍL    C9-1 `p31-a --plne`: §63 tvrdí 43/5/2/1, naměřeno 51/4/2/0 (rozdíl se POJMENOVÁVÁ, neschovává)
+  * NEZMĚŘENO C9-2 `p32-a --plne` PŘESKOČENO seamem P33_C9_PRESKOC — změřeno dřív (doklad `_analyza/p33-c9-vystup.txt`: 51/0/2/0 = §63.1 SE REPRODUKUJE)
+  * OK        C9-3 p31-mutace: §63 tvrdí 24/0 a naměřeno 24/0 (exit=0, 1174 s)
+  * OK        C9-3 p31-a --jen A1 --plne: §63 tvrdí 11/0 a naměřeno 11/0 (exit=0, 264 s)
+* C9 se pouští `--jen C9`: `p31-a-overeni.py --plne` a `p32-a-overeni.py --plne`
+  (doklady `_analyza/p33-p31a-plne-vystup.txt`, `_analyza/p33-c9-vystup.txt`).
+  ⚠ **§63.2 TVRDÍ `p31-a --plne` 43/5/2/1 A NEREPRODUKUJE SE: naměřeno
+  `51/4/2/0`.** Je to **záznam STAVU PŘED opravou H145** (čtyři z pěti chyb měly
+  ten jediný kořen) — dnes ty chyby nejsou, zato A1 doběhne CELÝ (proto +8
+  kontrol a 0 NEZMĚŘENO). Rozdíl je **pojmenovaný**, ne schovaný; čtyři dnešní
+  chyby jsou vypsané v dokladu (`p33-p31a-plne-vystup.txt`).
+* ⚠ **VZOR TVRZENÍ NESMÍ UMĚT PŘESKOČIT MĚŘENÍ** (H155): první běh C9 měl
+  rozbitý vzor (hvězdičky tučného písma jsou v §63 JINDE, než vzor čekal) →
+  **přeskočil 45minutové měření** a C9-4 pak hlásila „běh neproběhl“; chyba
+  vzoru se tvářila jako NEMĚŘENO. Dnes se **nejdřív měří, pak hledá tvrzení**.
+* Dva vzory tvrzení byly vadné i v sekci C3 (`p22-test-mutace` mířil na CITACI
+  starého stavu `19/1`, `tick-mutace` vyžadoval hvězdičky, které v §63 nejsou) —
+  naměřeno ve plném běhu, opraveno a **přeměřeno** zvlášť
+  (`_analyza/p33-c3-po-oprave-vystup.txt`, `_analyza/p33-c9l-vystup.txt`).
+
+**Úkol A4 (dávka dokladů):**   * CHYBA     C4 dávka `p31-a-overeni.py --jen A4` → exit 0
+  * OK        C4 ani JEDEN ze 4 sledovaných dokumentů se nezměnil (hash před/po): žádný
+  * CHYBA     C4 pojistka dávky to ŘEKLA: „žádný z 4 sledovaných dokumentů se nezměnil“
+  * OK        C4 sekce „KDO ZAPSAL“ je PRÁZDNÁ (H138)
+  * OK        C4 dávka neohlásila ŽÁDNÝ „ZMĚNĚN“ dokument
+
+**Úkol A5 (registr bran):**   * OK        C5 `ag-over-cisla.py` → exit 0 (číslům v AGENTS.md odpovídá zdroj)
+  * OK        C5 `_registr-bran.json` → bran_celkem = 49
+
+**Úkol A6 (uklízí se měřidla?):**   * OK        C6 `p29-a --jen A1M13` → exit 0 a 8/0 (naměřeno 0, ('8', '0'), 24 s)
+  * OK        C6 `p29-a --jen A3` → exit 0 a 17/0 (naměřeno 0, ('17', '0'), 4 s)
+  * OK        C6 (H146) po A3 NEZŮSTALA kopie testu tiku `p29-kopie-tick.mjs`
+
+**Úkol A7 (nic se nerozbilo):**   * OK        C7 g3 měří 49 bran (naměřeno 49)
+  * CHYBA     C7 g3: 0 NEDEKLAROVANÝCH nenulových exitů (naměřeno 1)
+  * OK        C7 g3 hlásí POJMENOVANĚ 1 bránu bez čítače (`mutace B (combat)`) — H133: BEZ ČÍTAČE mimo deklarovaný stav: 1 → mutace B (combat)
+  * OK        C7 `validate-all` → VŠE V POŘÁDKU a exit 0
+  * OK        C7 brána `cron běží (čas)` je ZELENÁ a měří tep
+  * OK        C7 a její offline fixtury prošly
+  * OK        C7 v HANDOFF.md ani v KRONICE neubyl ANI JEDEN řádek
+
+**MUTAČNÍ DŮKAZ MĚŘIDLA:** `_analyza/p33-mutace.py` → **19/0** — (M1) měřidlo nad
+**zmutovanou KOPIÍ** dokumentu (seam `P33_HANDOFF`, tvrzení v §63 `92/0` →
+`93/0`) **spadne** a živý dokument se nezmění; (M2) s **POST-nasazovacím**
+`/health` podstrčeným jako „stav před nasazením“ (seam `P33_HEALTH`) spadne
+kontrola C8-5 → měří; (M3) oba živé soubory jsou po testu **bajt na bajt**.
+
+**POJMENOVANÉ ROZDÍLY (stav, ne vada měřidla): C3 p30-a-overeni: §63 tvrdí 32/3, dnes 21/2 (STAV se posunul, ne vada měřidla); C7 `g3` končí exit=1 — je to POJMENOVANÝ stav (1 brána bez čítače: `mutace B (combat)`), ne neočekávaný exit; nález H133 zůstává otevřený**
+**NEZMĚŘENO (není nula a není zelená): C3 `p31-a-overeni.py --plne` (43/5/2/1) — měří sekce C9 (`--jen C9`); C3 `p32-a-overeni.py --plne` (51/0+2/0) — měří sekce C9 (`--jen C9`); C3 `p31-mutace.py` (24/0) — měří sekce C9 (`--jen C9`); C3 `p31-a --jen A1 --plne` (11/0) — měří sekce C9 (`--jen C9`); (není nula a není zelená): 4**
+
+### 64.2 Úkol B — H112 ZAVŘEN: BRÁNA „CRON BĚŽÍ (ČAS)“ UŽ MĚŘÍ TEP CRONU
+
+  * OK        C8-1 offline fixtury predikátu → exit 0 (0 s)
+  * OK        C8-1 a čítač je 8/0
+  * OK        C8-2 v `validate-all.mjs` NENÍ stará podmínka `!!h.time` (ta nemohla selhat)
+  * OK        C8-3 `last_cron` se zapisuje JEN pro cron → ruční tik ho NEOBNOVÍ
+  * OK        C8-4 živý `last_cron` = 2026-10-10T20:40:55.202Z
+  * OK        C8-4 a je čerstvý (`last_cron_min` = 0, limit 10)
+  * OK        C8-5 nad ULOŽENÝM stavem PŘED nasazením brána SPADNE (exit=1)
+  * OK        C8-5 STARÁ podmínka `!!h.time` byla nad TÍMŽ vstupem ZELENÁ (time=2026-10-09T21:02:53.905Z) — proto H112: brána nemohla selhat
+  * OK        C8-5 a ten stav opravdu `last_cron` NEMĚL (doklad z 9. 10. 2026 ~23:00)
+
+**⚠ A BRÁNA HNED NAMĚŘILA SKUTEČNÝ VÝPADEK (H156):** při běhu C4 (10. 10. 2026
+~20:01Z, doklad `_analyza/p33-c4-vystup.txt`) měřidlo v sekci C8-4 naměřilo
+**`last_cron` 260 min starý** a `last_tick_zdroj = manual`; přímé měření
+v **20:31:51Z** dalo `last_cron = 2026-10-10T15:40:58.115Z` (**291 min**),
+`last_tick = 2026-10-10T18:34:17.281Z` (zdroj `manual`), `ready = 3`,
+`running = 0` — a **stará podmínka `!!j.time` byla nad TÍMTÉŽ vstupem ZELENÁ**.
+Plánovaný tik tedy **neběžel ~5 hodin** a orchestra nevydávala práci; **tik se
+obnovil v `20:40:55Z`** (naměřeno C8-4 plného běhu: `last_cron_min = 0`, zdroj
+`cron`) a `validate-all` je od té doby zelený (`OK cron běží (čas) — last_cron
+… (0 min) · poslední tik zdrojem: cron`). Záznam měření (okno, hodnoty, následky):
+`_analyza/p33-incident-cron-vystup.txt`. **Příčinu z tohoto pracoviště určit
+nelze** (bez přístupu k logům Cloudflare; `wrangler` v sandboxu padá na
+`spawn EPERM`) — naměřeno je OKNO a NÁSLEDEK, ne příčina.** Dočasný důsledek:**
+během výpadku byl `validate-all` uvnitř `g3` červený → `g3` hlásil
+**1 NEDEKLAROVANÝ exit** (naměřeno v C7 téhož běhu); po obnovení cronu hlásí
+tentýž `g3` **0 NEDEKLAROVANÝCH** (doklad `_analyza/p33-g3-pred-zaznamem-vystup.txt`).
+
+**Co se změnilo (dva commity, protože brána potřebuje NASKOZENOU službu):**
+1. `conductor/src/index.ts` (commit `675f13a`): `scheduled` po DOKONČENÍ tiku
+   zapíše tep do tabulky `state` (`last_cron`, `last_tick`, `last_tick_zdroj`);
+   `POST /tick` zapíše jen `manual`; `/health` posílá `last_tick`, `last_tick_zdroj`,
+   `last_cron`, `last_cron_min`. Tabulka se **zakládá v kódu** (`CREATE TABLE IF
+   NOT EXISTS`), NE v `schema.sql` — jinak by se rozešla čísla v `AGENTS.md`
+   (`ag-over-cisla.py` měří tabulky/sloupce PRÁVĚ ze `schema.sql`) a spadla by
+   trvalá pravidla (H135).
+2. `tools/cron-stav.mjs` (čistý predikát) + `tools/test-cron-stav.mjs` (8 fixtur)
+   + `tools/validate-all.mjs` (kontrola `cron běží (čas)` ho používá a fixtury
+   pouští jako součást brány).
+3. ⚠ **Mutační kotva v `_analyza/n03-mutace.py` se musela posunout** (M3 cílí na
+   `targets` v návratu `/health`) — naměřeno: bez toho `g3` i `validate-all`
+   hlásily „N0.3: mutace brány → běžela, ale vzor nic nenašel“ a `validate-all`
+   padal na **1 problém**. Je to táž past jako H131/H145: **změna kódu posune
+   mutační kotvu**.
+
+### 64.3 Co zůstalo OTEVŘENÉ (a co se NEMĚŘILO)
+
+* **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`)** — **ZŮSTÁVÁ OTEVŘENÉ**:
+  `g3` končí `exit 1` **pojmenovaně** (1 brána bez čítače: `mutace B (combat)`,
+  `OCEKAVANE_NENULOVE` je prázdný). V P33 se **stav pojmenoval** (C7 to hlásí jako
+  ROZDÍL, ne CHYBU), ale **A6 v `p28-a` se needitoval** — „deklarovat stav“ je
+  změna měřidla a musí mít vlastní měření (a pozor na H135: přidání kontroly
+  posune baseline).
+* **C8-6 se ŽIVĚ neměřilo** (že ruční `POST /tick` neobnoví `last_cron`):
+  `POST /tick` **dispatchuje práci** do cizí hry, takže se to měří **offline
+  fixturou č. 8** (a staticky: `if (zdroj === "cron")`), ne zásahem do stavu.
+* **`p31-a --plne` nebyl v C9 prvním během změřen** (vzor tvrzení) — chyba je
+  opravená a měření proběhlo v druhém běhu; **první doklad se nezakrývá**.
+
+### 64.4 Živý stav při zápisu
+
+```
+orchestra: HEAD 675f13a · origin/main = HEAD (PUSHNUTA) · hra e4dccdb (cizí session)
+           ⚠ NASAZENÍ: H112 tep cronu — `deploy.yml` #37 na `675f13a`
+             (`completed/success`), živá služba `/health` → `last_cron` TIKÁ
+brány:     g3 → 49 bran / 2 nenulové exity (1 deklarovaný `zadání kontrola`,
+           0 NEDEKLAROVANÝCH) / 1 bez čítače (`mutace B (combat)`; exit 1)
+           · validate-all → 0 problémů · vlastní měřidlo P33 112/3/2/4
+           · C9:  · C9-1 `p31-a --plne`: §63 tvrdí 43/5/2/1, naměřeno 51/4/2/0 (rozdíl se POJMENOVÁVÁ, neschovává) · C4 (dávka dokladů): OK        C4 ani JEDEN ze 4 sledovaných dokumentů se nezměnil (hash před/po): žádný
+           · ŽIVÝ TEP: `last_cron` tiká (zdroj `cron`), stará kontrola `!!h.time`
+             by výpadek neviděla (H156)
+```
+
+### 64.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p33-a-overeni.py                 # LEVNÉ sekce (C0,C2,C3,C5,C8)
+python _analyza\p33-a-overeni.py --plne          # i kontramutace, úklid, g3, validate-all
+python _analyza\p33-mutace.py                    # důkaz, že měřidlo umí spadnout (19/0)
+python _analyza\p33-a-overeni.py --jen C9        # p31-a --plne + p32-a --plne (~80 min)
+python _analyza\p33-a-overeni.py --jen C4        # dávka dokladů (~35 min)
+node tools\test-cron-stav.mjs                    # 8 fixtur predikátu cronu
+node tools\validate-all.mjs                      # 0 problémů (a `cron běží (čas)` OK)
+python _analyza\p33-sonda-health.mjs             # ŽIVÝ tep: last_cron + verdikt
+python _analyza\p33-sonda-inventar.py            # který soubor rozešel otisk inventáře
+```
+
+### 64.6 Co čeká na tebe (uživatel)
+
+* **Nic zásadního.** P33 nasadila **jedinou** změnu (H112): conductor zapisuje tep
+  cronu a `/health` ho posílá; **chování práce se nemění** (tik dělá totéž) —
+  přibyla jen observabilita a brána, která ji měří. Ověřeno třemi kroky.
+* **H133** zůstává otevřené (viz 64.3) — je to **práce pro P34**, ne rozhodnutí
+  pro tebe.
+* **Rozhodnutí, které bude potřeba**: jestli se má `g3` stát **blokujícím**
+  (dnes končí `exit 1` pojmenovaně kvůli jedné bráně bez čítače). Dnes to není
+  vada, ale **stav** — a je popsaný.

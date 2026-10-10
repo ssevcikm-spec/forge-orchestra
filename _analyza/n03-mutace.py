@@ -48,8 +48,13 @@ MUTATIONS = [
      'ok: hotove.length ? hotove[0].conclusion === "success" : null,',
      "ok: true,"),
     ("M3 /health neposila targets",
-     "workers: w.results,\n                    targets });",
-     "workers: w.results });"),
+     # ⚠ P33 (H112): kotva se musela posunout — do návratu `/health` přibyl tep
+     # cronu (`...tep`), takže text `targets });` už v souboru NENÍ. Naměřeno
+     # 9. 10. 2026: `g3` i `validate-all` kvůli tomu hlásily „N0.3: mutace brány
+     # → běžela, ale vzor nic nenašel" a `validate-all` padal na 1 problém.
+     # Je to táž past jako H131/H145: **změna kódu posune mutační kotvu**.
+     "workers: w.results,\n                    targets, ...tep });",
+     "workers: w.results,\n                    ...tep });"),
     ("M4 cache bez TTL",
      "expiruje: ted + TARGET_TTL_MS",
      "expiruje: 0"),
