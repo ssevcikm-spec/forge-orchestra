@@ -4808,9 +4808,10 @@ Zadání P39 je v `NEXT-SESSION-INSTRUKCE.md` — a **jeho hlavička se záměrn
 necommituje**, takže `git show HEAD:NEXT-SESSION-INSTRUKCE.md` je **starší
 verze**; to je záměr, ne ztráta.
 
-> **⚠ DATUM SPOTŘEBY:** měřeno **11. 10. 2026 20:53–21:20 UTC** (živý čas
-> z hodin). Tvrzení o **stavu** (HEAD obou repů, živá služba, běhy na GitHubu,
-> Cloudflare Analytics) platí k tomu okamžiku; kdo to čte později, **přeměří**.
+> **⚠ DATUM SPOTŘEBY:** měření služby **11. 10. 2026 20:53–21:05 UTC**, měření
+> bran **21:4x–21:5x UTC** (živý čas z hodin). Tvrzení o **stavu** (HEAD obou
+> repů, živá služba, běhy na GitHubu, Cloudflare Analytics) platí k tomu
+> okamžiku; kdo to čte později, **přeměří**.
 > **Vstupní kotva P39** (z hlavičky zadání) byla `forge-orchestra` = `0e4253a`,
 > `uo-shadows` = `e4dccdb` — **obojí ověřeno živě** (`rev-parse` + `ls-remote`).
 
@@ -5005,8 +5006,42 @@ Nové doklady P39: `p39-tail-raw-vystup.txt`,
 Nové nástroje P39: `p39-a-sluzba-sonda.mjs`, `p39-b-cf-analytika.mjs`,
 `p39-c-agent-behy.mjs`.
 
-### 70.10 Brány po P39 (naměřeno po posledním commitu)
+### 70.10 Brány po P39 (naměřeno po commitu `26e4ce5`)
 
-Výsledky jsou vyplněné níž v témž oddíle — P39 je měřila **po** posledním
-commitu, takže `zadani-kontrola.py` musela vyjít **`exit 0`** (kotva hlavičky
-P40 míří na poslední commit P39, H190).
+| Co | Naměřeno (11. 10. 2026, 23:4x–23:5x UTC) |
+|---|---|
+| inventář (před `g3` i po něm) | **9848 nálezů** (P38: 9794 → **+54** za tři nové `.mjs` nástroje P39) |
+| `g3` (**49 bran**, `FORGE_REGISTR` **mimo repo** `E:\Workspaces\_p39-g3-registr.json`, plné prostředí) | nenulové exity **2**: `mutace B (combat)` → **`exit=2`** (brána HRY, „běžela, ale vzor nic nenašel" — **z orchestry neopravitelná**) a `zadání kontrola` → **`exit=1`** (**deklarovaný** — hlavička zadání ještě tvrdila starý HEAD, protože se píše až po posledním commitu, H190) · **deklarovaných 1, NEDEKLAROVANÝCH 0** · brány, které vůbec nezačaly: **0** · registr zapsán **mimo repo** (živý `_analyza/_registr-bran.json` **nezměněn** — ověřeno `git status`) |
+| `validate-all` (samostatně, po inventáři) | **`exit 0` → `✓ VŠE V POŘÁDKU`** (v něm i `ag-over-cisla` → `exit=0`, „čísla v AGENTS.md odpovídají zdroji") |
+| `kontrola-diakritiky.py` | **VŠE OK** — otevřeno **294 z 338** souborů (archivováno 44, chyb 0). **⚠ Naměřeno i 299 z 343** — a byl to **týž strom**: v tu chvíli existovaly **dočasné fixtury dávky** `_analyza/_p26-*.py` (5 souborů, netrackované a tedy ve seznamu); po jejich úklidu se číslo vrátilo. **Rozdíl čísel je rozdíl ROZSAHU, ne stavu dokumentů** |
+| `over-dokumentaci.py` | **64 kontrol, 0 chyb — VŠE OK** |
+| `over-skilly.py` | **14 skillů, 0 chyb**, 92 zmínek o cestách, **0 mrtvých — VŠE OK** |
+| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **54 sessions**, **195 nálezů H** (H191–H195), 208 omylů, 28 odkazů |
+| `handoff-kontrola-uplnost.py` | **83/83** (součást `g3`, `exit=0`) |
+| `ov-g-neovereno.py` | **0 NEOVĚŘENO**, `exit 0` — `[rozsah: 35 návrhů NAxx + 99 nálezů Hxx v 3 zdrojích]` (+ **139 řádků Hxx v 7 souborech MIMO živé zdroje** — zmrazené kopie a zálohy, záměrně se nečtou). **Nálezů je v HANDOFFu pořád 99**, protože nálezy P39 jsou záměrně **v kronice §2.32** a v §70 **jako próza** (tabulkový řádek `\| **Hxx** \|` by zvedl počítadlo a shodil `ov-g` i měřidla P28) |
+
+> **⚠ TENTÝŽ VÝSLEDEK JAKO P38 (a proto to není nový nález):** `g3` P38
+> (`p38-i-g3-vystup.txt`) hlásí **totéž**: 49 bran, 2 nenulové exity,
+> **1 deklarovaný** (`zadání kontrola`), `NEDEKLAROVANÝCH 0`, 1 brána bez
+> čítače (`mutace B (combat)`). **Rozdíl je jen v tom, že P39 ještě neměla
+> přepsanou hlavičku** — po přepsání (§4 zadání) je i `zadání kontrola`
+> **`exit 0`** (finální cyklus, viz stavový řádek zadání P40).
+> **`validate-all` je zelený poprvé po P37 → a to je splněný požadavek P39**
+> (zadání: „validate-all má být po P38 ZELENÝ (tik tiká) — když červený, je to
+> nový nález, ne výjimka k deklaraci").
+
+> **⚠ DÁVKA `p20-d-doklady.py` (H133) SE V P39 PUSTILA — a co z ní plyne.**
+> Běžela **22:59–23:43Z** (44 min) na pozadí; **nebyla přerušena** (obsahuje
+> `p28-b-mutace.py` a `tick-mutace.py`, tedy mutační běhy, které se přerušovat
+> nesmí). Její **starší měřidla** (p35-a/p36-a/p37-a) skončila `exit=1` —
+> a je to **H168**: měří stav SVÝCH session (např. `origin/main == HEAD`, což
+> po commitu P39 neplatí, dokud se nepushne; a `p35-a` čeká čítač **218/0**,
+> dnes **235/0**). **Dvě věci, které po ní zůstaly, byly uklizeny TÍMTO
+> záznamem:** (a) netrackovaný soubor `_analyza/p34-index-moje-odlozeno.ts`
+> (101 034 B) — záložní kopie, kterou píše `p34-sonda-kotvy.py` (ř. 48)
+> a **nemaže**; **shoda SHA-256 s `conductor/src/index.ts` ověřena**
+> (`87c8af3c…`) a soubor je **přesunut MIMO repo** do
+> `E:\Workspaces\_p39-odlozene\` (**nic se nemazalo**, cesta zpět je doložená);
+> (b) `mtime` dokumentů (dávka je „šeptá" — obsah neměnil, ověřeno `git diff`).
+> **`_registr-bran.json` zůstal nedotčen** (dávka má `FORGE_BEZ_REGISTRU`,
+> nález H138 se neopakoval).
