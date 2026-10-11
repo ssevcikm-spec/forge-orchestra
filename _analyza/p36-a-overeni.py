@@ -359,8 +359,17 @@ def sekce_A3(m, drahe):
     v66 = m.tvrzeni(s66, r"vlastní měřidlo P35\s*(\d+)/0 plně", popis="§66: vlastní měřidlo P35 N/0")
     v66l = m.tvrzeni(s66, r"\(levně\s*(\d+)/0\)", popis="§66: levný běh N/0")
     text_zad = ZADANI.read_text(encoding="utf-8")
-    vzad = m.tvrzeni(text_zad, r"Plný běh → \*\*(\d+) kontrol, 0 chyb\*\*",
-                     kde=ZADANI.name, popis="zadání: plný běh N kontrol, 0 chyb")
+    mz = re.search(r"Plný běh → \*\*(\d+) kontrol, 0 chyb\*\*", text_zad)
+    vzad = mz.group(1) if mz else None
+    # ⚠ Zadání je STAV, ne záznam — každá session ho PŘEPÍŠE, takže tvrzení
+    # v něm po přepisu NENÍ. To není vada měřeného stavu, ale **přesně past
+    # H168** (měřidlo si bere tvrzení z přepisovaného dokumentu). Proto se
+    # nenalezení hlásí jako NEZMĚŘENO s vysvětlením — ne jako CHYBA
+    # (falešná vada by shodila zelené měření nad správným objektem).
+    if not vzad:
+        m.nezmereno_("tvrzení ZADÁNÍ o číslech P35 už v %s NENÍ — zadání bylo "
+                     "přepsáno pro další session (past H168: dokument, který se "
+                     "přepisuje, není záznam)" % ZADANI.name)
 
     if os.environ.get("P36_P35A"):
         dok = P35A_DOKLAD.read_text(encoding="utf-8", errors="replace")
@@ -487,13 +496,21 @@ def sekce_A5(m):
             radky = json.loads(mt.group(0))[0].get("results") or []
 
     if radky is not None:
-        stav = {x["k"]: x["v"] for x in radky}
-        klice = set(stav)
-        if {"last_cron", "cron_pokus"} <= klice:
-            m.ok_("D1 `state` má OBA klíče: last_cron=%s · cron_pokus=%s"
-                  % (stav["last_cron"], stav["cron_pokus"]))
+        if not radky:
+            # Prázdný výsledek NELZE rozlišit od „dotaz neproběhl“ — a proto se
+            # hlásí NEZMĚŘENO (pojmenovaně), ne jako nález o službě. Naměřeno
+            # P36: jednou vrátil wrangler prázdno a týž dotaz o minutu později
+            # čtyři řádky (`last_tick`, `last_tick_zdroj`, `last_cron`, `cron_pokus`).
+            m.nezmereno_("D1 `state` vrátila PRÁZDNÝ výsledek — nelze rozlišit "
+                         "„tabulka je prázdná“ od „dotaz neproběhl“ (zkus znovu)")
         else:
-            m.chyba("D1 `state` nemá oba klíče (má: %s)" % sorted(klice))
+            stav = {x["k"]: x["v"] for x in radky}
+            klice = set(stav)
+            if {"last_cron", "cron_pokus"} <= klice:
+                m.ok_("D1 `state` má OBA klíče: last_cron=%s · cron_pokus=%s"
+                      % (stav["last_cron"], stav["cron_pokus"]))
+            else:
+                m.chyba("D1 `state` nemá oba klíče (má: %s)" % sorted(klice))
 
 
 # ── A6: uklízí se měřidla po sobě? ───────────────────────────────────────────
@@ -535,6 +552,20 @@ def sekce_A7(m, drahe):
     if not drahe:
         m.nezmereno_("A7 (g3, validate-all, kronika, handoff, ov-g) PŘESKOČENO — levný režim")
         return
+    # ⚠ H176 (P36) — INVENTÁŘ MUSÍ BÝT ČERSTVÝ PŘED `g3` **I** PO NĚM:
+    #  * PŘED `g3`: brány, které inventář čtou (`hl-rizika-jazyka.py`), jinak
+    #    skončí `exit 1` — a `g3` to vykáže jako **NEDEKLAROVANÉ nenulové exity**,
+    #    tedy jako vadu BRAN, i když je to jen zastaralý mezivýstup. Naměřeno
+    #    P36: po jedné editaci `.py` bez regenerace hlásil `g3` **4 nenulové
+    #    exity / 2 NEDEKLAROVANÉ** místo **1 / 0** — falešný nález o branách.
+    #  * PO `g3`: `g3` SPOUŠTÍ všech 49 bran a některé do `_analyza/` ZAPISUJÍ
+    #    (`ov-*.json`, registry), takže inventář zestará a `validate-all` spadne
+    #    na „INVENTÁŘ JE ZASTARALÝ“.
+    rc, out, _ = spust(["python", str(ANALYZA / "hl-neanglicky-v-kodu.py"),
+                        "--json", "_analyza/_inventar.json"], timeout=900)
+    m.ok_("PŘED g3 přegenerován inventář (H176): %s"
+          % " | ".join(out.strip().splitlines()[-1:]))
+
     registr = ANALYZA / "p36-g3-registr.json"
     rc, out, _ = spust(["python", str(ANALYZA / "g3-brany.py")], timeout=1800,
                        env={"FORGE_REGISTR": str(registr)})
@@ -560,6 +591,16 @@ def sekce_A7(m, drahe):
                          % (ms.group(3), ms.group(1)))
         else:
             m.nezmereno_("g3: souhrnný řádek o nenulových exitech se nenašel (exit %d)" % rc)
+
+    # ⚠ H176 (P36): `g3` SPOUŠTÍ všech 49 bran a některé do `_analyza/` ZAPISUJÍ
+    # (`ov-*.json`, registry). Inventář se otiskuje z množiny VSTUPŮ, takže po
+    # `g3` je **vždy zase zastaralý** — a `validate-all` pak spadne na
+    # „INVENTÁŘ JE ZASTARALÝ“, což je POJMENOVANÁ, ale FALEŠNÁ vada.
+    # Správné pořadí je proto `g3` → inventář → `validate-all`.
+    rc, out, _ = spust(["python", str(ANALYZA / "hl-neanglicky-v-kodu.py"),
+                        "--json", "_analyza/_inventar.json"], timeout=900)
+    m.ok_("mezi g3 a validate-all PŘEGENEROVÁN inventář (H176): %s"
+          % " | ".join(out.strip().splitlines()[-1:]))
 
     rc, out, _ = spust(["node", str(WS / "tools" / "validate-all.mjs")], timeout=1800)
     if rc == 0:

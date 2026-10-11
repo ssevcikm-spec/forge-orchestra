@@ -4184,3 +4184,35 @@ deklarovat**, musí se přegenerovat. Do zadání P37 je to opravené.
 > **nemůže skončit zeleně**; správně je **g3 → inventář → validate-all**
 > (naměřeno: jinak `✗ 1 PROBLÉM`, po regeneraci bez `g3` `✓ VŠE V POŘÁDKU`).
 
+### 67.10 PŘEMĚŘENÍ PO OPRAVÁCH MĚŘIDLA — FINÁLNÍ ČÍSLO `29/0` (H177)
+
+**§67.1 uvádí `26/3`** — to je stav měřidla **před** opravami, které P36 udělala
+na konci session (H175, H176 a rozlišení „prázdný výsledek ≠ nález“). Po nich se
+měřidlo pustilo **znovu, celé** (`--plne`), a výsledek je:
+
+```
+VÝSLEDEK: 29 kontrol, 0 chyb (z toho 1 ROZDÍLŮ, 1 NEZMĚŘENO, 0 NÁLEZŮ O SLUŽBĚ)
+  ROZDÍL     §66 tvrdí P35 74/0, naměřeno 73/0 — rozdíl se musí POJMENOVAT
+  NEZMĚŘENO  tvrzení ZADÁNÍ o číslech P35 už v NEXT-SESSION-INSTRUKCE.md NENÍ —
+             zadání bylo přepsáno pro další session (past H168)
+  A7: PŘED g3 přegenerován inventář → g3 49 bran / 1 deklarovaný exit /
+      0 NEDEKLAROVANÝCH → PO g3 přegenerován inventář → validate-all ✓ VŠE V POŘÁDKU
+```
+
+**Doklad:** `_analyza/p36-a-overeni-vystup.txt` (gitignorovaný).
+
+**H177 — ZASTARALÝ INVENTÁŘ VYRÁBÍ FALEŠNÉ NÁLEZY O BRANÁCH.** Naměřeno
+v P36: po jedné editaci `.py` (10 řádků v měřidle) a **bez** regenerace inventáře
+vykázal `g3` **`nenulových exitů 4 (deklarovaných 0, NEDEKLAROVANÝCH 2)`** místo
+`1 / 0`. Příčina: brány, které inventář čtou (`hl-rizika-jazyka.py`), skončily
+`exit 1` na **zastaralém mezivýstupu** — a `g3` to vykázalo jako
+**nedeklarované nenulové exity**, tedy jako vadu BRAN. **To je přesně
+„nastražená brána“**: kdo tomu uvěří, půjde opravovat brány, které jsou v pořádku.
+Po regeneraci inventáře **před** `g3` je zase `1 / 0`. **Pravidlo: inventář se
+generuje PŘED `g3` i PO něm** (před: aby inventář-dependentní brány nespadly na
+zastaralý vstup; po: aby `validate-all` nehlásil „INVENTÁŘ JE ZASTARALÝ“).
+
+> **⚠ MAPOVÁNÍ H177 do §2.29:** H177 = **zastaralý inventář vyrobí FALEŠNÝ nález
+> o branách** (`g3`: 4 nenulové exity / 2 NEDEKLAROVANÉ místo 1 / 0) — inventář
+> se proto generuje **před `g3` i po něm**.
+
