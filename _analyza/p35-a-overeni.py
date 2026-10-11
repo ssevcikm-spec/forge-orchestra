@@ -154,6 +154,31 @@ def oddil(vzor, cesta=None):
     return "\n".join(radky[start:konec]), start + 1, konec
 
 
+def pocty_sekci(text):
+    """Čítače `OK` / `NÁLEZ` / `CHYBA` po sekcích (`A0)`, `A1)`, …) z VÝSTUPU měřidla.
+
+    PROČ: „naměřeno 51/0, dokument tvrdí 50/0" je ROZDÍL — a ten se musí
+    POJMENOVAT. Celkový čítač řekne, ŽE se něco posunulo; čítače po sekcích
+    řeknou, KDE (a tím i proč).
+    """
+    d = {}
+    cur = "?"
+    for radek in text.splitlines():
+        m = re.match(r"^([A-Z]\d)\)", radek)
+        if m:
+            cur = m.group(1)
+            d.setdefault(cur, {"OK": 0, "NALEZ": 0, "CHYBA": 0})
+            continue
+        if cur in d:
+            if radek.startswith("  OK"):
+                d[cur]["OK"] += 1
+            elif radek.startswith("  NÁLEZ"):
+                d[cur]["NALEZ"] += 1
+            elif radek.startswith("  CHYBA"):
+                d[cur]["CHYBA"] += 1
+    return d
+
+
 def najdi_tvrzeni(text, vzory):
     """Poslední výskyt vzoru + OKNO, které trefil. Vrací (m, okno, vzor).
 
@@ -448,13 +473,22 @@ def sekce_A4(m, drahe):
     p("  INFO       oddíl §65 = řádky %d–%d (%d znaků)" % (prvni, posledni - 1, len(txt65)))
 
     # 1) MĚŘENÍ: levný běh měřidla P34 (50/0 podle §65.2).
-    # ⚠ VÝSTUPY SE PŘESMĚRUJÍ (i `P34_HEALTH`) — jinak by P35 přepsala DOKLADY
-    # P34, a ty jsou gitignorované, tedy NEVRATNÉ. Naměřeno v P35: první běh
-    # `p34-a-overeni.py` bez `--vystup` přepsal `p34-a-overeni-levny-vystup.txt`
-    # i `p34-health-vystup.txt` (nález H166).
-    env34 = {"P34_HEALTH": str(ANALYZA / "p35-p34a-health-vystup.txt")}
-    kod, out, sec = spust(["python", str(P34A), "--vystup", "_analyza/p35-p34a-levny-vystup.txt"],
-                          env=env34, timeout=900)
+    # ⚠ DOKLADY P34 SE ZÁLOHUJÍ A VRACEJÍ (`p34-health-vystup.txt` i výstup):
+    # jsou gitignorované, tedy NEVRATNÉ. Naměřeno v P35: první běh bez
+    # `--vystup` přepsal `p34-a-overeni-levny-vystup.txt` i `p34-health-vystup.txt`
+    # (nález H166).
+    # ⚠ A NEPOUŽÍVÁ SE SEAM `P34_HEALTH`: naměřeno, že se seamem P34-A8 JEDNU
+    # KONTROLU VYNECHÁ (`m.ok_(HEALTH_LIVE.is_file(), …)` je jen ve větvi bez
+    # seamu) — čítač pak vyjde 50/0 a **falešně se shoduje s tvrzením §65**.
+    # Měří se proto TÝMŽ postupem jako P34 (živá sonda) a rozdíl se POJMENUJE.
+    health34 = ANALYZA / "p34-health-vystup.txt"
+    zaloha_health = health34.read_bytes() if health34.is_file() else None
+    try:
+        kod, out, sec = spust(["python", str(P34A), "--vystup", "_analyza/p35-p34a-levny-vystup.txt"],
+                              timeout=900)
+    finally:
+        if zaloha_health is not None:
+            health34.write_bytes(zaloha_health)
     c_levny = citac(out)
     p("  INFO       `p34-a-overeni.py` (levný): exit=%d, čítač=%s (%.0f s)" % (kod, c_levny, sec))
     m.ok_(kod == 0, "měřidlo P34 v levném režimu prošlo (exit=%d)" % kod)
@@ -475,6 +509,30 @@ def sekce_A4(m, drahe):
         else:
             m.rozdil("A4 §65 tvrdí levně %s/%s, naměřeno %s/%s"
                      % (tv.group(1), tv.group(2), c_levny[0], c_levny[1]))
+            # ⚠ ROZDÍL SE MUSÍ POJMENOVAT, ne jen vypsat: porovnají se čítače
+            # po SEKCÍCH mezi dokladem P34 (plný běh, ve svém čase) a tímto
+            # levným během. Rozdíl smí být jen ve STAVOVÝCH sekcích (A2 = režim,
+            # A8 = živý tep) — kdyby se rozešlo A0/A1/A5/B1, je to jiná vada.
+            zpet = pocty_sekci((ANALYZA / "p34-a-overeni-vystup.txt").read_text(
+                encoding="utf-8", errors="replace")) if (ANALYZA / "p34-a-overeni-vystup.txt").is_file() else {}
+            ted = pocty_sekci(out)
+            p("            sekce (doklad P34 → teď): "
+              + " · ".join("%s %s→%s" % (s, zpet.get(s, {}).get("OK", "?"), ted.get(s, {}).get("OK", "?"))
+                           for s in ("A0", "A1", "A2", "A5", "A8", "B1")))
+            m.ok_(zpet.get("A8", {}).get("OK") == 3 and zpet.get("A8", {}).get("NALEZ") == 2,
+                  "v dokladu P34 měla A8 3× OK + 2× NÁLEZ (tep byl ČERVENÝ — výpadek)")
+            m.ok_(ted.get("A8", {}).get("OK") == 4 and ted.get("A8", {}).get("NALEZ") == 0,
+                  "a dnes má A8 4× OK + 0× NÁLEZ — tik DOBÍHÁ, takže predikát je OK (+1 kontrol)")
+            # ⚠ POROVNÁVAJÍ SE JEN SEKCE, KTERÉ NEZÁVISÍ NA STAVU ani na REŽIMU.
+            # První verze porovnávala i A0 — a spadla na NESOUVISEJÍCÍM nálezu:
+            # `p34-a-overeni` A0 kontroluje i „nezůstal scratch", takže stačil
+            # pozůstatek z mého spadlého mutačního běhu a rozdíl se přičetl
+            # špatné příčině (naměřeno P35: „A0 13→12", příčina = `p34-mutace-scratch`).
+            m.ok_(zpet.get("A1") == ted.get("A1") and zpet.get("B1") == ted.get("B1"),
+                  "a A1/B1 (tvrzení nezávislá na živém stavu) se NEZMĚNILY")
+            m.info("            stavové/ režimové sekce se lišit MOHOU: "
+                   + " · ".join("%s %s→%s" % (s, zpet.get(s, {}).get("OK", "?"), ted.get(s, {}).get("OK", "?"))
+                                for s in ("A0", "A2", "A5", "A8")))
 
     # 3) dlouhá noha: PLNÝ běh měřidla P34 (96/0 podle §65.2) — jen na vyžádání.
     if not drahe:
@@ -485,9 +543,13 @@ def sekce_A4(m, drahe):
         else:
             p("            §65 tvrdí plně: %s/%s (okno: …%s…)" % (tv2.group(1), tv2.group(2), okno2[-110:]))
         return
-    kod, out, sec = spust(["python", str(P34A), "--plne",
-                           "--vystup", "_analyza/p35-p34a-plny-vystup.txt"],
-                          env=env34, timeout=5400)
+    zaloha_health2 = health34.read_bytes() if health34.is_file() else None
+    try:
+        kod, out, sec = spust(["python", str(P34A), "--plne",
+                               "--vystup", "_analyza/p35-p34a-plny-vystup.txt"], timeout=5400)
+    finally:
+        if zaloha_health2 is not None:
+            health34.write_bytes(zaloha_health2)
     c_plny = citac(out)
     p("  INFO       `p34-a-overeni.py --plne`: exit=%d, čítač=%s (%.0f s)" % (kod, c_plny, sec))
     MERENO["p34a_plny"] = list(c_plny) if c_plny else None
@@ -547,14 +609,31 @@ def sekce_A5(m):
         m.nezmereno("v tailu není `POST /tick` (ruční tik se neměřil)")
 
     # Historie invokací z Cloudflare Analytics — měří se, nepřebírá.
-    # ⚠ Je to `.mjs` → spouští se **node**, ne python (zadání P35 to má
-    # v §2.3 uvedené s `python`; naměřeno: `python soubor.mjs` spadne na
-    # `SyntaxError: invalid character` a vypadá to jako vada dokladu).
-    kod, out, sec = spust(["node", str(ANALYZA / "p34-cf-analytika.mjs"), "24"], timeout=300)
-    if kod != 0:
-        m.nezmereno("Cloudflare Analytics se nepodařilo změřit (exit=%d): %s" % (kod, out.strip()[-160:]))
+    # ⚠ DVA NAUČENÉ OMYLY P35: (1) je to `.mjs` → spouští se **node**, ne python
+    # (zadání P35 to má v §2.3 s `python`; `python soubor.mjs` spadne na
+    # `SyntaxError`); (2) skript končí **`exit 0` I KDYŽ GraphQL vrátí HTTP 401**
+    # (stav je v JSON poli `radky`) — první verze A5 proto hlásila „změřena“ nad
+    # **NEZMĚŘENÝM**. Verdikt se čte Z VÝSTUPU (`# radku: N`, N > 0), ne z exit
+    # kódu: je to táž past, kterou projekt zná jako „exit 0 není měření“.
+    # ⚠ A výstup se PŘESMĚRUJE + soubor se ZÁLOHUJE: `p34-cf-analytika.mjs` píše
+    # do PEVNÉ cesty `p34-cf-analytika-vystup.txt` a naměřeno P35 (H166) ji
+    # přepsal stubem s HTTP 401 — a tím vzal vstup `p34-mutace.py` (jeho M3).
+    cf_dok = ANALYZA / "p34-cf-analytika-vystup.txt"
+    cf_zal = cf_dok.read_bytes() if cf_dok.is_file() else None
+    try:
+        kod, out, sec = spust(["node", str(ANALYZA / "p34-cf-analytika.mjs"), "48"], timeout=300)
+    finally:
+        if cf_zal is not None:
+            cf_dok.write_bytes(cf_zal)
+    (ANALYZA / "p35-cf-analytika-vystup.txt").write_text(out, encoding="utf-8")
+    m_radku = re.findall(r"# radku:\s*(\d+)\s*\(HTTP (\d+)\)", out)
+    if m_radku and m_radku[-1][1] == "200" and int(m_radku[-1][0]) > 0:
+        m.ok_(True, "Cloudflare Analytics (48 h): %s řádků, HTTP 200 (exit=%d, %.0f s)"
+              % (m_radku[-1][0], kod, sec))
+        MERENO["cf_radku"] = m_radku[-1][0]
     else:
-        m.ok_(True, "Cloudflare Analytics (24 h) změřena (exit=0, %.0f s)" % sec)
+        m.nezmereno("Cloudflare Analytics NEZMĚŘENA (%s, exit=%d) — a `exit 0` NENÍ úspěch měření"
+                    % ((m_radku[-1] if m_radku else out.strip()[-140:]), kod))
 
     # Uložený tep z D1 (READ-ONLY, wrangler) — VLASTNÍ sonda P35, aby se
     # nepřepsal doklad P34 (H166: doklady `*vystup.txt` jsou gitignorované).
@@ -575,8 +654,19 @@ def sekce_A6(m, drahe):
         kod, out, sec = spust(["python", str(P34M)], timeout=3600)
         c = citac(out)
         p("  INFO       `p34-mutace.py`: exit=%d, čítač=%s (%.0f s)" % (kod, c, sec))
-        m.ok_(kod == 0 and c == ("23", "0"), "`p34-mutace` → 23/0 (naměřeno %s)" % (c,))
-        MERENO["p34_mutace"] = list(c) if c else None
+        if c == ("23", "0"):
+            m.ok_(True, "`p34-mutace` → 23/0 (jak tvrdí §65)")
+        elif c is not None:
+            m.rozdil("A6 `p34-mutace` → %s/%s (P34 tvrdí 23/0) — ZÁNIK MĚŘIDLA P34 (H168), "
+                     "ne vada práce P35" % c)
+            m.ok_("TVRZENÍ NENALEZENO" in out,
+                  "A6 a první příčina je MĚŘENÁ: precondition padá na „TVRZENÍ NENALEZENO“ "
+                  "v §0.3 PŘEPSANÉHO zadání (H168a)")
+            m.ok_("ZDRAVÝ stav" in out and "kontrola není vždy červená" in out,
+                  "A6 a druhá příčina je ČAS: fixture „ZDRAVÝ stav“ v `p34-mutace` už neprojde, "
+                  "protože má ABSOLUTNÍ čas (H168b)")
+        else:
+            m.ok_(False, "A6 `p34-mutace` nevypsal čítač — měřeno nic")
 
     # ŽIVÉ SOUBORY proti HEAD: `hash-object` vs `rev-parse HEAD:<soubor>` (H163).
     # ⚠ Rozdíl u souboru, který P35 ZÁMĚRNĚ mění, je správný (před commitem).
@@ -613,17 +703,28 @@ def sekce_A7(m, drahe):
     kod, out, sec = spust(["python", str(G3)], timeout=1800,
                           env={"FORGE_REGISTR": str(REGISTR_SCRATCH())})
     m.ok_(True, "`g3` proběhl (exit=%d, %.0f s) — nenulový exit je STAV, ne vada" % (kod, sec))
-    m_bran = re.findall(r"bran celkem:\s*(\d+)", out)
-    p("  INFO       g3: bran celkem = %s" % (m_bran[-1] if m_bran else "?"))
+    m_bran = re.findall(r"registr zapsán:[^(]*\((\d+)\s*bran", out) or \
+             re.findall(r"(\d+)\s*bran[,)]", out)
+    m_nedekl = re.findall(r"NEDEKLAROVAN[ÝY]CH\s+(\d+)", out)
     if m_bran:
         MERENO["g3_bran"] = m_bran[-1]
         m.ok_(m_bran[-1] == "49", "g3 hlásí 49 bran (naměřeno %s)" % m_bran[-1])
+    else:
+        m.nezmereno("g3 nevykázal počet bran — vzor nezabral („nula a nezměřeno není úspěch“)")
+    if m_nedekl:
+        p("  INFO       g3: NEDEKLAROVANÝCH nenulových exitů = %s" % m_nedekl[-1])
+        MERENO["g3_nedeklarovanych"] = m_nedekl[-1]
 
     kod, out, sec = spust(["node", str(VALIDATE)], timeout=3600)
-    problemy = re.findall(r"(\d+)\s+problém", out)
-    p("  INFO       validate-all: exit=%d, problémy = %s" % (kod, problemy[-1] if problemy else "?"))
-    if problemy:
+    problemy = re.findall(r"NALEZENO\s+(\d+)\s+PROBLÉM", out)
+    if "VŠE V POŘÁDKU" in out:
+        m.ok_(True, "validate-all → VŠE V POŘÁDKU (0 problémů, exit=%d)" % kod)
+        MERENO["validate_problemy"] = "0"
+    elif problemy:
         MERENO["validate_problemy"] = problemy[-1]
+        m.ok_(kod == 0, "validate-all → %s problémů (exit=%d)" % (problemy[-1], kod))
+    else:
+        m.nezmereno("validate-all nevykázal verdikt — vzor nezabral (exit=%d)" % kod)
 
     kod, out, _ = spust(["python", str(KRONIKA_K)], timeout=300)
     m.ok_(kod == 0, "kronika SEDÍ (exit=%d)" % kod)

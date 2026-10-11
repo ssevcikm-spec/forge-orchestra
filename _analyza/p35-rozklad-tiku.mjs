@@ -116,9 +116,9 @@ p(`  volání na tik:            ${radky.length}`);
 p(`  přenesených bajtů na tik: ${celkemB} B (${(celkemB / 1024).toFixed(0)} kB)`);
 p(`  CPU na parsování na tik:  ${celkemMs.toFixed(2)} ms (medián z ${N} běhů, proxy CPU)`);
 p('');
-p('## SROVNÁNÍ S NAMĚŘENÝM CPU TIKU (z `_analyza/p35-tail-rozbor-vystup.json`)');
+p('## SROVNÁNÍ S NAMĚŘENÝM CPU TIKU (z `_analyza/p35-tail-rozbor-data-vystup.txt`)');
 try {
-  const rozbor = JSON.parse(readFileSync(join(WS, '_analyza/p35-tail-rozbor-vystup.json'), 'utf8'));
+  const rozbor = JSON.parse(readFileSync(join(WS, '_analyza/p35-tail-rozbor-data-vystup.txt'), 'utf8'));
   const tick = rozbor.podle['POST /tick']?.cpu || [];
   const cron = rozbor.podle['cron(* * * * *)']?.cpu || [];
   if (tick.length) p(`  POST /tick  cpuTime: min=${Math.min(...tick)} med=${median(tick)} max=${Math.max(...tick)} (n=${tick.length})`);

@@ -253,9 +253,13 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    `POST /tick`, což je ZÁSAH DO STAVU) — pouští se ručně (vzor
              #    `p32-sonda-cf-verze.mjs`/`p34-sonda-d1.py`). `p35-sonda-d1.py`
              #    je tady i proto, že `.py` vzor bere a on potřebuje síť.
+             #  * `p35-zapis-zaznamu.py` je ZÁPISOVÝ PATCHER (píše `HANDOFF.md`
+             #    a `KRONIKU`) — stejná třída jako `p27-*`/`p32-*`/`p33-*`/`p34-*`.
+             #    V dávce se spouštět NESMÍ: zapisuje ZÁMĚRNĚ.
              "p35-mutace.py", "p35-tail-rozbor.py", "p35-pocty-sekci.py",
              "p35-sonda-d1.py", "p35-sonda-health.mjs", "p35-profil-cpu.mjs",
-             "p35-rozklad-tiku.mjs", "p35-rozklad-roadmapy.mjs"}
+             "p35-rozklad-tiku.mjs", "p35-rozklad-roadmapy.mjs",
+             "p35-zapis-zaznamu.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

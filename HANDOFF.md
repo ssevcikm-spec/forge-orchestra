@@ -3694,3 +3694,232 @@ hodinu **`08Z`: 0 `exceededResources`** (předtím 46–59/h). Výpadek tedy sko
    **záměrné brzdy** (`GRAIN_MAX_RUNS = 8`, zapnuto 8. 10. rozhodnutím
    uživatele) na granulích, které spálily 8 běhů. **Pro P35 je to druhá stopa**
    — a **rozhodnutí pro uživatele**: zvednout strop, nebo granule opravit.
+
+
+## 66. P35 — NASAZENÍ P34 OVĚŘENO A TIK ZLEVNĚN (H165) (11. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P35 + stav po P35**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**50**, nálezy **§2.28**), plán (`PLAN-DALSI-KROK.md`). Zadání P35 je v
+`NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **11. 10. 2026 09:27 – 12:2x UTC** (živý čas
+> z hodin, ne ze zadání). Tvrzení o **stavu** (HEAD, hra, živá služba) platí
+> k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.28), aby každý nález byl dohledatelný
+> z HANDOFF.md — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou** (tabulkový řádek `| **Hxx** |`
+> by zvedl počítadlo „řádků Hxx“ a shodil `ov-g` i měřidla P28):
+> **H165** = **tik platil 3,66 ms za přepis base64 „po znacích“** (funkce na
+> každý znak v `Uint8Array.from(atob(…), (c) => c.charCodeAt(0))`), což je
+> 3,66 z 4,06 ms celého čtení roadmapy — a tik se pouští každou minutu;
+> indexovaný cyklus stojí **0,10 ms** a je **bajtově ekvivalentní** · **H166** =
+> **VLASTNÍ OMYL P35: spuštění CIZÍHO měřidla bez přesměrování výstupu přepíše
+> jeho doklady** (`p34-a-overeni-levny-vystup.txt`, `p34-health-vystup.txt` —
+> gitignorované, tedy NEVRATNÉ), a **seam `P34_HEALTH` na neexistující soubor
+> vyrobí falešně červené měřidlo** (47/1), zatímco **týž seam jednu kontrolu
+> VYNECHÁ** (čítač 50/0 se pak falešně shoduje s tvrzením §65) · **H167** =
+> **ŽIVÝ CPU PROFIL SLUŽBY**: cron `cpuTime` **24–36 ms** (medián 26,5; n=12)
+> před zlevněním a **18–29 ms** (medián 20; n=4) po něm, `/tick` 15–25 ms,
+> `/health` 2–7 ms, `/poll` **0 ms** — a **všechny cron eventy končí
+> `outcome=ok`**, takže dokumentovaných **10 ms NENÍ tvrdý limit** (H164 se tím
+> **dořešuje měřením**, ne převzetím) · **H168** = **MĚŘIDLA P34 ZESTÁRLA, A NENÍ
+> TO VADA JEJICH PRÁCE**: `p34-a-overeni.py --plne` dnes **93/5** (P34 tvrdí
+> 96/0) a `p34-mutace.py` **23/4** (P34 tvrdí 23/0) — protože (a) si tvrzení
+> čtou z `NEXT-SESSION-INSTRUKCE.md`, které **P34 ve svém závěru sama přepsala**
+> (jiné formulace), a (b) fixture mají **absolutní časy** (`04:59:30Z`), které
+> po hodinách přestanou být „zdravé“ · **H169** = **VLASTNÍ OMYL P35: PŘERUŠENÝ
+> MUTAČNÍ BĚH ZANECHAL MUTANTA V ŽIVÉM `HANDOFF.md`** (`p31-a-overeni.py` A1
+> mutuje živý dokument) **a ověření „proti HEAD“ ho minulo, protože filtrovalo
+> jen kódové přípony** — mutant se dostal do commitu a chytil ho až krok
+> „0 smazaných řádků“ (`git show --numstat`). Viz §66.3.
+
+### 66.1 Úkol A — NASAZENÍ P34 JE ŽIVÉ (tři kroky) A `/health` POSÍLÁ POKUS
+
+**Tři kroky (HTTP 200 není důkaz), vše s PLNÝM sha:**
+1. **KROK 1** — `deploy.yml` **#38 na `f983dace0f9f0750398b5a5ac17441f7c3f1352f`**
+   → `completed/success` (2026-10-11T07:46:35Z). Commit se **nehledal
+   v dokumentu**, ale v gitu (`git log` podle předmětu `P34: H156`).
+2. **KROK 2** — verze z **LOGU nasazení**: `Current Version ID:
+   e0a939e6-e459-4124-90d1-ee4b8bf727d3`.
+3. **KROK 3 (křížová kontrola)** — **tatáž verze** je v `scriptVersion.id`
+   **ŽIVÉHO** `wrangler tail` (47 eventů, doklad `_analyza/p35-tail-raw-vystup.txt`).
+
+**`/health` posílá POKUS:** `last_cron_pokus` + `last_cron_pokus_min` (živá pole
+P34) **a `last_cron` nezmizel** (význam „tik DOBĚHL“ se nemění). Živý stav při
+měření: `last_cron = 2026-10-11T09:35:24.773Z` (0 min), `last_cron_pokus`
+o 2 s dřív, `ready = 3`, `running = 0` — **tik DOBÍHÁ**.
+
+**Brána umí spadnout i projít (A3):** `tools/test-cron-pokus.mjs` → **9/0** a
+**tři vady v KOPIÍCH** (bajt na bajt shodných s živými): (a) predikát bez větve
+„tik NEDOBÍHÁ“ → brána spadne **právě na fixtuře 1**; (b) predikát bez větve
+„pokus v BUDOUCNOSTI“ → spadne **právě na fixtuře 4**; (c) **SLABÁ KONTROLA**
+(fixtura 4 se ptá jen `ok === false`) nad **toutéž vadou (b) PROJDE** (exit 0),
+kdežto silná spadne (exit 1) — **H158 je tím potvrzené jako měřený jev**, ne
+jako tvrzení.
+
+**Čísla z §65 NESEDÍ VE DVOU BODECH — a oba rozdíly jsou POJMENOVANÉ:**
+* **levný běh: 51/0 vs. tvrzených 50/0.** Rozdíl je **po sekcích** (doklad P34
+  → dnes): `A0 13→13 · A1 22→22 · A2 8→5 · A5 2→2 · A8 3→4 · B1 5→5`. **A8**
+  měla v P34 **3× OK + 2× NÁLEZ** (tep byl červený — výpadek), dnes **4× OK +
+  0× NÁLEZ** (predikát je OK) — tedy **+1 kontrol přesně tam, kde se změnil stav
+  služby** (H164). `A2` je jiná jen proto, že v P34 **plném** dokladu běžela A2
+  v drahém režimu (8 OK) a tady levně (5 OK + 1 NEZMĚŘENO). **A0/A1/A5/B1 se
+  nezměnily.**
+* **plný běh: 88/12 vs. tvrzených 96/0** (a **druhý běh téhož měřidla dal
+  93/5** — počet chyb měřidla P34 **NENÍ stabilní**, protože čte tvrzení
+  z přepisovaného dokumentu a pouští živé brány). Většina chyb je
+  `TVRZENÍ NENALEZENO` v bloku „OSTATNÍ BRÁNY PŘI ZÁPISU“, protože ta čísla si
+  měřidlo P34 čte z **`NEXT-SESSION-INSTRUKCE.md`** — a to P34 **ve svém závěru
+  sama přepsala** pro P35 (jiné formulace: `1 NEDEKLAROVANÝ` místo
+  `0 NEDEKLAROVANÝCH`, `2 problémy` místo `0 problémů`, `p29-a A1M13` bez
+  `--jen`, `p28-b-mutace` v novém zadání není). **Práce P34 je v pořádku;
+  zestárlo měřidlo** (H168). Stejná příčina shodí i precondition
+  `p34-mutace.py`, jehož **druhá** polovina chyb je z fixture s **absolutním
+  časem** (`04:59:30Z`) — dnes **23/4** místo **23/0**.
+
+### 66.2 Úkol B — ZLEVNĚNÍ TIKU (H165): MĚŘENÍ → OPRAVA → NASAZENÍ → DOPAD
+
+**Vybráno: ZLEVNIT TIK** (z pěti nabídek §2.2) — a měřilo se **DŘÍV**, než se
+hledalo tvrzení (H155):
+
+1. **ŽIVÝ CPU PROFIL** (`_analyza/p35-profil-cpu.mjs` + `p35-tail-rozbor.py`,
+   47 invokací): `cron` **24–36 ms** (medián 26,5; n=12, `outcome=ok`, **0×
+   `exceededCpu`**), `POST /tick` 15/19/25 ms, `GET /health` 2–7 ms,
+   `POST /poll` **0 ms**. Cloudflare Analytics za 24 h: `success` **2957**,
+   `exceededResources` **1054** v **21 oknech** — ale hodiny **`08Z` i `09Z`
+   hlásí 0** (výpadek skončil nasazením #38).
+2. **ROZKLAD GITHUB ČÁSTI TIKU** (`p35-rozklad-tiku.mjs`, živá data): tik tahá
+   **665 441 B (650 kB) každou minutu** ve třech voláních a jejich `JSON.parse`
+   stojí **7,93 ms** = **42 % naměřeného CPU tiku**.
+3. **ROZKLAD ČTENÍ ROADMAPY** (`p35-rozklad-roadmapy.mjs`, medián z 21 běhů):
+   celkem **4,06 ms**, z toho `JSON.parse` obálky 0,07 ms, `atob` 0,02 ms,
+   **`Uint8Array.from(atob(…), mapFn)` 3,66 ms** ← vina, `TextDecoder` 0,12 ms,
+   `JSON.parse` roadmapy 0,19 ms. **Indexovaný cyklus: 0,10 ms** (úspora
+   3,56 ms); cesta přes `Accept: …raw` by ušetřila 3,98 ms.
+
+**OPRAVA (`conductor/src/index.ts`):** `Uint8Array.from(atob(…), (c) =>
+c.charCodeAt(0))` nahrazen **indexovaným cyklem** (`bin.charCodeAt(i)`).
+Chování se **nemění**, jen cena — dekódování je **bajtově ekvivalentní**.
+
+**TEST, KTERÝ OPRAVU ZAVOLÁ (`tools/test-tick-offline.mjs`, nový scénář AF):**
+podstrčí roadmapu hry s **vícebajtovou češtinou** (`grain.žluťoučký` /
+`Příliš žluťoučký kůň`, base64 → bajty → UTF-8) a tvrdí **CELÝ obsah ve vázaných
+hodnotách** `INSERT INTO roadmap`/`INSERT INTO tasks` — zkrácený nebo rozbitý
+dekodér to shodí. Stav: **215/0 → 218/0**.
+
+**NASAZENÍ A DOPAD:** commit **`3143f31d6a37ed8d90bf06f5c03df9a407ae00ea`**,
+`deploy.yml` **#39 na tom commitu** → `completed/success` (09:42:11Z), verze
+z logu **`3985379c-4f45-424c-8400-2e26b54cae23`** == `scriptVersion.id` živého
+tailu (doklad `_analyza/p35-tail-po-vystup.txt`). **cron `cpuTime` před/po:**
+medián **26,5 → 20 ms** (n=12 → n=4; rozsahy 24–36 → 18–29). **Počet vzorků po
+nasazení je malý (4)** — je to **naměřený posun, ne důkaz o jediné změně**.
+
+**PRÁCE SE STEJNĚ NEVYDÁVÁ** — a **není to CPU**: tik hlásí `spusteno: 0 úloh`
+a `přeskočeno: #244 … STROP GRANULE 8/8 (uo-shadows/engine.input); #245 …
+(world.bodies); #246 …` při `ready = 3`, `running = 0`. Je to **záměrná brzda**
+(`GRAIN_MAX_RUNS = 8`).
+
+### 66.3 Co zůstalo OTEVŘENÉ (a co se NEMĚŘILO)
+
+* **PRÁCE SE NEVYDÁVÁ kvůli STROPU GRANULE 8/8** — **rozhodnutí uživatele**
+  (zvednout strop, nebo granule opravit). **Není to už CPU.**
+* **Rozhodnutí o PLÁNU:** tik chce **18–36 ms CPU**, dokumentace uvádí **10 ms**
+  pro cron na free plánu — a **přesto tiky dobíhají** a Analytics hlásí od
+  nasazení #38 **0 `exceededResources`** (H167). **Free plán tedy dnes stačí**;
+  další zlevňování (zbývá hlavně **GitHub část = 42 % CPU**) by znamenalo
+  **odkládat čtení PR/roadmapy** (detekce sloučení by se zpozdila o minuty) —
+  to je **rozhodnutí, ne technický detail**, a P35 ho **nedělá**.
+* **H133** (`p28-a-overeni.py` A6 čeká `g3 → exit 0`) — **nezměněno**.
+* **Dávka dokladů (`p20-d-doklady.py`) NEDOBĚHLA ani v P35** (už v P33 a P34).
+* **`fakeDb` v `tools/test-tick-offline.mjs` nezná SQL tabulky `state`** —
+  naměřeno znovu (218/0, ale v logu je `tep (manual) selhal: … neznámý dotaz →
+  CREATE TABLE IF NOT EXISTS state …`). Je to **slepé místo**: harness tvrdí
+  218/0, a přitom zápis tepu **neproběhl**. (P35 ho **neopravovala** — byla to
+  jiná z pěti nabídek; zapsáno jako otevřené.)
+* **DOKLADY P34 PŘEPSANÉ (H166):** `p34-a-overeni-levny-vystup.txt` a
+  `p34-health-vystup.txt` už neobsahují běh P34, ale běh P35. **Není to
+  ztracené měření** (plný doklad `p34-a-overeni-vystup.txt` zůstal), ale
+  **doklad P34 k těm dvěma číslům už neexistuje** — a je to **nevratné**
+  (gitignorováno). Příště: cizí měřidlo jen s `--vystup` a se zálohou dokladů.
+* **MĚŘIDLA P34 ZESTÁRLA (H168)** — `p34-a-overeni --plne` **88/12** (druhý běh
+  téhož měřidla **93/5** — počet chyb **NENÍ stabilní**), `p34-mutace`
+  **23/4**. **Práce P34 tím není zpochybněná** (většina chyb jsou „TVRZENÍ
+  NENALEZENO“ v zadání, které P34 přepsala, a fixture s absolutním časem).
+  **Oprava by byla změna cizích měřidel** — P35 ji **nedělá** (to by bylo
+  „opravovat nástroj, který měří práci někoho jiného, a tím si přizpůsobit
+  verdikt“); zapsáno jako práce pro P36, pokud se má P34 ještě někdy měřit.
+* **VLASTNÍ OMYL P35 (H169): PŘERUŠENÝ MUTAČNÍ BĚH ZANECHAL MUTANTA V ŽIVÉM
+  `HANDOFF.md` — A OVĚŘENÍ „PROTI HEAD“ HO MINULO, PROTOŽE FILTROVALO JEN
+  KÓDOVÉ PŘÍPONY.** P35 ukončila běh `p35-a-overeni.py --plne` (job `pwsh-1446`)
+  v okamžiku, kdy běžel `p34-a-overeni.py --plne` → jeho A3 → **`p31-a-overeni.py`
+  A1**, který mutuje **ŽIVÝ** `HANDOFF.md` (`_mutace.mutuj` nad kotvou
+  `test-tick-offline → 215/0 …` mění na `216/0`). `finally` se nevykonal →
+  v §60 (historický záznam!) zůstalo **`216/0`**. Náprava H163 („ověř všechny
+  živé soubory proti HEAD“) **proběhla, ale s filtrem přípon**
+  (`.ts|.mjs|.py|.ps1|.gd|.json|.sql|.toml|.yml|.yaml`) — **`.md` v něm nebylo**,
+  takže se mutant neodhalil a **dostal se do commitu `90325d5`**; chytil ho až
+  krok „0 smazaných řádků“ (`git show --numstat` = **1 smazaný řádek**). Mutant
+  byl vrácen z `HEAD~1` a ověřeno, že **`p30-mutace.py` sám dokument vrací bajt na
+  bajt** (15/1 — jediná chyba je jiná, H168) — mechanismus je tedy správný,
+  vina byla v PŘERUŠENÍ. **Pravidlo: ověření proti HEAD musí být BEZ FILTRU
+  PŘÍPON** (a `git status --porcelain` je levnější a spolehlivější).
+  **Táž třída jako H163 — a H163 sama nestačila, protože se četla jako „kód“.**
+
+### 66.4 Živý stav při zápisu
+
+```
+orchestra: HEAD 3143f31d · origin/main = HEAD (PUSHNUTO) · hra = e4dccdb (cizí
+           session; do hry se NESAHALO)
+           ⚠ NASAZENÍ P35: deploy #39 na 3143f31d (completed/success 09:42:11Z),
+             verze 3985379c-… == scriptVersion.id živého tailu
+brány:     g3 → 49 bran · 1 NEDEKLAROVANÝ nenulový exit (validate-all (CELEK) —
+           měřeno PŘED rekordem) · validate-all → po pushi VŠE V POŘÁDKU
+           (cron BĚŽÍ — H160 se tím uzavírá STAVEM, ne opravou)
+           · vlastní měřidlo P35 74/0 plně (levně 52/0) · p35-mutace 33/0
+           · test-cron-pokus 9/0 · test-tick-offline 218/0
+           · p34-a-overeni levně 51/0 a plně 88/12 (druhý běh 93/5 — NESTABILNÍ;
+             ROZDÍLY vs §65: 50/0 a 96/0 — pojmenované: A8 3→4 OK = tik dobíhá;
+             většina chyb = TVRZENÍ NENALEZENO v přepsaném zadání = H168)
+           · p34-mutace 23/4 (H168: přepsané zadání + absolutní čas ve fixtuře)
+           · ŽIVÝ TEP: last_cron tiká (D1 09:40:24Z, pokus o 2 s dřív, zdroj cron)
+```
+
+### 66.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p35-a-overeni.py                  # LEVNÉ (A0,A1,A2,A3,B1; ~1 min)
+python _analyza\p35-a-overeni.py --plne           # i A4,A5,A6,A7 (dlouhé nohy)
+python _analyza\p35-mutace.py                     # důkaz, že měřidlo umí spadnout (33/0)
+node tools\test-cron-pokus.mjs                    # 9 fixtur „nedorazil“ vs „nedoběhl“
+node tools\test-tick-offline.mjs                  # 218 kontrol (scénář AF = česká base64)
+node tools\validate-all.mjs                       # po pushi 0 problémů
+python _analyza\g3-brany.py                       # 49 bran (POZOR: s FORGE_REGISTR v harnessu)
+python _analyza\p35-sonda-health.mjs              # živý /health: last_cron + POKUS
+python _analyza\p35-sonda-d1.py                   # uložený tep z D1 (READ-ONLY)
+node _analyza\p35-profil-cpu.mjs --tik --n 3      # ŽIVÝ CPU profil (POZOR: POST /tick = zásah!)
+node _analyza\p35-rozklad-tiku.mjs                # rozklad GitHub části tiku
+node _analyza\p35-rozklad-roadmapy.mjs            # rozklad čtení roadmapy (H165)
+python _analyza\p35-tail-rozbor.py _analyza\p35-tail-raw-vystup.txt   # CPU podle endpointu
+node conductor\node_modules\wrangler\bin\wrangler.js tail forge-conductor --format json
+```
+
+### 66.6 Co čeká na tebe (uživatel)
+
+* **ROZHODNUTÍ 1 — STROP GRANULE.** Práce se **nevydává** (`ready = 3`,
+  `running = 0`) a **není to CPU**: `#244/#245/#246` jsou nad stropem
+  `GRAIN_MAX_RUNS = 8`. Možnosti: **zvednout strop** (práce se rozjede, ale
+  spálí se další běhy), nebo **opravit ty granule**. Doporučení P35:
+  **nejdřív se podívat, proč tytéž granule selhaly 8×** — strop je **brzda,
+  která funguje**; jeho zvednutí problém neřeší, jen ho přesune do kvóty.
+* **ROZHODNUTÍ 2 — PLACENÝ PLÁN vs. FREE + ZLEVŇOVÁNÍ.** Naměřeno: tik potřebuje
+  **18–36 ms CPU** na invokaci, dokumentace uvádí **10 ms**, a přesto tik
+  **dobíhá** a od nasazení #38 nejsou **žádné** `exceededResources` (H167).
+  **Placený plán tedy dnes NENÍ potřeba** — a kdyby se výpadky vrátily, další
+  zlevnění je **odkládání GitHub čtení** (42 % CPU), což je **viditelná změna
+  chování** (detekce sloučení po minutách místo hned). **Rozhodnutí je na tobě**;
+  P35 nic z toho nezavedla.
+* **Nic jiného.** P35 **neměnila chování práce**: jediná změna v conductoru je
+  **cena dekódování**, a je nasazená s testem, který ji volá.
+
