@@ -259,7 +259,24 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              "p35-mutace.py", "p35-tail-rozbor.py", "p35-pocty-sekci.py",
              "p35-sonda-d1.py", "p35-sonda-health.mjs", "p35-profil-cpu.mjs",
              "p35-rozklad-tiku.mjs", "p35-rozklad-roadmapy.mjs",
-             "p35-zapis-zaznamu.py"}
+             "p35-zapis-zaznamu.py",
+             # ── P36 (11. 10. 2026) ─────────────────────────────────────────
+             #  * `p36-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — je to měřidlo
+             #    v LEVNÉM režimu (A0,A1,A2,A5), stejná třída jako `p35-a-overeni.py`.
+             #  * `p36-mutace.py` je MUTAČNÍ TEST měřidla P36 (7 vrat v KOPIÍCH;
+             #    mezi nimi i vrácení slepého místa `fakeDb`) — do dávky nepatří
+             #    (stejný důvod jako `p30-mutace.py`…`p35-mutace.py`).
+             #  * `p36-strop-sonda.py` je SONDA ŽIVÉ D1 (čte `tasks`, `roadmap`,
+             #    `runs` kvůli STROPU GRANULE); pouští se ručně.
+             #  * `p36-agent-behy.mjs`, `p36-log-job.mjs`, `p36-pat-sonda.mjs`
+             #    a `p36-cf-token-sonda.mjs` jsou SONDY ŽIVÝCH SLUŽEB (GitHub API,
+             #    logy jobů, seznam secretů, CF token) — síť a cizí stav; ručně
+             #    (vzor `p32-sonda-cf-verze.mjs`).
+             #  * `p36-zapis-zaznamu.py` je ZÁPISOVÝ PATCHER (píše `HANDOFF.md`
+             #    a `KRONIKU`) — stejná třída jako `p27-*`/`p32-*`…`p35-zapis-*`.
+             "p36-mutace.py", "p36-strop-sonda.py", "p36-agent-behy.mjs",
+             "p36-log-job.mjs", "p36-pat-sonda.mjs", "p36-cf-token-sonda.mjs",
+             "p36-zapis-zaznamu.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

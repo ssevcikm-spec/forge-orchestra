@@ -3923,3 +3923,202 @@ node conductor\node_modules\wrangler\bin\wrangler.js tail forge-conductor --form
 * **Nic jiného.** P35 **neměnila chování práce**: jediná změna v conductoru je
   **cena dekódování**, a je nasazená s testem, který ji volá.
 
+## 67. P36 — PŘEMĚŘENÍ P35 A PŘÍČINA, PROČ SE NEVYDÁVÁ PRÁCE (H170–H174) (11. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P36 + stav po P36**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**51**, nálezy **§2.29**), plán (`PLAN-DALSI-KROK.md`). Zadání P36 je v
+`NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **11. 10. 2026 12:0x–13:0x UTC** (živý čas z hodin).
+> Tvrzení o **stavu** (HEAD, hra, živá služba, běhy na GitHubu) platí k tomu
+> okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.29), aby každý nález byl dohledatelný
+> z HANDOFF.md — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou** (tabulkový řádek `| **Hxx** |`
+> by zvedl počítadlo „řádků Hxx“ a shodil `ov-g` i měřidla P28):
+> **H170** = **VLASTNÍ MĚŘIDLO P36 PŘEMĚŘILO P35** a rozdíl je pojmenovaný:
+> doklad P35 má **74/0**, dnes **73/0** (jediná chybějící kontrola je noha A5
+> „Cloudflare Analytics“, která ve 12:33Z vrátila **HTTP 401** a v 12:40Z
+> **HTTP 200** týmž nástrojem a týmž configem → NEZMĚŘENO) — **a ZADÁNÍ P36
+> tvrdí 71/0**, což je číslo DŘÍVĚJŠÍHO běhu, ne dnešní stav · **H171** =
+> **ORCHESTRA NEVYDÁVÁ PRÁCI ŠEST DNÍ A STROP GRANULE TO JEN ZAMASKOVAL**:
+> poslední ÚSPĚŠNÝ běh agenta je **#297 z 5. 10. 02:01Z**; z posledních 100 běhů
+> je **95 `failure`** a čtyři měřené příčiny (49× parse brána, 15× „agent nic
+> nezměnil“ = TPM 8000, 15× push PR bez pověření, 15× testy hry) leží **MIMO**
+> strop · **H172** = **`fakeDb` NEZNAL TABULKU `state`** → harness tvrdil 218/0,
+> a přitom se **zápis tepu vůbec neprovedl** a `/health` čítal svou `catch` větev;
+> zavřeno (model `state` + scénář **AG**, **218/0 → 231/0**) · **H173** =
+> **VLASTNÍ OMYL P36: `--vystup` NENÍ TRANZITIVNÍ** — `p35-a-overeni.py --plne`
+> s přesměrovaným výstupem přesto přepsalo doklady svých vnitřních noh
+> (`p35-d1-state-vystup.txt` 902 → 256 B, `p35-cf-analytika-vystup.txt`) ·
+> **H174** = **ŠABLONA A HRA MAJÍ `agent.yml` ROZDÍLNÝ, A BĚŽÍ TA VERZE VE HŘE**
+> (bloby `d48746b` vs `10b07ec`, 78 změněných řádků) — 95 % změřených selhání
+> se děje v kódu ve hře, takže oprava šablony sama nic nezlepší.
+
+### 67.1 Úkol A — P35 PŘEMĚŘENA VLASTNÍM MĚŘIDLEM (`p36-a-overeni.py`)
+
+**VLASTNÍ MĚŘIDLO:** `_analyza/p36-a-overeni.py` (A0–A7) — **26 kontrol, 3 pojmenované
+ROZDÍLY** (0 NEZMĚŘENO). **MUTAČNÍ DŮKAZ:** `_analyza/p36-mutace.py` → **45/0**
+(sedm vrat, každé v KOPII přes seam; u každé se měří i to, že ZDRAVÝ stav projde).
+Měřidlo čte **tvrzení z dokumentu** (`HANDOFF.md` §66 + `NEXT-SESSION-INSTRUKCE.md`)
+a **nenalezené tvrzení je CHYBA** (H155).
+
+| # | Co se měřilo | Naměřeno |
+|---|---|---|
+| **A0** | pojistky | `origin/main == HEAD` = **`b07c237`** (P35 pushnutá); strom čistý; 10 starých `*scratch/` adresářů (17–128 h) **není** náš leftover; hra `e4dccdb` (jen čteno) |
+| **A1** | nasazení P35 **třemi kroky** | `deploy.yml` **#39 na `3143f31d6a37ed8d90bf06f5c03df9a407ae00ea`** → `completed/success` (2026-10-11T09:42:11Z); verze z **LOGU** `3985379c-4f45-424c-8400-2e26b54cae23` == `scriptVersion.id` **ŽIVÉHO** tailu (**72 eventů**) |
+| **A2** | je oprava H165 v KÓDU a má test, který ji zavolá? | v KÓDU (bez komentářů) **NENÍ** `Uint8Array.from(atob(…), mapFn)` a **JE** indexovaný cyklus `charCodeAt(i)`; scénář **AF** s vícebajtovou češtinou existuje; `test-tick-offline.mjs` → **231/0** |
+| **A3** | sedí čísla z §66? | `p35-a-overeni.py --plne` → **73/0** (3 ROZDÍLY, 1 NÁLEZ); **ROZDÍL**: §66 tvrdí **74/0**; **ROZDÍL**: zadání tvrdí **71/0** (zastaralé) — viz H170 |
+| **A4** | je tik živě zlevněný? | živý tail: `cron` `cpuTime` **n=22**, medián **21,5 ms**, rozsah **18–25 ms**, **0×** `outcome != ok` — §66 tvrdí medián 20 ms (jiný vzorek) |
+| **A5** | nová pole v `/health` a v D1 | `/health` posílá `last_cron_pokus` **i** `last_cron` (0–1 min); D1 `state` má oba klíče |
+| **A6** | uklízí se měřidla po sobě? | `p35-mutace.py` → **33/0**; žádný soubor, který P35 měnila, není rozejitý (kontrola **BEZ filtru přípon**, H169) |
+| **A7** | nic se nerozbilo | `g3` → **49 bran** (exit 1, 2 NEDEKLAROVANÉ exity — viz 67.4); `validate-all` **exit 1** PŘED regenerací inventáře (jediná příčina: zastaralý inventář — po regeneraci 0 problémů); `kronika SEDÍ`; `handoff` **všech 83 bodů**; `ov-g` **0 NEOVĚŘENO** |
+
+**Co z P35 OBSTÁLO:** nasazení (tři kroky, křížová kontrola verze), oprava v kódu
+i test, který ji volá, živé zlevnění tvaru tiku a úklid měřidel. **Co se
+POSUNULO:** čítač měřidla (74 → 73) a číslo v zadání (71) — obojí pojmenované.
+
+### 67.2 Úkol B — PROČ SE NEVYDÁVÁ PRÁCE: ŠEST DNÍ A ČTYŘI PŘÍČINY MIMO STROP
+
+**Vybráno: STROP GRANULE** (doporučená stopa §2.2 zadání) — a odpověď je jiná,
+než zadání čekalo: **strop není příčina, je následek.**
+
+1. **STROP JE NAMĚŘENÝ A FUNGUJE.** D1 (11. 10.): tři úlohy `ready`
+   — **#244** `engine.input`, **#245** `world.bodies`, **#246** `engine.shell`
+   (každá `attempts=3`); řádky v `roadmap` vznikly **8. 10. 16:51**, `naposledy_selhalo`
+   je **9. 10. 19:44–19:45**. Počítadlo **tímtéž SQL, jaké používá conductor**
+   (`SQL_GRANULE_RUNS`): `world.bodies` **8**, `engine.shell` **8**,
+   `engine.input` **8** — přesně na `GRAIN_MAX_RUNS = 8`.
+2. **TĚCH 8 BĚHŮ JE ZNÁMÝCH:** 5 běhů úloh **#241/#242/#243** (8. 10. 16:52 →
+   9. 10. 09:20) + 3 běhy **#244/#245/#246** (9. 10. 12:05 → 19:41).
+3. **PŘÍČINA NENÍ V D1.** Všechny mají `summary = 'GitHub Actions: failure'`
+   a **`log_tail` PRÁZDNÝ** — D1 o příčině neví nic. Je v bězích GitHub Actions
+   **v repu hry** (`payload.repo = ssevcikm-spec/uo-shadows`).
+4. **ZMĚŘENO Z GITHUB API (29 běhů úloh #240–#246, VŠECHNY `failure`):**
+   * **14× job „Otevři pull request“** — job agenta **USPĚL** (práce vznikla!),
+     ale `peter-evans/create-pull-request` spadl na
+     `fatal: could not read Username for 'https://github.com'` (**exit 128**)
+     při `git push --force-with-lease`; akce si přitom hlavičku
+     `http.https://github.com/.extraheader AUTHORIZATION: basic ***` NASTAVILA,
+     takže push byl odmítnut (401) → git se ptal na uživatele a v CI se nemá koho
+     zeptat. **Práce ze 14 běhů byla ZAHOZENA.**
+   * **8× „Agent nic nezměnil → hlásíme neúspěch“** — aider narazil na
+     `litellm.RateLimitError: Request too large … service tier 'on_demand' on
+     tokens per minute (TPM): Limit 8000, Requested …` → model nevrátil nic.
+   * **6× „Kontrola parsování (rychlá brána)“** — vygenerovaný GDScript se neparsuje.
+   * **1× „Testy hry (Godot headless)“**.
+5. **CELÁ POSLEDNÍ STOVKA BĚHŮ** (2. 10. 11:13Z – 9. 10. 19:42Z):
+   **95 `failure` / 5 `success`** — třídy: **49× parse brána**, 15× „nic nezměnil“,
+   **15× push PR (auth)**, 15× testy hry, 1× auto-merge nechal PR k ruční kontrole.
+6. **POSLEDNÍ ÚSPĚŠNÝ BĚH AGENTA JE `#297` z `2026-10-05T02:01:00Z`.**
+   Od té doby orchestr **nevydal ani jednu granuli** — šest dní. Strop granulí
+   9. 10. v 19:45 utnul poslední tři granule, ale **výpadek je o čtyři dny starší
+   a širší než strop**.
+
+**ZÁVĚR PRO ROZHODNUTÍ:** **zvednout strop bez opravy znamená spálit další běhy
+na tytéž vady** (95% selhání). Strop je **brzda, která funguje** — a je to
+jediné místo, kde je výpadek pojmenovaný (`přeskočeno: #244 … STROP GRANULE 8/8`).
+Viditelnost tiku přitom funguje správně: `spusteno: 0 úloh` **není** tichá nula.
+
+### 67.3 ZAVŘENÁ VADA — `fakeDb` NEZNAL TABULKU `state` (218/0 → 231/0)
+
+**Zadání to pojmenovalo jako slepé místo a P36 ho zavřela** (H172):
+
+* conductor zakládá a plní tabulku `state` (`zajistiTepTabulku`, `zapisPokus`,
+  `zapisTep`) a `/health` ji čte (`SELECT k, v FROM state …`);
+* `fakeDb` v `tools/test-tick-offline.mjs` ty dotazy **neznal** → `run()`/`all()`
+  hodily „neznámý dotaz“ → conductor to **chytá** (`tep (manual) selhal: …`)
+  a jede dál → **zápis tepu se neprovedl** a `/health` čítal svou `catch` větev
+  (`last_cron: null` VŽDY);
+* test tedy hlásil **218/0**, a přitom **každá kontrola o tepu měřila něco jiného,
+  než si myslela**;
+* **oprava:** `fakeDb` modeluje `state` a přibyl scénář **AG** (13 kontrol):
+  ruční tik zapíše `last_tick` + `last_tick_zdroj=manual` a **NEOBNOVÍ `last_cron`**
+  (H112 — bránu cronu nejde uspokojit tlačítkem); plánovaný tik zapíše
+  **`cron_pokus` PŘED tikem** (H156) i `last_cron`; `/health` obojí **PŘEČTE z D1**;
+* **stav: 218/0 → 231/0**;
+* **mutační důkaz:** `p36-mutace.py` **M7** vrátí v KOPII testu slepost
+  (`SELECT k, v FROM state` se nikdy netrefí) → test spadne a **5 kontrol AG**
+  to pojmenuje.
+
+### 67.4 Co zůstalo OTEVŘENÉ
+
+* **PUSH PR BEZ POVĚŘENÍ (15 běhů)** — v `agent.yml` ve hře je
+  `token: ${{ secrets.FORGE_PAT }}`; **validitu secretu z této stanice ZMĚŘIT
+  NELZE** (GitHub vrací jen JMÉNA secretů: `FORGE_PAT` změněn 2026-09-29T12:12:15Z),
+  takže zapsané je **měření selhání**, ne tvrzení o příčině. První auth selhání
+  je z **7. 10.**, pak 8. 10. (5×) a 9. 10. (9×) — **do 7. 10. žádné nebylo**.
+* **PARSE BRÁNA (49×)** — nejčastější příčina; oprava je v promptu/`agent.yml`
+  **ve hře**, ne v orchestra.
+* **TESTY HRY (15×)** a **TPM 8000 (8×)** — tamtéž.
+* **ŠABLONA vs. HRA (`agent.yml`)** — H174; drift je deklarovaný, ale rozhoduje
+  verze ve hře.
+* **STROP GRANULE** — pojmenovaný a změřený (67.2); **rozhodnutí uživatele**.
+* **H133** (`p28-a-overeni.py` A6 čeká `g3 → exit 0`), **dávka dokladů**
+  (`p20-d-doklady.py` — P36 do ní přidala `p36-*` do `PRESKOCIT`), **GitHub
+  throttle** (42 % CPU tiku) a **H168** (měřidla P34) — **nezměněno**.
+* **H173 (vlastní omyl) — neopraveno ZÁMĚRNĚ:** oprava by znamenala měnit cizí
+  měřidla P34/P35; místo toho je zapsané pravidlo (zálohovat celé `_analyza/`).
+* **`g3` hlásí 2 NEDEKLAROVANÉ nenulové exity** (P35 měla 1 = `validate-all (CELEK)`
+  měřený před rekordem). Jmenovitě se to neověřilo — po regeneraci inventáře
+  a po commitu se `g3` pouští znovu a stav je v dokladu.
+
+### 67.5 Živý stav při zápisu
+
+```
+orchestra: HEAD b07c237 (P35) · origin/main = HEAD (PUSHNUTO) · hra = e4dccdb
+           (cizí session; do hry se NESAHALO — na remote je ale origin/main =
+           01a9649, tedy DVA lokální commity hry NEJSOU pushnuté; je to stav
+           cizí session, ne práce P36)
+           ⚠ NASAZENÍ P35 OVĚŘENO TŘEMI KROKY: deploy #39 na 3143f31d
+             (completed/success 09:42:11Z), verze 3985379c-… == živý tail (72 eventů)
+brány:     g3 → 49 bran (2 NEDEKLAROVANÉ exity) · validate-all → 0 problémů PO
+           regeneraci inventáře · test-tick-offline 231/0 (bylo 218/0)
+           · p35-mutace 33/0 · p36-a-overeni 26/3 (3 ROZDÍLY) · p36-mutace 45/0
+           · kronika SEDÍ · handoff 83/83 · ov-g 0 NEOVĚŘENO
+ŽIVÝ TEP:  last_cron tiká (0–1 min, zdroj cron), cron cpuTime medián 21,5 ms
+           (n=22), VŠECHNY cron eventy outcome=ok
+```
+
+**P36 NEMĚNILA CHOVÁNÍ ORCHESTRY.** Jediné změny jsou: model `state` v testovacím
+harnessu (`tools/test-tick-offline.mjs`, +13 kontrol) a registrace dokladů
+(`_analyza/p20-d-doklady.py`). **Conductor se needitoval, nic se nenasazovalo.**
+
+### 67.6 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p36-a-overeni.py --plne        # A0–A7 (A7 ~5,5 min: g3 + validate-all)
+python _analyza\p36-mutace.py                  # 45/0 — 7 vrat, každé v KOPII
+node tools\test-tick-offline.mjs               # 231/0 (scénář AG = tep se ZAPÍŠE)
+python _analyza\p36-strop-sonda.py             # D1: proč se nevydává (STROP GRANULE)
+node _analyza\p36-agent-behy.mjs --vsechny     # GitHub API: čím selhaly běhy agenta
+node _analyza\p36-cf-token-sonda.mjs           # CF tokeny (oauth vs. API token)
+python _analyza\g3-brany.py                    # 49 bran (POZOR: FORGE_REGISTR v harnessu)
+node tools\validate-all.mjs                    # po regeneraci inventáře 0 problémů
+```
+
+### 67.7 Co čeká na tebe (uživatel)
+
+* **ROZHODNUTÍ 1 — CO OPRAVIT PRVNÍ.** Orchestr **šest dní nevydal práci**
+  (poslední úspěch 5. 10. 02:01Z). Čtyři příčiny a jejich cena:
+  **(a) push PR bez pověření** — 15 běhů, oprava = platný `FORGE_PAT` v repu hry
+  (a to je zásah do cizí služby/nastavení = **tvoje**);
+  **(b) parse brána** — 49 běhů, oprava promptu/`agent.yml` **ve hře** (vede ji
+  cizí session);
+  **(c) testy hry** — 15 běhů; **(d) TPM 8000** — 8 běhů, tj. menší granule
+  nebo slabší model.
+  **Doporučení P36: (a) je nejlevnější a vrací 15 zahOZENÝCH prací** — ale je to
+  změna secretu, tedy tvoje.
+* **ROZHODNUTÍ 2 — STROP GRANULE.** Možnosti: **nezvedat** (práce zůstane
+  stát, ale nic se nespálí), **zvednout** (spálí se další běhy na tytéž vady),
+  nebo **resetovat řádky granulí** (`roadmap-reset` — cesta zpět je v kódu).
+  **Doporučení P36: nezvedat, dokud není opravená aspoň (a).**
+* **ROZHODNUTÍ 3 — HRA.** `uo-shadows` má **dva lokální commity, které nejsou
+  na remote** (`origin/main` = `01a9649`, lokálně `e4dccdb`). P36 do hry
+  **nesahala** — je to stav cizí session. **Nic jsem tam neměnil a nic jsem
+  nepushoval.**
+* **Cesta zpět:** P36 je jeden commit v orchestra; `git revert <sha>` vrátí
+  testovací harness i registraci dokladů. Nasazení ani D1 se nedotklo.
+

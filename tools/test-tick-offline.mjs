@@ -54,6 +54,14 @@
 //   AC) **/workers** — registrované uzly (podle nich se přiděluje práce)
 //   AD) **/games** — registr her VČETNĚ VYPNUTÝCH (na rozdíl od `/health`)
 //
+// P36 / Úkol B — TEP TIKU SE OPRAVDU ZAPÍŠE (AG níž):
+//   AG) **tabulka `state`** (do P36 ji `fakeDb` NEZNAL → `run()`/`all()` házely
+//       „neznámý dotaz“, conductor to spolkl a **zápis tepu se neprovedl**,
+//       i když test hlásil 218/0). Scénář tvrdí: ruční tik zapíše
+//       `last_tick`+`last_tick_zdroj=manual` a **NEOBNOVÍ `last_cron`** (H112);
+//       plánovaný tik zapíše `cron_pokus` (POKUS přežije smrt invocation, H156)
+//       i `last_cron`; a `/health` obojí **PŘEČTE z D1** (dřív vždy `null`).
+//
 // Proč právě tyhle: P24 zavřela pět cest a P25 tři zapisující, ale tyhle
 // ČTECÍ endpointy — které orchestra používá pro diagnostiku i pro člověka —
 // nevolal NIKDO (naměřeno 7. 10. 2026: `post(mod, env, '/health'|…)` → 0×).
@@ -133,6 +141,13 @@ function fakeDb(cfg) {
     hryZapsany: 0,      // INSERT do `games`
     prepnutoHry: 0,     // UPDATE `games.active`
     posledniActive: undefined,  // čím se naposledy přepnulo (undefined = nic)
+    // ── P36 / Úkol B: TABULKA `state` (tep tiku) ───────────────────────────
+    // ⚠ DO P36 TU NEBYLA a `run()`/`all()` na její SQL házely „neznámý dotaz“.
+    // Conductor to volání CHYTÁ (`tep (manual) selhal: …`) a jede dál — takže
+    // harness tvrdil **218/0**, a přitom se **zápis tepu vůbec neprovedl**
+    // a `/health` četl svou `catch` větev. Každá kontrola o tepu tím měřila
+    // NĚCO JINÉHO, než si myslela (slepé místo, nález P35 §66.3).
+    tep: new Map(),     // k → v, jak by je uložila D1
   };
   const zapis = (sql) => log.push(String(sql).replace(/\s+/g, ' ').trim());
 
@@ -215,6 +230,11 @@ function fakeDb(cfg) {
       return { results: cfg.ukazkaUkolu ?? [] };
     }
     if (sql.includes('FROM roadmap') && sql.includes('eskalovano')) return { results: [] };
+    // ── P36 / Úkol B: TEP TIKU. `/health` čte `state`; bez tohohle větve
+    // dotaz spadl do `catch` a odpověď měla `last_cron: null` VŽDY.
+    if (sql.includes('SELECT k, v FROM state')) {
+      return { results: [...stav.tep.entries()].map(([k, v]) => ({ k, v })) };
+    }
     if (sql.includes('FROM roadmap r LEFT JOIN tasks t')) {
       return { results: cfg.roadmapRadky ?? [] };       // `/roadmap`
     }
@@ -233,6 +253,19 @@ function fakeDb(cfg) {
   const run = async (sql, args) => {
     zapis(sql);
     if (sql.startsWith('ALTER TABLE roadmap')) return { meta: { changes: 0 } };
+    // ── P36 / Úkol B: TABULKA `state` (tep tiku) ─────────────────────────────
+    // `zapisPokus`/`zapisTep` ji zakládají a pak do ní píšou `INSERT … ON CONFLICT`.
+    // ⚠ Do P36 tuhle větev fakeDb NEMĚL → `run()` hodil „neznámý dotaz“ → conductor
+    // to spolkl (`tep (manual) selhal: …`) → **zápis tepu se neprovedl** a test
+    // o něm netvrdil nic, i když hlásil 218/0. Hodnoty se proto UKLÁDAJÍ (a scénář
+    // AG je čte), aby se dalo tvrdit „tep se ZAPSAL“, ne jen „nic nespadlo“.
+    if (sql.includes('CREATE TABLE IF NOT EXISTS state')) return { meta: { changes: 0 } };
+    if (sql.includes('INSERT INTO state')) {
+      // Dva tvary: `VALUES (?, ?)` (zapisTep) a `VALUES ('cron_pokus', ?)` (zapisPokus).
+      if (sql.includes("'cron_pokus'")) stav.tep.set('cron_pokus', String(args?.[0]));
+      else stav.tep.set(String(args?.[0]), String(args?.[1]));
+      return { meta: { changes: 1 } };
+    }
     if (sql.includes("UPDATE runs SET status='timeout'")) {
       return { meta: { changes: cfg.zaseknuteBehy ?? 0 } };
     }
@@ -1481,6 +1514,53 @@ async function main() {
     check('AF: soubor granulí se čte z /contents/ (base64)', calls.some((u) => u.includes('/contents/')), true);
     check('AF: vícebajtové ID granule dorazí CELÉ (ne rozbité)', vr?.args?.[0], 'test/grain.žluťoučký');
     check('AF: a český TITUL úlohy taky CELÝ', vt?.args?.[0], 'Příliš žluťoučký kůň');
+  }
+
+  // ── AG) TEP TIKU SE OPRAVDU ZAPÍŠE (P36, Úkol B) ────────────────────────
+  // PROČ: `fakeDb` do P36 **neznal tabulku `state`** — `run()`/`all()` na její SQL
+  // házely „neznámý dotaz“, conductor to CHYTÁ (`tep (manual) selhal: …`)
+  // a jede dál. Harness tedy hlásil 218/0, a přitom se **zápis tepu vůbec
+  // neprovedl** a `/health` čítal svou `catch` větev — každá kontrola o tepu
+  // měřila něco jiného, než si myslela. Tenhle scénář tvrdí TŘI věci, které
+  // bez modelu `state` tvrdit NELZE: (1) tep se ZAPSAL, (2) ruční tik
+  // NEOBNOVÍ `last_cron` (H112), (3) `/health` ten tep PŘEČTE z D1.
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: false });
+    const { env, stav } = envFor({ aktivniHra: false });
+
+    // 1) RUČNÍ tik → `zapisTep(env, 'manual')`
+    const t = await tick(mod, env);
+    check('AG: ruční tik odpoví 200', t.status, 200);
+    check('AG: ruční tik ZAPSAL `last_tick` (dřív: „tep (manual) selhal“)',
+      typeof stav.tep.get('last_tick'), 'string');
+    check('AG: a zdroj tiku je `manual`', stav.tep.get('last_tick_zdroj'), 'manual');
+    check('AG: ruční tik NEOBNOVÍ `last_cron` (H112 — bránu cronu nejde uspokojit ručně)',
+      stav.tep.has('last_cron'), false);
+
+    // 2) `/health` ten tep PŘEČTE (dřív padal do `catch` a vracel null VŽDY)
+    const h1 = await get(mod, env, '/health');
+    check('AG: /health posílá `last_tick` z D1', typeof h1.body?.last_tick, 'string');
+    check('AG: /health posílá i ZDROJ tiku', h1.body?.last_tick_zdroj, 'manual');
+    check('AG: `last_cron` je null, když cron neběžel', h1.body?.last_cron, null);
+
+    // 3) PLÁNOVANÝ tik → `zapisPokus` PŘED tikem + `zapisTep(env, 'cron')` po něm
+    let cekej = null;
+    await mod.default.scheduled({ cron: '* * * * *', scheduledTime: Date.now() }, env, {
+      waitUntil: (p) => { cekej = p; },
+      passThroughOnException: () => {},
+    });
+    if (cekej) await cekej;
+    check('AG: plánovaný tik zapsal POKUS (`cron_pokus`) — ten přežije smrt invocation',
+      typeof stav.tep.get('cron_pokus'), 'string');
+    check('AG: a zapsal `last_cron` (tik DOBĚHL)', typeof stav.tep.get('last_cron'), 'string');
+    check('AG: zdroj se přepnul na `cron`', stav.tep.get('last_tick_zdroj'), 'cron');
+    const h2 = await get(mod, env, '/health');
+    check('AG: /health posílá `last_cron_pokus` z D1',
+      typeof h2.body?.last_cron_pokus, 'string');
+    check('AG: a `last_cron_pokus_min` je ČÍSLO (0 minut, ne null)',
+      h2.body?.last_cron_pokus_min, 0);
+    check('AG: a `last_cron` už je taky z D1', typeof h2.body?.last_cron, 'string');
   }
 
   console.log();
