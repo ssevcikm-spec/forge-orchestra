@@ -3509,7 +3509,10 @@ je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
 > data**, `cmd /c "… > soubor"` ano · **H162** = `/health` sám spotřebuje
 > **8 ms z 10ms** CPU rozpočtu · **H163** = **přerušený mutační běh zanechal
 > MUTANTA v živém zdroji** (vlastní omyl P34: `if (false)` v `conductor/src/index.ts`;
-> poznalo se to za hodinu přes `test-tick-offline` 215/1 a `p30-mutace` 11/5).
+> poznalo se to za hodinu přes `test-tick-offline` 215/1 a `p30-mutace` 11/5) ·
+> **H164** = **po nasazení P34 tik DOBÍHÁ** (`outcome=ok`, `cpuTime` 24–31 ms),
+> ale **čísla CPU nesedí s dokumentací** (ta uvádí 10 ms) a orchestra **stejně
+> nevydává práci** — tentokrát kvůli **STROPU GRANULE 8/8** (viz 65.7).
 
 ### 65.1 Úkol B (VĚCNÁ PRÁCE) — H156: PŘÍČINA JE ZMĚŘENÁ, A JE TO CPU LIMIT
 
@@ -3649,3 +3652,45 @@ node conductor\node_modules\wrangler\bin\wrangler.js tail forge-conductor --form
   protože jde o peníze.
 * **Nic jiného.** P34 **nenasazovala** žádnou změnu chování práce: tik dělá totéž,
   přibyla **observabilita** (pokus) a **brána, která vadu pojmenuje**.
+
+### 65.7 DODATEK (11. 10. 2026, 08:0xZ) — PO NASAZENÍ P34 TIK **DOBÍHÁ**
+
+> **⚠ CO JE TENHLE DODATEK:** **záznam měření PO PUSHI** (oddíly 65.1–65.6
+> vznikly před ním). Nic v nich se nepřepisuje — co platilo v čase zápisu,
+> platí dál; **tady je, co se změnilo potom.**
+
+**Nasazení ověřeno TŘEMI KROKY (po pushi):** `ls-remote` = `HEAD` (`f983dac`) ·
+`deploy.yml` **#38 na `f983dace0f9f` → completed/success** (2026-10-11T07:46:35Z) ·
+**`Current Version ID: e0a939e6-…`** z logu nasazení **== `scriptVersion.id`
+ŽIVÉHO `wrangler tail`** · `/health` **posílá `last_cron_pokus`** (nová pole
+jsou živá) — doklady `_analyza/p34-health-po-nasazeni-vystup.txt`,
+`_analyza/p34-tail-po-nasazeni-vystup.txt`.
+
+**Co se naměřilo:** `last_cron` byl **377 min** starý a **po nasazení začal
+tikát** (`last_cron = 2026-10-11T08:00:24.901Z`, `last_cron_pokus` o 2 s dřív);
+v `wrangler tail` je **každý cron event `outcome=ok`** (`cpuTime` **24–31 ms**,
+`wallTime` ≈ 2,9 s, log „tick: spusteno: 0 úloh…“); Cloudflare Analytics pro
+hodinu **`08Z`: 0 `exceededResources`** (předtím 46–59/h). Výpadek tedy skončil
+**v okamžiku nasazení**.
+
+**⚠ CO SE Z TOHO NESMÍ PŘEVZÍT (a co P35 musí změřit):**
+1. **PŘÍČINU ZLEPŠENÍ NELZE PŘIPSAT JEDNOZNAČNĚ.** V jednom commitu šly DVĚ
+   změny: POKUS o tik **navíc** (+1 D1 obrat, zapsaný PŘED tikem) a migrace
+   roadmapy **jednou na isolate** (**−3 D1 obraty na tik**) — plus se posunul
+   čas zápisu tepu. Která z nich rozhodla, **jedno pozorování nedokazuje**.
+2. **ČÍSLA CPU NESEDÍ S DOKUMENTACÍ.** Cloudflare uvádí pro **Cron Trigger na
+   free plánu 10 ms CPU** (HTTP tamtéž; subrequestů 50). Umírající invokace
+   hlásily `cpuTime = 10` (u **VŠECH** — vypadá to jako **zastropovaná**
+   hodnota), ale **úspěšné tiky hlásí 24–31 ms**, tedy NAD dokumentovaným
+   limitem. Dokumentace zároveň říká, že isolate má „built-in flexibility“ pro
+   **občasné** překročení a terminuje, až když Worker překračuje
+   **konzistentně** — to je **kandidát na vysvětlení, ne důkaz**.
+   **P35: změř to** (10 ms je CITACE z dokumentace, 24–31 ms je MĚŘENÍ —
+   a ta dvě se rozešla).
+3. **ORCHESTRA STEJNĚ NEVYDÁVÁ PRÁCI — A JE TO JINÝ DŮVOD.** Tik teď hlásí
+   `spusteno: 0 úloh` a **pojmenovává proč**: `#244 … STROP GRANULE 8/8
+   (uo-shadows/engine.input)`, `#245 … 8/8 (world.bodies)`, `#246 …`.
+   `ready = 3`, `running = 0` tedy **není následek mrtvého cronu**, ale
+   **záměrné brzdy** (`GRAIN_MAX_RUNS = 8`, zapnuto 8. 10. rozhodnutím
+   uživatele) na granulích, které spálily 8 běhů. **Pro P35 je to druhá stopa**
+   — a **rozhodnutí pro uživatele**: zvednout strop, nebo granule opravit.
