@@ -74,6 +74,13 @@ test('cron běží (čas)', cron.ok, cron.duvod);
 const cronTest = spust(process.execPath, [`${ORCH}/tools/test-cron-stav.mjs`]);
 test('brána cronu umí spadnout (fixtury: starý tep / chybějící tep / ruční tik)',
   cronTest.stav === 0, `exit=${cronTest.stav}`);
+// H156 (P34): druhá vada téhož místa — invocation umí umřít na CPU limitu
+// (`outcome = "exceededCpu"` z `wrangler tail`), a pak se „trigger nedorazil“
+// a „tik nedoběhl“ slijí. Služba proto zapisuje `last_cron_pokus` PŘED tikem
+// a tenhle offline test ověřuje, že predikát ty dva stavy POJMENUJE RŮZNĚ.
+const pokusTest = spust(process.execPath, [`${ORCH}/tools/test-cron-pokus.mjs`]);
+test('brána umí rozlišit „trigger nedorazil“ od „tik nedoběhl“ (fixtury pokusu)',
+  pokusTest.stav === 0, `exit=${pokusTest.stav}`);
 test('je registrovaná hra', (h.games ?? 0) >= 1, `games=${h.games}`);
 test('žádná úloha nevisí', (h.running ?? 0) < 10, `running=${h.running}`);
 

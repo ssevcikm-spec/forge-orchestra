@@ -209,7 +209,31 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    a `p32-zapis-zaznamu.py`. V dávce se spouštět NESMÍ: dávka má
              #    POJISTKU PROTI ZÁPISU a tenhle skript zapisuje ZÁMĚRNĚ.
              "p33-mutace.py", "p33-sonda-health.mjs", "p33-sonda-inventar.py",
-             "p33-zapis-zaznamu.py"}
+             "p33-zapis-zaznamu.py",
+             # ⚠ PŘESKOČENO 11. 10. 2026 (P34) — čtyři soubory, každý z JINÉHO
+             # důvodu (a každý s KÓDEM, ne jen se jménem):
+             #  * `p34-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — běží v LEVNÉM
+             #    režimu (~1 min, bez mutací a bez `g3`), takže ho NEPŘIDÁVÁM sem.
+             #    `--plne` a `--jen` se v dávce NEPOUŽÍVAJÍ: mutují živé soubory,
+             #    pouštějí `g3`/`validate-all` (rekurze) nebo dávku dokladů.
+             #  * `p34-mutace.py` je MUTAČNÍ TEST měřidla P34 (seamy P34_HANDOFF,
+             #    P34_HEALTH, P34_CF, P34_TAIL, P34_D1): dávka má POJISTKU PROTI
+             #    ZÁPISU, která hash dokumentů sleduje — mutační test do ní
+             #    nepatří (stejný důvod jako `p30-mutace.py`…`p33-mutace.py`).
+             #  * `p34-sonda-d1.py` je SONDA ŽIVÉ SLUŽBY (čte tabulku `state`
+             #    z D1 přes `wrangler d1 execute --remote`) — síť a OAuth účet;
+             #    pouští se ručně (vzor `p32-sonda-cf-verze.mjs`).
+             #  * `p34-sonda-cron-sleduj.mjs`, `p34-cf-analytika.mjs` a
+             #    `p34-tail-filtr.mjs` jsou SONDY/DOPLŇKY MĚŘENÍ (sledování tepu
+             #    v čase, historie invokací z Cloudflare Analytics, filtr živého
+             #    `wrangler tail`) — dávka hledá jen `*.py`, takže se jí netýkají;
+             #    jsou tu proto, aby bylo VIDĚT, že se pouští ručně.
+             #  * `p34-zapis-zaznamu.py` je ZÁPISOVÝ PATCHER (píše `HANDOFF.md`
+             #    a `KRONIKU`) — stejná třída jako `p27-*`/`p32-*`/`p33-zapis-*`.
+             #    V dávce se spouštět NESMÍ: zapisuje ZÁMĚRNĚ.
+             "p34-mutace.py", "p34-sonda-d1.py", "p34-sonda-cron-sleduj.mjs",
+             "p34-cf-analytika.mjs", "p34-tail-filtr.mjs", "p34-zapis-zaznamu.py",
+             "p34-zapis-zadani.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

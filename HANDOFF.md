@@ -3484,3 +3484,168 @@ python _analyza\p33-sonda-inventar.py            # který soubor rozešel otisk 
 * **Rozhodnutí, které bude potřeba**: jestli se má `g3` stát **blokujícím**
   (dnes končí `exit 1` pojmenovaně kvůli jedné bráně bez čítače). Dnes to není
   vada, ale **stav** — a je popsaný.
+
+## 65. P34 — PŘÍČINA VÝPADKU CRONU ZMĚŘENA (H156) A PŘEMĚŘENÍ P33 (10.–11. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P34 + stav po P34**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**49**, nálezy **§2.27**), plán (`PLAN-DALSI-KROK.md`, dodatek P34). Zadání P34
+je v `NEXT-SESSION-INSTRUKCE.md` (`git log -1 NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **10. 10. 2026 22:5x – 11. 10. 2026 09:37 +02:00**
+> (živý čas z hodin, ne ze zadání). Tvrzení o **stavu** (HEAD, hra, živá služba)
+> platí k tomu okamžiku; kdo to čte později, **přeměří**.
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.27), aby každý nález byl dohledatelný
+> z HANDOFF.md — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou** (tabulkový řádek `| **Hxx** |`
+> by zvedl počítadlo „99 řádků Hxx“ a shodil `ov-g` i měřidla P28):
+> **H157** = PŘÍČINA výpadku cronu je **CPU limit** (trigger dorazí, invocation
+> umírá na `exceededCpu`/10 ms), ne zastavený trigger — naměřeno třemi nezávislými
+> zdroji (tail, Cloudflare Analytics, D1) · **H158** = **slabá kontrola ve vlastní
+> fixtuře** (`ok === false` nedokazuje, že vada je pojmenovaná) · **H159** = tři
+> `ALTER TABLE` selhávaly **každý tik** (3 zbytečné D1 obraty z 10ms rozpočtu) ·
+> **H160** = živý výpadek se **propíše do čítačů bran** (`g3` → NEDEKLAROVANÝ exit
+> `validate-all (CELEK)`) · **H161** = `wrangler tail` přes PowerShell pipeline **nedodá
+> data**, `cmd /c "… > soubor"` ano · **H162** = `/health` sám spotřebuje
+> **8 ms z 10ms** CPU rozpočtu · **H163** = **přerušený mutační běh zanechal
+> MUTANTA v živém zdroji** (vlastní omyl P34: `if (false)` v `conductor/src/index.ts`;
+> poznalo se to za hodinu přes `test-tick-offline` 215/1 a `p30-mutace` 11/5).
+
+### 65.1 Úkol B (VĚCNÁ PRÁCE) — H156: PŘÍČINA JE ZMĚŘENÁ, A JE TO CPU LIMIT
+
+**Zadání nechalo tři kandidáty (H156 / H133 / dávka dokladů); vybrán byl H156** —
+P33 ho označila za „nejcennější otevřenou stopu“ a **výpadek se během P34
+ZOPAKOVAL** (což zadání výslovně označuje za úkol).
+
+**ŽIVÝ STAV PŘI MĚŘENÍ:** `last_cron = 2026-10-11T01:30:55.283Z`, `last_cron_min` = **357** (limit 10),
+`ready = 3`, `running = 0`, `/health` HTTP 200. Doručení tiku se **nezastavilo**:
+
+```
+wrangler tail (živý event, doklad _analyza/p34-tail-cron-vystup.txt):
+  CRON * * * * *  | outcome=exceededCpu | cpu=10ms | wall=685ms
+  CRON * * * * *  | outcome=exceededCpu | cpu=10ms | wall=736ms   (o minutu později)
+  HTTP GET /health | outcome=ok | cpu=8ms    ← i obyčejný /health je na hranici
+```
+
+**ŘETĚZ PŘÍČINY (každý článek má doklad):**
+1. cron trigger **DORAZÍ** každou minutu (`event.cron = "* * * * *"`),
+2. invocation skončí **`exceededCpu`** (CPU limit free plánu = **10 ms**),
+3. `tick()` se **nedokončí** → `zapisTep()` se nezavolá → `last_cron` zestárne,
+4. brána „cron NETIKÁ“ je proto **červená SPRÁVNĚ** — ale **pojmenovává vadu
+   špatně** (nechybí trigger, umírá tik). To je přesně to, co stálo P33 hodiny.
+
+**OPRAVA (H157 + H158 + H159) — a je měřená, ne odhadnutá:**
+* **služba** (`conductor/src/index.ts`): `scheduled` zapíše **POKUS o tik PŘED
+  tikem** (`state.cron_pokus`) — jediný zápis, který smrt invocation **přežije**;
+  `/health` posílá `last_cron_pokus` a `last_cron_pokus_min`. `last_cron` dál
+  znamená **„tik DOBĚHL“** (význam se nemění — brána se nesmí dát uspokojit),
+* **brána** (`tools/cron-stav.mjs`): když je pokus čerstvý a tep starý, hlásí
+  **„tik NEDOBÍHÁ (trigger dorazí, invocation umírá)“**; když je starý i pokus,
+  hlásí **„cron NETIKÁ“** (trigger nedorazil). Obě jsou `ok: false` — brána
+  zůstává červená, mění se jen **jméno vady**,
+* **test** (`tools/test-cron-pokus.mjs`, NOVÝ, **9/0**): 9 fixtur, které predikát
+  **VOLAJÍ** (diferenciál je jen v `last_cron_pokus`; fixtura 5 je zpětná
+  kompatibilita — starší `/health` pole nemá a **nesmí** z toho být „dorazil“),
+  `validate-all` je pouští jako součást sebe,
+* **CPU** (H159): tři `ALTER TABLE roadmap` (které **každý tik** selhávaly na
+  „duplicate column name“) se nově ověří **jednou na isolate**.
+
+> **⚠ CO SE NESMÍ ZTRATIT:** oprava **NEOBNOVUJE práci orchestra** — dokud tik
+> umírá na CPU limitu, `ready = 3` zůstává a práce se nevydává. **To je otevřené
+> (viz 65.3)** a je to práce pro P35: buď tik zlevnit (méně D1 obratů na
+> invokaci), nebo přesunout na placený plán (rozhodnutí uživatele).
+
+**Tři zdroje (nezávisle na sobě):** `_analyza/p34-tail-cron-vystup.txt` (živý
+event), `_analyza/p34-cf-analytika-vystup.txt` (historie: **exceededResources=1771, success=6032**;
+`exceededResources` v **39 z 49** hodinových oken), `_analyza/p34-d1-state-vystup.txt`
+(uložený tep). **`validate-all` je proto červený PRÁVĚ na bráně `cron běží (čas)`**
+a `g3` hlásí **1 NEDEKLAROVANÝ exit** — to je H160, ne vada měřidla.
+
+### 65.2 Úkol A — VLASTNÍ MĚŘIDLO P34 (`_analyza/p34-a-overeni.py`, A0–A8 + B1)
+
+* **Levný běh (A0,A1,A2,A5,A8,B1): 50/0.** Plný běh (i A3,A6,A7): **96/0** — doklad
+  `_analyza/p34-a-overeni-vystup.txt`.
+* **MUTAČNÍ DŮKAZ MĚŘIDLA:** `_analyza/p34-mutace.py` → **23/0** (M1 tvrzení v §64
+  vypuštěné v KOPII dokumentu → měřidlo spadne; M2 A8 **umí projít i spadnout**
+  — zdravý stav zelená, nesoulad „služba tvrdí 190 min / predikát OK“ červená;
+  M3/M4 doklady příčiny bez `exceededResources` / bez cron eventu → spadne;
+  M5 živé soubory bajt na bajt).
+* **A1 (umí brána cronu spadnout?):** fixtury **8/0** a **tři vady v KOPIÍCH**
+  (kopie bajt na bajt): (a) predikát bez kontroly stáří → nad 30 min starým tepem
+  tvrdí OK **a brána spadne na fixtuře 3**; (b) fixtura s `last_cron: null` →
+  brána spadne na fixtuře 1; (c) predikát s VRÁCENOU starou logikou `!!h.time`
+  → nad **uloženým** před-nasazovacím stavem **ZELENÝ**, kdežto nový predikát
+  nad týmž vstupem **SPADNE**.
+* **A2 (co P33 nasadila):** `675f13a` mění **právě** `conductor/src/index.ts`;
+  `62df458` (záznamy+měřidla) **nemá** `conductor/`; nasazení ověřeno **třemi
+  kroky** s **PLNÝM** sha (H153).
+* **A5 (registr bran):** `ag-over-cisla.py` → **exit 0**; `bran_celkem = 49`.
+* **A7 (nic se nerozbilo):** `g3` → **49 bran**, **2 nenulových exitů**, **1
+  NEDEKLAROVANÝCH** (viz H160); `validate-all` → červený **jen** na `cron běží
+  (čas)`; `kronika SEDÍ`; `handoff` 0 chybějících; `ov-g` 0 NEOVĚŘENO v rozsahu
+  **99 řádků Hxx**.
+* **VLASTNÍ OMYL P34 (H163) — a jak se poznal:** dlouhá noha `p33-a-overeni.py
+  --plne` (běžela 45 min) byla UKONČENA, a v tu chvíli byl otevřený mutační blok
+  `_mutace.mutuj` nad **živým** `conductor/src/index.ts` (mutace M20 z
+  `_analyza/tick-mutace.py`). `finally` se nevykonal → v souboru zůstalo
+  `if (false)`, a o hodinu později zčervenaly **cizí brány**: `test-tick-offline`
+  **215/1** (`V3: neznámá hra → 404`), `p29-a --jen A3` **17/1**, `p30-mutace`
+  **11/5**, `p32-mutace` **18/1**, `validate-all` **7 problémů**. Náprava:
+  řádek z `HEAD` zpět → **215/0 · 17/0 · 16/0 · 18/0**. Doklad:
+  `_analyza/p34-sonda-kotvy.py` (měří harness NAD STAVEM PŘED P34 i po něm).
+* **NEZMĚŘENO (pojmenovaně, ne tichem):** `--jen C9` (`p31-a`/`p32-a --plne`,
+  ~60–80 min) a `--jen A4` (dávka dokladů, hodiny) — v P34 **znovu neproběhly**;
+  jsou to **dlouhé nohy**, které se pouští zvlášť (`python _analyza\p34-a-overeni.py
+  --jen A4`).
+
+### 65.3 Co zůstalo OTEVŘENÉ (a co se NEMĚŘILO)
+
+* **PRÁCE SE NEVYDÁVÁ, dokud tik umírá na CPU limitu** (`ready = 3`,
+  `running = 0`). Oprava H157 dělá vadu **VIDITELNOU a POJMENOVANOU**; **nezlevňuje
+  tik**. Náprava = snížit počet D1 obratů na invokaci (naměřeno: `/health` sám
+  8 ms z 10) nebo placený plán (**rozhodnutí uživatele** — peníze).
+* **H133 (`p28-a-overeni.py` A6 čeká `g3 → exit 0`)** — **ZŮSTÁVÁ OTEVŘENÉ**
+  (nezměněno P34): `g3` končí `exit 1` pojmenovaně (1 brána bez čítače:
+  `mutace B (combat)`). „Deklarovat stav“ je změna měřidla a musí mít vlastní měření.
+* **Dávka dokladů (`p20-d-doklady.py`) NEDOBĚHLA ani v P34** (nedoběhla už v P33).
+* **`--jen C9`** (přeměření `p31-a --plne` 51/4/2/0 a `p32-a --plne` 51/0/2/0)
+  se v P34 nepouštělo — čísla v §64.1/§64.3 pocházejí z běhů P33.
+
+### 65.4 Živý stav při zápisu
+
+```
+orchestra: HEAD 62df458 · PUSHNUTA až posledním krokem P34 (push je POSLEDNÍ krok P34) · hra (cizí session) = ověřena živě
+           ⚠ NASAZENÍ P34: tep POKUSU (`cron_pokus`) + brána, která rozlišuje
+             „trigger nedorazil“ od „tik nedoběhl“ + migrace jednou na isolate
+brány:     g3 → 49 bran / 2 nenulových exitů / 1 NEDEKLAROVANÝCH (H160: živý
+           výpadek cronu) · validate-all → červený PRÁVĚ na `cron běží (čas)`
+           · vlastní měřidlo P34: levně 50/0, plně 96/0 · p34-mutace 23/0
+           · ŽIVÝ TEP: `last_cron` = 2026-10-11T01:30:55.283Z (min = 357) — tik NEDOBÍHÁ (H157)
+```
+
+### 65.5 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p34-a-overeni.py                  # LEVNÉ (A0,A1,A2,A5,A8,B1; ~1 min)
+python _analyza\p34-a-overeni.py --plne           # i A3, A6, A7 (mutace, g3, validate-all)
+python _analyza\p34-mutace.py                     # důkaz, že měřidlo umí spadnout i projít
+node tools\test-cron-stav.mjs                     # 8 fixtur (P33) — musí zůstat 8/0
+node tools\test-cron-pokus.mjs                    # 9 fixtur (P34): „nedorazil“ vs „nedoběhl“
+node tools\validate-all.mjs                       # červený JEN na `cron běží (čas)` (H160)
+python _analyza\p34-sonda-d1.py                   # uložený tep z D1 (wrangler, READ-ONLY)
+python _analyza\p34-cf-analytika.mjs 48           # historie invokací (outcome) z Cloudflare
+python _analyza\p33-sonda-inventar.py             # který soubor rozešel otisk inventáře
+node conductor\node_modules\wrangler\bin\wrangler.js tail forge-conductor --format json
+```
+
+### 65.6 Co čeká na tebe (uživatel)
+
+* **ROZHODNUTÍ (peníze):** orchestra je na **free plánu Cloudflare** a `tick`
+  potřebuje víc než **10 ms CPU** na invokaci (naměřeno: `/health` sám 8 ms).
+  Dokud to platí, **tik umírá a práce se nevydává**. Možnosti: (a) nechat free a
+  **zlevnit tik** (práce pro P35 — snižovat počet D1 obratů na invokaci),
+  (b) **placený plán Workers** (vyšší CPU limit) — to je tvoje rozhodnutí,
+  protože jde o peníze.
+* **Nic jiného.** P34 **nenasazovala** žádnou změnu chování práce: tik dělá totéž,
+  přibyla **observabilita** (pokus) a **brána, která vadu pojmenuje**.

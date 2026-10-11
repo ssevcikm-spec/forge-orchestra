@@ -65,7 +65,27 @@ export function zhodnotCron(h, nyni = Date.now(), limitMin = VYCHOZI_LIMIT_MIN) 
   const min = (nyni - t) / 60000;
   const zaokrouhleno = Math.round(min);
   const zdroj = h.last_tick_zdroj ?? '?';
+  // H156 (P34): ROZLIŠ DVA RŮZNÉ STAVY. `last_cron_pokus` zapisuje služba PŘED
+  // tikem, takže přežije i to, když invocation umře na CPU limitu free plánu
+  // (naměřeno: `outcome = "exceededCpu"`, `cpuTime = 10 ms`). Když je pokus
+  // ČERSTVÝ a dokončený tep STARÝ, trigger DORAZÍ a umírá tik — což je jiná
+  // vada (a jiná oprava) než „trigger vůbec nedorazil“. Obě jsou `ok: false`.
+  const pokusMs = typeof h.last_cron_pokus === 'string' ? Date.parse(h.last_cron_pokus) : NaN;
+  const pokusMin = Number.isFinite(pokusMs) ? Math.round((nyni - pokusMs) / 60000) : null;
   if (min > limitMin) {
+    if (pokusMin !== null && pokusMin < -limitMin) {
+      return {
+        ok: false,
+        duvod: `last_cron_pokus je v BUDOUCNOSTI (${pokusMin} min) — hodiny se rozešly`,
+      };
+    }
+    if (pokusMin !== null && pokusMin <= limitMin) {
+      return {
+        ok: false,
+        duvod: `tik NEDOBÍHÁ (trigger dorazí, invocation umírá): pokus před ${pokusMin} min,`
+          + ` poslední DOKONČENÝ tik ${iso} (${zaokrouhleno} min, limit ${limitMin})`,
+      };
+    }
     return {
       ok: false,
       duvod: `cron NETIKÁ: naposledy ${iso} (${zaokrouhleno} min, limit ${limitMin})`

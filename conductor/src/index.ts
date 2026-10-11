@@ -710,6 +710,10 @@ async function listGames(env: Env): Promise<Game[]> {
   return [];
 }
 
+// ⚠ H156 (P34): příznak samomigrace schématu `roadmap` — na jednom isolate se
+// migrace ověří JEDNOU, ne na každém tiku (tři zbytečné D1 obraty na invokaci).
+let schemaMigrovan = false;
+
 async function roadmapTick(
   env: Env,
   retryH: number,
@@ -722,20 +726,29 @@ async function roadmapTick(
   // cooldownu retry. Stará D1 sloupec nemá; CREATE TABLE IF NOT EXISTS v
   // schema.sql ho tam nepřidá, proto se to dělá tady – když už existuje,
   // ALTER selže s „duplicate column name" a to se tiše polkne.
-  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
-    .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
-  await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
-    .run().catch(() => undefined);
-  // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
-  // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
-  // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
-  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
-    .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
-  // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
-  // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
-  // značka ztratila a notifikace by chodila při každém tiku.
-  await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
-    .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
+  //
+  // ⚠ H156 (P34): CELÝ BLOK SE DĚLÁ JEN JEDNOU NA ISOLATE. Naměřeno ve
+  // `wrangler tail`: ty tři `ALTER`y selhávaly na „duplicate column name"
+  // KAŽDÝ TIK — tedy tři zbytečné D1 obraty (a tři chybové objekty + tři
+  // zápisy do logu) na invokaci, jejíž CPU rozpočet na free plánu je 10 ms.
+  // Sloupce už dávno existují; migrace se proto jen OVĚŘÍ (a to jednou).
+  if (!schemaMigrovan) {
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
+      .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
+    await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
+      .run().catch(() => undefined);
+    // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
+    // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
+    // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
+      .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
+    // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
+    // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
+    // značka ztratila a notifikace by chodila při každém tiku.
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
+      .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
+    schemaMigrovan = true;
+  }
 
   // Stav granulí drží tabulka roadmap (item_id = {game_id}/{grain_id}).
   // Řádek sám o sobě nestačí – je vidět i stav úlohy (LEFT JOIN tasks).
@@ -1049,11 +1062,34 @@ interface Task {
 // přes idempotentní `ALTER` a chybu „duplicate column“ tiše polkne.
 let tepTabulkaHotova = false;
 
-async function zapisTep(env: Env, zdroj: "cron" | "manual"): Promise<void> {
+async function zajistiTepTabulku(env: Env): Promise<void> {
   if (!tepTabulkaHotova) {
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS state (k TEXT PRIMARY KEY, v TEXT)").run();
     tepTabulkaHotova = true;
   }
+}
+
+// ------------------------------------------------- POKUS o tik (H156, P34) ----
+// PROČ (H156, P34): invocation plánovaného tiku umí UMŘÍT na CPU limitu free
+// plánu (naměřeno `wrangler tail`: `event.cron = "* * * * *"`,
+// `outcome = "exceededCpu"`, `cpuTime = 10 ms`) — a když umře, `zapisTep()`
+// se NIKDY nezavolá. Pak se v `/health` slijí DVĚ RŮZNÉ VADY do jednoho
+// `last_cron`:
+//   * trigger vůbec NEDORAZIL (Cloudflare nedodal event), nebo
+//   * trigger DORAZIL, ale tik nedoběhl (umřel na limitu).
+// Rozdíl je přitom zásadní — P33 na tom ztratila hodiny hledáním v měřidle.
+// POKUS se proto zapisuje PRVNÍ, ještě před `tick()`: je to jediný zápis,
+// který smrt invocation PŘEŽIJE. `last_cron` dál znamená „tik DOBĚHL“.
+async function zapisPokus(env: Env): Promise<void> {
+  await zajistiTepTabulku(env);
+  await env.DB.prepare(
+    `INSERT INTO state (k, v) VALUES ('cron_pokus', ?)
+       ON CONFLICT(k) DO UPDATE SET v = excluded.v`,
+  ).bind(new Date().toISOString()).run();
+}
+
+async function zapisTep(env: Env, zdroj: "cron" | "manual"): Promise<void> {
+  await zajistiTepTabulku(env);
   const ted = new Date().toISOString();
   const uloz = (k: string, v: string) =>
     env.DB.prepare(
@@ -1348,13 +1384,21 @@ export default {
     // H112 (P33): tep se zapisuje AŽ PO DOKONČENÍ tiku — kdyby tik spadl,
     // `last_cron` zestárne a brána to řekne. Zapisuje se tu, ne v `tick()`,
     // aby se zdroj (cron vs. ruční tik) nedal splést.
+    //
+    // H156 (P34): POKUS se zapisuje JEŠTĚ PŘED tikem. Invocation umí umřít na
+    // CPU limitu (naměřeno: `outcome = "exceededCpu"`), a pak se `zapisTep`
+    // nezavolá — bez pokusu se „trigger nedorazil“ a „tik umřel“ nerozliší.
     ctx.waitUntil(
-      tick(env)
-        .then((msg) => {
+      (async () => {
+        await zapisPokus(env).catch((e) => console.log("pokus cronu selhal:", String(e)));
+        try {
+          const msg = await tick(env);
           console.log("tick:", msg);
-          return zapisTep(env, "cron").catch((e) => console.log("tep cronu selhal:", String(e)));
-        })
-        .catch((e) => console.log("tik selhal:", String(e))),
+          await zapisTep(env, "cron").catch((e) => console.log("tep cronu selhal:", String(e)));
+        } catch (e) {
+          console.log("tik selhal:", String(e));
+        }
+      })(),
     );
   },
 
@@ -1389,13 +1433,18 @@ export default {
       // H112 (P33): TEP CRONU. Když tabulka `state` ještě není (starý deploy),
       // vrátí se `null` — a brána to hlásí jako VADU. „Neměřeno“ se nesmí tvářit
       // jako zelená; to je přesně vada, kterou tenhle tep zavírá.
+      // H156 (P34): `last_cron_pokus` je POKUS o tik (zapisuje se PŘED tikem).
+      // `last_cron` je poslední DOKONČENÝ tik. Když je pokus čerstvý a tep
+      // starý, tik umírá (CPU limit) — a brána to umí pojmenovat.
       let tep: {
         last_tick: string | null; last_tick_zdroj: string | null;
         last_cron: string | null; last_cron_min: number | null;
-      } = { last_tick: null, last_tick_zdroj: null, last_cron: null, last_cron_min: null };
+        last_cron_pokus: string | null; last_cron_pokus_min: number | null;
+      } = { last_tick: null, last_tick_zdroj: null, last_cron: null, last_cron_min: null,
+            last_cron_pokus: null, last_cron_pokus_min: null };
       try {
         const st = await env.DB.prepare(
-          "SELECT k, v FROM state WHERE k IN ('last_tick','last_tick_zdroj','last_cron')",
+          "SELECT k, v FROM state WHERE k IN ('last_tick','last_tick_zdroj','last_cron','cron_pokus')",
         ).all<{ k: string; v: string }>();
         const mapa = new Map((st.results || []).map((r) => [r.k, r.v] as const));
         const iso = (k: string): string | null => mapa.get(k) ?? null;
@@ -1404,8 +1453,10 @@ export default {
           return Number.isFinite(ms) ? Math.round((Date.now() - ms) / 60000) : null;
         };
         const cron = iso("last_cron");
+        const pokus = iso("cron_pokus");
         tep = { last_tick: iso("last_tick"), last_tick_zdroj: iso("last_tick_zdroj"),
-                last_cron: cron, last_cron_min: stari(cron) };
+                last_cron: cron, last_cron_min: stari(cron),
+                last_cron_pokus: pokus, last_cron_pokus_min: stari(pokus) };
       } catch (e) {
         console.log("tep cronu nelze precist: " + String(e).slice(0, 120));
       }
