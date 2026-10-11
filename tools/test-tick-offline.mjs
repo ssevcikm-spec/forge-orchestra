@@ -148,6 +148,12 @@ function fakeDb(cfg) {
     // a `/health` četl svou `catch` větev. Každá kontrola o tepu tím měřila
     // NĚCO JINÉHO, než si myslela (slepé místo, nález P35 §66.3).
     tep: new Map(),     // k → v, jak by je uložila D1
+    // ── P37 / Úkol B: SAMOMIGRACE `roadmap` (H178) ─────────────────────────
+    // Dvě čísla, která scénář AH čte. `altery` je počet POKUSŮ o `ALTER`:
+    // na živé D1 sloupce existují od 2.–6. 10. 2026, takže každý pokus
+    // skončí `duplicate column name` — a přesně to P37 naměřila v produkci.
+    altery: 0,          // pokusů o `ALTER TABLE roadmap`
+    migraceProbe: 0,    // ověření existence sloupců JEDNÍM dotazem (H178)
   };
   const zapis = (sql) => log.push(String(sql).replace(/\s+/g, ' ').trim());
 
@@ -171,6 +177,17 @@ function fakeDb(cfg) {
     // `/report` hledá běh podle run_key a čte pokusy úlohy
     if (sql.includes('FROM runs WHERE run_key')) return cfg.reportRun ?? null;
     if (sql.includes('SELECT attempts')) return { attempts: stav.attempts, status: cfg.reportTaskStatus };
+    // ── P37 / Úkol B: SAMOMIGRACE `roadmap` (H178) ──────────────────────────
+    // ⚠ TENHLE DOTAZ JE SÁM PŘEDMĚTEM KONTROLY: conductor jím OVĚŘUJE, že
+    // sloupce existují, a teprve když spadne, pouští `ALTER`y. Na živé D1
+    // sloupce existují (od 2.–6. 10. 2026), takže správná odpověď je ŘÁDEK.
+    // Kdyby tu větev fakeDb neměl, dotaz by spadl na „neznámý dotaz“ → conductor
+    // by usoudil „sloupce chybí“ → pouštěl by slepé ALTERy → scénář AH by
+    // měřil přesně tu vadu, kterou má zavírat (proto se to MUSÍ modelovat).
+    if (sql.includes('updated_at, naposledy_selhalo, eskalovano FROM roadmap')) {
+      stav.migraceProbe++;
+      return { updated_at: '2026-10-02T00:00:00Z', naposledy_selhalo: null, eskalovano: null };
+    }
     throw new Error('fakeDb.first: neznámý dotaz → ' + sql.replace(/\s+/g, ' ').slice(0, 120));
   };
 
@@ -252,7 +269,16 @@ function fakeDb(cfg) {
 
   const run = async (sql, args) => {
     zapis(sql);
-    if (sql.startsWith('ALTER TABLE roadmap')) return { meta: { changes: 0 } };
+    // ── P37 / Úkol B: `ALTER TABLE roadmap` NA ŽIVÉ D1 SELHÁVÁ (H178) ───────
+    // ⚠ DŘÍV TU BYLO `return { meta: { changes: 0 } }` — tedy ALTER „prošel“.
+    // Na živé D1 ale sloupce existují od 2.–6. 10. 2026, takže každý pokus
+    // skončí `duplicate column name` (naměřeno P37 v `wrangler tail` na verzi
+    // `3985379c`: tři takové řádky na každém tiku). Slepé „prošlo“ dělalo
+    // z kontroly „migrace se neopakuje“ kontrolu, která NEMŮŽE spadnout.
+    if (sql.startsWith('ALTER TABLE roadmap')) {
+      stav.altery++;
+      throw new Error('D1_ERROR: duplicate column name: ' + sql.replace(/\s+/g, ' ').slice(0, 60));
+    }
     // ── P36 / Úkol B: TABULKA `state` (tep tiku) ─────────────────────────────
     // `zapisPokus`/`zapisTep` ji zakládají a pak do ní píšou `INSERT … ON CONFLICT`.
     // ⚠ Do P36 tuhle větev fakeDb NEMĚL → `run()` hodil „neznámý dotaz“ → conductor
@@ -1561,6 +1587,34 @@ async function main() {
     check('AG: a `last_cron_pokus_min` je ČÍSLO (0 minut, ne null)',
       h2.body?.last_cron_pokus_min, 0);
     check('AG: a `last_cron` už je taky z D1', typeof h2.body?.last_cron, 'string');
+  }
+
+  // ── AH) SAMOMIGRACE SE NA ŽIVÉ D1 NEZKOUŠÍ ZNOVU (P37, Úkol B — H178) ────
+  // PROČ: H156 (P34) opravila „tři `ALTER`y každý tik“ příznakem `schemaMigrovan`
+  // — jenže ten je MODULOVÁ proměnná a izolát se recykluje. Naměřeno 11. 10. 2026
+  // v `wrangler tail` na ŽIVÉM tiku (verze `3985379c`, tj. i PO opravě H156):
+  // ruční `POST /tick` vypsal **tři** `duplicate column name`. Každý scénář
+  // v harnessu importuje bundle s `?v=…`, takže má ČERSTVÝ modul = čerstvý
+  // izolát; tenhle scénář je tedy přesně ten případ, který v produkci padal.
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, stav } = envFor({ aktivniHra: true });
+    // ⚠ ČERSTVÝ MODUL JE PODSTATOU TOHOHLE SCÉNÁŘE. Harness používá JEDEN
+    // import pro všechny scénáře, takže `schemaMigrovan` je v době, kdy AH
+    // běží, dávno `true` — a migrační blok by se VŮBEC NESPUSTIL (kontrola by
+    // měřila nulu a tvářila se jako zelená). Nový parametr v URL = nová
+    // instance modulu = čerstvý izolát, přesně ten stav, ve kterém v produkci
+    // cron tik padal.
+    const modCerstvy = await import(`${pathToFileURL(BUNDLE).href}?v=p37-ah-${Date.now()}`);
+    const t = await tick(modCerstvy, env);
+    check('AH: tik s aktivní hrou odpoví 200', t.status, 200);
+    check('AH: existence sloupců `roadmap` se ověří JEDNÍM dotazem', stav.migraceProbe, 1);
+    check('AH: a NEZKOUŠÍ se ani jeden slepý `ALTER TABLE roadmap`', stav.altery, 0);
+    // Kdyby se ALTERy pouštěly, conductor je POLKNE (`catch`) — tik by tedy
+    // „prošel“ a vada by byla neviditelná. Proto se počítá POKUS, ne pád.
+    check('AH: tik doběhl až k roadmapě (migrace ho nezastavila)',
+      calls.some((c) => String(c).includes('/contents/')), true);
   }
 
   console.log();

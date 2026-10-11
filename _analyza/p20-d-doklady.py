@@ -276,7 +276,28 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    a `KRONIKU`) — stejná třída jako `p27-*`/`p32-*`…`p35-zapis-*`.
              "p36-mutace.py", "p36-strop-sonda.py", "p36-agent-behy.mjs",
              "p36-log-job.mjs", "p36-pat-sonda.mjs", "p36-cf-token-sonda.mjs",
-             "p36-zapis-zaznamu.py"}
+             "p36-zapis-zaznamu.py",
+             # ── P37 (11. 10. 2026) ──────────────────────────────────────────
+             #  * `p37-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — a je to
+             #    měřidlo v LEVNÉM režimu: výchozí běh BEZ `--plne` nedělá drahé
+             #    nohy (cizí `p35-a-overeni.py --plne`, `g3`, `validate-all`).
+             #    Bez toho převrácení by dávka pouštěla 25minutový běh.
+             #  * `p37-mutace.py` je MUTAČNÍ TEST opravy H178 (3 vraty v KOPIÍCH,
+             #    návrat ověřen `sha256`) — třída jako `p30-mutace.py`…
+             #  * `p37-tail-rozbor.py` a `p37-tail-logy.py` jsou ANALÝZY
+             #    dokladu živého `wrangler tail` (čtou soubor, ne síť).
+             #  * `p37-agent-behy.mjs`, `p37-cf-analytika.mjs`,
+             #    `p37-cpu-rozklad.mjs`, `p37-deploy-behy.mjs`,
+             #    `p37-pr-sonda.mjs`, `p37-sluzba-sonda.mjs` a
+             #    `p37-tick-mereni.mjs` jsou SONDY ŽIVÝCH SLUŽEB (GitHub API,
+             #    Cloudflare GraphQL, živý conductor); `p37-tick-mereni.mjs`
+             #    navíc ZASÁHNE do stavu (1× `POST /tick`).
+             #  * `p37-zapis-zaznamu.py` je ZÁPISOVÝ PATCHER (píše `HANDOFF.md`
+             #    a `KRONIKU`) — třída jako `p27-*`/`p32-*`…`p36-zapis-*`.
+             "p37-mutace.py", "p37-tail-rozbor.py", "p37-tail-logy.py",
+             "p37-agent-behy.mjs", "p37-cf-analytika.mjs", "p37-cpu-rozklad.mjs",
+             "p37-deploy-behy.mjs", "p37-pr-sonda.mjs", "p37-sluzba-sonda.mjs",
+             "p37-tick-mereni.mjs", "p37-zapis-zaznamu.py"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

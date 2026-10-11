@@ -732,21 +732,36 @@ async function roadmapTick(
   // KAŽDÝ TIK — tedy tři zbytečné D1 obraty (a tři chybové objekty + tři
   // zápisy do logu) na invokaci, jejíž CPU rozpočet na free plánu je 10 ms.
   // Sloupce už dávno existují; migrace se proto jen OVĚŘÍ (a to jednou).
+  //
+  // ⚠ H178 (P37): „JEDNOU NA ISOLATE“ NENÍ „JEDNOU“ — izolát se recykluje.
+  // Naměřeno 11. 10. 2026 v `wrangler tail` na ŽIVÉM tiku (verze `3985379c`,
+  // tedy i po opravě H156): ruční `POST /tick` vypsal **tři** `duplicate column
+  // name` (`roadmap.updated_at`, `roadmap.naposledy_selhalo`,
+  // `roadmap.eskalovano`) — příznak `schemaMigrovan` je modulová proměnná,
+  // a cron tik si izolátem neprojde, takže se migrace pokoušela pořád dokola.
+  // Proto se existence sloupců ověřuje JEDNÍM dotazem, který Uspěje — a teprve
+  // když sloupce opravdu chybí (dotaz spadne na `no such column`), migruje se.
+  // Když `roadmap` neexistuje, spadne i ten dotaz → cesta je stejná jako dřív.
   if (!schemaMigrovan) {
-    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
-      .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
-    await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
-      .run().catch(() => undefined);
-    // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
-    // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
-    // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
-    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
-      .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
-    // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
-    // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
-    // značka ztratila a notifikace by chodila při každém tiku.
-    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
-      .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
+    const maSloupce = await env.DB.prepare(
+      "SELECT updated_at, naposledy_selhalo, eskalovano FROM roadmap LIMIT 1",
+    ).first().then(() => true).catch(() => false);
+    if (!maSloupce) {
+      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
+        .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
+      await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
+        .run().catch(() => undefined);
+      // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
+      // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
+      // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
+      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
+        .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
+      // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
+      // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
+      // značka ztratila a notifikace by chodila při každém tiku.
+      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
+        .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
+    }
     schemaMigrovan = true;
   }
 
