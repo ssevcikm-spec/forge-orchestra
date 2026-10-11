@@ -4772,3 +4772,16 @@ neopravovala, protože brána je živý kód a její oprava chce test + mutaci.
 | `hl-rizika-jazyka.py` | **`exit 0`** — 0 identifikátorů, 20 textových literálů (mimo seznam, ale to je v pořádku) |
 | inventář | **9794 nálezů** (přegenerován před `g3` i po něm) |
 | `validate-all` | viz `HANDOFF.md` §69.6 a `NEXT-SESSION-INSTRUKCE.md` (měřeno **po** commitu, v předepsaném pořadí) |
+
+**H190 — kotva zadání se rozbije KAŽDÝM DALŠÍM commitem (a `g3` to má deklarované).**
+Hlavička zadání se píše **po commitu** a **tvrdí HEAD**. P38 měla **dva commity**
+(`198beaf` = práce, `da8e701` = dodatek s H189 a výsledky bran) — a po druhém
+commitu tvrdila hlavička `198beaf`, takže brána `zadani-kontrola` spadla **zpět
+na `exit 1`** (`⚠ forge-orchestra: zadání tvrdí 198beaf, skutečný HEAD je
+da8e701 → přibylo commitů: 1`). **Naměřeno v obou bězích `g3`** (`zadání
+kontrola → exit=1`, **deklarované** v `OCEKAVANE_NENULOVE`) — a protože je to
+deklarované, **nikdo se to z g3 nedozví**. **Pravidlo: hlavička (i kotva
+a stavový řádek) se aktualizuje po POSLEDNÍM commitu session** — kdo po přepsání
+hlavičky ještě commitne, musí ji přepsat **znovu**; a kdo to neudělá, nechá
+v repu zadání, které **lže o stavu** (a bránu, která to hlásí, ale má to
+„odškrtnuté" jako očekávané).
