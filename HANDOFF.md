@@ -4479,3 +4479,257 @@ python _analyza\p37-deploy-behy.mjs          # kdy se naposledy nasazovalo
 python _analyza\g3-brany.py                  # 49 bran (POZOR: FORGE_REGISTR!)
 node tools\validate-all.mjs                  # dnes ČERVENÝ na mrtvém cronu (H179)
 ```
+
+## 69. P38 — OBNOVA CRON TIKU OVĚŘENA A ZAPSÁNA; „ROZDÍL JE V CESTĚ“ JE VYVRÁCEN (H184–H188) (11. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P38 + stav po P38**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**53**, nálezy **§2.31**, poučení **L27–L28**), plán (`PLAN-DALSI-KROK.md`).
+Zadání P38 je v `NEXT-SESSION-INSTRUKCE.md` — a **jeho hlavička se záměrně
+necommituje**, takže `git show HEAD:NEXT-SESSION-INSTRUKCE.md` je **starší
+verze**; to je záměr, ne ztráta (`git log -1 --format=%ci -- NEXT-SESSION-INSTRUKCE.md`).
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **11. 10. 2026 18:39–19:56 UTC** (živý čas
+> z hodin, UTC+02:00). Tvrzení o **stavu** (HEAD obou repů, živá služba, běhy na
+> GitHubu, Cloudflare Analytics) platí k tomu okamžiku; kdo to čte později,
+> **přeměří**.
+>
+> **⚠ ZADÁNÍ P38 BYLO VE SVÉM §1 ZASTARALÉ.** Jeho §1 se psalo **před**
+> posledním měřením P37 a tvrdilo „orchestra DNES NETIKÁ (H179)". Naměřeno **až
+> po** commitu `335fd8f` (deploy #40): tik je **obnovený**. Tenhle oddíl je
+> **záznam**, který to nahrazuje — a je to táž past, na kterou upozorňuje
+> `AGENTS.md` („analytický dokument, ze kterého se něco PROVEDLO, musí říct
+> datum spotřeby").
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.31) — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou**
+> (tabulkový řádek `| **Hxx** |` zvedne počítadlo „řádků Hxx" a shodí `ov-g`
+> i měřidla P28): **H184** = **OBNOVA CRON TIKU JE OVĚŘENÁ A ZAPSANÁ** — deploy
+> `#40` na `335fd8f` (`18:39:20Z`, `success`, `Current Version ID 65ca3308-…`)
+> == `scriptVersion.id` živého tailu, **13,2 min živého tailu: 14/14 cron `ok`,
+> 0× `exceededCpu`, `cpuTime` 18–22 ms, rozestupy max 60,0 s**, poslední minuta
+> s úmrtím **`18:39:22Z`** a od `18:40:22Z` nula · **H185** = **„10 ms" JE
+> LIMIT, NE CENA PRÁCE — a platí pro OBĚ cesty** (dokumentace: Free = 10 ms pro
+> HTTP i cron; 1175/1175 zabitých invokací hlásí právě 10,0 ms, kdežto úspěšné
+> 7–59 ms) → **P37ho „rozdíl je v CESTĚ" je měřením VYVRÁCEN** · **H186** =
+> **ROZHODUJE PER-ISOLATE FLEXIBILITA/ROLLOVER**: táž verze `3985379c` dala
+> cron `ok` (09:43–12:40, 18–29 ms) i `exceededCpu` 54/54 (17:07–18:00) a
+> v jediné hodině (`d21a7911`, 04:47–08:00) **12× zabitý a 3× `ok` (24–31 ms)**
+> · **H187** = **PLÁN ÚČTU NENÍ ZMĚŘEN**: API řeklo `usage_model = "standard"`,
+> `/subscriptions` i `/user/subscriptions` ale vrací **HTTP 403** — a na tom
+> závisí, jestli je oprava `[limits] cpu_ms` (placený), nebo zlevnění tiku
+> · **H188** = **VLASTNÍ OMYL P38: PRVNÍ TAIL ZASTAVEN PO 7,2 min** (požadavek
+> byl ≥10 min) — čas se měří z DOKLADU (první event), ne od spuštění jobu;
+> doklad je odložený jako `p38-tail-kratky-vystup.txt` a **měření je až druhý běh**.
+
+### 69.1 Úkol 1 — OBNOVA TIKU OVĚŘENA: TŘI KROKY NASAZENÍ + ŽIVÝ TAIL 13,2 min
+
+| # | Co se ověřovalo | Jak | Naměřeno |
+|---|---|---|---|
+| 1 | **Push dorazil** | `git rev-list --count origin/main..HEAD` + `ls-remote` (`tools\git.cmd`) | **0** · `origin/main` = `335fd8fb29ca81ce35c5412b5623c6c782695d6e` = HEAD |
+| 2 | **Deploy běžel na SPRÁVNÉM commitu** | GitHub API `/repos/…/actions/workflows/deploy.yml/runs` | **#40** (id `38164721883`) na `335fd8f`, `created_at 18:39:20Z`, `updated_at 18:39:44Z`, `completed/success`, `event=push`, úloha `deploy` (id `114544788761`, 18:39:23→18:39:43) |
+| 3 | **Server posílá TU verzi** (H153: PLNÉ sha) | `Current Version ID` z LOGU běhu (18 093 znaků) vs. `scriptVersion.id` ŽIVÉHO tailu | **`65ca3308-4182-43c3-9443-7e4e01ad14cd`** == živý tail (všech 28 eventů jedna verze) |
+| 4 | **Tik žije a nedobíhá na CPU** | živý `wrangler tail --format json`, **13,2 min** | **14 cron eventů, 14× `ok`, 0× `exceededCpu`**; `cpuTime` medián **20 ms** (rozsah 18–22), `wallTime` medián **4045 ms** |
+| 5 | **Pokrytí je SOUVISLÉ** (nula není úspěch) | rozestupy mezi cron eventy v dokladu | medián **60,0 s**, max **60,0 s**, přes 90 s: **0×**; mimo `ok`: **0 z 28** eventů; 14 z 14 cronů má v logu zprávu tiku |
+| 6 | **Výpadek skončil NASZENÍM, ne sám** | Cloudflare Analytics (`workersInvocationsAdaptive`), minuta po minutě | poslední minuta s úmrtím **`18:39:22Z`**; od **`18:40:22Z`** už **0**; hodina `18Z` = **39** exceeded (18:00–18:39), `19Z` = **0** |
+| 7 | **`/health` hlásí tik I pokus** | GET `/health` (READ-ONLY) | `ok:true`, `ready:3`, `running:0`, `games:1`, `last_cron` **19:34:51.511Z** (**1 min**, zdroj **cron**), `last_cron_pokus` **19:34:48.053Z** (1 min) |
+| 8 | **H178 je živě vidět** | tail: `duplicate column name` v logu | **0** v celém dokladu (dřív 3 na každém čerstvém isolate) |
+| 9 | **Co tik hlásí** | zprávy tiku v logu (14/14) | `spusteno: 0 úloh; polling: zadny cloudovy beh nebezi; roadmapa je hotová … \| přeskočeno: #244 STROP GRANULE 8/8 (uo-shadows/engine.input); #245 … world.bodies; #246 … engine.shell` |
+
+**Doklady:** `_analyza/p38-a-deploy-vystup.txt` + `p38-a-deploy-raw-vystup.txt`
+(log běhu), `p38-a-sluzba-vystup.txt`, `p38-tail-raw-vystup.txt` (13,2 min),
+`p38-b-rozbor-p38-vystup.txt`, `p38-a-obnova-vystup.txt`,
+`p38-b-cf-analytika-vystup.txt` + `p38-b-cf-analytika-raw-vystup.txt`,
+`p38-b-timeline-vystup.txt`, `p38-b-mechanismus-vystup.txt`, `p38-c-agent-behy-vystup.txt`.
+**Nástroje:** `p38-a-deploy.mjs`, `p38-a-sluzba-sonda.mjs`, `p38-b-tail-rozbor.py`,
+`p38-a-obnova.mjs`, `p38-b-cf-analytika.mjs`, `p38-b-cf-pole.mjs`,
+`p38-b-cf-schema.mjs`, `p38-b-timeline.py`, `p38-b-ucet.mjs`, `p38-b-ucet2.mjs`,
+`p38-c-agent-behy.mjs`.
+
+> **⚠ JEDNA OPRAVA ZADÁNÍ, KTERÁ JE NÁLEZ:** zadání P38 tvrdilo (v §1 i ve
+> stavovém řádku), že hodina `18Z` měla **39 exceeded = minuty 18:00–18:38**.
+> Naměřeno: **poslední umírající minuta je `18:39:22Z`** (tik, který vystartoval
+> 22 s před dokončením nasazení) — 39 minut v `18Z` to je, ale rozsah je
+> **18:00–18:39** (a minuta `18:36:22Z` v datech chybí, takže 39 sedí).
+
+### 69.2 Úkol 2 — MECHANISMUS JE ZMĚŘEN: „10 ms" JE LIMIT, NE CESTA (H185, H186)
+
+**Otázka P37 zněla: „proč se liší limit/účtování `scheduled` vs. `fetch`?"**
+**Odpověď: neliší — a „rozdíl v cestě" je artefakt dvou pozorování z jednoho okna.**
+
+**1. Dokumentace (`developers.cloudflare.com/workers/platform/limits/`) říká
+u CPU limitu pro Free plán TOTÉŽ pro obě cesty:**
+
+```
+| CPU time per HTTP request | 10 ms | 5 min (default: 30 seconds) |
+| CPU time per Cron Trigger | 10 ms | 30 seconds (< 1 hour) 15 min (>= 1 hour) |
+```
+
+Rozdíl cron vs. fetch v CPU rozpočtu **existuje jen na placeném plánu**. A dál
+je dokumentovaný **mechanismus, který to celé vysvětluje** (wrangler config
+`#limits` + `observability/metrics-and-analytics`):
+
+> „Each isolate has some built-in flexibility to allow for cases where your
+> Worker **infrequently** runs over the configured limit. If your Worker starts
+> hitting the limit **consistently**, its execution will be terminated according
+> to the limit configured."
+
+> „… a mechanism in the Workers runtime that allows **rollover CPU time** for
+> requests below the CPU limit."
+
+(Dokumentace **neumí** velikost poolu ani pravidlo obnovy — a **netvrdí**, že
+`cpuTime` zabité invokace se rovná limitu. To je pozorování, ne citace.)
+
+**2. „10 ms" je LIMIT, ne cena práce — měřeno dvěma nezávislými zdroji:**
+
+| Zdroj | Naměřeno |
+|---|---|
+| Cloudflare Analytics, 30 h | `success` **3950** invokací, Ø CPU **7,7 ms** · `exceededResources` **1175** invokací, Ø CPU **10,0 ms** (`cpuTimeP50` = 10 000 µs) |
+| živý tail P37 | `cpuTime` = **10** u **54 z 54** zabitých cron eventů (medián i rozsah) |
+| živý tail P38 | cron `cpuTime` **18–22 ms** a `outcome=ok` |
+
+**3. Rozhodující: TÁŽ CESTA I VERZE dala oba výsledky** (`p38-b-timeline.py`):
+
+| doklad | okno (UTC) | verze | cron | outcome (cron) | cpuTime med/min/max |
+|---|---|---|---|---|---|
+| `p34-tail-cron-plny` | 04:47–08:00 | d21a7911 | 15 | **exceededCpu=12, ok=3** | 10/10/31 |
+| `p35-tail-raw` | 09:28–09:39 | e0a939e6 | 12 | ok=12 | 26,5/24/36 |
+| `p35-tail-po` | 09:43–10:43 | 3985379c | 61 | ok=61 | 20/18/29 |
+| `p36-tail-raw` | 12:18–12:40 | 3985379c | 22 | ok=22 | 21,5/18/25 |
+| `p37-tail-raw` | 17:07–18:00 | **3985379c** | 54 | **exceededCpu=54** | 10/10/10 |
+| `p38-tail-raw` | 19:42–19:55 | 65ca3308 | 14 | **ok=14** | 20/18/22 |
+
+Verze **`3985379c`** běžela 09:43–13:58 s cron `ok` (18–29 ms) a 17:07–18:00
+s cron `exceededCpu` 54/54 — **kód se nezměnil**. A **v jedné hodině** (verze
+`d21a7911`) dal cron 12× `exceededCpu` (10 ms) a 3× `ok` (24–31 ms).
+→ **Rozhoduje per-invokační (per-isolate) povolení, ne druh triggeru.** „Cesta"
+je korelace: v okně výpadku byl tik **jediná pravidelná invokace nad limitem**
+(běží každou minutu na témž isolate = „hits the limit consistently"), kdežto
+HTTP obsluhoval hlavně levné endpointy.
+
+**4. Podpůrné měření:** ve výpadkových hodinách (`14Z`–`16Z`) mají **úspěšné**
+invokace `P50` max **5,7–8,5 ms** — tedy **pod limitem**; nad limitem byl jen
+tik. V `17Z` mají úspěšné `P50` max 29,4 ms — to jsou **dva ruční `POST /tick`**
+(29 a 19 ms, `ok`), a **ten s 29 ms měl v logu tři slepé `ALTER TABLE`** →
+běžel na **ČERSTVÉM isolate** (modulový příznak nebyl nastaven), který má
+flexibilitu ještě nespotřebovanou. **Tohle je inference z dokumentovaného
+mechanismu, ne druhé měření** — je tak zapsaná.
+
+**5. Co to znamená pro opravu:** „přenést tik do HTTP cesty" **není oprava** —
+je to jízda na téže flexibilitě (a P37ho důkaz pro ni je vyvrácený). Tik je
+**i po opravě H178 20 ms = 2,0× dokumentovaný limit 10 ms** a v měřené historii
+se výpadky **vracely** (10. 10. hodiny s 19–69 `exceeded`; 11. 10. 13:58–18:38)
+a **každý deploy je na chvíli ukončil**. Trvalá oprava je jen jedna ze dvou:
+**zvednout rozpočet** (což dokumentace váže na placený plán) nebo **zlevnit tik**
+pod 10 ms (H182: ~6 ms z 29 ms je GitHub; zbytek přiřazen není).
+
+### 69.3 Co tik DĚLÁ a co NEDĚLÁ (orchestra pořád nevydává práci)
+
+* **Tik se rozběhl, ale nevydá ani úlohu** — a je to vidět v každém ze 14 cronů:
+  `spusteno: 0 úloh … | přeskočeno: #244 … #245 … #246 STROP GRANULE 8/8`.
+  `/roadmap` dnes: **20 řádků, `done=17`, `queued=3`** (přesně ty tři granulé).
+  **Vazbou je tedy znovu strop granulí** (H171), ne tik.
+* **`agent.yml` ve hře neběžel ani jednou od obnovy tiku:** `total_count=366`,
+  nejnovější běh **#366 z `2026-10-09T19:42:02Z`** (`failure`), dotaz
+  „vytvořené po `2026-10-09T20:00Z`" → **0** (H180 **platí dál**, jen už to
+  není proto, že by neběžel tik).
+* **Zvednout strop před opravou `FORGE_PAT` znamená spálit běhy:** poslední
+  stovka běhů je **95 `failure` / 5 `success`** (49 parse · 15 nic nezměnil ·
+  15 PR auth · 15 testy hry · 1 auto-merge), poslední úspěch **#297 z 5. 10.
+  02:01Z** — a **15× to bylo právě `could not read Username` (PR auth, exit 128)**.
+
+### 69.4 CENA, KTEROU OBNOVA NEMÁ VYŘEŠENOU (a proč to není „hotovo")
+
+Tik je **20 ms proti dokumentovanému limitu 10 ms** (2,0×) — tedy **žije
+z flexibility**. Měřená historie 30 h to potvrzuje: `exceededResources`
+**1175** invokací a v `10. 10.` hodiny s **19–69** zabitými; zdravé byly jen
+hodiny **po nasazení** (`08Z`–`12Z` po #38/#39, `19Z` po #40). **Kdo čte tenhle
+oddíl jako „tik je opravený", přečte si víc, než je naměřeno: je OBNOVENÝ.**
+Co je potřeba k trvalé opravě, je v 69.2/5.
+
+### 69.5 Vlastní omyl P38 (H188)
+
+První živý tail jsem spustil v jobu, který po 60 s skončil (proces běžel dál)
+a zastavil jsem ho v **7,2 min** — protože jsem čas počítal od **spuštění jobu**,
+ne od **prvního eventu v dokladu**. Požadavek byl **≥10 min**, takže to měření
+bylo **nepoužitelné** (a byl by to přesně případ „nula vypadá jako měření").
+Druhý běh dal **13,2 min** a je to on, co je v 69.1. První doklad zůstal
+odložený jako `_analyza/p38-tail-kratky-vystup.txt` (**nevymazán** — je to
+doklad omylu). **Pravidlo: délka okna se měří z dokladu, ne z hodinek.**
+
+### 69.6 Živý stav při zápisu
+
+```
+orchestra: HEAD 335fd8f · origin/main = HEAD (P37 PUSHNUTÁ, ověřeno ls-remote)
+           pracovní strom: 5 změněných PŘED P38 (NEXT-SESSION-INSTRUKCE.md +
+           _analyza/_registr-bran.json + tři ov-*.json z 10. 10.; NEcommitovány
+           záměrně — nejsou práce P38) + nové soubory P38
+           hra e4dccdb (cizí session; strom ČISTÝ, origin/main = 01a9649 —
+           DVA commity NEJSOU pushnuté; do hry se NESÁHALO)
+konductor: NASAZENA VERZE 65ca3308-4182-43c3-9443-7e4e01ad14cd
+           (deploy #40 na 335fd8f, created 18:39:20Z, completed/success)
+           ✅ CRON TIK ŽIJE: 14/14 cron eventů ok, 0× exceededCpu (13,2 min),
+              cpuTime 18–22 ms, last_cron 19:34:51.511Z (1 min, zdroj cron)
+           ⚠ ALE JE 2,0× NAD DOKUMENTOVANÝM LIMITEM (20 ms vs. 10 ms) → výpadky
+              se mohou vrátit; v 30h historii se vracely a deploy je ukončil
+           ⚠ práci NEVYDÁVÁ: strop granulí 8/8 na #244/#245/#246 (viz 69.3)
+brány:     test-tick-offline 235/0 · p37-mutace 7/0 · jazyk 0 identifikátorů
+           · inventář 9794 nálezů · g3 a validate-all: viz 69.7/69.9
+           · kronika SEDÍ · handoff (viz 69.9) · ov-g 0 NEOVĚŘENO
+```
+
+### 69.7 Co zůstalo OTEVŘENÉ
+
+* **H186 (trvalá oprava tiku) — NEJDŮLEŽITĚJŠÍ.** Tik je obnovený, ale nad
+  rozpočtem; dokud se to nezmění, bude se výpadek vracet. Kandidáti s cestou
+  zpět: (a) `[limits] cpu_ms` — **jen když je účet na placeném plánu** (jinak
+  se to nesmí nasadit), (b) zlevnit tik pod 10 ms (H182 měří, kde je cena),
+  (c) vnější budič (HTTP) — **měřením vyvráceno jako oprava**, viz 69.2/5.
+* **H187 — plán účtu.** `usage_model = "standard"` (API), ale `subscriptions`
+  **403** → rozhoduje uživatel v dashboardu.
+* **FORGE_PAT (H171/H180)** — beze změny; **15 zahOZENÝCH běhů** a poslední
+  úspěch 5. 10.
+* **Strop granulí 8/8** — dnes **znovu vazba** (69.3); nezvedat dřív než PAT.
+* **H181** (mrtvá větev `origin/main`) — neopraveno, **a teď je na to prostor**:
+  tik je 20 ms, ale limit je 10 ms, takže „přidat 179 kB + fetch" pořád není
+  zdarma. Zůstává odloženo s cenou.
+* **H133**, **dávka dokladů** (`p20-d-doklady.py`), **H168/H173** — nezměněno.
+* **`g3` NEDEKLAROVANÝ exit** — P37 ho pojmenovala jako `validate-all`
+  padající na mrtvém cronu; **v P38 se to ověří** (69.9) a očekává se **0**.
+
+### 69.8 Co čeká na tebe (uživatel)
+
+* **ROZHODNUTÍ A — NA JAKÉM PLÁNU JE ÚČET CLOUDFLARE?** (dashboard, 30 s).
+  **Proč to patří tobě:** placený plán znamená, že limit lze zvednout
+  (`[limits] cpu_ms`, dokumentace to váže na Standard usage model) a je to
+  **jednořádková oprava**; free plán znamená **zlevnit tik pod 10 ms**, což je
+  práce na hodiny až dny. **Cena:** nic. **Cesta zpět:** žádná není potřeba —
+  je to jen změření stavu.
+* **ROZHODNUTÍ B — `FORGE_PAT` v repu HRY.** Vystavit nový **fine-grained PAT**
+  (Contents: Read/Write, Pull requests: Read/Write, expirace ≥ 90 dní) a uložit
+  ho jako secret `FORGE_PAT` v `uo-shadows`. **Agent to neudělá:** nemá UI
+  a do hry **nepsat** (vede ji cizí session). **Nepoužívej `GITHUB_TOKEN`** —
+  push jím neprobudí `ci.yml` na `main` (invariant 19). **Ověření po výměně:**
+  jeden běh a v jeho logu kroku `create-pull-request` musí být místo
+  `fatal: could not read Username` **vytvořený PR**.
+* **ROZHODNUTÍ C — STROP GRANULÍ 8/8.** **Doporučení: nezvedat, dokud PAT
+  nefunguje.** Naměřený důvod: zvednutí okamžitě vydá 3 granulé (#244/#245/
+  #246) a poslední stovka běhů je **95 `failure` / 5 `success`** — tedy ~95 %
+  spálené kvóty bez užitku. **Cesta zpět:** `GRAIN_MAX_RUNS` ve `wrangler.toml`
+  (`git revert`) + `POST /roadmap/reset` (cache se vyprazdní, počítadlo od nuly).
+* **ROZHODNUTÍ D — HRA.** `uo-shadows` má **dva lokální commity** (`e4dccdb`)
+  proti `origin/main` (`01a9649`) a vede ji **cizí session**; P38 do ní
+  **nezapsala ani bajt** (ověřeno: strom čistý, `origin/main..HEAD` = 2).
+
+### 69.9 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p38-b-tail-rozbor.py _analyza\p38-tail-raw-vystup.txt   # 14/14 cron ok
+python _analyza\p38-a-obnova.mjs                                        # 0 úmrtí po 18:39:20Z
+python _analyza\p38-b-timeline.py                                       # táž cesta = oba výsledky
+node _analyza\p38-a-deploy.mjs 335fd8f                                  # 3. krok nasazení
+node _analyza\p38-a-sluzba-sonda.mjs                                    # živý stav (READ-ONLY)
+node _analyza\p38-b-cf-analytika.mjs 30                                 # CPU quantily po hodinách
+python _analyza\g3-brany.py                                             # POZOR: FORGE_REGISTR!
+node tools\validate-all.mjs                                             # po P38 má být ZELENÝ
+```
