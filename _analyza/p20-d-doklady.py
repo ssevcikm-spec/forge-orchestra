@@ -233,7 +233,29 @@ PRESKOCIT = {"p20-sonda-jmena.py", "p20-sonda-klicu.py", "p20-c-kandidati.py",
              #    V dávce se spouštět NESMÍ: zapisuje ZÁMĚRNĚ.
              "p34-mutace.py", "p34-sonda-d1.py", "p34-sonda-cron-sleduj.mjs",
              "p34-cf-analytika.mjs", "p34-tail-filtr.mjs", "p34-zapis-zaznamu.py",
-             "p34-zapis-zadani.py"}
+             "p34-zapis-zadani.py",
+             # ⚠ PŘESKOČENO 11. 10. 2026 (P35) — šest souborů, každý s KÓDEM:
+             #  * `p35-a-overeni.py` dávka BERE (vzor `p3[0-9]-`) — běží v LEVNÉM
+             #    režimu (~1 min, bez mutací, bez `g3`/`validate-all` a bez
+             #    dlouhých nohou A4/A5/A6/A7), takže ho NEPŘIDÁVÁM sem.
+             #  * `p35-mutace.py` je MUTAČNÍ TEST měřidla P35 (seamy P35_HANDOFF,
+             #    P35_TAIL, P35_ROZKLAD, P35_ROZKLAD_ROADMAPY, P35_HEALTH,
+             #    P35_CONDUCTOR): dávka má POJISTKU PROTI ZÁPISU, která hash
+             #    dokumentů sleduje — mutační test do ní nepatří (stejná třída
+             #    jako `p30-mutace.py`…`p34-mutace.py`).
+             #  * `p35-tail-rozbor.py` a `p35-pocty-sekci.py` jsou ANALÝZY
+             #    DOKLADU se vstupem na příkazové řádce (soubor s tailem, doklady
+             #    měřidla) — bez argumentu skončí `exit 2`, takže by je dávka
+             #    hlásila jako rozbité, ačkoli rozbité nejsou.
+             #  * `p35-sonda-health.mjs`, `p35-sonda-d1.py`, `p35-profil-cpu.mjs`,
+             #    `p35-rozklad-tiku.mjs` a `p35-rozklad-roadmapy.mjs` jsou SONDY
+             #    ŽIVÉ SLUŽBY / ŽIVÉHO GitHubu (a `profil-cpu` navíc posílá
+             #    `POST /tick`, což je ZÁSAH DO STAVU) — pouští se ručně (vzor
+             #    `p32-sonda-cf-verze.mjs`/`p34-sonda-d1.py`). `p35-sonda-d1.py`
+             #    je tady i proto, že `.py` vzor bere a on potřebuje síť.
+             "p35-mutace.py", "p35-tail-rozbor.py", "p35-pocty-sekci.py",
+             "p35-sonda-d1.py", "p35-sonda-health.mjs", "p35-profil-cpu.mjs",
+             "p35-rozklad-tiku.mjs", "p35-rozklad-roadmapy.mjs"}
 
 # ⚠ POJISTKA PROTI ZÁPISU (P22, 6. 10. 2026) — naměřeno auditem nástrojů:
 # tahle dávka spouští i skripty, které ZAPISUJÍ do dokumentů

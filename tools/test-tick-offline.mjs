@@ -384,7 +384,9 @@ function stubGithub(calls, cfg) {
       // řádky cache“ (scénář AE2). Bez tohohle přepínače by se pojistka
       // testovat nedala a tvrdila by se jen z kódu.
       if (cfg.contentsChyba) return new Response('rozbito', { status: 500 });
-      const doc = { grains: [GRAIN] };
+      // `grainsContents` umí podstrčit JINÝ soubor granulí — bez toho by nešlo
+      // ověřit, že se base64 dekóduje CELÁ (scénář AF, nález H165).
+      const doc = { grains: cfg.grainsContents ?? [GRAIN] };
       return json({ content: Buffer.from(JSON.stringify(doc), 'utf8').toString('base64'), encoding: 'base64' });
     }
     if (u.includes('/git/trees/')) return json({ tree: [] });
@@ -1456,6 +1458,29 @@ async function main() {
     const { body } = await tick(mod, env);
     check('AE4: tik vypíše, KOLIK úloh drží cooldown a které',
       /v cooldownu 2 úloh: #7, #8/.test(String(body?.message || '')), true);
+  }
+
+  // ── AF) VÍCEBAJTOVÁ ČEŠTINA Z BASE64 (H165, P35) ────────────────────────
+  // PROČ: tik čte roadmapu hry z GitHubu jako **base64** a dekóduje ji na bajty.
+  // P35 tam naměřila drahý přepis `Uint8Array.from(atob(…), (c) => c.charCodeAt(0))`
+  // (funkce na KAŽDÝ znak, 3,66 ms z 10ms rozpočtu) a nahradila ho indexovaným
+  // cyklem. Tenhle scénář je proto DIFERENCIÁL: kdyby dekodér spadl na vícebajtový
+  // znak (nebo by bral jen první bajt), dorazí `item_id`/`title` ROZBITÉ — a to
+  // se pozná na vázaných hodnotách, ne na tvaru SQL (`overovani`: přítomnost ≠ chování).
+  {
+    const calls = [];
+    const CESKA = {
+      id: 'grain.žluťoučký', title: 'Příliš žluťoučký kůň', kind: 'code',
+      prompt: 'úpěl ďábelské ódy',
+    };
+    stubGithub(calls, { aktivniHra: true, grainsContents: [CESKA] });
+    const { env, vazby } = envFor({ aktivniHra: true, roadmapRadky: [] });
+    await tick(mod, env);
+    const vr = vazby.find((v) => /INSERT INTO roadmap/.test(v.sql));
+    const vt = vazby.find((v) => /INSERT INTO tasks/.test(v.sql));
+    check('AF: soubor granulí se čte z /contents/ (base64)', calls.some((u) => u.includes('/contents/')), true);
+    check('AF: vícebajtové ID granule dorazí CELÉ (ne rozbité)', vr?.args?.[0], 'test/grain.žluťoučký');
+    check('AF: a český TITUL úlohy taky CELÝ', vt?.args?.[0], 'Příliš žluťoučký kůň');
   }
 
   console.log();

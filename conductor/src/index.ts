@@ -859,10 +859,19 @@ async function roadmapTick(
     try {
       const data = await github(env, g.repo, `/contents/${g.roadmap_file}`);
       // Obsah chodí v base64; přes bajty se správně dekóduje i čeština.
-      const bytes = Uint8Array.from(
-        atob(String(data.content || "").replace(/\n/g, "")),
-        (c) => c.charCodeAt(0),
-      );
+      //
+      // ⚠ H165 (P35): DEKÓDUJ INDEXOVANÝM CYKLEM, NE `Uint8Array.from(mapFn)`.
+      // Naměřeno 11. 10. 2026 na ŽIVÉ roadmapě (35 kB base64) v Node (týž engine
+      // V8 jako Workers), medián z 21 běhů: tahle cesta stojí **4,06 ms** CPU,
+      // z toho `Uint8Array.from(atob(…), (c) => c.charCodeAt(0))` **3,66 ms** —
+      // protože to volá funkci NA KAŽDÝ ZNAK. Indexovaný cyklus níž stojí
+      // **0,10 ms** (úspora 3,56 ms). A tik se pouští KAŽDOU MINUTU, takže je to
+      // trvalý odběr z 10ms rozpočtu free plánu. Dekódování je přitom bajtově
+      // EKVIVALENTNÍ (doklad: `_analyza/p35-rozklad-roadmapy.mjs`) — proto se
+      // testy chování nemění, jen cena.
+      const bin = atob(String(data.content || "").replace(/\n/g, ""));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       // DAG se čte z `grains`; zpětná kompatibilita: starý formát měl `tasks`.
       const parsed = JSON.parse(new TextDecoder().decode(bytes));
       items = (parsed.grains || parsed.tasks || []) as RoadmapItem[];
