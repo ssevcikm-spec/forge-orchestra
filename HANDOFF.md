@@ -4762,16 +4762,27 @@ neopravovala, protože brána je živý kód a její oprava chce test + mutaci.
 
 | Co | Naměřeno (11. 10. 2026, 22:0x +02:00) |
 |---|---|
-| `g3` (49 bran, `FORGE_REGISTR` mimo repo, plné prostředí) | **49 bran**, nenulové exity **2**: `mutace B (combat)` → `exit=2` (brána HRY, deklarovaná „bez čítače") a `zadání kontrola` → `exit=1` (**H189**; po opravě hlavičky `exit=0`) · **deklarovaných 1, NEDEKLAROVANÝCH 0** · brány, které vůbec nezačaly: **0** |
+| `g3` (49 bran, `FORGE_REGISTR` mimo repo, plné prostředí) | **49 bran**, nenulový exit **1**: `mutace B (combat)` → `exit=2` (brána HRY, „bez čítače" — **z orchestry neopravitelná**) · **deklarovaných 0, NEDEKLAROVANÝCH 0** · brány, které vůbec nezačaly: **0** · (běh **před** re-kotvou zadání měl navíc `zadání kontrola` → `exit=1` = **H189/H190**; po re-kotvě je **`exit=0`**, takže i záznam v `OCEKAVANE_NENULOVE` je od P38 zbytečný) |
 | `zadani-kontrola.py` PO opravě hlavičky | **`exit 0`**, dvojic **2**, obě „OK" (H189) |
 | `kontrola-diakritiky.py` | **VŠE OK** — otevřeno **294 z 338** souborů (archivováno 44, chyb 0) |
 | `over-dokumentaci.py` | **64 kontrol, 0 chyb — VŠE OK** |
 | `over-skilly.py` | **14 skillů, 0 chyb**, 92 zmínek o cestách, **0 mrtvých — VŠE OK** |
-| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **53 sessions**, **188 nálezů H**, 208 omylů, 28 odkazů |
+| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **53 sessions**, **190 nálezů H** (H184–H190), 208 omylů, 28 odkazů |
 | `handoff-kontrola-uplnost.py` | **83/83 — VŠE OK** |
 | `hl-rizika-jazyka.py` | **`exit 0`** — 0 identifikátorů, 20 textových literálů (mimo seznam, ale to je v pořádku) |
 | inventář | **9794 nálezů** (přegenerován před `g3` i po něm) |
-| `validate-all` | viz `HANDOFF.md` §69.6 a `NEXT-SESSION-INSTRUKCE.md` (měřeno **po** commitu, v předepsaném pořadí) |
+| `validate-all` | **`exit 0` → ✓ VŠE V POŘÁDKU** (změřeno **20:25:43Z**, po commitu, v pořadí `g3` → inventář → `validate-all`) — **poprvé po P37 zelený** |
+| `ov-g-neovereno.py` | **0 NEOVĚŘENO** — `[rozsah: 35 návrhů NAxx + 99 nálezů Hxx v 3 zdrojích]` (+ 139 řádků Hxx v 7 souborech **mimo** živé zdroje, záměrně se nečtou) |
+
+> **⚠ DVA BĚHY TÉHOŽ POŘADÍ, A PROČ SE LIŠÍ:** tabulka výš je z běhu
+> **20:0x–20:15Z** (`p38-f-*`); **finální běh** po re-kotvě
+> `NEXT-SESSION-INSTRUKCE.md` na `3802ff9` proběhl **20:19:23–20:25:44Z**
+> (`p38-l-*`) a dal: inventář **9794** → `g3` **49 bran / 1 nenulový /
+> 0 deklarovaných / 0 NEDEKLAROVANÝCH** → inventář **9794** → `validate-all`
+> **`exit 0`** → `ov-g` **`exit 0`**. Rozdíl je jen v `zadání kontrola`
+> (**H189/H190**: před re-kotvou `exit=1`, po ní `exit=0`) a v počtu nálezů
+> v kronice (**188 → 190**, protože H189 a H190 vznikly až v průběhu psaní).
+> **Pořadí je závazné** (H176/H177): `g3` **před** inventářem i **po** něm.
 
 **H190 — kotva zadání se rozbije KAŽDÝM DALŠÍM commitem (a `g3` to má deklarované).**
 Hlavička zadání se píše **po commitu** a **tvrdí HEAD**. P38 měla **dva commity**
