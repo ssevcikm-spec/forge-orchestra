@@ -4155,3 +4155,32 @@ s korigovaným číslem.
 > TVRZENÍ** a vyrobilo falešné „2 NEDEKLAROVANÉ exity“ (správně **0**); opraveno
 > v měřidle (A7 čte souhrnný řádek) a v záznamu **dodatkem**, ne přepisem.
 
+### 67.9 PŘEDEPSANÉ POŘADÍ „INVENTÁŘ → g3 → validate-all“ NEFUNGUJE (H176)
+
+**Naměřeno v P36 při závěrečných branách** (a je to past, která by potkala každou
+další session):
+
+1. `python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json`
+   → `zapsáno … (9488 nálezů)`;
+2. `python _analyza\g3-brany.py` (**s `FORGE_REGISTR`**) → 49 bran, registry OK;
+3. `node tools\validate-all.mjs` → **`✗ NALEZENO 1 PROBLÉMŮ`**, a to
+   **„CHYBA: INVENTÁŘ JE ZASTARALÝ / NEZMĚNĚNÝ — otisk VSTUPŮ se rozešel“**.
+
+**Proč to tak je:** `g3` **SPOUŠTÍ všech 49 bran** — a některé z nich do
+`_analyza/` **ZAPISUJÍ** (`ov-*.json`, registry, doklady). Inventář se otiskuje
+z **množiny vstupů** (`otisk vstupů SEDÍ: 31db4139c74461f5 (1219 souborů)`),
+takže **každý zápis, který g3 udělá, inventář zestará**.
+
+**Změřeno, že to není náhoda:** po **druhé** regeneraci inventáře (9488 nálezů)
+a `validate-all` **BEZ `g3` mezi tím** → **`✓ VŠE V POŘÁDKU`** (`exit 0`).
+
+**Správné pořadí je tedy `g3` → inventář → `validate-all`** (ne naopak):
+kdo přegeneruje inventář před `g3`, dostane na konci **pojmenovanou**, ale
+**falešnou vadu** — a „zastaralý inventář“ se podle `AGENTS.md` **NESMÍ
+deklarovat**, musí se přegenerovat. Do zadání P37 je to opravené.
+
+> **⚠ MAPOVÁNÍ H176 do §2.29:** H176 = **`g3` zapisuje do `_analyza/`, takže
+> po něm inventář zestárne** — předepsané pořadí „inventář → g3 → validate-all“
+> **nemůže skončit zeleně**; správně je **g3 → inventář → validate-all**
+> (naměřeno: jinak `✗ 1 PROBLÉM`, po regeneraci bez `g3` `✓ VŠE V POŘÁDKU`).
+
