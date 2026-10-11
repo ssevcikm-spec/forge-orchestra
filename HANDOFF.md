@@ -4519,7 +4519,14 @@ verze**; to je záměr, ne ztráta (`git log -1 --format=%ci -- NEXT-SESSION-INS
 > závisí, jestli je oprava `[limits] cpu_ms` (placený), nebo zlevnění tiku
 > · **H188** = **VLASTNÍ OMYL P38: PRVNÍ TAIL ZASTAVEN PO 7,2 min** (požadavek
 > byl ≥10 min) — čas se měří z DOKLADU (první event), ne od spuštění jobu;
-> doklad je odložený jako `p38-tail-kratky-vystup.txt` a **měření je až druhý běh**.
+> doklad je odložený jako `p38-tail-kratky-vystup.txt` a **měření je až druhý běh**
+> · **H189** = **`zadani-kontrola.py` ČTE DVOJICE `<repo>` = `<sha>` JEN
+> Z JEDNOHO ŘÁDKU** — a **zalomená hlavička zadání** dá na ten řádek jen první
+> repo, takže **tvrzení o HŘE se neporovná vůbec**; `g3` to měl deklarované
+> jako očekávané (`OCEKAVANE_NENULOVE = {"zadání kontrola": 1}`). Naměřeno
+> P38: regex nad řádkem → **1 dvojice místo 2**; po přepsání hlavičky tak, aby
+> obě dvojice byly na jednom řádku (a sha hry bez `=`, aby nevznikla třetí
+> neznámá dvojice) → **2 dvojice a `exit 0`**, s výpisem **obou** repů.
 
 ### 69.1 Úkol 1 — OBNOVA TIKU OVĚŘENA: TŘI KROKY NASAZENÍ + ŽIVÝ TAIL 13,2 min
 
@@ -4733,3 +4740,35 @@ node _analyza\p38-b-cf-analytika.mjs 30                                 # CPU qu
 python _analyza\g3-brany.py                                             # POZOR: FORGE_REGISTR!
 node tools\validate-all.mjs                                             # po P38 má být ZELENÝ
 ```
+
+### 69.10 Nález z psaní zadání (H189) + brány po P38
+
+**H189 — brána zadání byla slepá k POLOVINĚ svého vstupu (a její červená byla
+„deklarovaná").** `_analyza/zadani-kontrola.py` hledá dvojice
+`<repo>` = `<sha>` **jen na tom JEDNOM řádku**, který obsahuje klíč „Stav obou
+repů". Zadání se ale **běžně zalamuje** (řádek ~76 znaků), takže na něm zůstane
+jen `forge-orchestra = …` a **`uo-shadows = …` skončí na dalším řádku** →
+brána vypíše „uo-shadows: zadání netvrdí žádný commit", skončí **`exit 1`** —
+a `g3` to má v `OCEKAVANE_NENULOVE` jako **očekávaný** stav
+(`{"zadání kontrola": 1}`). **Naměřeno P38** (regexem nad hlavičkou):
+`dvojic = 1`, `tvrzené commity = {'forge-orchestra': '198beaf'}` — **tvrzení
+o hře se neporovnalo vůbec**. **Oprava v ZADÁNÍ** (ne v bráně): obě dvojice na
+**jeden řádek** a sha hry se píše **bez `=`** (jinak ji brána čte jako třetí
+neznámé repo `main`). Po opravě: `dvojic = 2`, `exit 0`, výpis
+**`OK forge-orchestra: tvrzený 198beaf = skutečný HEAD`** i
+**`OK uo-shadows: tvrzený e4dccdb = skutečný HEAD`**. **Pro P39 je to
+otevřené jako vada BRÁNY** (má čítat všechny řádky hlavičky) — P38 ji
+neopravovala, protože brána je živý kód a její oprava chce test + mutaci.
+
+| Co | Naměřeno (11. 10. 2026, 22:0x +02:00) |
+|---|---|
+| `g3` (49 bran, `FORGE_REGISTR` mimo repo, plné prostředí) | **49 bran**, nenulové exity **2**: `mutace B (combat)` → `exit=2` (brána HRY, deklarovaná „bez čítače") a `zadání kontrola` → `exit=1` (**H189**; po opravě hlavičky `exit=0`) · **deklarovaných 1, NEDEKLAROVANÝCH 0** · brány, které vůbec nezačaly: **0** |
+| `zadani-kontrola.py` PO opravě hlavičky | **`exit 0`**, dvojic **2**, obě „OK" (H189) |
+| `kontrola-diakritiky.py` | **VŠE OK** — otevřeno **294 z 338** souborů (archivováno 44, chyb 0) |
+| `over-dokumentaci.py` | **64 kontrol, 0 chyb — VŠE OK** |
+| `over-skilly.py` | **14 skillů, 0 chyb**, 92 zmínek o cestách, **0 mrtvých — VŠE OK** |
+| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **53 sessions**, **188 nálezů H**, 208 omylů, 28 odkazů |
+| `handoff-kontrola-uplnost.py` | **83/83 — VŠE OK** |
+| `hl-rizika-jazyka.py` | **`exit 0`** — 0 identifikátorů, 20 textových literálů (mimo seznam, ale to je v pořádku) |
+| inventář | **9794 nálezů** (přegenerován před `g3` i po něm) |
+| `validate-all` | viz `HANDOFF.md` §69.6 a `NEXT-SESSION-INSTRUKCE.md` (měřeno **po** commitu, v předepsaném pořadí) |
