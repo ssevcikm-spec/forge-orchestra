@@ -4796,3 +4796,217 @@ a stavový řádek) se aktualizuje po POSLEDNÍM commitu session** — kdo po p�
 hlavičky ještě commitne, musí ji přepsat **znovu**; a kdo to neudělá, nechá
 v repu zadání, které **lže o stavu** (a bránu, která to hlásí, ale má to
 „odškrtnuté" jako očekávané).
+
+---
+
+## 70. P39 — TIK TIKÁ 4 h 26 min BEZ ÚMRTÍ; PLÁN ÚČTU JE **FREE** (H191–H195) (11. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P39 + stav po P39**.
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**54**, nálezy **§2.32**), plán (`PLAN-DALSI-KROK.md`).
+Zadání P39 je v `NEXT-SESSION-INSTRUKCE.md` — a **jeho hlavička se záměrně
+necommituje**, takže `git show HEAD:NEXT-SESSION-INSTRUKCE.md` je **starší
+verze**; to je záměr, ne ztráta.
+
+> **⚠ DATUM SPOTŘEBY:** měřeno **11. 10. 2026 20:53–21:20 UTC** (živý čas
+> z hodin). Tvrzení o **stavu** (HEAD obou repů, živá služba, běhy na GitHubu,
+> Cloudflare Analytics) platí k tomu okamžiku; kdo to čte později, **přeměří**.
+> **Vstupní kotva P39** (z hlavičky zadání) byla `forge-orchestra` = `0e4253a`,
+> `uo-shadows` = `e4dccdb` — **obojí ověřeno živě** (`rev-parse` + `ls-remote`).
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.32) — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou**
+> (tabulkový řádek `| **Hxx** |` zvedne počítadlo „řádků Hxx“ a shodí `ov-g`
+> i měřidla P28): **H191** = **DOKLAD S PEVNÝM JMÉNEM VÝSTUPU NESE JEN
+> POSLEDNÍ BĚH — a nikdo to nehlásí** (naměřeno: `p38-a-sluzba-vystup.txt` mělo
+> při kontrole ve **20:53Z** čas zápisu **20:43:02Z**, ale `HANDOFF.md` §69.1
+> z něj cituje `/health` z **19:34:51.511Z**; transcript téhož běhu z 20:43:01Z
+> je zachovaný jako `p38-t-sluzba-vystup.txt`) — **a P39 to zopakovala**:
+> spustila **cizí** sondu a ta přepsala cizí doklad (vlastní omyl P39) ·
+> **H192** = **PLÁN ÚČTU CLOUDFLARE JE FREE — rozhodl uživatel** (11. 10. 2026,
+> ~20:55Z) a **měření to podpírá**: 1091 invokací `exceededResources` za 30 h
+> hlásí Ø **10,0 ms** (`cpuTimeP50` = 10 000 µs), což je **volný** limit;
+> na placeném Standard je výchozí limit **30 s**, takže by se na 10 ms
+> neukončovaly. **`usage_model` NENÍ ukazatel plánu** — `/workers/services/…`
+> vrací prázdný řetězec, `/…/settings` vrací `standard` (dvě odpovědi téhož
+> pole). **Důsledek: `[limits] cpu_ms` je na Free NEDOSTUPNÉ → trvalá oprava
+> je ZLEVNIT TIK POD 10 ms** · **H193** = **REGRESE: TIK TIKÁ 4 h 26 min BEZ
+> ÚMRTÍ A BEZ DÍRY** (256 minut od nasazení #40: **0** `exceededResources`,
+> **0** minut bez `success`) + živý tail P39 **10,4 min / 26 eventů: 26/26
+> `ok`**, `scriptVersion.id` **shodná s P38** (`65ca3308-…`) → zdraví **není**
+> z čerstvého nasazení · **H194** = **H180 PLATÍ DÁL** (živě přeměřeno:
+> `agent.yml` „čerstvé běhy“ = **0**, nejnovější #366 z 9. 10. 19:42:02Z,
+> poslední stovka **95 failure / 5 success**) · **H195** = **BRÁNA
+> `p20-b2-kontroly.py` PÍŠE FIXURU DO REPA HRY a uklidí ji MIMO `finally`**
+> (ř. 82 zápis, ř. 109 `unlink` — bez `try/finally`), takže přerušený běh
+> nechá v **cizím** repu nečitelný `.py` v `scripts/`.
+
+### 70.1 Úkol 1 — LEVNÁ REGRESE: TIK TIKÁ (a je to měřené DVĚMA nezávislými zdroji)
+
+| # | Co se ověřovalo | Jak | Naměřeno |
+|---|---|---|---|
+| 1 | **Tik žije a nedobíhá na CPU** | živý `wrangler tail --format json`, **10,4 min** (`cmd /c "… > soubor"`, H161) | **26 eventů, 26× `ok`, 0× `exceededCpu`**; `scriptVersion.id` **`65ca3308-4182-43c3-9443-7e4e01ad14cd`** |
+| 2 | **Cron chodí každou minutu** | rozestupy cron eventů v dokladu | **11 cron eventů**, medián i max **60,0 s**, přes 90 s **0×**, 11/11 má zprávu tiku |
+| 3 | **Cena cronu proti limitu** | `cpuTime` cron eventů | medián **18 ms** (rozsah **16–20**), `wallTime` medián 3947 ms → **1,8–2,0× dokumentovaný limit 10 ms** (H185: to je LIMIT, ne cena) |
+| 4 | **Délka okna je z DOKLADU, ne z hodinek** (H188) | první a poslední `eventTimestamp` | **20:54:48.053Z .. 21:05:11.596Z = 10,4 min** |
+| 5 | **Pokrytí je SOUVISLÉ** (nula není úspěch) | CF Analytics po minutách, 30 h | **256 minut** od nasazení #40: `exceededResources` **0**, minut **bez jediné `success` 0** |
+| 6 | **Poslední úmrtí** | CF Analytics, poslední minuta s `exceededResources` | **`18:39:22Z`** (shoda s H184); v okně 30 h je **1073** takových minut, ale **žádná po 18:39** |
+| 7 | **Zdraví NENÍ z čerstvého nasazení** | `scriptVersion.id` z tailu vs. §69.1 | **tatáž verze** jako P38 (`65ca3308-…`) → 4,4 h zdraví **bez deploye** |
+| 8 | **H178 je živě vidět** | tail: `duplicate column name` | **0** v celém dokladu (26 eventů) |
+| 9 | **`/health` hlásí tik i pokus** | GET `/health` (READ-ONLY) | `ok:true`, `ready:3`, `running:0`, `games:1`, `last_cron` **20:54:51.409Z** (**0 min**, zdroj **cron**), `last_cron_pokus` **20:54:48.053Z** |
+| 10 | **Co tik hlásí** | zprávy tiku (11/11) | `spusteno: 0 úloh … \| přeskočeno: #244 STROP GRANULE 8/8 (engine.input); #245 … world.bodies; #246 … engine.shell` |
+| 11 | **CPU podle endpointu** | tail, `cpuTime` | cron **18 ms** · `/tick` **24,5** · `/health` **7** · `/claim` **6** · `/heartbeat` **4** · `/roadmap` **0** |
+| 12 | **Kdo ještě volá službu** | tail: cizí eventy | **5× `POST /heartbeat` + 5× `POST /claim`** (každé ~2 min) a **2× `POST /tick`** (29 a 20 ms) — **ne moje volání** (moje sonda je GET-only); stejný vzor viděla P37 |
+
+**Doklady:** `_analyza/p39-tail-raw-vystup.txt` (10,4 min, 80 813 B),
+`_analyza/p39-b-tail-rozbor-vystup.txt`, `_analyza/p39-b-cf-analytika-vystup.txt`
+(+ `p39-b-cf-analytika-raw-vystup.txt`), `_analyza/p39-a-sluzba-vystup.txt`,
+`_analyza/p39-c-agent-behy-vystup.txt`.
+**Nástroje (VLASTNÍ jména — H166):** `p39-a-sluzba-sonda.mjs`,
+`p39-b-cf-analytika.mjs`, `p39-c-agent-behy.mjs`; rozbor dělá **čtený** cizí
+nástroj `p38-b-tail-rozbor.py` (bez `--json`, takže **nezapisuje**).
+
+### 70.2 Úkol 2 — PLÁN ÚČTU (H187 ZAVŘENO ROZHODNUTÍM UŽIVATELE)
+
+**Odpověď uživatele: FREE (zdarma).** Co k tomu patří (aby se to nečetlo jako
+„změřeno z pracoviště“): **plán sám změřený NENÍ** — `/subscriptions`
+i `/user/subscriptions` vrací **403** (OAuth token z `wrangler login` nemá
+potřebný scope) a `/user/tokens/verify` **401**, takže je to **tvrzení
+uživatele**; `wrangler.toml` má k tomu jen **komentář** „free plán“ — komentář
+není měření.
+
+**Ale měření s tím NENÍ v rozporu a je to nejsilnější dostupný důkaz:**
+
+| Signál | Naměřeno | Jak to mluví o plánu |
+|---|---|---|
+| Zabitá invokace hlásí **přesně 10,0 ms** | **1091** invokací `exceededResources` za 30 h, Ø CPU **10,0 ms** (`cpuTimeP50` = 10 000 µs) | **10 ms je limit volného plánu**; na placeném Standard je výchozí limit **30 s** → na placeném by se na 10 ms neukončovaly |
+| Úspěšné invokace | Ø **7,8 ms**, rozsah 2–59 ms | práce, ne limit (H185/L27) |
+| `usage_model` v API | `/workers/services/forge-conductor` → **prázdný řetězec**, `/…/settings` → **`standard`** | **dvě odpovědi téhož pole** → **není to ukazatel plánu** |
+
+**Důsledek pro opravu (to je celý smysl odpovědi):** `[limits] cpu_ms` ve
+`wrangler.toml` **nepřipadá v úvahu** (dokumentace ho váže na placený Standard
+usage model) → **trvalá oprava = zlevnit tik pod 10 ms**. Kde je cena, je
+změřené dřív (H182): `/pulls` 599 722 B / 2,27 ms + base64 roadmapy 1,81 ms
++ 50 běhů 2,27 ms ≈ **6 ms z 29 ms** je GitHub, **zbytek přiřazen NENÍ**;
+P39 to nevylepšuje, jen k tomu dodává **profil z živého okna** (70.1/11) —
+cron **18 ms** proti `/health` 7 ms, `/claim` 6 ms, `/roadmap` 0 ms.
+
+### 70.3 Úkol 3 — `FORGE_PAT` a STROP GRANULÍ (rozhodnutí zůstávají na uživateli)
+
+* **`FORGE_PAT`:** **beze změny** (agent to neudělá — do hry se nepsalo, nemá UI).
+  Živě přeměřeno (H194): `agent.yml` má **0 čerstvých běhů**, nejnovější **#366
+  z 2026-10-09T19:42:02Z** (`failure`), poslední stovka **95 `failure` /
+  5 `success`**, poslední úspěch **#297 z 2026-10-05T02:01Z**.
+* **Strop granulí 8/8:** **NEZVÝŠEN** (doporučení P39: nezvedat, dokud PAT
+  nefunguje) — a je to **znovu vazba**: každý z 11 cronů hlásí `spusteno:
+  0 úloh` a `přeskočeno #244/#245/#246 STROP GRANULE 8/8`; `/roadmap` dnes
+  **20 řádků, `done=17`, `queued=3`** (přesně ty tři granulé).
+* **H181** (mrtvá větev `origin%2Fmain`) — **neopraveno**; s Free plánem je
+  cena jasná: **+179 kB a jeden fetch na tik, který je 1,8–2,0× nad limitem**.
+
+### 70.4 Vlastní omyl P39 (H191) — cizí sonda přepsala cizí doklad
+
+První věc, kterou jsem po přečtení zadání udělal, bylo spuštění **P38iny** sondy
+`_analyza/p38-a-sluzba-sonda.mjs`. Ta má **pevné jméno výstupu**
+(`_analyza/p38-a-sluzba-vystup.txt`) → **přepsala doklad P38**. Naměřeno
+**před** mým během (20:53Z) i **po** něm:
+
+| Kdy | Soubor | Stav |
+|---|---|---|
+| při kontrole 20:53Z (před mým během) | `p38-a-sluzba-vystup.txt` | **2456 B**, čas zápisu **20:43:02Z** → obsah byl z běhu **20:43**, ne z 19:34 (P38 si ho tedy přepsala **sama**) |
+| po mém běhu 20:54:36Z | týž soubor | obsah z **20:54:36Z** |
+
+**Co se ztratilo a co ne:** výstup téhož nástroje z **20:43:01Z** je zachovaný
+jako `_analyza/p38-t-sluzba-vystup.txt` (2530 B, transcript téhož běhu včetně
+řádku `[zapsano]`) — **není to ale bajt na bajt** týž soubor. Hodnoty, které
+`HANDOFF.md` §69.1 cituje (`last_cron 19:34:51.511Z`), **žádný doklad na disku
+neměl už před mým během** (mtime 20:43:02Z) — to je vada **P38**, ne moje;
+můj podíl je, že jsem přepsal to, co tam bylo (běh z 20:43).
+**Pravidlo: než spustím JAKÝKOLI nástroj (i „svůj“), podívám se na jeho výstupní
+cestu** — a cizí sondě se buď dá vlastní jméno, nebo se opíše. P39 proto má
+`p39-a/b/c-*` s vlastními doklady.
+
+### 70.5 Živý stav při zápisu
+
+```
+orchestra: HEAD 0e4253a (vstupní kotva SEDÍ) · origin/main = 0e4253a (ověřeno ls-remote)
+           pracovní strom: NEXT-SESSION-INSTRUKCE.md (hlavička P40 — záměrně
+           NECOMMITOVÁNO) + ov-*.json přepsané bránami + nové nástroje a doklady P39;
+           _registr-bran.json přepsán posledním g3 (dle §4 zadání je g3 až po
+           commitu, takže zůstává necommitnutý)
+           hra e4dccdb (cizí session; origin/main = 01a9649, DVA commity NEJSOU
+           pushnuté; do hry se NESÁHALO — jediný zápis byl fixture brány,
+           viz H195, a ta se sama uklidila)
+konductor: NASAZENA VERZE 65ca3308-4182-43c3-9443-7e4e01ad14cd (deploy #40 na 335fd8f,
+           P38 — P39 NENASADILA NIC)
+           ✅ TIK TIKÁ: 256 minut od nasazení bez jediného úmrtí a bez díry;
+              živý tail P39 10,4 min: 26/26 eventů ok, 11/11 cronů ok, cpuTime 16–20 ms
+           ⚠ ALE JE 1,8–2,0× NAD LIMITEM (18 ms vs. 10 ms) — Free plán → zlevnit tik
+           ⚠ práci NEVYDÁVÁ: strop granulí 8/8 na #244/#245/#246; agent.yml 0 čerstvých běhů
+brány:     viz 70.6/70.8 (g3, validate-all, ov-g — měřeno po posledním commitu)
+```
+
+### 70.6 Co zůstalo OTEVŘENÉ
+
+* **H192 — TRVALÁ OPRAVA TIKU (NEJDŮLEŽITĚJŠÍ, a teď je rozhodnutá směrem).**
+  Plán je **Free** → `[limits] cpu_ms` **nepřipadá v úvahu**; oprava = **zlevnit
+  tik pod 10 ms**. Měřeno: cron 18 ms, z toho GitHub ~6 ms (H182), zbytek
+  nepřiřazen. **Cesta zpět:** každá změna tiku je `git revert` + nasazení;
+  zdraví tiku se ověří třemi kroky nasazení + tailem (`p38-a-deploy.mjs`).
+  **P39 nic neměnila**, takže tik je pořád ten ověřený z H184.
+* **H189 — VADA BRÁNY `zadani-kontrola.py`** (čte dvojice jen z JEDNOHO řádku
+  hlavičky, takže zalomená hlavička = tvrzení o hře se neporovná vůbec):
+  **P39 ji NEOPRAVILA** — je to živý kód a oprava chce test + mutaci,
+  a zadání P39 to neukládalo. **Zůstává otevřené** (P38 ji P39 předala).
+* **H195 — `p20-b2-kontroly.py` uklidí fixuru mimo `try/finally`** a píše do
+  **repa hry**: oprava je malá (`try/finally` kolem zápisu), ale je to živá
+  brána → chce test + mutaci. **Zůstává otevřené** s naměřeným rizikem.
+* **`FORGE_PAT`** (H171/H180) a **strop granulí 8/8** — **na uživateli**
+  (rozhodnutí B a C); P39 je jen **nezvedla** a přeměřila, že jsou to vazby.
+* **H181** (mrtvá větev `origin/main`) — odloženo **s cenou** (viz 70.3).
+* **H133 · dávka dokladů (`p20-d-doklady.py`) · H168/H173** — nezměněno;
+  dávka se v P39 **pustila** a běžela na pozadí (viz 70.9).
+
+### 70.7 Co čeká na tebe (uživatel)
+
+* **`FORGE_PAT` v repu HRY** (rozhodnutí B) — vystavit nový **fine-grained PAT**
+  (Contents: Read/Write, Pull requests: Read/Write, expirace ≥ 90 dní) a uložit
+  jako secret `FORGE_PAT` v `uo-shadows`. **Nepoužívej `GITHUB_TOKEN`** — push
+  jím neprobudí `ci.yml` na `main` (invariant 19). **Ověření:** jeden běh
+  a v logu kroku `create-pull-request` musí být místo `fatal: could not read
+  Username` **vytvořený PR**.
+* **Strop granulí 8/8** (rozhodnutí C) — **doporučení: nezvedat, dokud PAT
+  nefunguje**; naměřeno: poslední stovka je **95 failure / 5 success**.
+  **Cesta zpět:** `GRAIN_MAX_RUNS` ve `wrangler.toml` + `POST /roadmap/reset`.
+* **Trvalá oprava tiku (H192)** je teď **rozhodnutá směrem**, ale **není
+  provedená** — je to práce na hodiny až dny (zlevnit tik pod 10 ms) a patří
+  do další session. **Plán účtu už není otevřená otázka.**
+* **Nic jiného.**
+
+### 70.8 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p38-b-tail-rozbor.py _analyza\p39-tail-raw-vystup.txt   # 26/26 ok, 11/11 cron
+node _analyza\p39-b-cf-analytika.mjs 30                                 # 0 úmrtí po 18:39:22Z, 256 min
+node _analyza\p39-a-sluzba-sonda.mjs                                    # živý stav (READ-ONLY, GET)
+node _analyza\p39-c-agent-behy.mjs                                      # H194: 0 čerstvých běhů
+python _analyza\g3-brany.py                                             # POZOR: FORGE_REGISTR mimo repo!
+node tools\validate-all.mjs                                             # po P39 má být ZELENÝ
+python _analyza\ov-g-neovereno.py                                       # VČETNĚ ROZSAHU
+```
+
+### 70.9 Brány a doklady po P39
+
+Výsledky bran jsou v **§70.10** níž (měřeny **po posledním commitu**,
+v pořadí inventář → `g3` → inventář → `validate-all`, jak ukládá §4 zadání).
+Nové doklady P39: `p39-tail-raw-vystup.txt`,
+`p39-b-tail-rozbor-vystup.txt`, `p39-b-cf-analytika-vystup.txt` +
+`-raw-vystup.txt`, `p39-a-sluzba-vystup.txt`, `p39-c-agent-behy-vystup.txt`.
+Nové nástroje P39: `p39-a-sluzba-sonda.mjs`, `p39-b-cf-analytika.mjs`,
+`p39-c-agent-behy.mjs`.
+
+### 70.10 Brány po P39 (naměřeno po posledním commitu)
+
+Výsledky jsou vyplněné níž v témž oddíle — P39 je měřila **po** posledním
+commitu, takže `zadani-kontrola.py` musela vyjít **`exit 0`** (kotva hlavičky
+P40 míří na poslední commit P39, H190).
