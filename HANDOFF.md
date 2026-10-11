@@ -4122,3 +4122,36 @@ node tools\validate-all.mjs                    # po regeneraci inventáře 0 pro
 * **Cesta zpět:** P36 je jeden commit v orchestra; `git revert <sha>` vrátí
   testovací harness i registraci dokladů. Nasazení ani D1 se nedotklo.
 
+### 67.8 OPRAVA VLASTNÍHO MĚŘENÍ (H175) — „2 NEDEKLAROVANÉ EXITY“ BYLY 0
+
+**Co bylo špatně a kdo to napsal: P36 sama** — v §67.1 (řádek A7) a v §67.4 stálo
+„`g3` → 49 bran, **2 NEDEKLAROVANÉ nenulové exity**“. Naměřeno znovu, když se `g3`
+pustil před commitem **s čitelným souhrnem**:
+
+```
+NENULOVÉ EXITY: 1 — z toho deklarovaných (očekávaných) 0 a NEDEKLAROVANÝCH 0:
+   (poznámka: v `OCEKAVANE_NENULOVE` už není potřeba: zadání kontrola — brána dnes
+    končí nulou; TO NENÍ VADA, zadání se na dnešek neopravuje)
+BRÁNY BEZ ČÍTAČE mimo deklarovaný stav: 1 → mutace B (combat)
+```
+
+**Skutečný stav je `NEDEKLAROVANÝCH 0`** — a jediný nenulový exit (`mutace B
+(combat)`, `exit=2`) je **deklarovaný** (a je to táž brána, která jako jediná nemá
+čítač — stav, který zná už §66.4). **Příčina omylu je v MĚŘIDLE, ne ve `g3`:**
+kontrola A7 hledala `NEDEKLAROVAN\w*[^\n]*` — jenže `g3` má pod souhrnným řádkem
+ještě **vysvětlující poznámku**, která slovo „NEDEKLAROVANÝCH“ obsahuje taky. Vzor
+tedy **trefil CITACI místo TVRZENÍ** a vyrobil falešné číslo (přesně past, kterou
+`AGENTS.md` popisuje u „32 sloupců“ a P30 u citace §57). **Oprava měřidla:** A7 čte
+**konkrétní souhrnný řádek** (`NENULOVÉ EXITY: N — … deklarovaných D a
+NEDEKLAROVANÝCH U`) a při nenalezení hlásí **NEZMĚŘENO**, ne nulu.
+
+**Proč to zůstává v dokumentu:** záznam se **nepřepisuje** (`AGENTS.md`) — chybný
+údaj v §67.1/§67.4 se **neopravuje v místě**, opravuje se **tímhle dodatkem**.
+Platí: `g3` **49 bran, 1 deklarovaný nenulový exit (`mutace B (combat)`),
+0 NEDEKLAROVANÝCH, 1 brána bez čítače** — tedy **stav shodný s §66.4**, jen
+s korigovaným číslem.
+
+> **⚠ MAPOVÁNÍ H175 do §2.29:** H175 = **měřidlo P36 přečetlo CITACI místo
+> TVRZENÍ** a vyrobilo falešné „2 NEDEKLAROVANÉ exity“ (správně **0**); opraveno
+> v měřidle (A7 čte souhrnný řádek) a v záznamu **dodatkem**, ne přepisem.
+

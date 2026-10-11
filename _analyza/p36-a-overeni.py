@@ -542,9 +542,24 @@ def sekce_A7(m, drahe):
     if not mb:
         m.nezmereno_("g3 nevypsal počet bran (exit %d)" % rc)
     else:
-        nedekl = re.findall(r"NEDEKLAROVAN\w*[^\n]*", out)
-        p("  g3: %s bran · %s" % (mb.group(1), " | ".join(nedekl[:3]) if nedekl else "bez NEDEKLAROVANÝCH"))
-        m.ok_("g3 proběhl: %s bran (exit %d)" % (mb.group(1), rc))
+        # ⚠ ČTE SE KONKRÉTNÍ SOUHRNNÝ ŘÁDEK, ne libovolný výskyt slova
+        # „NEDEKLAROVANÝCH“: g3 má pod ním ještě VYSVĚTLUJÍCÍ poznámku
+        # („…už není potřeba: zadání kontrola…“) — a vzor bez ukotvení trefil
+        # ji taky. Naměřeno P36: hlásilo „2 NEDEKLAROVANÉ“, správně byly **0**
+        # (H175: brána může číst CITACI místo TVRZENÍ).
+        ms = re.search(r"NENULOVÉ EXITY:\s*(\d+)\s*—\s*z toho deklarovaných\s*\(očekávaných\)\s*(\d+)"
+                       r"\s*a NEDEKLAROVANÝCH\s*(\d+)", out)
+        if ms:
+            p(" g3: %s bran · nenulových exitů %s (deklarovaných %s, NEDEKLAROVANÝCH %s)"
+              % (mb.group(1), ms.group(1), ms.group(2), ms.group(3)))
+            if int(ms.group(3)) == 0:
+                m.ok_("g3: %s bran, %s nenulových exitů a VŠECHNY deklarované (NEDEKLAROVANÝCH 0)"
+                      % (mb.group(1), ms.group(1)))
+            else:
+                m.rozdil("g3: %s NEDEKLAROVANÝCH nenulových exitů (z %s)"
+                         % (ms.group(3), ms.group(1)))
+        else:
+            m.nezmereno_("g3: souhrnný řádek o nenulových exitech se nenašel (exit %d)" % rc)
 
     rc, out, _ = spust(["node", str(WS / "tools" / "validate-all.mjs")], timeout=1800)
     if rc == 0:
