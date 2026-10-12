@@ -1775,6 +1775,91 @@ async function main() {
       bylZapis(log, /UPDATE tasks SET status='done'/), true);
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // AJ) P41/H201 — PROFIL FÁZÍ TIKU: KDE JE CPU
+  // PROČ VZNIKL: P40 zlevnila tik z 23 na 13 D1 round-tripů a payload z 665 kB
+  // na 47 kB — `wallTime` spadl o 45 %, ale **`cpuTime` se NEHL** (18 → 19 ms,
+  // H197). Aby se mezi „chybí model“ a „platí se start izolátu“ dalo rozhodnout,
+  // musí tik umět **vydat wall time po fázích** a **nechat se zastavit po fázi**
+  // (`?faze=N`): runtime hlásí `cpuTime` jen za CELOU invokaci, takže rozdíl mezi
+  // `faze=N` a `faze=N+1` v TÉMŽ izolátu je cena fáze N+1.
+  // Test tvrdí TŘI věci, které se dají splést dohromady: (1) `faze=0` je opravdu
+  // NULA práce, (2) `faze=N` je MÍŇ práce než plný tik a tik se POJMENUJE,
+  // (3) částečný tik NENÍ tik — tep se nezapíše. Bez (1) by „baseline“ měřil
+  // kus tiku; bez (3) by se do měření přičetly dva D1 obraty, které do fáze
+  // nepatří; a bez pojmenování by „zastaveno“ mohlo znamenat cokoli.
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    // ── AJ1) `?faze=0` = ŽÁDNÁ práce (baseline: izolát + modul, nic víc) ────
+    const a0 = envFor({ aktivniHra: true });
+    const t0 = await post(mod, a0.env, '/tick?faze=0', { telo: {} });
+    check('AJ1: `?faze=0` odpoví 200', t0.status, 200);
+    check('AJ1: a tik se ZASTAVIL hned na startu',
+      /ZASTAVENO po fazi start/.test(String(t0.body?.message || '')), true);
+    check('AJ1: `?faze=0` neudělá ANI JEDEN D1 round-trip', a0.stav.roundtrips, 0);
+    check('AJ1: a nezapíše tep (nedoběhl)', a0.stav.tep.size, 0);
+
+    // ── AJ2) `?faze=2` (zaklad + poll) = MÍŇ práce než plný tik ─────────────
+    const a2 = envFor({ aktivniHra: true });
+    const t2 = await post(mod, a2.env, '/tick?faze=2', { telo: {} });
+    check('AJ2: `?faze=2` se ZASTAVÍ po fázi poll',
+      /ZASTAVENO po fazi poll/.test(String(t2.body?.message || '')), true);
+    check('AJ2: a odpoví, po které fázi se zastavil', t2.body?.faze, 2);
+    check('AJ2: `?faze=2` udělá aspoň jeden D1 round-trip', a2.stav.roundtrips > 0, true);
+    check('AJ2: a NEZAPÍŠE tep (částečný tik není tik)', a2.stav.tep.size, 0);
+
+    // Plný tik na ČERSTVÉ falešné D1 (aby se round-tripy daly porovnat).
+    const ap = envFor({ aktivniHra: true });
+    const tp = await tick(mod, ap.env);
+    check('AJ2: plný tik odpoví 200', tp.status, 200);
+    check('AJ2: `?faze=2` udělá MÍŇ round-tripů než plný tik',
+      a2.stav.roundtrips < ap.stav.roundtrips, true);
+    check('AJ2: plný tik tep ZAPÍŠE (rozdíl proti částečnému)',
+      typeof ap.stav.tep.get('last_tick'), 'string');
+    console.log(`        [AJ naměřeno: faze=0 → ${a0.stav.roundtrips} round-tripů,`
+      + ` faze=2 → ${a2.stav.roundtrips}, plný → ${ap.stav.roundtrips}]`);
+
+    // ── AJ3) nesmyslný `?faze=` se MUSÍ pojmenovat (ne tiše spadnout do 0) ──
+    const a3 = envFor({ aktivniHra: true });
+    const t3 = await post(mod, a3.env, '/tick?faze=9', { telo: {} });
+    check('AJ3: `?faze=9` (mimo 0..8) odpoví 400', t3.status, 400);
+    check('AJ3: a neudělá ani jeden round-trip', a3.stav.roundtrips, 0);
+
+    // ── AJ4) profil fází se ZALOGUJE (jedním řádkem, s izolátem) ────────────
+    // Měří se TVAR řádku: kdyby chyběla kterákoli značka, měřidlo by z tailu
+    // nedostalo cenu té fáze a „změřeno“ by znamenalo něco jiného.
+    const a4 = envFor({ aktivniHra: true });
+    a4.env.TICK_PROFIL = '1';
+    const zalog = [];
+    const puvodniLog = console.log;
+    console.log = (...args) => { zalog.push(args.map(String).join(' ')); };
+    try {
+      await post(mod, a4.env, '/tick?faze=8', { telo: {} });
+    } finally {
+      console.log = puvodniLog;
+    }
+    const radek = zalog.find((l) => l.startsWith('tick-prof:'));
+    check('AJ4: s TICK_PROFIL=1 se profil fází zaloguje', typeof radek, 'string');
+    check('AJ4: řádek nese identitu izolátu (teplý/čerstvý)',
+      /iso=[0-9a-f]{4,}/.test(String(radek)), true);
+    for (const f of ['zaklad=', 'poll=', 'watchdog=', 'stale=', 'hry=', 'roadmap=',
+      'zombie=', 'dispatch=']) {
+      check(`AJ4: profil nese značku fáze ${f}`, String(radek).includes(f), true);
+    }
+
+    // ── AJ5) bez TICK_PROFIL a bez `?faze=` tik NELOGUJE (chování jako dřív) ─
+    const a5 = envFor({ aktivniHra: true });
+    const zalog5 = [];
+    console.log = (...args) => { zalog5.push(args.map(String).join(' ')); };
+    try {
+      await tick(mod, a5.env);
+    } finally {
+      console.log = puvodniLog;
+    }
+    check('AJ5: bez TICK_PROFIL se profil NELOGUJE (jen řádek `tick:`)',
+      zalog5.some((l) => l.startsWith('tick-prof:')), false);
+  }
+
   if (errors) {
     console.log(`VYSLEDEK: ${checks} kontrol, ${errors} CHYB`);
     return 1;

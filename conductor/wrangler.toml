@@ -79,6 +79,15 @@ ESCALATE_AFTER = "3"
 # Cesta zpět je jeden řádek: `GRAIN_MAX_RUNS = "0"` a znovu nasadit.
 GRAIN_MAX_RUNS = "8"
 
+# PROFIL FÁZÍ TIKU (P41, H201) — `"1"` zapne jeden řádek do logu na tik:
+#   tick-prof: iso=<id> faze=<stav> zaklad=<ms> poll=<ms> … dispatch=<ms>
+# `iso` je identita IZOLÁTU (modulová konstanta), takže z `wrangler tail` je
+# vidět, které invokace šly v teplém izolátu a které v čerstvém — to je rozdíl
+# mezi hypotézou „chybí model“ a „platí se start izolátu“ (H197). `faze=` je
+# `celkem`, nebo `stop-po-<faze>` u měřicího `POST /tick?faze=N`.
+# Vypnutí = tenhle řádek na `"0"` a znovu nasadit; kód se chová stejně.
+TICK_PROFIL = "1"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "forge-conductor"

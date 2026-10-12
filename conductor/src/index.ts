@@ -40,6 +40,10 @@ export interface Env {
   // vydávat. **Prázdné/`0` = strop vypnutý** — nasazuje se druhým krokem,
   // až po ověření watchdogu (viz `grainCap`).
   GRAIN_MAX_RUNS?: string;
+  // P41/H201: `"1"` zapne jednořádkový profil fází tiku do logu (odtud ho čte
+  // `wrangler tail`). Bez něj tik loguje jako dřív — profil je diagnostika,
+  // ne chování; jeho cena je jeden `console.log` na invokaci.
+  TICK_PROFIL?: string;
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
@@ -1261,7 +1265,48 @@ async function zapisTep(env: Env, zdroj: "cron" | "manual"): Promise<void> {
 }
 
 // ------------------------------------------------------------------ tick ----
-async function tick(env: Env): Promise<string> {
+
+// P41/H201 — IDENTITA IZOLÁTU. Modulová konstanta: vznikne JEDNOU na izolát,
+// takže z logu je vidět, které invokace šly ve TOMTÉŽ (teplém) izolátu a které
+// v čerstvém. Přesně to rozhoduje mezi „chybí model“ (cena je v práci, kterou
+// falešná D1 neplatí) a „platí se start izolátu“ (cena je v tom, že cron
+// dostane nový izolát každou minutu) — H197/H201.
+const IZO_ID = Math.random().toString(16).slice(2, 10);
+
+// FÁZE TIKU, ve kterých se dá tik zastavit (`POST /tick?faze=N`). Pořadí je
+// ZÁVAZNÉ: `faze=N` znamená „proběhly fáze 1..N“. Runtime hlásí `cpuTime` jen
+// za CELOU invokaci, takže rozdíl mezi `faze=N` a `faze=N+1` je cena fáze N+1.
+const FAZE_NAZVY = ["start", "zaklad", "poll", "watchdog", "stale",
+  "hry", "roadmap", "zombie", "dispatch"] as const;
+
+async function tick(env: Env, doFaze = 99): Promise<string> {
+  // PROFIL FÁZÍ (P41/H201): `performance.now()` značky mezi fázemi + jeden
+  // `console.log` na invokaci. Wall time po fázích se čte z `wrangler tail`
+  // (H188: okno se počítá z DOKLADU) a `iso=` prozradí teplý/čerstvý izolát.
+  // ⚠ `Date.now()` se ve workerd během SYNCHRONNÍHO kódu neposouvá (H196) —
+  // proto se měří jen MEZI fázemi; co se nestihne mezi dvěma značkami, se
+  // dozvíme jen z `cpuTime` celé invokace (viz `?faze=N`).
+  const profOn = env.TICK_PROFIL === "1" || doFaze < 99;
+  const fazeMs: string[] = [];
+  let tF = performance.now();
+  const znacka = (nazev: string): void => {
+    const n = performance.now();
+    fazeMs.push(`${nazev}=${(n - tF).toFixed(0)}`);
+    tF = n;
+  };
+  const profZapis = (stav: string): void => {
+    // Jeden řádek, ASCII, bez diakritiky — parsuje ho měřidlo z tailu.
+    if (profOn) console.log(`tick-prof: iso=${IZO_ID} faze=${stav} ${fazeMs.join(" ")}`);
+  };
+  // Zastavení po fázi. Částečný tik NENÍ tik: dokončené fáze mají své účinky
+  // (jako v plném tiku), ale tep se nezapisuje — dělá to až volající.
+  const stopFaze = (nazev: string): string => {
+    profZapis(`stop-po-${nazev}`);
+    return `ZASTAVENO po fazi ${nazev} (faze=${doFaze})`;
+  };
+  znacka("start");
+  if (doFaze === 0) return stopFaze("start");
+
   const maxConcurrent = Number(env.MAX_CONCURRENT || "1");
   const staleMin = Number(env.STALE_MINUTES || "90");
   // Strop pokusů. Slabé free modely mají úspěšnost kolem 10 %, takže tři pokusy
@@ -1281,7 +1326,11 @@ async function tick(env: Env): Promise<string> {
   //    0a) H196 (P40): běhy k pollingu A počítadlo granulí jedním round-tripem
   //    (dřív dva samostatné dotazy = dva round-tripy × ~0,5 ms CPU).
   const zaklad = await nactiBehyAGranule(env);
+  znacka("zaklad");
+  if (doFaze <= 1) return stopFaze("zaklad");
   const polled = await pollRuns(env, zaklad.behy).catch((e) => `polling selhal: ${String(e)}`);
+  znacka("poll");
+  if (doFaze <= 2) return stopFaze("poll");
 
   // 0b) watchdog: granule, která spálila příliš mnoho pokusů, se OHLÁSÍ.
   //     B3a jen HLÁSÍ; strop (B3b, `GRAIN_MAX_RUNS`) je od 8. 10. 2026
@@ -1291,6 +1340,8 @@ async function tick(env: Env): Promise<string> {
   const grainRunsMap = zaklad.granule;
   const cap = grainCap(env);
   const eskalovano = await escalateStuckTasks(env, grainRunsMap);
+  znacka("watchdog");
+  if (doFaze <= 3) return stopFaze("watchdog");
 
   // 1) zaseknuté úlohy (runner umřel, Actions zrušily job, worker se odpojil)
   const [stale, blokSync] = await env.DB.batch([
@@ -1327,12 +1378,16 @@ async function tick(env: Env): Promise<string> {
   }
   // (Pořadí „blocked sync" zůstalo v témže batchi jako stale-recovery — obojí
   //  jsou nezávislé úklidové UPDATEy, které běží PŘED roadmapou.)
+  znacka("stale");
+  if (doFaze <= 4) return stopFaze("stale");
 
   // 1a) B4: REGISTR HER JE ZDROJ PRAVDY O TOM, CO SE SMÍ DISPATCHOVAT.
   // Bez aktivní hry se nedispatchuje NIC — dřív se tady bral `env.GITHUB_REPO`
   // jako fallback a vypnutá hra jela dál (invariant 18). Naměřeno bránou
   // `tools/test-listgames.py` (7 kontrol) — viz `listGames`.
   const aktivniHry = await listGames(env);
+  znacka("hry");
+  if (doFaze <= 5) return stopFaze("hry");
 
   // 1b) doplň připravené granule z roadmapy (závislosti hotové, owns volné).
   // Počítají se jen CLOUDOVÉ úlohy – úkol pro domácí uzel (telefon/PC) nemá
@@ -1340,6 +1395,8 @@ async function tick(env: Env): Promise<string> {
   const roadmapMsg = aktivniHry.length
     ? await roadmapTick(env, retryH, grainRunsMap, cap).catch((e) => `roadmapa selhala: ${String(e)}`)
     : "žádná aktivní hra – roadmapu neřeším (B4)";
+  znacka("roadmap");
+  if (doFaze <= 6) return stopFaze("roadmap");
 
   // 1c) INVARIANT: úkol, na který neodkazuje žádný řádek `roadmap`, je zombie.
   // Vzniká po resetu cache, po ručním zásahu nebo po změně ID granulí — a je
@@ -1369,6 +1426,8 @@ async function tick(env: Env): Promise<string> {
   // že opravdu běžel a s jakým prahem – jinak by se jeho výpadek poznal jen
   // tak, že by chyběla notifikace, což se snadno přehlédne.
   const eskalMsg = `, watchdog: ${eskalovano}`;
+  znacka("zombie");
+  if (doFaze <= 7) return stopFaze("zombie");
 
   // 2) dispatch smyčka: dokud je kapacita a je připravená úloha s volnými owns,
   //    spusť ji. Tím se v jedné vlně rozeběhne víc nezávislých granulí naráz.
@@ -1519,6 +1578,8 @@ async function tick(env: Env): Promise<string> {
       `#${task.id} ${task.title}\nkind: ${task.kind}\nrun: ${runKey}`, "rocket");
     started.push(task.id);
   }
+  znacka("dispatch");
+  profZapis("celkem");
 
   const preskocenoMsg = preskoceno.length
     ? ` | přeskočeno: ${[...new Set(preskoceno)].slice(0, 6).join("; ")}` : "";
@@ -1652,11 +1713,29 @@ export default {
     // Ruční tik (testování i externí budík typu cron-job.org)
     if (path === "/tick" && request.method === "POST") {
       if (!secretOk(request, env)) return json({ error: "bad secret" }, 401);
-      const msg = await tick(env);
+      // P41/H201: `?faze=N` (0..8) zastaví tik PO N-té fázi. Slouží k měření
+      // CPU po fázích: runtime hlásí `cpuTime` jen za CELOU invokaci, takže
+      // rozdíl mezi `faze=N` a `faze=N+1` (v TÉMŽ izolátu, viz `iso=` v logu)
+      // je cena fáze N+1. Bez parametru se tik chová PŘESNĚ jako dřív (celý).
+      let doFaze = 99;                         // 99 = plný tik (bez parametru)
+      const fazeRaw = url.searchParams.get("faze");
+      if (fazeRaw !== null) {
+        const n = Number(fazeRaw);
+        if (!Number.isInteger(n) || n < 0 || n > FAZE_NAZVY.length - 1) {
+          return json({ error: `faze musi byt 0..${FAZE_NAZVY.length - 1}` }, 400);
+        }
+        doFaze = n;
+      }
+      const msg = await tick(env, doFaze);
       // H112 (P33): ruční tik se ZAPÍŠE taky, ale jako `manual` — `last_cron`
       // neobnoví, takže brána „cron běží (čas)“ se nedá uspokojit ručním tiky.
-      await zapisTep(env, "manual").catch((e) => console.log("tep (manual) selhal:", String(e)));
-      return json({ message: msg });
+      // ⚠ ČÁSTEČNÝ tik (`?faze=` < 8) tep NEZAPISUJE: nedoběhl, takže by
+      // „last_tick“ tvrdil něco, co se nestalo (a měření by platilo 2 D1 obraty,
+      // které do měřené fáze nepatří).
+      if (doFaze === 99) {
+        await zapisTep(env, "manual").catch((e) => console.log("tep (manual) selhal:", String(e)));
+      }
+      return json({ message: msg, faze: doFaze });
     }
 
     // Ruční vyzvednutí výsledků z GitHubu (jinak to dělá tik každých 15 min)

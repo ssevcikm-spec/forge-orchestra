@@ -179,6 +179,32 @@ MUTATIONS = [
      CONDUCTOR,
      "prs = await mergedPrsGraphql(env, g.repo);",
      "prs = await mergedPrsRest(env, g.repo);"),
+    # ── H201 (P41): PROFIL FÁZÍ A ZASTAVENÍ PO FÁZI ─────────────────────────
+    # Měření „kde je CPU“ stojí na dvou věcech: (a) tik se umí ZASTAVIT po fázi
+    # (`?faze=N`) — jinak se cena fáze nedá z rozdílu `cpuTime` dostat; (b) profil
+    # fází se opravdu zaloguje — jinak z tailu není vidět ani wall time po
+    # fázích, ani identita izolátu. Každá z těch dvou věcí má vlastní vrat,
+    # protože „řádek se zalogoval“ a „řádek nese ceny fází“ jsou DVĚ tvrzení.
+    # M22 zruší PŘEDÁNÍ `?faze=` do tiku (tik vždy pojede celý) → `faze=0`
+    #     udělá D1 round-tripy a tik se nezastaví. (Pozor: vrat na JEDNOM
+    #     kontrolním bodě by tuhle vadu NEODHALIL — další bod by tik zastavil
+    #     stejně; naměřeno 12. 10. 2026: první verze M22 bránu nechala zelenou.)
+    ("M22 faze= se zahodi (tik jede vzdy cely)",
+     CONDUCTOR,
+     '        doFaze = n;',
+     '        doFaze = 99;'),
+    # M23 zruší kontrolní bod PO `poll` → `?faze=2` se zastaví až po watchdogu
+    #     (jinde, než tvrdí) — tím se měří, že všechny body EXISTUJÍ.
+    ("M23 kontrolni bod po poll je mrtvy",
+     CONDUCTOR,
+     'if (doFaze <= 2) return stopFaze("poll");',
+     'if (false) return stopFaze("poll");'),
+    # M24 zaloguje profil BEZ cen fází → měřidlo z tailu dostane jen jméno fáze
+    # a „změřeno po fázích“ by bylo tvrzení bez čísel.
+    ("M24 profil bez cen fazi (jen jmena)",
+     CONDUCTOR,
+     'console.log(`tick-prof: iso=${IZO_ID} faze=${stav} ${fazeMs.join(" ")}`);',
+     'console.log(`tick-prof: iso=${IZO_ID} faze=${stav}`);'),
 ]
 
 checks = 0
