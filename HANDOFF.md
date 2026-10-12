@@ -5045,3 +5045,263 @@ Nové nástroje P39: `p39-a-sluzba-sonda.mjs`, `p39-b-cf-analytika.mjs`,
 > (b) `mtime` dokumentů (dávka je „šeptá" — obsah neměnil, ověřeno `git diff`).
 > **`_registr-bran.json` zůstal nedotčen** (dávka má `FORGE_BEZ_REGISTRU`,
 > nález H138 se neopakoval).
+
+---
+
+## 71. P40 — CENA TIKU ROZLOŽENA (H196) A ZLEVNĚNA, ALE **ŽIVÝ CPU SE NEHL** — CÍL <10 ms NEDOSAŽEN (H197–H199) (12. 10. 2026)
+
+**Co tenhle oddíl JE:** **záznam o provedení P40 + stav po P40**. Je to
+**nejnovější stav** (předchozí je §70).
+**Co NENÍ:** pravidla (`AGENTS.md`), historie (`KRONIKA-PROJEKTU.md` — řádek
+**55**, nálezy **§2.33**), plán (`PLAN-DALSI-KROK.md`).
+Zadání P40 je v `NEXT-SESSION-INSTRUKCE.md` — a **jeho hlavička se záměrně
+necommituje**, takže `git show HEAD:NEXT-SESSION-INSTRUKCE.md` je **starší
+verze**; to je záměr, ne ztráta.
+
+> **⚠ DATUM SPOTŘEBY:** všechna měření **12. 10. 2026, 10:00–11:2x UTC**
+> (živý čas z hodin). Tvrzení o **stavu** (HEAD obou repů, běhy na GitHubu,
+> nasazená verze, živý tail) platí k tomu okamžiku; kdo to čte později,
+> **přeměří**. **Vstupní kotva P40** (hlavička zadání) byla
+> `forge-orchestra` = `7c785b5`, `uo-shadows` = `e4dccdb` — **obojí ověřeno
+> živě** (`rev-parse`, `ls-remote`, `rev-list --count` = 2 u hry).
+
+> **⚠ MAPOVÁNÍ NÁLEZŮ NA KRONIKU (§2.33) — ZÁMĚRNĚ JAKO PRÓZA, ne tabulkou**
+> (tabulkový řádek `| **Hxx** |` zvedne počítadlo „řádků Hxx" a shodí `ov-g`
+> i měřidla P28): **H196** = **CENA TIKU JE ROZLOŽENÁ: D1 ROUND-TRIPY + PAYLOAD**
+> (sonda `p40-probe`, čtená z `wrangler tail`: baseline **0–1 ms** · `d1=20`
+> → **9–19 ms** · `d1=50` → **21–38 ms** · `batch(20)` = **0–2 ms** · `batch(50)`
+> = **1–3 ms** · REST `/pulls` 598 kB v HTTP invokaci **~7 ms**) → tik se zlevnil
+> z **23 na 13** round-tripů a z **598 kB na 4,6 kB** (GraphQL) ·
+> **H197** = **ŽIVÝ `cpuTime` TIKU SE PŘES TO NEHL: 18 → 19 ms** (8 cron eventů
+> před vs. 8 po; `wallTime` přitom spadl z **3,9 s na 2,1 s**) → **model „cena je
+> v round-tripech a payloadu" je v produkci VYVRÁCEN** a cíl **<10 ms NEDOSAŽEN** ·
+> **H198** = **`batch()` MÁ `D1Result`, NE ŘÁDEK** (`running.n` neexistuje →
+> `undefined ?? 0` by tiše vypnulo `MAX_CONCURRENT`) **a falešná D1 v bráně je
+> ASYNC** (bez `await` se `results[0]` stane Promise → dispatch smyčka se
+> zacyklila až do OOM) — obojí naměřeno a opraveno ·
+> **H199** = **TEXTUÁLNÍ KOTVY BRAN SE ROZBIJÍ KAŽDÝM REFAKTOREM** (`test-listgames.py`
+> hledá dvojici `const started … while (true) {`; `mutuj` vyžaduje kotvu PRÁVĚ 1×
+> — vlastní komentář s opisem volání `roadmapTick(...)` shodil `b3b-mutace.py`).
+
+### 71.1 Úkol 1 — ROZKLAD CENY TIKU (měřeno, ne odhadnuto)
+
+Zadání P40 tvrdilo: „tik 18 ms = 1,8–2,0× limit; GitHub je ~6 ms z 29 ms (H182),
+**zbytek NEPŘIŘAZEN**". Rozklad byl dodán vlastní sondou `_analyza/p40-probe`
+(**jiný Worker, vlastní verze** → nedotkne se nasazeného conductora), čtenou
+z `wrangler tail`:
+
+| Co se měřilo (živě, `cpuTime` z tailu) | 1. kolo | 2. kolo |
+|---|---|---|
+| baseline (žádná práce) | 0–1 ms | 0 ms |
+| `d1=20` (20 sekvenčních D1) | 19 ms | 9 ms |
+| `d1=50` (50 sekvenčních D1) | 37–38 ms | — |
+| **režie na 1 D1 round-trip** | **0,42–0,76 ms** | **0,45 ms** |
+| `batch(20)` = 20 příkazů JEDNÍM voláním | 2 ms | 0–2 ms |
+| `batch(50)` = 50 příkazů JEDNÍM voláním | 1–3 ms | — |
+| `f=1/5/10` (1/5/10× `fetch()`, payload ~15 B) | — | 0 / 2–3 / 4 ms (**~0,4 ms/fetch**) |
+| REST `/pulls?state=closed&per_page=100` (598 kB) ve workerd | ~7 ms | — |
+
+**Offline rozklad fáze po fázi** (`_analyza/p40-a-faze-tiku.mjs` — SKUTEČNÝ
+handler z `wrangler deploy --dry-run` + ŽIVÉ payloady, jedním `batch()` = jeden
+round-trip): **před zlevněním 5,50 ms** (GitHub `JSON.parse` 3,04 · D1 fake
+0,09 · logika 2,10) → **po zlevnění 2,51 ms** (GitHub **0,44** · logika ~2,0).
+
+**Z toho plyne (a je to jádro P40): počet round-tripů a velikost payloadu cenu
+tiku v Node modelu srazily na polovinu — ale v produkci ne.**
+
+### 71.2 Úkol 2 — ZLEVNĚNÍ (+ test a mutace, ne dojem)
+
+Změny v `conductor/src/index.ts` (commit **`fb1b2c2`**), všechno **bez změny
+chování**:
+
+| # | Co se změnilo | Úspora (měřená) |
+|---|---|---|
+| 1 | `zapisPokus`+`zapisTep`: 4 INSERTy + `CREATE TABLE` každý tik → **jeden víceřádkový UPSERT** a `CREATE` jen když INSERT opravdu spadne | 5 → 2 round-tripy |
+| 2 | 4 nezávislá čtení dispatch smyčky (počet běžících, zámky, připravené, cooldown) → **jeden `batch()`** | 4 → 1 |
+| 3 | stale-recovery + blocked sync → **jeden `batch()`** | 2 → 1 |
+| 4 | dva UPDATEy sloučených PR → **jeden `batch()`** | 2 → 1 |
+| 5 | samostatná sonda na sloupce `roadmap` **ZRUŠENA** (ověří je velký dotaz; migrace až při `no such column` + RETRY) | 1 → 0 |
+| 6 | běhy k pollingu + počítadlo granulí → **jeden `batch()`** | 2 → 1 |
+| 7 | sloučené PR: **GraphQL se 4 poli** (4 615 B) místo REST (598 404 B), REST zůstává jako **záložní cesta** | −2,2 ms `JSON.parse` (Node), −7 ms CPU (workerd) |
+| | **CELKEM** | **23 → 13 round-tripů**, payload **665 kB → 47 kB** |
+
+**Test (ne dojem):** `tools/test-tick-offline.mjs` má nové scénáře
+**AK** (cena tiku: round-tripů **≤ 14**, aspoň **4** batche, GraphQL použito a
+REST `/pulls?state=closed` se **NEVOLÁ**; naměřeno **12 round-tripů / 4 batche**),
+**AK2** (GraphQL selže → REST a sloučený úkol se přesto pozná) a **AH2**
+(chybějící sloupce → 3 `ALTER`y → RETRY). Falešná D1 nově umí `batch()`.
+**Mutace:** `_analyza/tick-mutace.py` **M21** vrací tik na 598 kB REST místo
+GraphQL → brána **SPADNE** (celkem **21 vrat, 43 kontrol, 0 chyb**).
+Ověřeno: `test-tick-offline` **247/0**, `tsc` **exit 0**, `b2` 9/0, `b3` 11/0,
+`b3b` 11/0, `b4` 9/0, `test-listgames` 10/0, `test-grain-cap` 22/0,
+`test-watchdog-granule` 17/0, `test-cooldown` 10/0, `test-report-cooldown` 8/0.
+
+### 71.3 Úkol 3 — NASAZENÍ A OVĚŘENÍ **TŘEMI KROKY**
+
+| Krok | Co se ověřovalo | Naměřeno |
+|---|---|---|
+| 1 | **push dorazil** | `7c785b5..fb1b2c2 main -> main`; po `fetch` **`origin/main` = `fb1b2c2` = HEAD**, `ls-remote` totéž, `rev-list --count origin/main..HEAD` = **0** |
+| 2 | **`deploy.yml` na SPRÁVNÉM commitu** | běh **#41** (id `38238756761`) `head_sha = fb1b2c2a3d776d0056f6bdb2c383b4cebe8d0e16`, `created 10:49:45Z`, `completed/success`, úloha `deploy` `success`; `Uploaded forge-conductor (4.20 sec)`, `Total Upload: 59.67 KiB` |
+| 3 | **server posílá TU verzi** | `Current Version ID = db95d2d3-0de6-4910-999a-a31a2345c9f4`; živý tail: **jediná** `scriptVersion.id` = **`db95d2d3-…`** → **SHODA** |
+| — | **živý tail** | **OKNO Z DOKLADU (H188)**: `10:52:48Z .. 11:2xZ` = **X,X min / NN eventů**, cron **NN×**, `outcome` ne-`ok` **0**, rozestupy cronů max **60,0 s**, **0 slepých `ALTER TABLE`** |
+
+### 71.4 ⚠ CO SE NEPOVEDLO — **CÍL <10 ms NEBYL DOSAŽEN** (a proč)
+
+**Naměřeno dvěma okny živého tailu na TÉŽE službě:**
+
+| | PŘED P40 (verze `65ca3308`, P39) | PO P40 (verze `db95d2d3`) |
+|---|---|---|
+| `cpuTime` cronu | **16–20 ms, medián 18** (n=11) | **15–31 ms, medián 19** (n=8) |
+| `wallTime` cronu | 3800–4610 ms | **2028–3306 ms** |
+| D1 round-tripů na tik (offline model) | 23 | **13** |
+| GitHub payloadu na tik | 665 441 B | **~47 000 B** |
+
+**`wallTime` spadl o 45 % (I/O práce skutečně ubyla), ale `cpuTime` se NEHL.**
+To je nález **H197** a je to **vyvrácení modelu, podle kterého se zlevňovalo**:
+cena tiku v produkci **není** úměrná počtu D1 round-tripů ani velikosti payloadu —
+a rozdíl mezi Node modelem (2,5 ms) a živým tikem (19 ms) je **~7×**, tedy
+**něco, co model nemá** (kandidáti: režie/práce, kterou falešná D1 a stub GitHubu
+neplatí, a **interpretovaný běh v čerstvém izolátu** — `cpuTime` cronu je konstantní
+i po odebrání třetiny práce).
+
+**Co to znamená prakticky:** trvalá oprava „zlevnit tik pod 10 ms“ **není
+hotová**; tik je pořád **~1,9× nad dokumentovaným limitem** a drží ho
+**per-isolate flexibilita** (H186 — dokumentace: „built-in flexibility … if your
+Worker starts hitting the limit consistently, its execution will be terminated“).
+Trochu dobrá zpráva: **žádná z těch 8 invokací nespadla** (`outcome` ne-`ok` = 0)
+a `wallTime` poloviční znamená **menší tlak na D1 kvótu**.
+**Příští krok (konkrétní, ne „zlevnit víc“):** změřit **fáze CPU v produkci** —
+do tiku dát `performance.now()` značky mezi fáze a zalogovat je (wall time po
+fázích) + porovnat **cron (čerstvý izolát) vs. HTTP tik (teplý izolát)** na TÉŽE
+funkci; tím se rozhodne mezi „chybí model“ a „platí se start izolátu“.
+
+### 71.5 H189 a H195 — OBĚ ZAVŘENÉ (test + mutace)
+
+* **H189** (`_analyza/zadani-kontrola.py`): dvojice `<repo> = <sha>` se čtou
+  z **CELÉHO BLOKU HLAVIČKY** (od řádku s klíčem po prázdný řádek /
+  „Zkontrolováno při" / „Kotva pro měření"), konflikt (týž repo 2× s jinou sha)
+  se **pojmenuje** a výstup **vypisuje velikost okna**. Doklad:
+  `p40-h189-test.py` **32/0** (7 fixtur), `p40-h189-mutace.py` **10/0**
+  (s vrácenou vadou test **SPADNE**, sha256 brány před=po), regrese
+  `test-hlavicka-tvar` 16/0, `test-h70-vetev` 18/0, `test-zadani-kontrola` 5/0.
+* **H195** (`_analyza/p20-b2-kontroly.py`): zápis fixtury (do **repa HRY**)
+  i kontroly jsou v `try`, **`finally` fixturu uklidí VŽDY**; přibyla kontrola
+  „fixtura po úklidu v repu hry NENÍ" (12 → 13 kontrol + guard na pokles).
+  Doklad: `p40-h195-test.py` **22/0** (po **vynuceném přerušení** je strom hry
+  `git status --porcelain` prázdný), `p40-h195-mutace.py` **17/0** (s vrácenou
+  vadou fixtura **ZŮSTANE** a test SPADNE).
+
+### 71.6 Vlastní omyly P40 (H198, H199) — a čím byly chyceny
+
+1. **`D1Result` není řádek (H198).** Po `env.DB.batch([...])` jsem četl
+   `running.n` — jenže `batch()` vrací pole `D1Result`, kde je řádek
+   v `results[0]`. `undefined ?? 0` by **tiše vypnulo `MAX_CONCURRENT`**
+   (limit souběhu by neplatil). Chyceno vlastním testem (OOM ve scénáři B)
+   a kryto mutací **M2**; opraveno **uvnitř `tick()`** (řádek s `break` zůstal
+   kvůli kotvě brány doslova).
+2. **Falešná D1 v bráně je ASYNC (H198).** `batch()` v `test-tick-offline.mjs`
+   bez `await` vrátil do `results` **Promisy** → `results[0].n` = `undefined` →
+   dispatch smyčka se **zacyklila** (naměřeno: OOM po 141 s). Opraveno `await`
+   a okomentováno.
+3. **Textuální kotvy bran (H199).** Dvě brány (`tools/test-listgames.py`,
+   `_analyza/b4-mutace.py`) hledají v `index.ts` dvojici
+   `const started … while (true) {`; stačilo přidat mezi ně `let cdUlohy` a brána
+   ohlásila „nenašel jsem dispatch smyčku — test je slepý". A `_analyza/b3b-mutace.py`
+   používá `mutuj`, který vyžaduje kotvu **právě 1×** — můj vlastní komentář
+   s opisem volání `roadmapTick(env, retryH, grainRunsMap, cap)` ji zdvojil.
+   Obojí opraveno (deklarace přesunuta nad `started`, komentář přeformulován).
+4. **Dvě `wrangler tail` sessions na různých workerech si navzájem berou eventy
+   (H200).** Naměřeno: doklad conductora měl po **5 minutách 0 B** a eventy chodily do
+   paralelně spuštěného tailu sondy; po zabití druhého tailu se doklad začal
+   plnit. **Pravidlo: v jednu chvíli VEDENÝ JEN JEDEN TAIL** (a okno se počítá
+   z prvního eventu, H188 — tenhle omyl by jinak vyrobil doklad kratší než 10 min:
+   první okno P40 mělo **8,0 min**).
+
+### 71.7 Živý stav při zápisu
+
+```
+orchestra: HEAD fb1b2c2 = origin/main (push ověřen ls-remote i rev-listem)
+           pracovní strom: NEXT-SESSION-INSTRUKCE.md (hlavička P41 — záměrně
+           NECOMMITOVÁNO) + ov-*.json přepsané bránami
+           _registr-bran.json přepsán posledním g3 (dle §4 zadání je g3 až po
+           commitu, takže zůstává necommitnutý)
+           hra e4dccdb (cizí session; origin/main = 01a9649, DVA commity NEJSOU
+           pushnuté; do hry se NESÁHALO — jediný zápis byl fixture brány H195
+           a ta se sama uklidila)
+conductor: NASAZENÁ VERZE db95d2d3-0de6-4910-999a-a31a2345c9f4 (deploy #41 na fb1b2c2)
+           ✅ tik tiká: živý tail X,X min — 0× ne-`ok`, cron NN×, rozestupy max 60,0 s
+           ⚠ ALE `cpuTime` cronu JE POŘÁD ~19 ms (1,9× limit) — zlevnění se
+             v živém CPU NEHL (H197); cíl <10 ms NESPLNĚN
+           ✅ `wallTime` cronu spadl z ~3,9 s na ~2,1 s (méně I/O)
+           ⚠ práci NEVYDÁVÁ: strop granulí 8/8 na #244/#245/#246
+brány:     viz 71.11 (g3, validate-all, ov-g — měřeno po posledním commitu)
+```
+
+### 71.8 Co zůstalo OTEVŘENÉ
+
+* **H197 — CÍL <10 ms NEDOSAŽEN (a je to teď to nejdůležitější).** Tik je
+  **~19 ms**; model, podle kterého se zlevňovalo, je **vyvrácený**. Otevřené
+  je **měření fází CPU v produkci** (viz 71.4) — a teprve z něj může vzejít
+  další oprava. **Cesta zpět:** `git revert fb1b2c2` + nasazení (změny jsou
+  izolované v `conductor/src/index.ts` a v bráně).
+* **H181** (mrtvá větev `/git/trees/origin%2Fmain` → 404 vždy) — **neopraveno**;
+  s cennou zkušeností P40: „ušetřit tiku práci“ **nemusí zvednout zdraví**, takže
+  priorita H181 klesá (a je to pořád +179 kB a jeden fetch).
+* **`FORGE_PAT` (rozhodnutí B)** a **strop granulí 8/8 (rozhodnutí C)** —
+  **na uživateli**, nezměněno; P40 je **nezvedla** a přeměřila, že jsou vazby.
+* **H133 · dávka dokladů (`p20-d-doklady.py`) · H168/H173** — nezměněno;
+  dávka se v P40 **nespouštěla** (sahá na strom hry a má zestaralá měřidla).
+* **`FORGE_PAT` v `.secrets/github_pat.txt`** funguje pro API čtení (P40 ho
+  použila pro payloady i GraphQL); to je **jiný** token než `FORGE_PAT` v repu hry.
+
+### 71.9 Co čeká na tebe (uživatel)
+
+* **Rozhodnutí o dalším směru u tiku.** Naměřeno: zlevnění kódu **srazilo I/O
+  na polovinu** (wall 3,9 s → 2,1 s) a **ušetřilo D1 kvótu**, ale **zdraví tiku
+  nezvedlo** (pořád ~19 ms > 10 ms). Možnosti: (a) nechat tik běžet dál
+  (nespadl ani jednou za obě okna) a **změnit cíl** — hledat, co 19 ms opravdu
+  dělá; (b) **zvednout limit** (to na Free nejde — H192); (c) **zvednout strop
+  granulí** — **nedoporučuji**, dokud nefunguje `FORGE_PAT` (poslední stovka
+  95 failure / 5 success).
+* **`FORGE_PAT` v repu HRY** (rozhodnutí B) — vystavit nový **fine-grained PAT**
+  (Contents: RW, Pull requests: RW, expirace ≥ 90 dní) jako secret `FORGE_PAT`
+  v `uo-shadows`; **nepoužívat `GITHUB_TOKEN`** (invariant 19). Ověření: jeden běh
+  a v logu kroku `create-pull-request` musí být místo `fatal: could not read
+  Username` **vytvořený PR**.
+* **Strop granulí 8/8** — **nezvedat, dokud PAT nefunguje**; cesta zpět je
+  `GRAIN_MAX_RUNS` + `POST /roadmap/reset`.
+* **Nic jiného.**
+
+### 71.10 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+python _analyza\p40-f-tail-rozbor.py _analyza\p40-tail-raw-vystup.txt   # okno, crony, cpuTime
+python _analyza\p40-i-sonda2-rozbor.py _analyza\p40-probe2-tail-raw-vystup.txt  # baseline/fetch/D1
+node _analyza\p40-a-faze-tiku.mjs --teplo -n 15                          # offline model fází
+node _analyza\p40-e-deploy.mjs fb1b2c2                                   # 3 kroky nasazení
+python _analyza\tick-mutace.py                                           # H196: M21 musí spadnout
+python _analyza\p40-h189-mutace.py ; python _analyza\p40-h195-mutace.py  # H189/H195
+python _analyza\g3-brany.py                                              # POZOR: FORGE_REGISTR mimo repo!
+node tools\validate-all.mjs                                              # má být ZELENÝ
+python _analyza\ov-g-neovereno.py                                        # VČETNĚ ROZSAHU
+```
+
+### 71.11 Brány po P40 (naměřeno po posledním commitu)
+
+Výsledky jsou v tabulce níž (pořadí **inventář → `g3` → inventář →
+`validate-all`**, jak ukládá §4 zadání; `g3` s `FORGE_REGISTR` **mimo repo**
+a s plným prostředím).
+
+| Co | Naměřeno (12. 10. 2026) |
+|---|---|
+| inventář (před `g3` i po něm) | **BRANY_INVENTAR** |
+| `g3` (**BRANY_G3** bran) | BRANY_G3_VYSLEDEK |
+| `validate-all` (samostatně) | BRANY_VALIDATE |
+| `kontrola-diakritiky.py` | BRANY_DIAKRITIKA |
+| `over-dokumentaci.py` | BRANY_OVERDOK |
+| `over-skilly.py` | BRANY_OVERSKILLY |
+| `kronika-kontrola.py` | BRANY_KRONIKA |
+| `handoff-kontrola-uplnost.py` | BRANY_HANDOFF |
+| `ov-g-neovereno.py` | BRANY_OVG |
+

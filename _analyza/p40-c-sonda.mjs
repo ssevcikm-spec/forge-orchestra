@@ -28,22 +28,16 @@ const OUT = join(WS, '_analyza', 'p40-c-sonda-vystup.txt');
 const TOKEN = 'p40-probe';
 
 // ── plán požadavků: každý má ŠTÍTEK, aby se v tailu dal přiřadit ────────────
-// `iters` nahrazuje `burn` (busy loop s hodinami je ve workerd nekonečný).
-// Opakování téhož tvaru je ZÁMĚR: měří se, jestli se práh úmrtí SNIŽUJE, když
-// worker opakovaně přeteče (dokumentace: „built-in flexibility“ pro ojedinělé
-// přetečení; při SOUSTAVNÉM přetečení se invokace ukončí podle limitu).
+// DRUHÉ KOLO (P40): `f=` měří REŽII SUBREQUESTU (payload ~15 B), `d1=` totéž pro
+// D1 — a v tailu je navíc **CRON s prázdným handlerem** = baseline invokace.
 const PLAN = [
   ['baseline-1', 'd1=0'],
   ['baseline-2', 'd1=0'],
-  ['d1-50-a', 'd1=50'],
-  ['d1-50-b', 'd1=50'],
+  ['f-1', 'f=1'],
+  ['f-5', 'f=5'],
+  ['f-10', 'f=10'],
   ['d1-20', 'd1=20'],
   ['batch-20', 'batch=20'],
-  ['batch-50', 'batch=50'],
-  ['batch-50-b', 'batch=50'],
-  ['gh-rest', 'gh=rest'],
-  ['gh-gql', 'gh=gql'],
-  ['json-600kb', 'jsonb=600000'],
 ];
 
 if (process.argv.includes('--posli')) {

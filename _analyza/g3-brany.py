@@ -278,11 +278,12 @@ BRANY = [
     #    push nezměnil conductor/**?"
     # To je **správné chování brány**, ne vada: `deploy.yml` má filtr
     # `paths: conductor/**` a commit `1e3925e` mění jen `tools/`.
-    # **Kotva proto míří na poslední změnu `conductor/**`** (`7c11b2d` — B1),
-    # protože na tom deploy #32 SKUTEČNĚ běžel. Kdyby se conductor změnil,
-    # musí se změnit i ta konstanta — a to je vidět (`a3-kontrola.mjs` na to
-    # upozorní sám: „poslední změna conductor/src/index.ts = …").
-    ("deploy B1", ["node", "<ANALYZA>/f3-over-deploy.mjs", "7c11b2d"], r"(\d+) úloh"),
+    # **Kotva proto míří na poslední změnu `conductor/**`** (`fb1b2c2` — P40,
+    # H196), protože na tom deploy #41 SKUTEČNĚ běžel (a `Current Version ID`
+    # `db95d2d3-…` se rovná `scriptVersion.id` živého tailu). Kdyby se conductor
+    # změnil, musí se změnit i ta konstanta — a to je vidět (`a3-kontrola.mjs`
+    # na to upozorní sám: „poslední změna conductor/src/index.ts = …").
+    ("deploy B1", ["node", "<ANALYZA>/f3-over-deploy.mjs", "fb1b2c2"], r"(\d+) úloh"),
     ("ag-over-cisla", ["python", "<ANALYZA>/ag-over-cisla.py"], r"(\d+)"),
     # ⚠ PŘIDÁNO 2. 10. 2026 (Úkol 2 zadání `ZADANI-DOKONCENI-AUDITU.md`):
     # `ag-mutace.py` je JEDINÝ test, který dokazuje, že `ag-over-cisla.py` měří

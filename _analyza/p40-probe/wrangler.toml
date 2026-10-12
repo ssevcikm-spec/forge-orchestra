@@ -1,16 +1,22 @@
 # p40-probe — DOČASNÝ Worker pro MĚŘENÍ, ne pro provoz.
 #
-# PROČ VLASTNÍ WORKER (a ne zásah do conductora): měří se režie D1 na jeden
-# round-trip a efektivní CPU limit. Kdyby to šlo do conductora, změnilo by to
-# JEHO nasazenou verzi — a tu je potřeba na konci ověřit (`Current Version ID`
-# == `scriptVersion.id` živého tailu). Vlastní jméno `forge-probe` znamená
-# vlastní verzi a vlastní historii nasazení; conductor zůstane nedotčený.
+# PROČ VLASTNÍ WORKER (a ne zásah do conductora): kdyby měření šlo do
+# conductora, změnilo by to JEHO nasazenou verzi — a tu je potřeba ověřit
+# (`Current Version ID` == `scriptVersion.id` živého tailu). Vlastní jméno
+# `forge-probe` znamená vlastní verzi a vlastní historii nasazení.
 #
-# ⚠ DATABÁZE je TÁŽ (`forge-conductor`), ale sonda do ní POUZE ČTE (`SELECT 1`).
-#   Žádný zápis, žádná změna schématu.
+# ⚠ DRUHÉ KOLO (P40): přibyl **cron trigger `* * * * *`**, jehož handler
+# NEDĚLÁ NIC. To je BASELINE cron invokace: bez něj nelze rozhodnout, kolik
+# z 18 ms tiku je práce a kolik režie. Worker se po měření MAŽE
+# (`npx wrangler delete --name forge-probe`).
 name = "forge-probe"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
+
+# ⚠ Cron na VLASTNÍM workeru: 5 cron triggerů na účet je limit free plánu —
+# conductor má jeden, tenhle druhý. Po měření se worker smaže.
+[triggers]
+crons = ["* * * * *"]
 
 [[d1_databases]]
 binding = "DB"
