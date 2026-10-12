@@ -92,6 +92,13 @@ SOUBORY = [
     # Přidán ve STEJNÉ session, která ho napsala — „přidám ho příště" je krok,
     # na kterém to v tomhle workspace padlo už pětkrát (viz komentáře výš).
     REPO / "JAK-PSAT-DESIGN-A-PLANOVAT-VYVOJ.md",
+    # 12. 10. 2026: předání session, která dělala K1/K2 přípravy orchestry
+    # (hygiena zadání + rozpočet requestu + klasifikace selhání). Vzniklo jako
+    # SAMOSTATNÝ soubor, protože `HANDOFF.md` v tom stromě vlastní souběžná
+    # session P41 a přepsat ho by znamenalo zahodit cizí záznam. Přidáno ve
+    # STEJNÉ session, která ho psala — jinak by brána nad ním hlásila „VŠE OK",
+    # aniž ho otevřela (vada S27: ruční seznam místo projití složky).
+    REPO / "PREDANI-OTUKANI-2026-10-12.md",
     # 2. 10. 2026 (10:4x): zadání pro novou session po ověření — co provést,
     # co zadokumentovat a co připravit pro plánovací session. Vzniklo ve session,
     # která ověřovala práci session `eb127abd` (12/12 bodů §7.2).

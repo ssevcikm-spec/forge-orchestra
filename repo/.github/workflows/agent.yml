@@ -221,18 +221,46 @@ jobs:
               ARG_CTENI="$ARG_CTENI --read $f"
             done <<< "$CIT_DEPS"
           fi
+
+          # ── K1 (12. 10. 2026): HYGIENA ZADÁNÍ + ROZPOČET REQUESTU ──────────
+          # PROČ: aider si do chatu přidá každý soubor zmíněný v zadání
+          # (`base_coder.get_file_mentions`). Naměřeno z logů 9. 10.: zadání
+          # s „docs/TDD.md §1.1“ přitáhlo CELÝ dokument (16 127 tokenů) a request
+          # vyrostl na 39 167 tokenů proti stropu 8 000 (Groq zdarma) – model se
+          # tedy zadání NIKDY nedozvěděl. Hygiena cesty nahradí a vypíše úsporu.
+          ZADANI=$(node .forge/node/prompt-hygiene.mjs "$FORGE_PROMPT")
+
+          # Rozpočet se ptá PŘED voláním: nevejde-li se, běh skončí pojmenovaně
+          # a nespálí pokus ani kvótu. `TRIDA` jde do prostředí pro report.
+          if ! node .forge/node/request-budget.mjs \
+                 --zadani-text "$ZADANI" --soubory "$DO_EDITACE" --cteni "$CIT_DEPS" \
+                 --poskytovatel "$FORGE_PROVIDER" --model "$FORGE_MODEL"; then
+            echo "REQUEST_TOO_LARGE: rozpocet requestu prevysil strop poskytovatele" >> agent.log
+            echo "TRIDA=REQUEST_TOO_LARGE" >> "$GITHUB_ENV"
+            exit 1
+          fi
+
           spust_agenta() {
             # shellcheck disable=SC2086
-            aider \
+            # TIMEOUT 300 s: aider/litellm zkouší TÝŽ request 9× s backoffem
+            # (0,2 s → 32 s). U „request too large“ je to deterministicky
+            # ztracený čas – naměřeno: běh #360 jím strávil 1214 s z 30min kroku.
+            casovy_kod=0
+            timeout 300 aider \
               --model "openai/${FORGE_MODEL}" \
               --read CONVENTIONS.md \
               $ARG_CTENI \
               $ARG_SOUBORY \
               --map-tokens 0 \
               --edit-format diff \
-              --message "$FORGE_PROMPT" \
+              --message "$ZADANI" \
               --yes --no-auto-commits --no-stream --no-check-update \
-              2>&1 | tee -a agent.log || echo "aider skoncil s chybou"
+              2>&1 | tee -a agent.log || casovy_kod=$?
+            if [ "$casovy_kod" = "124" ]; then
+              echo "TIMEOUT: aider prekrocil 300 s (request se pravdepodobne opakoval)" | tee -a agent.log
+            elif [ "$casovy_kod" != "0" ]; then
+              echo "aider skoncil s chybou (kod $casovy_kod)"
+            fi
           }
           zmenil_neco() {
             # .uid/.import generuje Godot sám a provider.env je naše – do
@@ -244,22 +272,33 @@ jobs:
           }
           spust_agenta
           if ! zmenil_neco; then
-            # KVÓTA vs. SCHOPNOST (od 30. 9. 2026). Druhý pokus s jiným
-            # poskytovatelem má smysl jen tehdy, když je co zkoušet — tedy když
-            # model odpověděl, ale kód nezměnil (jiný model to může trefit).
-            # Když ale běh spadl na vyčerpané kvótě (rate-limit / denní strop),
-            # druhý pokus je jen další spálený pokus: naměřeno 30. 9. — 9 z 13
-            # běhů skončilo na rate-limitu a 11 z 13 zkoušelo druhého
-            # poskytovatele — žádný z nich neuspěl. Kvóta je vzácnější než čas.
-            if grep -qE 'RateLimitError|rate limit reached|exceeded your current quota' agent.log; then
-              echo "::warning::první pokus spadl na vyčerpané kvótě – druhý poskytovatel se nezkouší (šetřím kvótu)"
-            else
-              echo "::notice::model nezměnil žádný kód – zkouším jiného bezplatného poskytovatele"
-              if node .forge/pick-provider.mjs --next; then
-                nacti_poskytovatele
-                spust_agenta
-              fi
-            fi
+            # ── K2 (12. 10. 2026): ROZHODUJE KLASIFIKÁTOR, NE JEDEN GREP ────
+            # Dřív tu byl `grep RateLimitError`, který slil dohromady
+            # „request too large“ (deterministické, řeší se jiným zdrojem nebo
+            # menším kontextem) a „vyčerpaná kvóta“ (přechodné) – a fallback
+            # VYPNUL. Naměřeno 9. 10.: z 12 běhů, které spadly na VELIKOSTI
+            # requestu, se druhá záchrana nezkusila ani jednou.
+            TRIDA_PRVNI=$(node .forge/node/classify-agent-log.mjs --log agent.log --zmena ne \
+              | sed -n 's/^TRIDA=//p')
+            case "$TRIDA_PRVNI" in
+              AUTH)
+                echo "::warning::AUTH – špatný klíč se sám nespraví, druhý poskytovatel se nezkouší" ;;
+              QUOTA)
+                echo "::warning::QUOTA – šetřím kvótu, druhý poskytovatel se nezkouší" ;;
+              *)
+                echo "::notice::$TRIDA_PRVNI – zkouším jiného bezplatného poskytovatele"
+                if node .forge/pick-provider.mjs --next; then
+                  nacti_poskytovatele
+                  if node .forge/node/request-budget.mjs \
+                        --zadani-text "$ZADANI" --soubory "$DO_EDITACE" --cteni "$CIT_DEPS" \
+                        --poskytovatel "$FORGE_PROVIDER" --model "$FORGE_MODEL"; then
+                    spust_agenta
+                  else
+                    echo "::warning::ani další poskytovatel se do rozpočtu nevejde – request neposílám"
+                    echo "REQUEST_TOO_LARGE: ani dalsi poskytovatel se nevejde do rozpoctu" >> agent.log
+                  fi
+                fi ;;
+            esac
           fi
 
       - name: Kontrola parsování GDScriptu (rychlá brána)
@@ -459,6 +498,16 @@ jobs:
           # prázdný, i když agent neudělal nic (naměřeno u PR #10).
           ZMENA=$(git diff --cached --name-only | grep -Ev '\.(uid|import)$|^smoke\.log$|^agent\.log$|^\.forge/provider\.(env|json)$' | head -5)
           echo "skutecne zmeny: ${ZMENA:-zadne}"
+          # K2: pojmenovaná příčina do výstupu i do prostředí. `zmena` se
+          # předává klasifikátoru, aby „nic nezměnil“ nebylo zaměněno za chybu.
+          if [ -n "$ZMENA" ]; then echo "zmena=ano" >> "$GITHUB_OUTPUT"; else echo "zmena=ne" >> "$GITHUB_OUTPUT"; fi
+          TRIDA=$(node .forge/node/classify-agent-log.mjs --log agent.log \
+            --zmena "$([ -n "$ZMENA" ] && echo ano || echo ne)" \
+            --parsovani "${{ steps.parse.outcome }}" --testy "${{ steps.tests.outcome }}" \
+            | sed -n 's/^TRIDA=//p')
+          echo "trida=$TRIDA" >> "$GITHUB_OUTPUT"
+          echo "TRIDA=$TRIDA" >> "$GITHUB_ENV"
+          echo "klasifikace: $TRIDA"
           if [ "${{ steps.tests.outcome }}" != "success" ]; then
             echo "status=failed" >> "$GITHUB_OUTPUT"
           elif [ -n "$ZMENA" ]; then
@@ -474,16 +523,26 @@ jobs:
       - name: Agent nic nezměnil → hlásíme neúspěch
         if: steps.verdict.outputs.status == 'nochange'
         run: |
-          echo "::error::Agent nezměnil žádný kód. Zkusí se to znovu (u jiného pokusu to vyjde)."
+          echo "::error::Agent nezměnil žádný kód (TRIDA=${TRIDA:-NEZNAMA}). Zkusí se to znovu (u jiného pokusu to vyjde)."
           exit 1
 
-      - name: Report při selhání
-        if: steps.tests.outcome != 'success'
+      - name: Report při selhání (s POJMENOVANOU příčinou)
+        # K2 (12. 10. 2026): dřív se report posílal JEN když spadly testy.
+        # Při „agent nic nezměnil“ testy projdou, takže conductor nedostal NIC
+        # a v /status zůstalo jen „GitHub Actions: failure“ – a bez příčiny se
+        # nedá rotovat poskytovatele ani odpustit pokus granulí.
+        if: always() && steps.verdict.outputs.status != 'success'
         env:
           FORGE_URL: ${{ secrets.FORGE_CONDUCTOR_URL }}
           FORGE_SECRET: ${{ secrets.FORGE_WEBHOOK_SECRET }}
           FORGE_RUN_KEY: ${{ inputs.run_key }}
-        run: node .forge/report.mjs failed "Testy po zasahu agenta selhaly"
+        run: |
+          TRIDA="${TRIDA:-$(node .forge/node/classify-agent-log.mjs --log agent.log \
+            --zmena "${{ steps.verdict.outputs.zmena }}" --parsovani "${{ steps.parse.outcome }}" \
+            --testy "${{ steps.tests.outcome }}" | sed -n 's/^TRIDA=//p')}"
+          ROZBOR=$(node .forge/node/classify-agent-log.mjs --log agent.log | tr '\n' ' ')
+          echo "posilam pricinu: $TRIDA"
+          node .forge/report.mjs failed "$TRIDA | $ROZBOR"
         continue-on-error: true
 
       - name: Ulož patch a log

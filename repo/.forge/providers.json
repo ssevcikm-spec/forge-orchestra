@@ -29,6 +29,15 @@
     "FORGE_MIN_STRONG=strong a pick-provider vybírá jen z strongModels. Slabé",
     "modely velkou granuli nikdy nedostanou, i kdyby fronta stála."
   ],
+  "_limity": [
+    "STROPY POSKYTOVATELU (blok `limits` u poskytovatele) – jen NAMĚŘENÉ hodnoty.",
+    "Zdroj: repo/.forge/node/probe-provider.mjs, který čte hlavičky `x-ratelimit-*`",
+    "a tělo chyby 413/429 (poskytovatel sám napíše `Limit X, Requested Y`).",
+    "Co v bloku `limits` NENÍ, je NEMĚŘENÉ – a `request-budget.mjs` s tím počítá:",
+    "naměřený strop se VYNUCUJE (request se nepošle), odhad jen varuje.",
+    "Recept na nové měření: node .forge/node/probe-provider.mjs --jen <poskytovatel> --stdout",
+    "(klíč z prostředí nebo z .secrets/<nazev>_key.txt)."
+  ],
   "providers": [
     {
       "name": "mistral",
@@ -82,7 +91,18 @@
       ],
       "strongModels": [
         "openai/gpt-oss-120b"
-      ]
+      ],
+      "limits": {
+        "_mereno": "12. 10. 2026 živým dotazem: hlavička `x-ratelimit-limit-tokens` v odpovědi + tělo chyby 413 (`Limit 8000, Requested 10072`). Nástroj: repo/.forge/node/probe-provider.mjs.",
+        "_proc": "Bez tohohle bloku nemá pick-provider jak odmítnout úlohu, která se nevejde – naměřeno: requesty v CI měly 25 065 / 27 557 / 39 167 tokenů proti stropu 8 000.",
+        "tpm": 8000,
+        "requests_per_day": 1000,
+        "models": {
+          "openai/gpt-oss-120b": { "tpm": 8000, "requests_per_day": 1000 },
+          "openai/gpt-oss-20b": { "tpm": 8000, "requests_per_day": 1000 }
+        },
+        "_ucetnictvi": "Počítá se SKUTEČNÝ počet tokenů, ne rezervovaný výstup (ověřeno: max_tokens=1 → total 572, max_tokens=4096 → total 670; `remaining` spadlo o 648, ne o 4096)."
+      }
     },
     {
       "name": "openrouter",
