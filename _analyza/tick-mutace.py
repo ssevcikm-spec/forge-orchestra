@@ -168,6 +168,17 @@ MUTATIONS = [
      CONDUCTOR,
      'if (!res.meta.changes) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);',
      'if (false) return json({ error: "hra nenalezena", game_id: body.game_id }, 404);'),
+    # ── H196 (P40): CENA TIKU ───────────────────────────────────────────────
+    # Tik se MUSÍ vejít do 10 ms CPU free plánu. Živé měření (sonda `p40-probe`)
+    # dává 0,42–0,90 ms CPU na D1 round-trip (tik jich dělal 21–23) a 598 kB
+    # `JSON.parse` z REST `/pulls`. Tahle mutace vrací tik na 598 kB REST místo
+    # GraphQL (4,6 kB) — a scénář AK to musí POJMENOVAT. (Rozpočet round-tripů
+    # zůstane splněný, proto se měří DVĚ věci: KTERÝ payload se stahuje a kolik
+    # je round-tripů. Jedna kontrola bez druhé by tuhle vadu propustila.)
+    ("M21 tik taha 598 kB REST misto GraphQL",
+     CONDUCTOR,
+     "prs = await mergedPrsGraphql(env, g.repo);",
+     "prs = await mergedPrsRest(env, g.repo);"),
 ]
 
 checks = 0

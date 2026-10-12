@@ -153,9 +153,21 @@ function fakeDb(cfg) {
     // na živé D1 sloupce existují od 2.–6. 10. 2026, takže každý pokus
     // skončí `duplicate column name` — a přesně to P37 naměřila v produkci.
     altery: 0,          // pokusů o `ALTER TABLE roadmap`
-    migraceProbe: 0,    // ověření existence sloupců JEDNÍM dotazem (H178)
+    // ── H196 (P40): CENA TIKU ──────────────────────────────────────────────
+    // `roundtrips` = kolik cest na D1 tik UDĚLAL (batch = 1, ne N!).
+    // `batche` = kolik z nich bylo batchů. `radkyPokusy` = kolikrát se ptal na
+    // řádky roadmapy (nově je to ZÁROVEŇ ověření sloupců — H196 zrušila sondu).
+    roundtrips: 0,
+    batche: 0,
+    radkyPokusy: 0,
   };
-  const zapis = (sql) => log.push(String(sql).replace(/\s+/g, ' ').trim());
+  const zapis = (sql) => {
+    log.push(String(sql).replace(/\s+/g, ' ').trim());
+    // H196 (P40): každé SAMOSTATNÉ volání = 1 round-trip. Příkazy uvnitř
+    // `batch()` se nepočítají jednotlivě — batch je JEDNA cesta na D1.
+    if (!vBatchi) stav.roundtrips++;
+  };
+  let vBatchi = false;
 
   const first = async (sql) => {
     zapis(sql);
@@ -177,17 +189,6 @@ function fakeDb(cfg) {
     // `/report` hledá běh podle run_key a čte pokusy úlohy
     if (sql.includes('FROM runs WHERE run_key')) return cfg.reportRun ?? null;
     if (sql.includes('SELECT attempts')) return { attempts: stav.attempts, status: cfg.reportTaskStatus };
-    // ── P37 / Úkol B: SAMOMIGRACE `roadmap` (H178) ──────────────────────────
-    // ⚠ TENHLE DOTAZ JE SÁM PŘEDMĚTEM KONTROLY: conductor jím OVĚŘUJE, že
-    // sloupce existují, a teprve když spadne, pouští `ALTER`y. Na živé D1
-    // sloupce existují (od 2.–6. 10. 2026), takže správná odpověď je ŘÁDEK.
-    // Kdyby tu větev fakeDb neměl, dotaz by spadl na „neznámý dotaz“ → conductor
-    // by usoudil „sloupce chybí“ → pouštěl by slepé ALTERy → scénář AH by
-    // měřil přesně tu vadu, kterou má zavírat (proto se to MUSÍ modelovat).
-    if (sql.includes('updated_at, naposledy_selhalo, eskalovano FROM roadmap')) {
-      stav.migraceProbe++;
-      return { updated_at: '2026-10-02T00:00:00Z', naposledy_selhalo: null, eskalovano: null };
-    }
     throw new Error('fakeDb.first: neznámý dotaz → ' + sql.replace(/\s+/g, ' ').slice(0, 120));
   };
 
@@ -253,7 +254,17 @@ function fakeDb(cfg) {
       return { results: [...stav.tep.entries()].map(([k, v]) => ({ k, v })) };
     }
     if (sql.includes('FROM roadmap r LEFT JOIN tasks t')) {
-      return { results: cfg.roadmapRadky ?? [] };       // `/roadmap`
+      // ── H196 (P40): TENHLE DOTAZ JE ZÁROVEŇ OVĚŘENÍ SLOUPCŮ ────────────────
+      // Do P40 se existence sloupců `updated_at`/`naposledy_selhalo`/`eskalovano`
+      // ověřovala SAMOSTATNÝM dotazem (H178). Ten se zrušil (byl to round-trip
+      // navíc) — migruje se, až když SPADNE tenhle dotaz. `radkyBezSloupcu`
+      // proto umí vyrobit PRÁVĚ TOU vadu (a to jen napoprvé, aby šel změřit
+      // retry po migraci).
+      stav.radkyPokusy++;
+      if (cfg.radkyBezSloupcu && stav.radkyPokusy === 1) {
+        throw new Error('D1_ERROR: no such column: updated_at');
+      }
+      return { results: cfg.roadmapRadky ?? [] };       // `/roadmap` i řádky tiku
     }
     if (sql.includes("SELECT payload FROM tasks WHERE status='running'")) return { results: [] };
     if (sql.includes("SELECT * FROM tasks WHERE status='ready'")) {
@@ -287,9 +298,17 @@ function fakeDb(cfg) {
     // AG je čte), aby se dalo tvrdit „tep se ZAPSAL“, ne jen „nic nespadlo“.
     if (sql.includes('CREATE TABLE IF NOT EXISTS state')) return { meta: { changes: 0 } };
     if (sql.includes('INSERT INTO state')) {
-      // Dva tvary: `VALUES (?, ?)` (zapisTep) a `VALUES ('cron_pokus', ?)` (zapisPokus).
-      if (sql.includes("'cron_pokus'")) stav.tep.set('cron_pokus', String(args?.[0]));
-      else stav.tep.set(String(args?.[0]), String(args?.[1]));
+      // ⚠ OD P40 (H196) JE TVAR VÍCEŘÁDKOVÝ: `VALUES (?, ?), (?, ?), …` — tik
+      // zapisuje tep JEDNÍM round-tripem (dřív 3–4 samostatné INSERTy). Kdyby
+      // fakeDb znal jen dvouhodnotový tvar, zápis tepu by se tiše neprovedl
+      // a scénář AG by měřil něco jiného, než si myslí (přesně vada H172).
+      if (sql.includes("'cron_pokus'")) {
+        stav.tep.set('cron_pokus', String(args?.[0]));
+      } else {
+        for (let i = 0; i + 1 < (args?.length || 0); i += 2) {
+          stav.tep.set(String(args[i]), String(args[i + 1]));
+        }
+      }
       return { meta: { changes: 1 } };
     }
     if (sql.includes("UPDATE runs SET status='timeout'")) {
@@ -375,8 +394,47 @@ function fakeDb(cfg) {
       vazby.push({ sql: String(sql).replace(/\s+/g, ' ').trim(), args: a });
       return api(sql, a);
     },
+    // ── H196 (P40): `batch()` — N příkazů JEDNÍM round-tripem ───────────────
+    // Tik skládá nezávislé dotazy do batchů (naměřeno na živé D1: 50 příkazů
+    // v batchi = 1–3 ms CPU, ale 50 samostatných = 37 ms). Model musí umět
+    // TOTÉŽ rozdělení jako D1: čtecí dotaz vrací `results: [řádek]`, zápisový
+    // `meta.changes` — a CELÝ batch je JEDEN round-trip (viz `zapis`).
+    _spust: () => jeZapis(sql) ? run(sql, args) : (jePrvni(sql) ? first(sql, args) : all(sql, args)),
   });
-  return { DB: { prepare: (sql) => api(String(sql)) }, stav, log, vazby };
+  const jeZapis = (sql) => /^\s*(UPDATE|INSERT|DELETE|CREATE|ALTER)/i.test(String(sql));
+  const jePrvni = (sql) => /COUNT\(\*\)/i.test(String(sql));
+
+  const DB = {
+    prepare: (sql) => api(String(sql)),
+    batch: async (stmts) => {
+      stav.batche++;
+      stav.roundtrips++;                       // celý batch = 1 cesta na D1
+      if (process.env.P40_DEBUG) {
+        console.log(`   [dbg] batch#${stav.batche} bezi=${stav.bezi} taskStatus=${stav.taskStatus}`);
+      }
+      vBatchi = true;
+      try {
+        const vysledky = [];
+        for (const s of stmts) {
+          // ⚠ `first`/`all`/`run` v téhle falešné D1 jsou ASYNC — bez `await`
+          // by `results` obsahovalo PROMISU a `results[0].n` by bylo `undefined`
+          // (naměřeno 12. 10. 2026: strop souběhu `MAX_CONCURRENT` se pak
+          // neuplatnil a dispatch smyčka se zacyklila až do OOM).
+          const v = await s._spust();
+          const maVysledky = v && typeof v === 'object' && 'results' in v;
+          vysledky.push({
+            results: maVysledky ? (v.results ?? []) : (v && typeof v === 'object' ? [v] : []),
+            meta: (v && v.meta) || { changes: 0 },
+            success: true,
+          });
+        }
+        return vysledky;
+      } finally {
+        vBatchi = false;
+      }
+    },
+  };
+  return { DB, stav, log, vazby };
 }
 
 function envFor(cfg) {
@@ -429,6 +487,18 @@ function stubGithub(calls, cfg) {
       return json({ workflow_runs: cfg.behNaGithubu ? [cfg.behNaGithubu] : [] });
     }
     if (u.includes('/pulls?head=')) return json(cfg.pull ? [cfg.pull] : []);
+    // ── H196 (P40): MERGED PR PŘES GRAPHQL ──────────────────────────────────
+    // Tik čte sloučené PR GraphQL dotazem (4,6 kB) místo REST
+    // `/pulls?state=closed&per_page=100` (598 kB — naměřeno `_analyza/p40-d-*`).
+    // `graphqlChyba` umí vyrobit chybu GraphQL (HTTP 200 + `errors`!), aby se
+    // dala ověřit ZÁLOHA na REST — a `pullsClosed` je ta záloha.
+    if (u.includes('/graphql')) {
+      if (cfg.graphqlChyba) return json({ errors: [{ message: 'test: GraphQL nejde' }] });
+      return json({
+        data: { repository: { pullRequests: { nodes: cfg.mergedPrs ?? [] } } },
+      });
+    }
+    if (u.includes('/pulls?state=closed')) return json(cfg.pullsClosed ?? []);
     if (u.includes('/pulls?')) return json([]);
     // `/tasks/cleanup` čte roadmapu ze SUROVÉHO GitHubu (raw), ne z API —
     // a to je přesně ta cesta, kterou dřív netestoval žádný test. `roadmapChyba`
@@ -1609,7 +1679,8 @@ async function main() {
     const modCerstvy = await import(`${pathToFileURL(BUNDLE).href}?v=p37-ah-${Date.now()}`);
     const t = await tick(modCerstvy, env);
     check('AH: tik s aktivní hrou odpoví 200', t.status, 200);
-    check('AH: existence sloupců `roadmap` se ověří JEDNÍM dotazem', stav.migraceProbe, 1);
+    check('AH: sloupce `roadmap` ověří SÁM velký dotaz (žádná zvláštní sonda — H196)',
+      stav.radkyPokusy, 1);
     check('AH: a NEZKOUŠÍ se ani jeden slepý `ALTER TABLE roadmap`', stav.altery, 0);
     // Kdyby se ALTERy pouštěly, conductor je POLKNE (`catch`) — tik by tedy
     // „prošel“ a vada by byla neviditelná. Proto se počítá POKUS, ne pád.
@@ -1618,6 +1689,92 @@ async function main() {
   }
 
   console.log();
+
+  // ── AH2) CHYBĚJÍCÍ SLOUPCE → MIGRACE A RETRY (H178 drží dál, H196 mění cestu)
+  // PROČ VZNIKL: zrušením samostatné sondy (H196) se ověření sloupců PŘESUNULO
+  // do velkého dotazu — takže se musí měřit, že cesta „sloupce chybí“ pořád
+  // existuje: dotaz spadne → 3 `ALTER`y → dotaz se ZOPAKUJE. Bez tohohle
+  // scénáře by se migrace tvrdila jen z kódu.
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    // `radkyBezSloupcu` = PRVNÍ dotaz na řádky spadne na `no such column`.
+    const { env, stav } = envFor({ aktivniHra: true, radkyBezSloupcu: true });
+    const modCerstvy = await import(`${pathToFileURL(BUNDLE).href}?v=p40-ah2-${Date.now()}`);
+    const t = await tick(modCerstvy, env);
+    check('AH2: tik s chybějícími sloupci odpoví 200 (spadlý dotaz tik nezastaví)', t.status, 200);
+    check('AH2: spadlý dotaz spustil 3 `ALTER TABLE roadmap`', stav.altery, 3);
+    check('AH2: a dotaz se ZOPAKOVAL (retry po migraci)', stav.radkyPokusy, 2);
+    check('AH2: tik doběhl až k roadmapě', calls.some((c) => String(c).includes('/contents/')), true);
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // AK) H196 (P40) — CENA TIKU: ROUND-TRIPY A PAYLOAD
+  // PROČ PRÁVĚ TYHLE DVĚ VĚCI: tik umíral na CPU limitu free plánu (10 ms).
+  // ŽIVÉ MĚŘENÍ sondou `_analyza/p40-probe` (čtené z `wrangler tail`) dalo
+  // **0,42–0,90 ms CPU na JEDEN D1 round-trip** a tik jich dělal **21–23** →
+  // 10–16 ms, tedy celý rozpočet. Druhá položka je 598 kB REST `/pulls`,
+  // který se parsuje každou minutu (2,25 ms v Node, ~7 ms ve workerd).
+  // Offline se NEDÁ měřit CPU workerd — ale DÁ SE měřit to, co ho určuje:
+  // POČET ROUND-TRIPŮ (batch = 1) a KTERÝ PAYLOAD se stahuje.
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    const calls = [];
+    // 2 sloučené PR: jeden nese `forge/task-7`, druhý titulek Testovací granule.
+    stubGithub(calls, {
+      aktivniHra: true,
+      mergedPrs: [
+        { title: 'Forge #7: Testovací granule', headRefName: 'forge/task-7' },
+        { title: 'Testovací granule', headRefName: 'forge/task-8' },
+      ],
+    });
+    const { env, stav, log } = envFor({
+      aktivniHra: true,
+      // ⚠ MODELUJE SE ŽIVÝ STAV (12. 10. 2026): granule je NAD STROPEM, takže
+      // se nedispatchuje. Právě na tom stavu je naměřeno 13 round-tripů —
+      // a s dispatchm by jich bylo víc (claim, INSERT běhu), což by číslo
+      // srovnávané s živým tikem zkreslilo.
+      grainMaxRuns: '8',
+      granuleRuns: [{ item_id: 'test/grain.jedna', runs: 8 }],
+    });
+    const t = await tick(mod, env);
+    check('AK: tik odpoví 200', t.status, 200);
+    check('AK: merged PR se čtou GraphQL dotazem (payload 4,6 kB, ne 598 kB)',
+      calls.some((u) => u.includes('/graphql')), true);
+    check('AK: REST `/pulls?state=closed&per_page=100` se NEVOLÁ (to je ta úspora)',
+      calls.some((u) => u.includes('state=closed')), false);
+    check('AK: celkem D1 round-tripů ≤ 14 (před P40: 21–23; batch = 1)',
+      stav.roundtrips <= 14, true);
+    check('AK: a aspoň 4 z nich jsou BATCHE (jinak se úspora neprojevila)',
+      stav.batche >= 4, true);
+    check('AK: sloučený task id se z GraphQL přesto poznal (UPDATE na `done`)',
+      bylZapis(log, /UPDATE tasks SET status='done'/), true);
+    console.log(`        [AK naměřeno: roundtrips=${stav.roundtrips}, batche=${stav.batche},`
+      + ` volání GitHubu=${calls.length}]`);
+  }
+
+  // ── AK2) GRAPHQL SELŽE → ZÁLOHA NA REST (chování jako před P40) ──────────
+  // PROČ: GraphQL je nová cesta; kdyby ji token neuměl (scope, výpadek),
+  // reconciliation sloučených PR by TIŠE přestala fungovat a granule by
+  // zůstaly viset. Záložní REST cesta se proto testuje ZAVOLÁNÍM.
+  {
+    const calls = [];
+    stubGithub(calls, {
+      aktivniHra: true,
+      graphqlChyba: true,
+      pullsClosed: [
+        { title: 'Forge #7: Testovací granule', head: { ref: 'forge/task-7' }, merged_at: '2026-10-12T00:00:00Z' },
+        { title: 'Nesloučené', head: { ref: 'forge/task-9' }, merged_at: null },
+      ],
+    });
+    const { env, log } = envFor({ aktivniHra: true });
+    await tick(mod, env);
+    check('AK2: GraphQL selhalo → tik jde na REST `/pulls?state=closed`',
+      calls.some((u) => u.includes('state=closed')), true);
+    check('AK2: a sloučený úkol se POZNÁ i záložní cestou',
+      bylZapis(log, /UPDATE tasks SET status='done'/), true);
+  }
+
   if (errors) {
     console.log(`VYSLEDEK: ${checks} kontrol, ${errors} CHYB`);
     return 1;

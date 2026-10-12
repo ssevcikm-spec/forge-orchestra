@@ -273,14 +273,81 @@ const SQL_GRANULE_RUNS = `
      AND r.started_at >= rm.created_at
    GROUP BY item_id`;
 
+// ------------------------------------------------- ZÁKLADNÍ DOTAZY TIKU ----
+// ⚠ H196 (P40, 12. 10. 2026) — PROČ SE DOTAZY SKLÁDAJÍ DO `batch()`:
+// ŽIVÉ MĚŘENÍ (sonda `_analyza/p40-probe`, čtená z `wrangler tail`):
+// **jeden D1 round-trip stojí 0,42–0,90 ms CPU** a tik jich dělal **21–23**.
+// Rozklad se tím uzavřel (a sedí na živý tail):
+//   D1 21×~0,55 ≈ 11 ms · GitHub `/pulls` 600 kB ≈ 3–7 ms · logika ≈ 2 ms = 16–20 ms
+// `DB.batch()` pošle N příkazů v JEDNOM round-tripu — naměřeno na téže D1:
+// **50 příkazů = 1–3 ms**, proti 50 sekvenčním = 37 ms. Proto jsou všechny
+// nezávislé dotazy tiku v batchích (a ty, které batch být nemůžou, se čtou
+// jednou za tik, ne dvakrát).
+//
+// ⚠ POZOR NA TVAR VOLÁNÍ: brány `tools/test-grain-cap.py`, `tools/test-listgames.py`
+// a `_analyza/b3b-mutace.py` čtou volání `roadmapTick` / `escalateStuckTasks`
+// a `const aktivniHry = await listGames(env)` ze ZDROJÁKU jako vzory (a `mutuj`
+// vyžaduje kotvu PRÁVĚ 1×). Kdo je přejmenuje, přidá argument nebo je opíše
+// do komentáře, **vypne tím ty kontroly** (a ony zůstanou zelené) — proto se
+// tvar volání NEMĚNÍ a v komentářích se neopakuje.
+
+/** Řádek sledovaného běhu (`pollRuns`) — jeden tvar pro obě cesty. */
+interface RunRow {
+  run_id: number; run_key: string; task_id: number; title: string; payload: string | null;
+}
+
+const SQL_POLL_RUNS = `
+  SELECT r.id AS run_id, r.run_key, r.task_id, t.title, t.payload
+    FROM runs r JOIN tasks t ON t.id = r.task_id
+   WHERE r.status = 'running' AND r.worker IS NULL
+   ORDER BY r.id LIMIT 25`;
+
+/** Z řádků `GROUP BY item_id` udělá počítadlo; `null` = NEZMĚŘENO. */
+function mapaGranuli(radky: { item_id: string; runs: number }[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const r of radky) m.set(String(r.item_id), Number(r.runs) || 0);
+  return m;
+}
+
+/**
+ * Běhy k pollingu + počítadlo spálených běhů JEDNÍM round-tripem (H196, P40).
+ *
+ * PROČ: obojí se čte na začátku tiku a obojí je NEZÁVISLÉ ČTENÍ — dva
+ * samostatné dotazy jsou dva round-tripy (0,42–0,90 ms CPU každý).
+ *
+ * ⚠ FALLBACK JE SOUČÁST SMLOUVY: `batch()` je jedna transakce, takže pád
+ * jednoho dotazu by vzal i druhý — a to by bylo horší než dřív (výpadek
+ * počítadla granulí dřív jen ztišil watchdog). Když batch spadne, čtou se oba
+ * dotazy ZVLÁŠŤ s původní tolerancí: počítadlo = `null` (NEZMĚŘENO), běhy =
+ * `null` (polling si je načte sám a svou chybu ohlásí jako dřív).
+ */
+async function nactiBehyAGranule(
+  env: Env,
+): Promise<{ behy: RunRow[] | null; granule: Map<string, number> | null }> {
+  try {
+    const [b, g] = await env.DB.batch([
+      env.DB.prepare(SQL_POLL_RUNS),
+      env.DB.prepare(SQL_GRANULE_RUNS),
+    ]);
+    return {
+      behy: ((b as any)?.results || []) as RunRow[],
+      granule: mapaGranuli(((g as any)?.results || []) as { item_id: string; runs: number }[]),
+    };
+  } catch (e) {
+    console.log(`běhy a počítadlo v batchi selhaly (${String(e).slice(0, 120)}) – zkouším je zvlášť`);
+  }
+  const behy = await env.DB.prepare(SQL_POLL_RUNS).all<RunRow>()
+    .then((r) => (r.results || []) as RunRow[])
+    .catch(() => null);
+  return { behy, granule: await grainRuns(env) };
+}
+
 /** Spálené běhy na granuli od založení jejího řádku. `null` = NEZMĚŘENO. */
 async function grainRuns(env: Env): Promise<Map<string, number> | null> {
   try {
     const rows = await env.DB.prepare(SQL_GRANULE_RUNS)
       .all<{ item_id: string; runs: number }>();
-    const m = new Map<string, number>();
-    for (const r of rows.results || []) m.set(String(r.item_id), Number(r.runs) || 0);
-    return m;
+    return mapaGranuli(rows.results || []);
   } catch (e) {
     // „nezměřeno“ se NESMÍ číst jako nula (pravidlo projektu): vrací se `null`
     // a tik to vypíše. Watchdog pak mlčí — radši nehlásit než hlásit nesmysl.
@@ -416,6 +483,76 @@ async function github(env: Env, repo: string, path: string): Promise<any> {
   return res.json();
 }
 
+/**
+ * Sloučené PR jednou GraphQL query — JEN čtyři potřebná pole (H196, P40).
+ *
+ * PROČ: `roadmapTick` potřebuje z každého sloučeného PR jen `title` (párování
+ * s titulkem granule) a `headRefName` (párování `forge/task-N`). REST
+ * `/pulls?state=closed&per_page=100` vrací celý objekt PR a **naměřeno
+ * 598 404 B** pro 36 PR — `JSON.parse` 2,25 ms v Node a **~7 ms CPU ve workerd**
+ * (`_analyza/p40-c-sonda-vystup.txt`). GraphQL se stejnými čtyřmi poli vrátil
+ * **4 615 B (0,8 %) a 0,03 ms** — a se SHODNÝM výsledkem (32 task id i 32 titulů,
+ * doklad `_analyza/p40-d-graphql-vystup.txt`). Počet volání zůstal 1.
+ *
+ * ⚠ `states: MERGED` + `last: 100` je OKNO, ne „všechno“: bere 100 naposledy
+ * změněných sloučených PR (REST bral 100 zavřených, tedy i nesloučených).
+ * Tik se ptá každou minutu, takže sloučení se pozná do minuty.
+ */
+async function mergedPrsGraphql(
+  env: Env, repo: string,
+): Promise<{ taskId: number | null; title: string }[]> {
+  const [owner, name] = repo.split("/");
+  const dotaz = `query($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      pullRequests(states: MERGED, last: 100, orderBy: {field: UPDATED_AT, direction: DESC}) {
+        nodes { title headRefName }
+      }
+    }
+  }`;
+  const res = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json",
+      "User-Agent": "forge-conductor",
+    },
+    body: JSON.stringify({ query: dotaz, variables: { owner, name } }),
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub GraphQL → ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  }
+  const j: any = await res.json();
+  // ⚠ GraphQL vrací chyby s HTTP 200 — `res.ok` je nenajde.
+  if (j?.errors) throw new Error(`GraphQL errors: ${JSON.stringify(j.errors).slice(0, 200)}`);
+  const nodes = j?.data?.repository?.pullRequests?.nodes;
+  if (!Array.isArray(nodes)) throw new Error("GraphQL: chybí data.repository.pullRequests.nodes");
+  return nodes.map((n: any) => {
+    const m = String(n?.headRefName || "").match(/^forge\/task-(\d+)$/);
+    return {
+      taskId: m ? Number(m[1]) : null,
+      title: String(n?.title || "").replace(/^Forge #\d+:\s*/, ""),
+    };
+  });
+}
+
+/** ZÁLOHA k `mergedPrsGraphql` — cesta, kterou tik šel do P40 (REST `/pulls`). */
+async function mergedPrsRest(
+  env: Env, repo: string,
+): Promise<{ taskId: number | null; title: string }[]> {
+  const closed = await github(env, repo, "/pulls?state=closed&per_page=100&sort=updated&direction=desc");
+  const out: { taskId: number | null; title: string }[] = [];
+  for (const pr of closed || []) {
+    if (!pr?.merged_at) continue;
+    const m = String(pr.head?.ref || "").match(/^forge\/task-(\d+)$/);
+    out.push({
+      taskId: m ? Number(m[1]) : null,
+      title: String(pr.title || "").replace(/^Forge #\d+:\s*/, ""),
+    });
+  }
+  return out;
+}
+
 // ------------------------------------------------- stav CÍLE v /health (N0.3) ----
 // PROČ: naměřeno 1. 10. 2026 (S18) — conductor hlásil `ok: true`, `/failed`
 // prázdné, a přesto **7,5 h nevydal ani granuli**, protože `main` cílové hry
@@ -496,14 +633,14 @@ async function targetState(env: Env, g: Game): Promise<Record<string, unknown>> 
   return ven;
 }
 
-async function pollRuns(env: Env): Promise<string> {
+async function pollRuns(env: Env, predane?: RunRow[] | null): Promise<string> {
   const maxAttempts = Number(env.MAX_ATTEMPTS || "5");
-  const rows = await env.DB.prepare(
-    `SELECT r.id AS run_id, r.run_key, r.task_id, t.title, t.payload
-       FROM runs r JOIN tasks t ON t.id = r.task_id
-      WHERE r.status = 'running' AND r.worker IS NULL
-      ORDER BY r.id LIMIT 25`,
-  ).all<{ run_id: number; run_key: string; task_id: number; title: string; payload: string | null }>();
+  // H196 (P40): tik si běhy načte UŽ V BATCHI se počítadlem granulí, takže
+  // `predane` je hotové pole řádků; `null` = batch selhal → dotaz zvlášť.
+  // Endpoint `/poll` volá `pollRuns(env)` bez argumentu a čte si je sám.
+  const rows = predane
+    ? { results: predane }
+    : await env.DB.prepare(SQL_POLL_RUNS).all<RunRow>();
   if (!rows.results?.length) return "zadny cloudovy beh nebezi";
 
   // GitHub API se volá jednou na repo, ne na každý běh.
@@ -722,48 +859,13 @@ async function roadmapTick(
 ): Promise<string> {
   const games = await listGames(env);
 
-  // Samomigrace schématu (idempotentní): roadmap.updated_at přibyl kvůli
-  // cooldownu retry. Stará D1 sloupec nemá; CREATE TABLE IF NOT EXISTS v
-  // schema.sql ho tam nepřidá, proto se to dělá tady – když už existuje,
-  // ALTER selže s „duplicate column name" a to se tiše polkne.
-  //
-  // ⚠ H156 (P34): CELÝ BLOK SE DĚLÁ JEN JEDNOU NA ISOLATE. Naměřeno ve
-  // `wrangler tail`: ty tři `ALTER`y selhávaly na „duplicate column name"
-  // KAŽDÝ TIK — tedy tři zbytečné D1 obraty (a tři chybové objekty + tři
-  // zápisy do logu) na invokaci, jejíž CPU rozpočet na free plánu je 10 ms.
-  // Sloupce už dávno existují; migrace se proto jen OVĚŘÍ (a to jednou).
-  //
-  // ⚠ H178 (P37): „JEDNOU NA ISOLATE“ NENÍ „JEDNOU“ — izolát se recykluje.
-  // Naměřeno 11. 10. 2026 v `wrangler tail` na ŽIVÉM tiku (verze `3985379c`,
-  // tedy i po opravě H156): ruční `POST /tick` vypsal **tři** `duplicate column
-  // name` (`roadmap.updated_at`, `roadmap.naposledy_selhalo`,
-  // `roadmap.eskalovano`) — příznak `schemaMigrovan` je modulová proměnná,
-  // a cron tik si izolátem neprojde, takže se migrace pokoušela pořád dokola.
-  // Proto se existence sloupců ověřuje JEDNÍM dotazem, který Uspěje — a teprve
-  // když sloupce opravdu chybí (dotaz spadne na `no such column`), migruje se.
-  // Když `roadmap` neexistuje, spadne i ten dotaz → cesta je stejná jako dřív.
-  if (!schemaMigrovan) {
-    const maSloupce = await env.DB.prepare(
-      "SELECT updated_at, naposledy_selhalo, eskalovano FROM roadmap LIMIT 1",
-    ).first().then(() => true).catch(() => false);
-    if (!maSloupce) {
-      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
-        .run().catch((e) => console.log("roadmap.updated_at: " + String(e).slice(0, 100)));
-      await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
-        .run().catch(() => undefined);
-      // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
-      // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
-      // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
-      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
-        .run().catch((e) => console.log("roadmap.naposledy_selhalo: " + String(e).slice(0, 100)));
-      // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
-      // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
-      // značka ztratila a notifikace by chodila při každém tiku.
-      await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
-        .run().catch((e) => console.log("roadmap.eskalovano: " + String(e).slice(0, 100)));
-    }
-    schemaMigrovan = true;
-  }
+  // ⚠ H178 (P37) + H196 (P40): existence sloupců se ověřuje TÍM dotazem, který
+  // je stejně potřeba. Samostatná sonda
+  // (`SELECT updated_at, naposledy_selhalo, eskalovano FROM roadmap LIMIT 1`)
+  // byla JEDEN round-trip navíc na každý tik (0,42–0,90 ms CPU) a jen zjišťovala
+  // to, co velký dotaz na `roadmap` zjistí sám: když sloupce chybí, spadne na
+  // `no such column`. Migruje se proto až při SKUTEČNÉ chybě velkého dotazu.
+  let schemaMigrovan = false;
 
   // Stav granulí drží tabulka roadmap (item_id = {game_id}/{grain_id}).
   // Řádek sám o sobě nestačí – je vidět i stav úlohy (LEFT JOIN tasks).
@@ -776,12 +878,37 @@ async function roadmapTick(
     tstatus: string | null;
     tupd: string | null;
   }
-  const rows = await env.DB.prepare(
+  const nactiRadky = () => env.DB.prepare(
     `SELECT r.item_id, r.task_id, r.status AS rstatus, r.updated_at AS rupd,
             r.naposledy_selhalo AS rfail,
             t.status AS tstatus, t.updated_at AS tupd
        FROM roadmap r LEFT JOIN tasks t ON t.id = r.task_id`,
   ).all<GrainRow>();
+  let rows: Awaited<ReturnType<typeof nactiRadky>>;
+  try {
+    rows = await nactiRadky();
+  } catch (e) {
+    // Sloupce opravdu chybí (stará D1) → migruj a zkus TÝŽ dotaz znovu.
+    // Když je chyba jiná, pokračuje ven (jako dřív) — jen se to pojmenuje.
+    if (schemaMigrovan) throw e;
+    console.log(`roadmapa: sloupce chybí (${String(e).slice(0, 120)}) – migruji schéma`);
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN updated_at TEXT")
+      .run().catch((e2) => console.log("roadmap.updated_at: " + String(e2).slice(0, 100)));
+    await env.DB.prepare("UPDATE roadmap SET updated_at = created_at WHERE updated_at IS NULL")
+      .run().catch(() => undefined);
+    // B1 (2. 10. 2026): cooldown se ptá na `naposledy_selhalo`, ne na `updated_at`.
+    // Sloupec se přidává stejnou idempotentní cestou; `NULL` znamená „ještě
+    // neselhala", takže čerstvá granule NENÍ v cooldownu (vada S12).
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN naposledy_selhalo TEXT")
+      .run().catch((e2) => console.log("roadmap.naposledy_selhalo: " + String(e2).slice(0, 100)));
+    // B3a (6. 10. 2026): značka „watchdog už tuhle granuli ohlásil“. Patří na
+    // ŘÁDEK GRANULE, ne do payloadu úkolu — retry zakládá nový úkol, takže by se
+    // značka ztratila a notifikace by chodila při každém tiku.
+    await env.DB.prepare("ALTER TABLE roadmap ADD COLUMN eskalovano TEXT")
+      .run().catch((e2) => console.log("roadmap.eskalovano: " + String(e2).slice(0, 100)));
+    schemaMigrovan = true;
+    rows = await nactiRadky();
+  }
 
   // Sloučené PR agentů: granule, jejíž úkol má sloučené PR, je hotová, i kdyby
   // úkol sám skončil jinak (typicky „agent nic nezměnil", protože práci stihl
@@ -794,27 +921,34 @@ async function roadmapTick(
   for (const g of games) {
     const titles = new Set<string>();
     try {
-      const closed = await github(env, g.repo,
-        "/pulls?state=closed&per_page=100&sort=updated&direction=desc");
-      for (const pr of closed || []) {
-        const m = String(pr.head?.ref || "").match(/^forge\/task-(\d+)$/);
-        if (pr.merged_at) {
-          if (m) mergedTasks.add(Number(m[1]));
-          const t = String(pr.title || "").replace(/^Forge #\d+:\s*/, "");
-          if (t) titles.add(t);
-        }
+      // H196 (P40): GraphQL (4,6 kB) místo REST (598 kB) — se SHODNÝM výsledkem;
+      // REST zůstává jako ZÁLOHA, kdyby GraphQL nešel (token bez scope apod.).
+      let prs: { taskId: number | null; title: string }[];
+      try {
+        prs = await mergedPrsGraphql(env, g.repo);
+      } catch (eGql) {
+        console.log(`merged PR přes GraphQL nejdou (${String(eGql).slice(0, 100)}) – zkouším REST`);
+        prs = await mergedPrsRest(env, g.repo);
+      }
+      for (const pr of prs) {
+        if (pr.taskId != null) mergedTasks.add(pr.taskId);
+        if (pr.title) titles.add(pr.title);
       }
     } catch { /* stav PR se nepodařilo zjistit – pokračuje se bez něj */ }
     mergedTitlesByRepo.set(g.repo, titles);
   }
   if (mergedTasks.size) {
     const ph = [...mergedTasks].map(() => "?").join(",");
-    await env.DB.prepare(
-      `UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id IN (${ph})`,
-    ).bind(...[...mergedTasks]).run().catch(() => undefined);
-    await env.DB.prepare(
-      `UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id IN (${ph})`,
-    ).bind(...[...mergedTasks]).run().catch(() => undefined);
+    // H196 (P40): oba UPDATEy jedním round-tripem (dřív dva) — týkají se TÉHOŽ
+    // seznamu task id a jsou nezávislé.
+    await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id IN (${ph})`,
+      ).bind(...[...mergedTasks]),
+      env.DB.prepare(
+        `UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id IN (${ph})`,
+      ).bind(...[...mergedTasks]),
+    ]).catch(() => undefined);
   }
 
   // Hotové / zablokované granule podle stavu úloh.
@@ -1086,43 +1220,44 @@ interface Task {
 // přes idempotentní `ALTER` a chybu „duplicate column“ tiše polkne.
 let tepTabulkaHotova = false;
 
-async function zajistiTepTabulku(env: Env): Promise<void> {
-  if (!tepTabulkaHotova) {
+/**
+ * UPSERT dvojic `k → v` do `state` JEDNÍM round-tripem (H196, P40).
+ *
+ * PROČ: `zapisPokus` + `zapisTep` dělaly **čtyři samostatné `INSERT`y** a k tomu
+ * `CREATE TABLE IF NOT EXISTS` — tedy **pět D1 round-tripů na každý cron tik**.
+ * Naměřeno sondou `_analyza/p40-probe`: jeden round-trip stojí 0,42–0,90 ms CPU,
+ * takže tep cronu sám stál ~2–4 ms z desetimilisekundového rozpočtu. Víc dvojic
+ * v jednom `VALUES (?, ?), (?, ?), …` je jedna cesta na D1 (naměřeno: `batch`
+ * i víceřádkový INSERT se chovají jako JEDEN round-trip).
+ *
+ * ⚠ `CREATE TABLE` se dělá JEN když INSERT opravdu spadne (tabulka ještě není).
+ * Dřív se `CREATE TABLE IF NOT EXISTS` posílalo každý tik — na čerstvém izolátu
+ * je `tepTabulkaHotova` vždy `false`, takže to byl trvalý odběr.
+ */
+async function ulozStav(env: Env, dvojice: [string, string][]): Promise<void> {
+  const sql = `INSERT INTO state (k, v) VALUES ${dvojice.map(() => "(?, ?)").join(", ")}
+                 ON CONFLICT(k) DO UPDATE SET v = excluded.v`;
+  const hodnoty = dvojice.flat();
+  try {
+    await env.DB.prepare(sql).bind(...hodnoty).run();
+    tepTabulkaHotova = true;
+  } catch (e) {
+    if (tepTabulkaHotova) throw e;
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS state (k TEXT PRIMARY KEY, v TEXT)").run();
     tepTabulkaHotova = true;
+    await env.DB.prepare(sql).bind(...hodnoty).run();
   }
 }
 
-// ------------------------------------------------- POKUS o tik (H156, P34) ----
-// PROČ (H156, P34): invocation plánovaného tiku umí UMŘÍT na CPU limitu free
-// plánu (naměřeno `wrangler tail`: `event.cron = "* * * * *"`,
-// `outcome = "exceededCpu"`, `cpuTime = 10 ms`) — a když umře, `zapisTep()`
-// se NIKDY nezavolá. Pak se v `/health` slijí DVĚ RŮZNÉ VADY do jednoho
-// `last_cron`:
-//   * trigger vůbec NEDORAZIL (Cloudflare nedodal event), nebo
-//   * trigger DORAZIL, ale tik nedoběhl (umřel na limitu).
-// Rozdíl je přitom zásadní — P33 na tom ztratila hodiny hledáním v měřidle.
-// POKUS se proto zapisuje PRVNÍ, ještě před `tick()`: je to jediný zápis,
-// který smrt invocation PŘEŽIJE. `last_cron` dál znamená „tik DOBĚHL“.
 async function zapisPokus(env: Env): Promise<void> {
-  await zajistiTepTabulku(env);
-  await env.DB.prepare(
-    `INSERT INTO state (k, v) VALUES ('cron_pokus', ?)
-       ON CONFLICT(k) DO UPDATE SET v = excluded.v`,
-  ).bind(new Date().toISOString()).run();
+  await ulozStav(env, [["cron_pokus", new Date().toISOString()]]);
 }
 
 async function zapisTep(env: Env, zdroj: "cron" | "manual"): Promise<void> {
-  await zajistiTepTabulku(env);
   const ted = new Date().toISOString();
-  const uloz = (k: string, v: string) =>
-    env.DB.prepare(
-      `INSERT INTO state (k, v) VALUES (?, ?)
-         ON CONFLICT(k) DO UPDATE SET v = excluded.v`,
-    ).bind(k, v).run();
-  await uloz("last_tick", ted);
-  await uloz("last_tick_zdroj", zdroj);
-  if (zdroj === "cron") await uloz("last_cron", ted);
+  const dvojice: [string, string][] = [["last_tick", ted], ["last_tick_zdroj", zdroj]];
+  if (zdroj === "cron") dvojice.push(["last_cron", ted]);
+  await ulozStav(env, dvojice);
 }
 
 // ------------------------------------------------------------------ tick ----
@@ -1143,24 +1278,37 @@ async function tick(env: Env): Promise<string> {
   const retryH = Number(env.RETRY_HOURS || "6");
 
   // 0) nejdřív si vyzvedni výsledky běžících cloudových úloh z GitHubu
-  const polled = await pollRuns(env).catch((e) => `polling selhal: ${String(e)}`);
+  //    0a) H196 (P40): běhy k pollingu A počítadlo granulí jedním round-tripem
+  //    (dřív dva samostatné dotazy = dva round-tripy × ~0,5 ms CPU).
+  const zaklad = await nactiBehyAGranule(env);
+  const polled = await pollRuns(env, zaklad.behy).catch((e) => `polling selhal: ${String(e)}`);
 
   // 0b) watchdog: granule, která spálila příliš mnoho pokusů, se OHLÁSÍ.
   //     B3a jen HLÁSÍ; strop (B3b, `GRAIN_MAX_RUNS`) je od 8. 10. 2026
   //     ZAPNUTÝ na 8 — viz `grainCap`. Počítadlo se měří JEDNOU za tik
   //     a používá se na třech místech (watchdog, roadmapa, dispatch), aby
   //     všechny tři soudily podle TÉHOŽ čísla.
-  const grainRunsMap = await grainRuns(env);
+  const grainRunsMap = zaklad.granule;
   const cap = grainCap(env);
   const eskalovano = await escalateStuckTasks(env, grainRunsMap);
 
   // 1) zaseknuté úlohy (runner umřel, Actions zrušily job, worker se odpojil)
-  const stale = await env.DB.prepare(
-    `UPDATE runs SET status='timeout', finished_at=datetime('now'),
-       summary='prekrocen casovy limit'
-     WHERE status='running' AND started_at < datetime('now', ?)`,
-  ).bind(`-${staleMin} minutes`).run();
-  if (stale.meta.changes) {
+  const [stale, blokSync] = await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE runs SET status='timeout', finished_at=datetime('now'),
+         summary='prekrocen casovy limit'
+       WHERE status='running' AND started_at < datetime('now', ?)`,
+    ).bind(`-${staleMin} minutes`),
+    // Blocked úkoly, které stale-recovery přesto vrátila do fronty, srovnat zpět.
+    // (Běží po každém tiku, takže se stav sám uzdraví i bez ručního úklidu.)
+    env.DB.prepare(
+      `UPDATE tasks SET status='blocked', updated_at=datetime('now')
+        WHERE status IN ('ready','running')
+          AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)
+          AND id IN (SELECT task_id FROM runs WHERE status='abandoned')`,
+    ),
+  ]);
+  if ((stale as any)?.meta?.changes) {
     // Úkol se vrací do fronty, ale JEN dokud má pokusy. Bez téhle podmínky
     // vznikala smyčka: úloha spadla (attempts=3), stale-recovery ji vrátila
     // jako 'ready', dispatch přidal čtvrtý pokus a běh zůstal navěky
@@ -1177,14 +1325,8 @@ async function tick(env: Env): Promise<string> {
           AND id IN (SELECT task_id FROM runs WHERE status='timeout')`,
     ).run().catch(() => undefined);
   }
-  // Blocked úkoly, které stale-recovery přesto vrátila do fronty, srovnat zpět.
-  // (Běží po každém tiku, takže se stav sám uzdraví i bez ručního úklidu.)
-  await env.DB.prepare(
-    `UPDATE tasks SET status='blocked', updated_at=datetime('now')
-      WHERE status IN ('ready','running')
-        AND id NOT IN (SELECT task_id FROM roadmap WHERE task_id IS NOT NULL)
-        AND id IN (SELECT task_id FROM runs WHERE status='abandoned')`,
-  ).run().catch(() => undefined);
+  // (Pořadí „blocked sync" zůstalo v témže batchi jako stale-recovery — obojí
+  //  jsou nezávislé úklidové UPDATEy, které běží PŘED roadmapou.)
 
   // 1a) B4: REGISTR HER JE ZDROJ PRAVDY O TOM, CO SE SMÍ DISPATCHOVAT.
   // Bez aktivní hry se nedispatchuje NIC — dřív se tady bral `env.GITHUB_REPO`
@@ -1236,65 +1378,93 @@ async function tick(env: Env): Promise<string> {
   // „Nula a nezměřeno nejsou úspěch.“
   // ⚠ Deklarace je SCHVÁLNĚ NAD `const started`: brány `tools/test-listgames.py`
   // a `_analyza/b4-mutace.py` hledají v kódu dvojici `const started … while (true) {`
-  // a vložený řádek MEZI ně by z nich udělal slepé kontroly (naměřeno 9. 10. 2026).
+  // a vložený řádek MEZI ně by z nich udělal slepé kontroly (naměřeno 9. 10. 2026
+  // a ZNOVU 12. 10. 2026 v P40: stačilo přidat `let cdUlohy` před smyčku a brána
+  // `test-listgames.py` ohlásila „nenašel jsem dispatch smyčku — test je slepý“).
+  // `cdUlohy` (výsledek dotazu na cooldown z batche) proto leží NAD `preskoceno`:
+  // plní se uvnitř smyčky a čte se PO ní, ale mezi `started` a `while` nesmí být nic.
+  let cdUlohy: any = null;
   const preskoceno: string[] = [];
   const started: number[] = [];
   while (true) {
     // B4: bez AKTIVNÍ hry se nedispatchuje (registr her je zdroj pravdy).
     if (!aktivniHry.length) break;
-    const running = await env.DB.prepare(
-      "SELECT COUNT(*) AS n FROM runs WHERE status='running' AND worker IS NULL",
-    ).first<{ n: number }>();
+    // ── H196 (P40): ČTYŘI NEZÁVISLÁ ČTENÍ JEDNÍM ROUND-TRIPEM ──────────────
+    // Bylo tu pět samostatných dotazů na jedno kolo smyčky (počet běžících,
+    // zámky, připravené úlohy, cooldown) — a každý round-trip stojí
+    // 0,42–0,90 ms CPU (naměřeno sondou `p40-probe`). `batch()` je posílá
+    // jedním voláním; pořadí výsledků odpovídá pořadí příkazů.
+    const [runningRes, runningRows, readyAll, cdBatch] = await env.DB.batch([
+      env.DB.prepare("SELECT COUNT(*) AS n FROM runs WHERE status='running' AND worker IS NULL"),
+      // soubory uzamčené běžícími úlohami
+      //
+      // POZOR – TADY BYLA VADA (opraveno 1. 10. 2026, invariant 17):
+      // `locked` se plnilo HOLÝMI jmény souborů (`locked.add(f)`), ale porovnání
+      // níž jde proti `lockKeys()`, což jsou klíče `"{repo}/{soubor}"`. Množiny se
+      // tedy NIKDY nemohly protnout a zámek neblokoval nic – dvě granule se
+      // stejnými `owns` se rozjely paralelně. Dnes to nemělo následek (roadmapa
+      // hry kolizi `owns` nemá), ale při `MAX_CONCURRENT=5` je to tikající bomba:
+      // dva agenti si přepíšou tentýž soubor a auto-merge to slije jako cizí práci.
+      // Klíč se proto bere z TÉHOŽ místa jako při porovnání.
+      env.DB.prepare("SELECT payload FROM tasks WHERE status='running' AND target='cloud'"),
+      // nejstarší připravené úlohy; vyber první, jehož owns nekoliduje s běžícími
+      //
+      // POZOR – COOLDOWN SE MUSÍ VYNUTIT I TADY (opraveno 30. 9. 2026):
+      // `ready` úloha se nesmí vydat, dokud její granule čeká cooldown. Jinak se
+      // obchází pojistka proti pálení kvóty: polling (pollRuns) vrací selhaný
+      // úkol rovnou na `ready`, ale roadmapu neaktualizuje – takže se stejná
+      // granule vydala znovu za 2 minuty místo za 3 hodiny a spálila všech
+      // 5 pokusů (naměřeno: #128 měl 5 pokusů za 16 minut, #124/#125/#127 za
+      // čtvrt hodiny, zatímco RETRY_HOURS=3 a MAX_ATTEMPTS=5).
+      //
+      // POZOR 2 (druhá iterace téže opravy): podmínka NESMÍ filtrovat podle
+      // `rm.status`. První verze se ptala na `rm.status = 'failed'`, jenže
+      // pollRuns u ještě-opakovatelného selhání zapisuje `'queued'` (failed až
+      // u posledního pokusu) – guard se tak vůbec neuplatnil a díra zůstala.
+      // B1 (2. 10. 2026): rozhoduje `naposledy_selhalo`, ne `updated_at`.
+      // Původní úvaha („čas poslední změny řádku je spolehlivý nositel cooldownu")
+      // platila jen do chvíle, než se do téhož sloupce začal psát i VZNIK granule:
+      // `INSERT … status='queued', updated_at=datetime('now')`. Od té chvíle byla
+      // nová granule v cooldownu, i když nikdy neselhala (vada S12).
+      // Dispatch smyčka se ptá jen na úlohy, které už jsou `ready`.
+      env.DB.prepare(
+        `SELECT * FROM tasks WHERE status='ready' AND target='cloud'
+           AND NOT EXISTS (
+             SELECT 1 FROM roadmap rm
+              WHERE rm.task_id = tasks.id
+                AND rm.naposledy_selhalo > datetime('now', ?)
+           )
+          ORDER BY id LIMIT 25`,
+      ).bind(`-${retryH} hours`),
+      // Kolik úloh drží cooldown — potřebuje to věta „spusteno: 0 úloh“, aby
+      // nebyla tichá. Čte se ve STEJNÉM batchi (další round-trip by byl dražší
+      // než ten dotaz) a použije se jen když se nic nespustilo.
+      //
+      // ⚠ FORMULACE JE SCHVÁLNĚ JINÁ, NEž MÁ PŮVODNÍ DOTAZ VÝŠ: `_analyza/b2-mutace.py`
+      // mutuje porovnání `naposledy_selhalo` s `datetime('now', ?)` v původním dotazu
+      // a svou kotvu potřebuje v souboru PRÁVĚ JEDNOU — kdyby tu byla dvakrát
+      // (i v komentáři!), mutace by se neprovedla (naměřeno 9. 10. 2026: „kotva je
+      // v souboru 2×“). `julianday` je navíc robustnější na tvar uloženého času
+      // a při `NULL` vyjde NULL (tedy „není v cooldownu“) — stejná sémantika.
+      env.DB.prepare(
+        `SELECT t.id FROM tasks t JOIN roadmap rm ON rm.task_id = t.id
+          WHERE t.status='ready' AND t.target='cloud'
+            AND julianday(rm.naposledy_selhalo) > julianday('now', ?)
+          ORDER BY t.id LIMIT 10`,
+      ).bind(`-${retryH} hours`),
+    ]) as any[];
+    cdUlohy = cdBatch;
+    // ⚠ `D1Result` NENÍ řádek: počet je v `results[0].n`, ne v `running.n`
+    // (kdyby se četl špatně, vyšlo by `undefined ?? 0` → strop souběhu by se
+    // NIKDY neuplatnil — přesně ta vada, kterou hlídá mutace M2 v `tick-mutace.py`).
+    const running = ((runningRes as any)?.results?.[0] ?? {}) as { n?: number };
     if ((running?.n ?? 0) >= maxConcurrent) break;
 
-    // soubory uzamčené běžícími úlohami
-    //
-    // POZOR – TADY BYLA VADA (opraveno 1. 10. 2026, invariant 17):
-    // `locked` se plnilo HOLÝMI jmény souborů (`locked.add(f)`), ale porovnání
-    // níž jde proti `lockKeys()`, což jsou klíče `"{repo}/{soubor}"`. Množiny se
-    // tedy NIKDY nemohly protnout a zámek neblokoval nic – dvě granule se
-    // stejnými `owns` se rozjely paralelně. Dnes to nemělo následek (roadmapa
-    // hry kolizi `owns` nemá), ale při `MAX_CONCURRENT=5` je to tikající bomba:
-    // dva agenti si přepíšou tentýž soubor a auto-merge to slije jako cizí práci.
-    // Klíč se proto bere z TÉHOŽ místa jako při porovnání.
-    const runningRows = await env.DB.prepare(
-      "SELECT payload FROM tasks WHERE status='running' AND target='cloud'",
-    ).all<{ payload: string | null }>();
     const locked = new Set<string>();
-    for (const r of runningRows.results || []) {
+    for (const r of (runningRows as any)?.results || []) {
       for (const k of lockKeys(r.payload, env)) locked.add(k);
     }
-
-    // nejstarší připravené úlohy; vyber první, jehož owns nekoliduje s běžícími
-    //
-    // POZOR – COOLDOWN SE MUSÍ VYNUTIT I TADY (opraveno 30. 9. 2026):
-    // `ready` úloha se nesmí vydat, dokud její granule čeká cooldown. Jinak se
-    // obchází pojistka proti pálení kvóty: polling (pollRuns) vrací selhaný
-    // úkol rovnou na `ready`, ale roadmapu neaktualizuje – takže se stejná
-    // granule vydala znovu za 2 minuty místo za 3 hodiny a spálila všech
-    // 5 pokusů (naměřeno: #128 měl 5 pokusů za 16 minut, #124/#125/#127 za
-    // čtvrt hodiny, zatímco RETRY_HOURS=3 a MAX_ATTEMPTS=5).
-    //
-    // POZOR 2 (druhá iterace téže opravy): podmínka NESMÍ filtrovat podle
-    // `rm.status`. První verze se ptala na `rm.status = 'failed'`, jenže
-    // pollRuns u ještě-opakovatelného selhání zapisuje `'queued'` (failed až
-    // u posledního pokusu) – guard se tak vůbec neuplatnil a díra zůstala.
-    // B1 (2. 10. 2026): rozhoduje `naposledy_selhalo`, ne `updated_at`.
-    // Původní úvaha („čas poslední změny řádku je spolehlivý nositel cooldownu")
-    // platila jen do chvíle, než se do téhož sloupce začal psát i VZNIK granule:
-    // `INSERT … status='queued', updated_at=datetime('now')`. Od té chvíle byla
-    // nová granule v cooldownu, i když nikdy neselhala (vada S12).
-    // Dispatch smyčka se ptá jen na úlohy, které už jsou `ready`.
-    const readyAll = await env.DB.prepare(
-      `SELECT * FROM tasks WHERE status='ready' AND target='cloud'
-         AND NOT EXISTS (
-           SELECT 1 FROM roadmap rm
-            WHERE rm.task_id = tasks.id
-              AND rm.naposledy_selhalo > datetime('now', ?)
-         )
-        ORDER BY id LIMIT 25`,
-    ).bind(`-${retryH} hours`).all<Task>();
-    const task = (readyAll.results || []).find((t) => {
+    const task = (readyAll.results || []).find((t: Task) => {
       // B3b: zastavenou granuli nevydávej — i kdyby jí v D1 zůstal úkol 'ready'
       // (cooldown i strop se musí ptát na TÝŽ klíč: `grainKeyOf` × `GRAIN_KEY_SQL`).
       // P29/B6: každé `return false` se POJMENUJE — viz `preskoceno` výš.
@@ -1356,19 +1526,9 @@ async function tick(env: Env): Promise<string> {
   // Když se nic nespustilo, musí být vidět i on — jinak zůstane „0 úloh“ tiché.
   let cooldownMsg = "";
   if (!started.length) {
-    // ⚠ FORMULACE JE SCHVÁLNĚ JINÁ, NEž MÁ PŮVODNÍ DOTAZ VÝŠ: `_analyza/b2-mutace.py`
-    // mutuje porovnání `naposledy_selhalo` s `datetime('now', ?)` v původním dotazu
-    // a svou kotvu potřebuje v souboru PRÁVĚ JEDNOU — kdyby tu byla dvakrát
-    // (i v komentáři!), mutace by se neprovedla (naměřeno 9. 10. 2026: „kotva je
-    // v souboru 2×“). `julianday` je navíc robustnější na tvar uloženého času
-    // a při `NULL` vyjde NULL (tedy „není v cooldownu“) — stejná sémantika.
-    const cd = await env.DB.prepare(
-      `SELECT t.id FROM tasks t JOIN roadmap rm ON rm.task_id = t.id
-        WHERE t.status='ready' AND t.target='cloud'
-          AND julianday(rm.naposledy_selhalo) > julianday('now', ?)
-        ORDER BY t.id LIMIT 10`,
-    ).bind(`-${retryH} hours`).all<{ id: number }>().catch(() => null);
-    const ids = (cd?.results || []).map((r) => `#${r.id}`);
+    // Dotaz na cooldown se čte v BATCHI na začátku smyčky (H196) — tady se
+    // jen použije jeho výsledek; `null` = dotaz v batchi neprošel.
+    const ids = ((cdUlohy as any)?.results || []).map((r: { id: number }) => `#${r.id}`);
     if (ids.length) cooldownMsg = ` | v cooldownu ${ids.length} úloh: ${ids.join(", ")}`;
   }
   return `spusteno: ${started.length} úloh; polling: ${polled}; ${roadmapMsg}${zombieMsg}${eskalMsg}${cooldownMsg}${preskocenoMsg}`
