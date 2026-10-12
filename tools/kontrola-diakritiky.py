@@ -99,6 +99,11 @@ SOUBORY = [
     # STEJNÉ session, která ho psala — jinak by brána nad ním hlásila „VŠE OK",
     # aniž ho otevřela (vada S27: ruční seznam místo projití složky).
     REPO / "PREDANI-OTUKANI-2026-10-12.md",
+    # 12. 10. 2026: předání pro session K3 (nová hra musí mít kontext, který se
+    # vejde do stropu poskytovatele). Vzniklo ve stejné session jako předchozí
+    # dokument; registrace ve STEJNÉ session je podmínka, aby ho brána vůbec
+    # otevřela (vada S27: ruční seznam místo projití složky).
+    REPO / "PREDANI-K3-NOVA-HRA.md",
     # 2. 10. 2026 (10:4x): zadání pro novou session po ověření — co provést,
     # co zadokumentovat a co připravit pro plánovací session. Vzniklo ve session,
     # která ověřovala práci session `eb127abd` (12/12 bodů §7.2).
