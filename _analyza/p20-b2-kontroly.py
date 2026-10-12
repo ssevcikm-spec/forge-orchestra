@@ -18,10 +18,25 @@ CO SE ZMĚNILO: nečitelné soubory se **POČÍTAJÍ** a jsou **POJMENOVANÉ**;
 doklad se neopravuje, ale NESMÍ být tichý). Nové pole jde **NA KONEC** souhrnu,
 aby starší doklady (`p19-b2-kontroly-h79.py`) na tentýž řádek pořád sedly.
 
+⚠ NÁLEZ H195 (P40, 12. 10. 2026) — ÚKLID FIXTURY JE V `try/finally`:
+Fixtura leží v **CIZÍM REPU HRY** (`HRA/scripts/_p20_b2_necitelny.py`) a do P40
+se uklízela až na KONCI skriptu — tedy **mimo `try/finally`**. Přerušený běh
+(výjimka, Ctrl-C) tam nechal **nečitelný `.py` v `scripts/`** — a dávka
+`p20-d-doklady.py` ten skript **pouští**. Navíc by další běh měřil jiný stav,
+než jaký si sám vyrobil. Dnes: zápis fixtury i všechny kontroly mezi tím jsou
+v `try`, `finally` fixturu uklidí **VŽDY** (`unlink(missing_ok=True)`), a to
+i při výjimce. **Výjimka se NEPOLKNE** — žádný `except` tu není, takže
+pokračuje ven (`raise` je implicitní).
+Přepínač `--vynut-vyjimku` (nebo `P40_H195_VYNUT=1`) vyhodí výjimku UVNITŘ
+`try` — slouží testu `p40-h195-test.py`, který tím dokazuje úklid; **normální
+běh nemění**.
+
 Použití: python _analyza/p20-b2-kontroly.py
+         python _analyza/p20-b2-kontroly.py --vynut-vyjimku   (test úklidu)
 """
 
 import hashlib
+import os
 import pathlib
 import re
 import subprocess
@@ -40,6 +55,16 @@ GIT = str(WS / "tools" / "git.cmd")
 # continuation byte"), ale jinak SYTAKTICKY SPRÁVNÝ Python — kdyby padala
 # i syntaxe, měřili bychom něco jiného, než co zkoumáme.
 BAJTY = b"# p20/b2 fixtura: latin-1 bajt\nX_BOD = 1  # \xe9\n"
+
+# ⚠ H195: přepínač pro TEST ÚKLIDU. Vyhodí výjimku UVNITŘ `try` bloku níž, aby
+# test `p40-h195-test.py` doložil, že `finally` fixturu uklidí i při výjimce
+# a že výjimka POKRAČUJE (neskončí spolknutá). Normální běh se nemění.
+VYNUT_VYJIMKU = (("--vynut-vyjimku" in sys.argv)
+                 or os.environ.get("P40_H195_VYNUT") == "1")
+
+# ⚠ H195: počet kontrol zdravého běhu PŘED touhle opravou (naměřeno 12).
+# Oprava nesmí žádnou kontrolu spolknout — kdyby počet klesl, je to vada.
+POCET_KONTROL_PRED_H195 = 12
 
 kontroly = []
 
@@ -79,34 +104,52 @@ zk(m0 and int(m0.group(1)) == 0, "ve zdravém stromě je nečitelných 0",
 
 # ── 2) ANI JEDEN nečitelný soubor nesmí zmizet
 print("\n--- 2) nečitelný soubor v živém stromě -----------------------------")
-FIXTURA.write_bytes(BAJTY)
-zk(FIXTURA.read_bytes() == BAJTY, "fixtura je na disku (bajt na bajt)")
+# ⚠ H195: CELÝ ŽIVOT FIXTURY JE V `try/finally`. Fixtura leží v CIZÍM repu hry
+# a do P40 se uklízela až na konci skriptu — přerušený běh (výjimka, Ctrl-C)
+# tam nechal nečitelný `.py` v `scripts/`, který navíc pouští dávka
+# `p20-d-doklady.py`. `finally` uklidí VŽDY.
+# ⚠ A `try` NEMÁ `except`: výjimka se nesmí spolknout — `finally` uklidí
+# a výjimka pokračuje ven (proto ten skript nesmí „hlásit úspěch" po chybě).
 try:
-    FIXTURA.read_text(encoding="utf-8")
-    zk(False, "fixtura se NEDÁ přečíst jako utf-8")
-except UnicodeDecodeError:
-    zk(True, "fixtura se NEDÁ přečíst jako utf-8 (jinak by neměřila nic)")
+    FIXTURA.write_bytes(BAJTY)
+    zk(FIXTURA.read_bytes() == BAJTY, "fixtura je na disku (bajt na bajt)")
+    try:
+        FIXTURA.read_text(encoding="utf-8")
+        zk(False, "fixtura se NEDÁ přečíst jako utf-8")
+    except UnicodeDecodeError:
+        zk(True, "fixtura se NEDÁ přečíst jako utf-8 (jinak by neměřila nic)")
 
-rc1, v1 = spust()
-s1 = souhrn(v1)
-print(f"    exit={rc1}")
-print(f"    {s1}")
-for l in v1.splitlines():
-    if "_p20_b2_necitelny" in l:
-        print(f"    zmínka: {l.strip()[:150]}")
-m1 = re.search(r"(\d+) nečitelných", s1)
-zk(m1 is not None and int(m1.group(1)) == 1,
-   "nečitelný soubor je v ČÍTAČI (dřív zmizel)",
-   f"naměřeno {m1.group(1) if m1 else '?'}")
-zk(FIXTURA.name in v1 or str(FIXTURA) in v1,
-   "a je POJMENOVANÝ (aby se dal dohledat)", FIXTURA.name)
+    rc1, v1 = spust()
+    s1 = souhrn(v1)
+    print(f"    exit={rc1}")
+    print(f"    {s1}")
+    for l in v1.splitlines():
+        if "_p20_b2_necitelny" in l:
+            print(f"    zmínka: {l.strip()[:150]}")
+    m1 = re.search(r"(\d+) nečitelných", s1)
+    zk(m1 is not None and int(m1.group(1)) == 1,
+       "nečitelný soubor je v ČÍTAČI (dřív zmizel)",
+       f"naměřeno {m1.group(1) if m1 else '?'}")
+    zk(FIXTURA.name in v1 or str(FIXTURA) in v1,
+       "a je POJMENOVANÝ (aby se dal dohledat)", FIXTURA.name)
 
-# ── 3) Zelený verdikt se NEMĚNÍ (doklad se neopravuje, jen se o něm ví)
-zk(rc1 == 0, "exit zůstává 0 — nečitelný DOKLAD se neopravuje, ale nesmí být tichý",
-   f"exit={rc1}")
+    # ── 3) Zelený verdikt se NEMĚNÍ (doklad se neopravuje, jen se o něm ví)
+    zk(rc1 == 0, "exit zůstává 0 — nečitelný DOKLAD se neopravuje, ale nesmí být tichý",
+       f"exit={rc1}")
+
+    # ⚠ H195: SEM vede přepínač pro test úklidu — výjimka vznikne UVNITŘ `try`.
+    if VYNUT_VYJIMKU:
+        raise RuntimeError(
+            "P40/H195: vynucená výjimka UVNITŘ `try` — test ověřuje, že ji"
+            " `finally` uklidí a že se NEPOLKNE")
+finally:
+    # ⚠ UKLID VŽDY — i při výjimce (KeyboardInterrupt je taky výjimka).
+    # `missing_ok=True`: ať úklid sám nespadne, když fixtura nevznikla.
+    FIXTURA.unlink(missing_ok=True)
 
 # ── 4) ÚKLID a shoda s výchozím stavem
-FIXTURA.unlink(missing_ok=True)
+zk(not FIXTURA.exists(), "fixtura po úklidu v repu hry NENÍ (H195)",
+   f"{FIXTURA} existuje={FIXTURA.exists()}")
 r = subprocess.run([GIT, "-C", str(HRA), "status", "--porcelain"],
                    capture_output=True, text=True, encoding="utf-8",
                    errors="replace", shell=True, timeout=120)
@@ -130,6 +173,17 @@ if m:
     print(f"    {m.groupdict()}")
     zk(int(m.group("nalezu")) == 0 and int(m.group("zivych")) > 0,
        "a vydal SMYSLUPLNÁ čísla (ne nuly z nenašlého vzoru)")
+
+# ── 6) H195: POČET KONTROL SE NESMÍ SNÍŽIT ────────────────────────────────
+# Oprava úklidu je zásah do ŽIVÉ brány; kdyby při ní nějaká kontrola zmizela,
+# vypadalo by to jako zelený běh. Naměřeno před opravou: 12 (zdravý běh).
+print(f"\n--- 6) počet kontrol proti stavu před opravou H195 ----------------------")
+print(f"    naměřeno teď: {len(kontroly)} · před opravou: {POCET_KONTROL_PRED_H195}")
+if len(kontroly) < POCET_KONTROL_PRED_H195:
+    zk(False, f"počet kontrol KLESL pod {POCET_KONTROL_PRED_H195} — oprava H195 něco spolkla",
+       f"naměřeno {len(kontroly)}")
+else:
+    print(f"    OK   počet kontrol neklesl (nová kontrola úklidu navíc)")
 
 chyb = sum(1 for ok, _, _ in kontroly if not ok)
 print("\n" + "=" * 78)

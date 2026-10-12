@@ -1,0 +1,21 @@
+# p40-probe — DOČASNÝ Worker pro MĚŘENÍ, ne pro provoz.
+#
+# PROČ VLASTNÍ WORKER (a ne zásah do conductora): měří se režie D1 na jeden
+# round-trip a efektivní CPU limit. Kdyby to šlo do conductora, změnilo by to
+# JEHO nasazenou verzi — a tu je potřeba na konci ověřit (`Current Version ID`
+# == `scriptVersion.id` živého tailu). Vlastní jméno `forge-probe` znamená
+# vlastní verzi a vlastní historii nasazení; conductor zůstane nedotčený.
+#
+# ⚠ DATABÁZE je TÁŽ (`forge-conductor`), ale sonda do ní POUZE ČTE (`SELECT 1`).
+#   Žádný zápis, žádná změna schématu.
+name = "forge-probe"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "forge-conductor"
+database_id = "e45ce420-f7db-4f25-98ca-bb2af43fcaa6"
+
+[observability]
+enabled = true

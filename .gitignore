@@ -90,3 +90,11 @@ _analyza/c2-mutace-zaloha.json
 # inventář" po každém přehledu bran. Jsou to artefakty, ne kód, a proto se
 # ukládají s `_` prefixem (stejná konvence jako `_inventar.json`).
 _analyza/_g3-*.txt
+# ── P40 (12. 10. 2026): MEZIPRODUKTY MĚŘENÍ CENY TIKU ──────────────────────
+# Cache ŽIVÝCH odpovědí GitHubu (1,4 MB), V8 CPU profily a surový `wrangler tail`
+# se do veřejného repa necommitnou — je to vstup jednoho běhu, ne znalost.
+# Nástroje, které je vyrábějí, v repu ZŮSTÁVAJÍ (`_analyza/p40-*.mjs`, `p40-probe/`).
+_analyza/p40-data/
+_analyza/p40-prof/
+_analyza/p40-tick-scratch/
+_analyza/p40-probe-tail-raw.txt

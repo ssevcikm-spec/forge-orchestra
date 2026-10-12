@@ -134,9 +134,16 @@ print(f"  naposledy zapsán: {zmeneno}  (před {stari_hodin:.1f} h)")
 # První verze tohohle skriptu to dělala — a když se v hlavičce změnil tvrzený
 # commit, našla sha z ŘÁDKU „Zkontrolováno při:" (který zůstal) a hlásila
 # `exit 0` NAD ZASTARALÝM ZADÁNÍM. Odhalil to až mutační test.
-# Čte se proto KONKRÉTNÍ řádek „Stav obou repů při psaní:" a z něj dvojice
-# `repo = <sha>`. Když řádek chybí, je to varování — ne ticho.
-# ── TVAR HLAVIČKY: dvojice se čtou z KONKRÉTNÍHO ŘÁDKU ─────────────────────
+# Čte se proto řádek s klíčem „Stav obou repů při psaní:".
+#
+# ⚠ A DRUHÁ POLOVINA TÉHOŽ (nález H189, naměřeno P38/P39, opraveno P40): číst
+# dvojice JEN Z TOHO JEDNOHO ŘÁDKU znamenalo, že **zalomená hlavička se
+# neporovnala VŮBEC** — na řádku s klíčem zůstalo jen `` `forge-orchestra` = … ``
+# a `` `uo-shadows` = … `` skončilo na dalším řádku. Naměřeno P38: `dvojic = 1`
+# a **tvrzení o HŘE se nezměřilo**. Bylo to nejstarší nezaplacené slepé místo
+# brány — a `g3` ho měl v `OCEKAVANE_NENULOVE = {"zadání kontrola": 1}`, tedy
+# „deklarovaně červené", takže se to jako vada NIKDY neprojevilo.
+# ── TVAR HLAVIČKY: dvojice se čtou z CELÉHO BLOKU HLAVIČKY (H189) ──────────
 # ⚠ ZVÝRAZNĚNÍ `**` MUSÍ VZOR PŘEŽÍT: v dokumentech stanice se píše
 # `` `forge-orchestra` = **`c87db93`** ``. Vzor, který zvýraznění nezná, hlásí
 # vadu na SPRÁVNÉM dokumentu — a falešný poplach se hledá hůř než slepé místo
@@ -144,26 +151,85 @@ print(f"  naposledy zapsán: {zmeneno}  (před {stari_hodin:.1f} h)")
 VZOR_DVOJICE = re.compile(
     r"\*{0,2}`?([A-Za-z0-9_-]+)`?\*{0,2}\s*=\s*\*{0,2}`?([0-9a-f]{7,40})`?\*{0,2}")
 
-hlavicka = "\n".join(radky[:30])
+# Klíč se HLEDÁ v prvních tolika řádcích (okno hledání klíče se touhle opravou
+# nemění — mění se jen to, ODKUD se čtou dvojice).
+HLAVICKA_RADKU = 30
+# ⚠ TVRDÝ STROP BLOKU + JEHO VYKÁZÁNÍ (H189): bez stropu by se „blok" mohl
+# roztéct přes celý dokument, kdyby v něm chyběl prázdný řádek i ukončovací
+# řádek. Projekt má naměřeno, že **velkorysé okno není opatrnost, je to
+# slepota** (blok o 5 441 znacích umlčel celý oddíl) — proto strop existuje,
+# je POJMENOVANÝ a když se použije, výstup to ŘEKNE.
+MAX_BLOK = 40
+# ⚠ UKONČENÍ BLOKU — KONZERVATIVNÍ, a proč právě takhle:
+#   * PRÁZDNÝ ŘÁDEK = konec odstavce hlavičky. Hlavička je jeden odstavec;
+#     co je za prázdným řádkem, už k ní nepatří.
+#   * „Zkontrolováno při:" a „Kotva pro měření" = POZDĚJŠÍ řádky, které nesou
+#     JINÉ tvrzení (čas měření / kotva pro měřidla). Mají sice TÝŽ TVAR
+#     `<repo> = <sha>`, ale kdyby se do bloku připletly, dvojice by se přečetly
+#     DVAKRÁT a pozdější (třeba stará) hodnota by tu první **přebila** — přesně
+#     to, před čím H189 varuje. Proto blok končí PRVNÍM z nich.
+#   * ASCII varianty jsou tu proto, že brána už u klíče variantu bez diakritiky
+#     přijímá („Stav obou repu") a hlavička se opisuje ručně.
+UKONCENI_BLOKU = ("Zkontrolováno při", "Zkontrolovano pri",
+                  "Kotva pro měření", "Kotva pro mereni")
+
+
+def _je_ukonceni(radek: str) -> bool:
+    """Je řádek ukončením bloku hlavičky? (Zvýraznění `**` se ignoruje.)"""
+    return radek.strip().lstrip("*").startswith(UKONCENI_BLOKU)
+
+
 tvrzene_head = {}
 radek_stavu = ""
 cislo_stavu = 0
-for cislo, l in enumerate(radky[:30], start=1):
+for cislo, l in enumerate(radky[:HLAVICKA_RADKU], start=1):
     if "Stav obou repů" in l or "Stav obou repu" in l:
         radek_stavu = l
         cislo_stavu = cislo
         break
+
+# ── BLOK HLAVIČKY (H189): od řádku s klíčem dál, dokud nenarazí ukončení ────
+# První řádek bloku je VŽDY řádek s klíčem (ukončením být nemůže — nese klíč).
+blok: list = []
+strop_dosazen = False
+if radek_stavu:
+    for l in radky[cislo_stavu - 1:]:
+        if blok and (not l.strip() or _je_ukonceni(l)):
+            break
+        blok.append(l)
+        if len(blok) >= MAX_BLOK:
+            strop_dosazen = True
+            break
+text_bloku = "\n".join(blok)
+
+# Dvojice na ŘÁDKU S KLÍČEM (to je TVAR — a zůstává i kvůli zpětné
+# kompatibilitě výstupu a testu `_analyza/test-hlavicka-tvar.py`)
+# a dvojice v CELÉM BLOKU (to je ta oprava H189).
 dvojice = VZOR_DVOJICE.findall(radek_stavu) if radek_stavu else []
-for jmeno, sha in dvojice:
-    tvrzene_head[jmeno.lower()] = sha
+dvojice_bloku = VZOR_DVOJICE.findall(text_bloku)
+
+# ⚠ KONFLIKT SE MUSÍ POVÍDAT (H189): kdyby se táž dvojice v bloku objevila
+# dvakrát s RŮZNOU sha, čtení z bloku by ji „přebilo" — a tichý přepis je horší
+# než hlasitá vada. Konflikty se proto sbírají a vypisují jako varování.
+konflikty = []
+for jmeno, sha in dvojice_bloku:
+    klic = jmeno.lower()
+    if klic in tvrzene_head and tvrzene_head[klic] != sha:
+        konflikty.append((klic, tvrzene_head[klic], sha))
+    tvrzene_head[klic] = sha
 vsechny_sha = set(re.findall(r"\b([0-9a-f]{7,40})\b", text))
 tvrzene_casy = re.findall(r"(\d{1,2}\.\s*\d{1,2}\.\s*\d{4}[^\n]{0,12}UTC)", text)
 
 # ⚠ TVAR JE SAMOSTATNÁ KONTROLA (naměřeno 6. 10. 2026 archivovaným nástrojem
-# `zadani-hlavicka-tvar.py`): když je popis a dvojice na DVOU řádcích, kontrola
-# níž vypíše „zadání netvrdí žádný commit" — a to **vypadá jako vada brány**,
-# ale je to **vada ZÁPISU**. Tenhle stav se musí pojmenovat, ne schovat do dvou
-# otazníků u repů: kdo hledá vadu, hledá ji pak v gitu, kde není.
+# `zadani-hlavicka-tvar.py`): když je popis na jednom řádku a dvojice na
+# DVOU, kontrola níž vypíše „zadání netvrdí žádný commit" — a to **vypadá jako
+# vada brány**, ale je to **vada ZÁPISU**. Tenhle stav se musí pojmenovat, ne
+# schovat do dvou otazníků u repů: kdo hledá vadu, hledá ji pak v gitu, kde není.
+#
+# ⚠ POZOR (H189): TVAR se i po opravě měří na ŘÁDKU S KLÍČEM, ne na bloku.
+# Je to záměr: zalamovaná hlavička je vada ZÁPISU — ale dvojice se už čtou
+# z CELÉHO BLOKU, takže se POROVNAJÍ i tehdy, když je zápis zalomený.
+# Vada zápisu a slepota brány jsou DVĚ RŮZNÉ VĚCI a výstup je musí rozlišit.
 vada_tvaru = ""
 if not radek_stavu:
     vada_tvaru = "hlavička NEMÁ řádek s klíčem „Stav obou repů“"
@@ -175,6 +241,22 @@ print("\n--- HLAVIČKA: co zadání tvrdí -------------------------------------
 print(f"  řádek se stavem repů: "
       f"{'NALEZEN (ř. ' + str(cislo_stavu) + ')' if radek_stavu else 'CHYBÍ'}")
 print(f"  dvojic `<repo>` = `<sha>` na tom řádku: {len(dvojice)}")
+# ⚠ VELIKOST OKNA SE MUSÍ VYKÁZAT (H189): „velkorysé okno není opatrnost, je to
+# slepota" — ale okno, jehož velikost NIKDO NEVIDÍ, je slepota taky. Proto se
+# vypisuje rozsah řádků, počet řádků i znaků a případné uříznutí stropem.
+# (Formulace `řádků {n}` je záměrná: `g3` čte čítač brány vzorem
+# `(\d+) řádků` a bere POSLEDNÍ výskyt — kdyby tu stálo „7 řádků", začal by
+# `g3` u téhle brány vykazovat velikost okna místo velikosti dokumentu.)
+if radek_stavu:
+    print(f"  OKNO HLAVIČKY (blok pro dvojice): ř. {cislo_stavu}–"
+          f"{cislo_stavu + len(blok) - 1} · velikost okna: řádků {len(blok)},"
+          f" znaků {len(text_bloku)}"
+          + (f"  ⚠ STROP OKNA ({MAX_BLOK} ř.) DOSAŽEN — blok je uříznutý!"
+             if strop_dosazen else ""))
+else:
+    print("  OKNO HLAVIČKY (blok pro dvojice): klíč se nenašel"
+          " · velikost okna: řádků 0, znaků 0")
+print(f"  dvojic `<repo>` = `<sha>` v CELÉM BLOKU: {len(dvojice_bloku)}")
 print(f"  TVAR HLAVIČKY: {'OK' if not vada_tvaru else 'VADA — ' + vada_tvaru}")
 print(f"  tvrzené commity: {tvrzene_head or '(žádné — viz TVAR výš)'}")
 print(f"  různých sha v celém dokumentu:    {len(vsechny_sha)}")
@@ -194,8 +276,14 @@ if vada_tvaru:
     # ⚠ JEDNA příčina = JEDNO varování: kdyby se počítalo i za každý repo níž,
     # vyšlo by „3 varování" z jediné vady ZÁPISU — a to číslo mate.
     print(f"  ⚠    TVAR HLAVIČKY: {vada_tvaru}")
-    print("       (dvojice se čtou z TOHOHLE řádku; když jsou o řádek níž,"
-          " nástroj je nevidí)")
+    print("       (dvojice se čtou z CELÉHO BLOKU HLAVIČKY — jeho rozsah a"
+          " velikost hlásí řádek OKNO HLAVIČKY výš)")
+    varovani += 1
+for klic, puvodni, nova in konflikty:
+    # H189: táž dvojice dvakrát s různou sha = tichý přepis. Pojmenovat.
+    print(f"  ⚠    {klic}: v bloku hlavičky je DVAKRÁT s různou sha "
+          f"({puvodni[:9]} → {nova[:9]}) — platí POSLEDNÍ; zkontroluj, že se"
+          f" dvojice nečte znovu (např. z řádku „Kotva pro měření“)")
     varovani += 1
 for jmeno, s in zivy.items():
     tvrz = _najdi_tvrzene(jmeno)
