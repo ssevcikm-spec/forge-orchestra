@@ -100,10 +100,21 @@ node .forge\node\classify-agent-log.mjs --log agent.log --zmena ne
   `_analyza/p41-*`, `NEXT-SESSION-INSTRUKCE.md`, `.gitignore`, `ov-*.json`).
   **Nezametat je vlastním commitem** — buď je commitne ona, nebo se rozhodne,
   kdo je převezme.
-- ⚠ **Tik conductora byl mrtvý** (`last_cron` 15:04:00Z, v 16:4x to bylo 93+ min;
-  trigger dorazí, invocation umírá). **Dokud je mrtvý, orchestra nevydá ani
-  pilotní granuli** — ověř `https://forge-conductor.ssevcikm.workers.dev/health`
-  (`last_cron` starší než 10 min = netiká). Patří to P41 (H197/H201), ne K3.
+- ⚠ **Tik conductora je mrtvý** (`last_cron` **15:04:00Z**, v 17:0x to bylo
+  **248 min**; trigger dorazí každou minutu — `last_cron_pokus` je čerstvý —
+  ale invocation umírá, což je obdoba H178/H179: překročený CPU). **Dokud je
+  mrtvý, orchestra nevydá ani pilotní granuli** — ověř
+  `https://forge-conductor.ssevcikm.workers.dev/health` (`last_cron` starší
+  než 10 min = netiká). Patří to P41 (H197/H201), ne K3.
+  - **Korelace, kterou stojí za to P41 předat:** poslední deploy je **#42 na
+    `8613f1b`** (P41 část 1 — „PROFIL FÁZÍ TIKU", `TICK_PROFIL = "1"`, běžel
+    **12:02:48Z**, `success`), a tik umřel v **15:04:00Z** — ~3 h po něm.
+    `TICK_PROFIL` v `conductor/wrangler.toml` je **vypínač** („Vypnutí = tenhle
+    řádek na `\"0\"` a znovu nasadit; kód se chová stejně"), takže **nejrychlejší
+    ověření hypotézy „profilování převezlo CPU přes limit" je jedna řádka
+    a deploy** — ale rozhoduje P41, ten kód vlastní.
+  - Praktický důsledek pro K3: **pilotní běh má smysl plánovat, ale spouštět až
+    po obnovení tiku** (jinak conductor úlohu nevydá a změříš jen ticho).
 - `ready: 3` (staré úlohy #244/#245/#246), `running: 0`. Nová hra musí být
   v conductoru **zaregistrovaná** (`POST /game`) a nastavená jako aktivní.
 - **Na uživateli:** `FORGE_PAT` (fine-grained, Contents RW + Pull requests RW,
