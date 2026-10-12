@@ -111,7 +111,7 @@ def fixtura(jmeno: str, obsah: str) -> pathlib.Path:
     return cesta
 
 
-def ukaž(v: str) -> str:
+def show(v: str) -> str:
     """Jen řádky, které nesou rozhodnutí — do detailu u chyby."""
     return "\n".join(l.strip() for l in v.splitlines()
                      if any(k in l for k in ("dvojic", "OKNO", "TVAR", "OK  ",
@@ -157,16 +157,16 @@ def main() -> int:
                      f" · `uo-shadows` = `{head_hra}`\n\n"
                      "Zbytek fixtury.\n")
         rc1, v1 = spust(f1)
-        zkontroluj("jednořádková hlavička → exit 0", rc1 == 0, ukaž(v1))
+        zkontroluj("jednořádková hlavička → exit 0", rc1 == 0, show(v1))
         zkontroluj("na řádku s klíčem jsou 2 dvojice",
-                   "dvojic `<repo>` = `<sha>` na tom řádku: 2" in v1, ukaž(v1))
+                   "dvojic `<repo>` = `<sha>` na tom řádku: 2" in v1, show(v1))
         zkontroluj("v CELÉM BLOKU jsou 2 dvojice",
-                   "dvojic `<repo>` = `<sha>` v CELÉM BLOKU: 2" in v1, ukaž(v1))
+                   "dvojic `<repo>` = `<sha>` v CELÉM BLOKU: 2" in v1, show(v1))
         zkontroluj("OKNO HLAVIČKY je pojmenované a hlásí 1 řádek",
-                   "velikost okna: řádků 1," in v1, ukaž(v1))
+                   "velikost okna: řádků 1," in v1, show(v1))
         zkontroluj("obě dvojice se POROVNALY (orchestra i hra)",
                    f"OK   forge-orchestra: tvrzený {head_orch}" in v1
-                   and f"OK   uo-shadows: tvrzený {head_hra}" in v1, ukaž(v1))
+                   and f"OK   uo-shadows: tvrzený {head_hra}" in v1, show(v1))
 
         # ── 2) DVOUŘÁDKOVÁ HLAVIČKA — JÁDRO H189 ────────────────────────────
         print()
@@ -178,17 +178,17 @@ def main() -> int:
                      f"`uo-shadows` = `{head_hra}`\n\n"
                      "Zbytek fixtury.\n")
         rc2, v2 = spust(f2)
-        zkontroluj("dvouřádková hlavička → exit 0", rc2 == 0, ukaž(v2))
+        zkontroluj("dvouřádková hlavička → exit 0", rc2 == 0, show(v2))
         zkontroluj("na řádku s klíčem je jen 1 dvojice (druhá je o řádek níž)",
-                   "dvojic `<repo>` = `<sha>` na tom řádku: 1" in v2, ukaž(v2))
+                   "dvojic `<repo>` = `<sha>` na tom řádku: 1" in v2, show(v2))
         zkontroluj("v CELÉM BLOKU jsou 2 dvojice (okno je 2 řádky)",
                    "dvojic `<repo>` = `<sha>` v CELÉM BLOKU: 2" in v2
-                   and "velikost okna: řádků 2," in v2, ukaž(v2))
+                   and "velikost okna: řádků 2," in v2, show(v2))
         zkontroluj("HRA SE SKUTEČNĚ POROVNALA (H189) — `OK uo-shadows` ve výstupu",
                    f"OK   uo-shadows: tvrzený {head_hra} = skutečný HEAD" in v2,
-                   ukaž(v2))
+                   show(v2))
         zkontroluj("a nezůstalo tam „netvrdí žádný commit“",
-                   "netvrdí žádný commit" not in v2, ukaž(v2))
+                   "netvrdí žádný commit" not in v2, show(v2))
 
         # ── 3) DVOUŘÁDKOVÁ HLAVIČKA + STARÁ sha HRY ─────────────────────────
         print()
@@ -199,11 +199,11 @@ def main() -> int:
                      f"`uo-shadows` = `{stara_hra}`\n\n"
                      "Zbytek fixtury.\n")
         rc3, v3 = spust(f3)
-        zkontroluj("stará sha hry → exit 1", rc3 == 1, ukaž(v3))
+        zkontroluj("stará sha hry → exit 1", rc3 == 1, show(v3))
         zkontroluj("rozchod je POJMENOVANÝ u hry (ne přeskočený)",
-                   "uo-shadows: zadání tvrdí" in v3, ukaž(v3))
+                   "uo-shadows: zadání tvrdí" in v3, show(v3))
         zkontroluj("a není to „nepodařilo přiřadit“ (dvojice se našla)",
-                   "nepodařilo přiřadit" not in v3, ukaž(v3))
+                   "nepodařilo přiřadit" not in v3, show(v3))
 
         # ── 4) BEZ KLÍČE ────────────────────────────────────────────────────
         print()
@@ -213,11 +213,11 @@ def main() -> int:
                      f"**Napsáno:** 12. 10. 2026 · `forge-orchestra` = `{head_orch}`\n\n"
                      "Zbytek fixtury.\n")
         rc4, v4 = spust(f4)
-        zkontroluj("bez klíče → exit 1", rc4 == 1, ukaž(v4))
+        zkontroluj("bez klíče → exit 1", rc4 == 1, show(v4))
         zkontroluj("vada je pojmenovaná (NEMÁ řádek s klíčem)",
-                   "NEMÁ řádek s klíčem" in v4, ukaž(v4))
+                   "NEMÁ řádek s klíčem" in v4, show(v4))
         zkontroluj("okno je vykázané i v nule (řádků 0)",
-                   "velikost okna: řádků 0," in v4, ukaž(v4))
+                   "velikost okna: řádků 0," in v4, show(v4))
 
         # ── 5) KLÍČ BEZ DVOJIC (význam staré kontroly tvaru) ────────────────
         print()
@@ -227,11 +227,11 @@ def main() -> int:
                      "**Stav obou repů při psaní:**\n\n"
                      "Zbytek fixtury.\n")
         rc5, v5 = spust(f5)
-        zkontroluj("klíč bez dvojic → exit 1", rc5 == 1, ukaž(v5))
+        zkontroluj("klíč bez dvojic → exit 1", rc5 == 1, show(v5))
         zkontroluj("TVAR HLAVIČKY: VADA je ve výstupu",
-                   "TVAR HLAVIČKY: VADA" in v5, ukaž(v5))
+                   "TVAR HLAVIČKY: VADA" in v5, show(v5))
         zkontroluj("a je to pojmenované jako VADA ZÁPISU (ne neshoda commitů)",
-                   "VADA ZÁPISU, NE NESHODA COMMITŮ" in v5, ukaž(v5))
+                   "VADA ZÁPISU, NE NESHODA COMMITŮ" in v5, show(v5))
 
         # ── 6) TERMINÁTORY: stará sha za „Kotva pro měření“ NESMÍ přebít ────
         print()
@@ -247,9 +247,9 @@ def main() -> int:
                          "Zbytek fixtury.\n")
             rc6, v6 = spust(f6)
             zkontroluj(f"„{termin}“ UKONČIL blok → stará sha nepřebila živou (exit 0)",
-                       rc6 == 0, ukaž(v6))
+                       rc6 == 0, show(v6))
             zkontroluj(f"„{termin}“: blok má 2 řádky (ne 3)",
-                       "velikost okna: řádků 2," in v6, ukaž(v6))
+                       "velikost okna: řádků 2," in v6, show(v6))
 
         # ── 7) KONFLIKT v bloku ────────────────────────────────────────────
         print()
@@ -260,9 +260,9 @@ def main() -> int:
                      f"`forge-orchestra` = `{stara_orch}` · `uo-shadows` = `{head_hra}`\n\n"
                      "Zbytek fixtury.\n")
         rc7, v7 = spust(f7)
-        zkontroluj("konflikt (týž repo 2× s různou sha) → exit 1", rc7 == 1, ukaž(v7))
+        zkontroluj("konflikt (týž repo 2× s různou sha) → exit 1", rc7 == 1, show(v7))
         zkontroluj("a je POJMENOVANÝ (tichý přepis je horší než vada)",
-                   "je DVAKRÁT s různou sha" in v7, ukaž(v7))
+                   "je DVAKRÁT s různou sha" in v7, show(v7))
 
         # ── 8) MUTACE: vrátí se vada (čtení z JEDNOHO řádku) ────────────────
         print()
@@ -279,11 +279,11 @@ def main() -> int:
                 # (jako v případu 2) PŘESTAT PLATIT — jinak test neměří nic.
                 hra_porovnana = f"OK   uo-shadows: tvrzený {head_hra}" in v8
                 zkontroluj("MUTACE: hra se NEporovnala (to je vada H189)",
-                           not hra_porovnana, ukaž(v8))
+                           not hra_porovnana, show(v8))
                 zkontroluj("MUTACE: exit NENÍ 0 (test by na případu 2 SPADL)",
-                           rc8 != 0, f"exit={rc8}\n" + ukaž(v8))
+                           rc8 != 0, f"exit={rc8}\n" + show(v8))
                 zkontroluj("MUTACE: výstup to řekne nahlas („netvrdí žádný commit“)",
-                           "netvrdí žádný commit" in v8, ukaž(v8))
+                           "netvrdí žádný commit" in v8, show(v8))
             zkontroluj("brána vrácena BAJT NA BAJT (sha256)",
                        hashlib.sha256(BRANA.read_bytes()).hexdigest() == puvodni_sha)
         except ValueError as e:
@@ -296,7 +296,7 @@ def main() -> int:
         rc9, v9 = spust(f2)
         zkontroluj("po vrácení: dvouřádková hlavička → exit 0 a hra porovnaná",
                    rc9 == 0 and f"OK   uo-shadows: tvrzený {head_hra}" in v9,
-                   ukaž(v9))
+                   show(v9))
     finally:
         shutil.rmtree(SCRATCH, ignore_errors=True)
         if BRANA.read_bytes() != puvodni:

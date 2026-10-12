@@ -5143,7 +5143,7 @@ Ověřeno: `test-tick-offline` **247/0**, `tsc` **exit 0**, `b2` 9/0, `b3` 11/0,
 | 1 | **push dorazil** | `7c785b5..fb1b2c2 main -> main`; po `fetch` **`origin/main` = `fb1b2c2` = HEAD**, `ls-remote` totéž, `rev-list --count origin/main..HEAD` = **0** |
 | 2 | **`deploy.yml` na SPRÁVNÉM commitu** | běh **#41** (id `38238756761`) `head_sha = fb1b2c2a3d776d0056f6bdb2c383b4cebe8d0e16`, `created 10:49:45Z`, `completed/success`, úloha `deploy` `success`; `Uploaded forge-conductor (4.20 sec)`, `Total Upload: 59.67 KiB` |
 | 3 | **server posílá TU verzi** | `Current Version ID = db95d2d3-0de6-4910-999a-a31a2345c9f4`; živý tail: **jediná** `scriptVersion.id` = **`db95d2d3-…`** → **SHODA** |
-| — | **živý tail** | **OKNO Z DOKLADU (H188)**: `10:52:48Z .. 11:2xZ` = **X,X min / NN eventů**, cron **NN×**, `outcome` ne-`ok` **0**, rozestupy cronů max **60,0 s**, **0 slepých `ALTER TABLE`** |
+| — | **živý tail** | **OKNO Z DOKLADU (H188)**: `11:20:48Z .. 11:34:5xZ` = **14,1 min / 37 eventů**, cron **15×**, `outcome` ne-`ok` **0**, rozestupy cronů max **60,0 s**, **0 slepých `ALTER TABLE`**; `cpuTime` cronu **16–24 ms (medián 20)** |
 
 ### 71.4 ⚠ CO SE NEPOVEDLO — **CÍL <10 ms NEBYL DOSAŽEN** (a proč)
 
@@ -5151,12 +5151,14 @@ Ověřeno: `test-tick-offline` **247/0**, `tsc` **exit 0**, `b2` 9/0, `b3` 11/0,
 
 | | PŘED P40 (verze `65ca3308`, P39) | PO P40 (verze `db95d2d3`) |
 |---|---|---|
-| `cpuTime` cronu | **16–20 ms, medián 18** (n=11) | **15–31 ms, medián 19** (n=8) |
+| `cpuTime` cronu | **16–20 ms, medián 18** (n=11) | **16–24 ms, medián 20** (n=15) |
 | `wallTime` cronu | 3800–4610 ms | **2028–3306 ms** |
 | D1 round-tripů na tik (offline model) | 23 | **13** |
 | GitHub payloadu na tik | 665 441 B | **~47 000 B** |
 
-**`wallTime` spadl o 45 % (I/O práce skutečně ubyla), ale `cpuTime` se NEHL.**
+**`wallTime` spadl o 45 % (I/O práce skutečně ubyla), ale `cpuTime` se NEHL**
+(medián **18 → 20 ms**, tedy v mezích šumu; ani jedno ze 15 cron eventů se
+nedostalo pod limit).
 To je nález **H197** a je to **vyvrácení modelu, podle kterého se zlevňovalo**:
 cena tiku v produkci **není** úměrná počtu D1 round-tripů ani velikosti payloadu —
 a rozdíl mezi Node modelem (2,5 ms) a živým tikem (19 ms) je **~7×**, tedy
@@ -5229,8 +5231,9 @@ orchestra: HEAD fb1b2c2 = origin/main (push ověřen ls-remote i rev-listem)
            pushnuté; do hry se NESÁHALO — jediný zápis byl fixture brány H195
            a ta se sama uklidila)
 conductor: NASAZENÁ VERZE db95d2d3-0de6-4910-999a-a31a2345c9f4 (deploy #41 na fb1b2c2)
-           ✅ tik tiká: živý tail X,X min — 0× ne-`ok`, cron NN×, rozestupy max 60,0 s
-           ⚠ ALE `cpuTime` cronu JE POŘÁD ~19 ms (1,9× limit) — zlevnění se
+           ✅ tik tiká: živý tail **14,1 min / 37 eventů** — 0× ne-`ok`, cron **15×**,
+              `cpuTime` **16–24 ms (medián 20)**, rozestupy max 60,0 s
+           ⚠ ALE `cpuTime` cronu JE POŘÁD ~20 ms (2× limit) — zlevnění se
              v živém CPU NEHL (H197); cíl <10 ms NESPLNĚN
            ✅ `wallTime` cronu spadl z ~3,9 s na ~2,1 s (méně I/O)
            ⚠ práci NEVYDÁVÁ: strop granulí 8/8 na #244/#245/#246
@@ -5293,15 +5296,27 @@ Výsledky jsou v tabulce níž (pořadí **inventář → `g3` → inventář �
 `validate-all`**, jak ukládá §4 zadání; `g3` s `FORGE_REGISTR` **mimo repo**
 a s plným prostředím).
 
-| Co | Naměřeno (12. 10. 2026) |
+| Co | Naměřeno (12. 10. 2026, 11:4x–12:0x UTC) |
 |---|---|
-| inventář (před `g3` i po něm) | **BRANY_INVENTAR** |
-| `g3` (**BRANY_G3** bran) | BRANY_G3_VYSLEDEK |
-| `validate-all` (samostatně) | BRANY_VALIDATE |
-| `kontrola-diakritiky.py` | BRANY_DIAKRITIKA |
-| `over-dokumentaci.py` | BRANY_OVERDOK |
-| `over-skilly.py` | BRANY_OVERSKILLY |
-| `kronika-kontrola.py` | BRANY_KRONIKA |
-| `handoff-kontrola-uplnost.py` | BRANY_HANDOFF |
-| `ov-g-neovereno.py` | BRANY_OVG |
+| inventář (před `g3` i po něm) | **10 136 nálezů** (P39: 9848 → **+288** za nová měřidla P40 a H189/H195 testy) |
+| `g3` (**49 bran**, `FORGE_REGISTR` **mimo repo** `E:\Workspaces\_p40-g3-registr2.json`, plné prostředí) | nenulový exit **1**: `mutace B (combat)` → **`exit=2`** (brána HRY, „běžela, ale vzor nic nenašel" — **z orchestry neopravitelná**, stejný stav jako P38/P39) · **deklarovaných 0, NEDEKLAROVANÝCH 0** · bran, které vůbec nezačaly: **0** · `zadání kontrola` → **`exit 0`** · `validate-all (CELEK)` → **`OK`** |
+| `validate-all` (samostatně, po inventáři) | **`exit 0` → `✓ VŠE V POŘÁDKU`** (v něm i `ag-over-cisla` → `exit=0`) |
+| `kontrola-diakritiky.py` | **VŠE OK** — otevřeno **305 z 349** souborů (archivováno 44, chyb 0) |
+| `over-dokumentaci.py` | **64 kontrol, 0 chyb — VŠE OK** |
+| `over-skilly.py` | **VŠE OK** (14 skillů, 0 chyb) |
+| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **55 sessions**, **200 nálezů H** (H196–H200), 208 omylů, 28 odkazů |
+| `handoff-kontrola-uplnost.py` | **83/83** (součást `g3`, `exit=0`) |
+| `ov-g-neovereno.py` | **0 NEOVĚŘENO**, `exit 0` — `[rozsah: 35 návrhů NAxx + 99 nálezů Hxx v 3 zdrojích]` |
+
+> **⚠ PRVNÍ BĚH `g3` V P40 BYL ČERVENÝ — A BYLA TO SKUTEČNÁ VADA MÉ PRÁCE.**
+> g3 hlásil **4 nenulové exity** (`mutace B`, `C2: mutace N1`, `n1-over-inventar`,
+> `validate-all`); příčina byla **jediná**: `_analyza/p40-h189-test.py` měl
+> **český název funkce s diakritikou** (`ukaž`) — `hl-rizika-jazyka.py` to
+> naměřil („z toho IDENTIFIKÁTORY: 1") a spadl, čímž strhl `n1-over-inventar`
+> i `validate-all`. **Opraveno přejmenováním** (`ukaž` → `show`, 28×;
+> `_analyza/p40-m-prejmenuj-identifikatory.py`), inventář přegenerován a **druhý
+> běh `g3` je 1/49** (jen brána HRY). **Nález o ZADÁNÍ delegace:** zadání pro
+> H189/H195 **neobsahovalo pravidlo jazyka** (identifikátory ASCII) — delegovaná
+> práce ho nemohla splnit, protože ho neznala. **Příště: pravidla projektu patří
+> do zadání delegace, ne do hlavy zadavatele.**
 
