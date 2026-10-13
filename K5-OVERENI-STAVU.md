@@ -1,7 +1,9 @@
 # K5 — ověření stavu po K4: živé měření, brány a ČTYŘI KOŘENY červených bran
 
-> **Co tenhle dokument JE:** **záznam o ověření + stav** session K5 (13. 10. 2026).
-> Navazuje na `K4-PILOT-COIN-PICKER.md` (záznam K4) a `K3-ROZDELENI-KONVENCI.md`.
+> **Co tenhle dokument JE:** **záznam o ověření + stav** session K5 (13. 10. 2026)
+> **a záznam o provedení druhé vlny granulí** (§9 — 10 granulí pro tuning orchestra
+> v hře `coin-picker`, commit `e2f5e0a`, zatím nepushnutý). Navazuje na
+> `K4-PILOT-COIN-PICKER.md` (záznam K4) a `K3-ROZDELENI-KONVENCI.md`.
 >
 > **Co NENÍ:** stav projektu (`HANDOFF.md` — ten vlastní P41 a **needitoval jsem ho**),
 > kronika (`KRONIKA-PROJEKTU.md`) ani zadání pro příští session
@@ -9,7 +11,8 @@
 >
 > **Datum spotřeby:** všechno o stavu (commity, běhy, fronta, aktivní hra, červené
 > brány) je měřené **13. 10. 2026 mezi 13:48 a 14:35 UTC** a **musí se přeměřit** —
-> část stavu se změnila **už během téhle session** (§7.1).
+> část stavu se změnila **už během téhle session** (§7.1). Měření druhé vlny (§9)
+> je z **15:0x–15:3x UTC** téhož dne.
 >
 > **Zadání, ze kterého se pracovalo:** `K4-PILOT-COIN-PICKER.md` §4 („Prompt pro
 > další session") — naměřit, pak podle stavu větev A/B, pak brány v předepsaném
@@ -337,3 +340,81 @@ node .forge\node\rozpocet-granuli.mjs --poskytovatel groq --model openai/gpt-oss
 `.tmp\k5-brany-po-dokumentu.txt`, `.tmp\k5-g3-final.txt`,
 `.tmp\k5-g3-b.txt` a `.tmp\k5-g3-c.txt` (dva nezávislé běhy `g3` po opravách,
 shodný verdikt).
+
+---
+
+## 9. Druhá vlna: 10 granulí pro TUNING orchestra (ne pro graf)
+
+> **Co je v tomhle oddílu:** **záznam o provedení** (13. 10. 2026, K5) — co bylo
+> napsané a co se u toho naměřilo. **Není to plán ani zadání**: co z toho platí
+> po prvním běhu, se musí přeměřit.
+> **Kde to je:** hra `E:\Workspaces\coin-picker`, commit **`e2f5e0a`** (dva
+> soubory: `.forge/roadmap.json`, `tests/run_tests.gd`), **zatím NEPUSHNUTÝ** —
+> a to je podstatné, protože conductor čte roadmapu **z `origin/main`**.
+
+**Zadání:** uživatel 13. 10. 2026 — *„Cílem je testovat a doladit orchestru.
+Potřebujeme další hru?“* → odpověď zněla **ne, další hru ne** a uživatel zvolil
+**napsat ~10 granulí pro coin-picker + přeměřit rozpočet na skutečné stropy**.
+
+### 9.1 Co granule cvičí (a co NE)
+
+| Granule | Na co míří (cesta orchestra) |
+|---|---|
+| `sim.progress` | **VELKÝ KONTEXT**: `size_lines` 200 + **všechny sekce konvencí** (4 301 t) + delší zadání. Test hypotézy K4/F11+F13: *když model dostane víc znalosti, klesne počet lidských zásahů.* |
+| `ui.gameover` | **`awaiting_human` (A1/A2)** — `size_lines` 60 proti reálným ~120 řádkům → auto-merge PR pošle k ruční kontrole. Očekává se `awaiting_human`, **NE `done`**, a **žádný spálený pokus**. Záměrný test; cesta se jinak spustit nedá. |
+| `core.wiring2` | **`depends_on` jako kontext**: 5 závislostí → do requestu se přičtou jejich soubory (F5/K4). Největší request vlny. |
+| `world.portal`, `entity.patrol` | **Nejsložitější smlouvy** → přirozený neúspěch → **rotace poskytovatele** a **cooldown `RETRY_HOURS`** (živě ještě neproběhly; opakované pokusy spawneru v K4 pouštěl člověk ručně). |
+| `ui.timer`, `world.trap`, `save.best`, `entity.heart`, `world.door` | **Jmenovatel metriky autonomie** — mají projít napoprvé. `save.best` navíc cvičí `user://` + JSON (konvence 04). |
+
+**Vědomě se NEMĚŘÍ** (a je to zapsané i v roadmapě): `owns` konflikt dvou granul
+na jednom souboru — conductor má `MAX_CONCURRENT=1`, takže zámek souborů se při
+jednom běhu vůbec neuplatní; a watchdog (B3a) se stropem `GRAIN_MAX_RUNS=8`,
+který se spustí, jen když granule selže 3×/8× (to se nedá naplánovat, jen pozorovat).
+
+### 9.2 Přeměřený rozpočet — a je to vidět číslem
+
+| Poskytovatel | Strop | Výsledek brány |
+|---|---|---|
+| **mistral / codestral-latest** | **625 000 t** | **14/14 `REQUEST_FITS`, 0 vad** (8 varování — u experimentálních granul záměrná) |
+| **groq / gpt-oss-120b** | **8 000 t** | **12 `REQUEST_FITS` + 2× `REQUEST_TOO_LARGE`**: `sim.progress` **9 016 t**, `core.wiring2` **14 398 t** |
+
+**To je celý smysl přeměření:** na starém referenčním stropu (8 000 t) by **dvě
+z deseti** naplánovaných granulí **nikdy nemohly běžet** — a orchestra by u nich
+spálila pokus za pokusem. Referenční poskytovatel v roadmapě je proto nově
+**mistral** (a kdo bránu pustí na groqu, dostane u těch dvou `TOO_LARGE` —
+správně).
+
+### 9.3 Testy: hotové kontrakty, spící bloky
+
+Deset nových bloků je v `tests/run_tests.gd` **za podmínkou existence souboru
+granule** (stejný mechanismus jako u K4: kontroly se samy rozsvítí). Naměřeno
+po zápisu: **`[test] 41 kontrol, 0 selhání`** — tj. hra zůstala zelená a nové
+kontroly se přijdou zapnout až s granulemi. Dále zelené: `check-wiring.py`
+(každá funkce je odvolaná), `check-schema.py`, `check-assets.py`, a orchestra
+`kontrola-driftu.mjs` beze změny (1 rozdíl + 2 záměrné).
+
+### 9.4 Metrika autonomie — a její BASELINE (z K4, měřený)
+
+Aby se „doladění“ dalo měřit, musí být vidět dnešní stav. Z běhů `agent.yml`
+(API, 10 běhů) a z K4 F11–F13:
+
+| Metrika | Baseline K4 (4 granule) |
+|---|---|
+| **běhů agenta na granuli** | **10 / 4 = 2,5** (`world.coin` 2, `entity.enemy` 2, `world.spawner` **5**, `core.wiring` **1**) |
+| **selhaných běhů** | **6 z 10 = 60 %** |
+| **lidských zásahů do zadání/konvencí** | **3** (řádek `empty()` do sekce 05; „každou proměnnou deklaruj“; „`level` hledej až v `rozmistni`“) |
+| **granule bez jediného lidského zásahu** | **1 ze 4** (jen `core.wiring`) |
+| **PR sloučené automatem** | **4 ze 4** (u #6/#9/#10 job `Automatické sloučení → success`) |
+
+**Co se po nasazení vlny měří:** stejná tabulka pro 10 nových granul.
+Zajímavé jsou hlavně dvě čísla — **běhů na granuli** (má spadnout pod 2,5)
+a **lidských zásahů** (má spadnout ze 3); u `sim.progress` pak to, jestli velký
+kontext vede na **1 pokus** (hypotéza) nebo ne.
+
+### 9.5 Co sledovat po pushi (konkrétně)
+
+* `GET /queue` — má přibýt **10 nových úloh** (dnes 24 řádků cache: 4 coin + 20 uo-shadows).
+* `GET /status` — u každého běhu **poskytovatel** (rotace) a **pojmenovaná příčina** klasifikátoru.
+* **`ui.gameover` má skončit `awaiting_human`** a **nespálit pokus** — když skončí `done`, znamená to, že se diff vešel do 60 řádků a test nevyšel (taky výsledek, jen jiný).
+* **`sim.progress` (9 016 t) NESMÍ jít na groq** (8 000 t). Když na něj dojde, request se nepošle a **pokus se spálí** — to by byl nález o volbě poskytovatele, ne o modelu.
+* V logu `agent.yml` roste `[test] N kontrol` s každou dospělou granulí (41 → až ~120).
