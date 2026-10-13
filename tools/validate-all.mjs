@@ -81,27 +81,60 @@ test('brána cronu umí spadnout (fixtury: starý tep / chybějící tep / ručn
 const pokusTest = spust(process.execPath, [`${ORCH}/tools/test-cron-pokus.mjs`]);
 test('brána umí rozlišit „trigger nedorazil“ od „tik nedoběhl“ (fixtury pokusu)',
   pokusTest.stav === 0, `exit=${pokusTest.stav}`);
-test('je registrovaná hra', (h.games ?? 0) >= 1, `games=${h.games}`);
+// ⚠ K4 (13. 10. 2026), nález F6: `h.games` je počet AKTIVNÍCH her — a od chvíle,
+// kdy orchestra umí víc her (`POST /game/active`), není „aktivní hra“ totéž co
+// „je co dělat“. Po přepnutí na druhou hru (coin-picker) tahle kontrola hlásila
+// `games=0`, i když registrované hry byly dvě. Ptáme se proto na REGISTR.
+const g = await cond('/games');
+const registrovane = g.games || [];
+test('je registrovaná hra', registrovane.length >= 1, `registrovaných=${registrovane.length}`);
 test('žádná úloha nevisí', (h.running ?? 0) < 10, `running=${h.running}`);
 
 console.log('\n════ B. REGISTR HER ════');
-const g = await cond('/games');
-const hra = (g.games || []).find((x) => x.game_id === 'uo-shadows');
+const hra = registrovane.find((x) => x.game_id === 'uo-shadows');
 test('uo-shadows je registrovaná', !!hra);
-test('je aktivní', hra?.active === 1, `active=${hra?.active}`);
+// „Aktivní“ se ptá na TUTO hru (uo-shadows) jen dokud je jediná — jinak by brána
+// tvrdila, že strom je vadný, když je aktivní jiná hra (přesně to se stalo v K4).
+// Správné tvrzení je: **aspoň jedna** hra je aktivní (jinak orchestra nemá cíl).
+const aktivni = registrovane.filter((x) => x.active === 1).map((x) => x.game_id);
+test('aspoň jedna hra je aktivní', aktivni.length >= 1, `aktivní=${aktivni.join(',') || '(žádná)'}`);
+if (hra?.active === 1) test('uo-shadows je aktivní', true, `aktivní=${aktivni.join(',')}`);
+else console.log(`  INFO  uo-shadows není aktivní (aktivní: ${aktivni.join(',') || '(žádná)'})`
+  + ` – aktivita se netvrdí, zbytek kontrol té hry platí dál`);
 test('míří na správné repo', hra?.repo === GAMEREPO, hra?.repo);
 test('roadmap_file je správný', hra?.roadmap_file === '.forge/roadmap.json', hra?.roadmap_file);
 
 console.log('\n════ C. SOULAD CACHE × SOUBOR ════');
 const rm = await cond('/roadmap');
 const cache = rm.roadmap || [];
+// K4 (F6): cache je SPOLEČNÁ pro všechny hry (`{game}/{grain}`), takže se musí
+// srovnávat se VŠEMI registrovanými hrami, jejichž klon na stanici JE. Hru,
+// kterou lokálně nemáme, z porovnání VYJMEME a VYPÍŠEME to — jinak by její
+// řádky vypadaly jako osiřelé a brána by lhala o zdravém stavu.
+const podleHer = new Map();
+const klonJe = new Set();
+for (const hh of registrovane) {
+  const cesta = `${join(PARENT, '..', hh.game_id)}/.forge/roadmap.json`;
+  if (!existsSync(cesta)) continue;
+  klonJe.add(hh.game_id);
+  for (const x of JSON.parse(readFileSync(cesta, 'utf8')).grains) {
+    podleHer.set(`${hh.game_id}/${x.id}`, hh.game_id);
+  }
+}
 const soubor = JSON.parse(readFileSync(`${GAME}/.forge/roadmap.json`, 'utf8')).grains;
-const idSoubor = new Set(soubor.map((x) => `uo-shadows/${x.id}`));
-const osirele = cache.filter((r) => !idSoubor.has(r.item_id));
-test('cache neobsahuje osiřelé řádky', osirele.length === 0, `osiřelé=${osirele.length}`);
-test('cache není větší než soubor', cache.length <= soubor.length, `cache=${cache.length}, soubor=${soubor.length}`);
+const osirele = cache.filter((r) => {
+  const hraRadku = String(r.item_id || '').split('/')[0];
+  return klonJe.has(hraRadku) && !podleHer.has(r.item_id);
+});
+test('cache neobsahuje osiřelé řádky', osirele.length === 0,
+  `osiřelé=${osirele.length}${osirele.length ? ' (' + osirele.map((x) => x.item_id).join(', ') + ')' : ''}`
+  + ` | hry bez lokálního klonu (nevyjímají se z porovnání): `
+  + `${registrovane.filter((x) => !klonJe.has(x.game_id)).map((x) => x.game_id).join(',') || '(žádná)'}`);
+test('cache není větší než soubory her', cache.length <= podleHer.size,
+  `cache=${cache.length}, soubory=${podleHer.size} za ${klonJe.size} her`);
 const hotove = soubor.filter((x) => x.done).length;
-test('počet hotových granulí je znám', true, `${hotove}/${soubor.length} hotových`);
+test('počet hotových granulí je znám', true,
+  `${hotove}/${soubor.length} hotových u uo-shadows; v cache ${cache.length} řádků za ${klonJe.size} her`);
 
 console.log('\n════ D. KONFIGURACE CONDUCTORA ════');
 const wt = readFileSync(`${ORCH}/conductor/wrangler.toml`, 'utf8');
