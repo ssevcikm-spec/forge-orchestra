@@ -1,15 +1,13 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-12 21:42:06",
-  "bran_celkem": 55,
+  "kdy": "2026-10-13 16:48:09",
+  "bran_celkem": 56,
   "s_nenulovym_exit": [
     "B3b: mutace brány (5 vrat)",
     "B3b: strop na granuli",
-    "C2: mutace N1 (5 běhů)",
-    "escape sekvence (H79, mutace)",
-    "escape sekvence (H79, statická)",
+    "K3: konvence rozdělené na sekce (nic se neztratilo)",
+    "K3: mutace rozdělení konvencí (4 vraty)",
     "mutace B (combat)",
-    "n1-over-inventar",
     "validate-all (CELEK)",
     "zadání kontrola"
   ],
@@ -19,10 +17,7 @@
   "bez_citace": [
     "B3b: mutace brány (5 vrat)",
     "B3b: strop na granuli",
-    "C2: mutace N1 (5 běhů)",
-    "K1/K2/K3: nástroje přípravy (hygiena, rozpočet, klasifikace)",
-    "mutace B (combat)",
-    "otukání: měření stropu poskytovatele"
+    "mutace B (combat)"
   ],
   "neotevrene": [],
   "brany": [
@@ -49,9 +44,9 @@
     },
     {
       "nazev": "C2: mutace N1 (5 běhů)",
-      "exit": 2,
-      "otevrela": "—",
-      "ma_citac": false,
+      "exit": 0,
+      "otevrela": "5 / 0",
+      "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/c2-mutace.py"
     },
     {
@@ -64,7 +59,7 @@
     {
       "nazev": "diakritika (brána)",
       "exit": 0,
-      "otevrela": "10977",
+      "otevrela": "11917",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/kontrola-diakritiky.py"
     },
@@ -92,7 +87,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "881",
+      "otevrela": "889",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
@@ -113,7 +108,7 @@
     {
       "nazev": "over-skilly",
       "exit": 0,
-      "otevrela": "15",
+      "otevrela": "17",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
     },
@@ -280,7 +275,7 @@
     },
     {
       "nazev": "n1-over-inventar",
-      "exit": 2,
+      "exit": 0,
       "otevrela": "0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n1-over-inventar.py"
@@ -309,7 +304,7 @@
     {
       "nazev": "chybějící importy (statická)",
       "exit": 0,
-      "otevrela": "138",
+      "otevrela": "146",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
     },
@@ -322,15 +317,15 @@
     },
     {
       "nazev": "escape sekvence (H79, statická)",
-      "exit": 1,
-      "otevrela": "4",
+      "exit": 0,
+      "otevrela": "0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/h79-escape-sken.py"
     },
     {
       "nazev": "escape sekvence (H79, mutace)",
-      "exit": 1,
-      "otevrela": "18 / 2",
+      "exit": 0,
+      "otevrela": "18 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-h79-escape.py"
     },
@@ -351,7 +346,7 @@
     {
       "nazev": "kompilovatelnost živých .py (H85/NA32)",
       "exit": 0,
-      "otevrela": "7411 / 0",
+      "otevrela": "249 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/n32-kompilovatelnost.py"
     },
@@ -372,28 +367,28 @@
     {
       "nazev": "K1/K2/K3: nástroje přípravy (hygiena, rozpočet, klasifikace)",
       "exit": 0,
-      "otevrela": "—",
-      "ma_citac": false,
+      "otevrela": "51 / 51",
+      "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/repo/.forge/node/priprava.test.mjs"
     },
     {
       "nazev": "otukání: měření stropu poskytovatele",
       "exit": 0,
-      "otevrela": "—",
-      "ma_citac": false,
+      "otevrela": "14 / 14",
+      "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/repo/.forge/node/probe-provider.test.mjs"
     },
     {
       "nazev": "K3: konvence rozdělené na sekce (nic se neztratilo)",
-      "exit": 0,
-      "otevrela": "41 / 0",
+      "exit": 1,
+      "otevrela": "41 / 1",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/_analyza/k3-over-konvence-split.mjs"
     },
     {
       "nazev": "K3: mutace rozdělení konvencí (4 vraty)",
-      "exit": 0,
-      "otevrela": "14 / 14",
+      "exit": 1,
+      "otevrela": "13 / 14",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/k3-mutace-konvence-split.py"
     },
@@ -410,6 +405,13 @@
       "otevrela": "17 / 17",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/k3-mutace-rozpoctu.py"
+    },
+    {
+      "nazev": "K4: forge new (generátor nové hry)",
+      "exit": 0,
+      "otevrela": "22 / 22",
+      "ma_citac": true,
+      "prikaz": "node E:/Workspaces/forge-orchestra/_analyza/test-forge-new.mjs"
     }
   ]
 }

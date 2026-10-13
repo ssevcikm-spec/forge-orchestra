@@ -131,11 +131,11 @@ def zapis_hrace() -> None:
     img = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     obrys = (28, 32, 48, 255)
-    kůže = (232, 190, 150, 255)
+    kuze = (232, 190, 150, 255)
     tunic = (58, 108, 190, 255)
     nohy = (72, 72, 92, 255)
     # hlava (kruh) — horní okraj siluety v y=2
-    d.ellipse([11, 2, 20, 11], fill=kůže, outline=obrys)
+    d.ellipse([11, 2, 20, 11], fill=kuze, outline=obrys)
     # trup
     d.rectangle([11, 11, 20, 22], fill=tunic, outline=obrys)
     # nohy (dvě, bez mezery -> žádná díra uvnitř siluety)
