@@ -378,10 +378,11 @@ je to signál: **tahle granule je na hraně a příští úprava má být rozsek
 
 **Zbývá (stav k 13. 10. 2026, 14:10 UTC):**
 
-3. **`core.wiring`** — poslední granule plánu (háček scény na nové komponenty,
-   `owns: scripts/game.gd`). Conductor ji vydá sám; je to **stresový případ
-   rozpočtu** (7 388 t proti 8 000 na Groqu, 612 t rezerva) — když neprojde, je
-   to nález o rozpočtu, ne o modelu.
+3. ~~**`core.wiring`**~~ ✅ **VYŘEŠENO 13. 10. 2026 13:42 UTC** — conductor granuli
+   **vydal i dokončil sám** (`task 250`, běh `Forge #10`, všechny tři joby
+   `success`, PR #4 automaticky sloučen). Stresový případ rozpočtu (7 388 t proti
+   8 000 na Groqu) **neprošel na strop** — silná granule šla na Mistral (625 000).
+   **Tím je celý plán 4 granul hotový a hra má 41/41 testů.**
 4. **⚠ `uo-shadows` má STARÝ (neplatný) Mistral klíč.** Uživatel Mistral klíč
    regeneroval; hra je zmrazená a neaktivní, ale **až se zapne, každý silný
    běh na Mistralu spadne na 401**. Oprava je stejná jako u Coin-Pickeru
@@ -390,6 +391,28 @@ je to signál: **tahle granule je na hraně a příští úprava má být rozsek
 5. **Dvě měkká varování** v plánu: zadání `entity.enemy` 428 t a `world.spawner`
    454 t proti cíli 400 t. Místa je dost (1 766–2 109 t); je to signál, že
    příští úprava těchto granulí má být **rozseknutí**, ne další věta.
+6. **Nová hra = jeden příkaz:** `node tools/forge-new.mjs --nazev <nazev>
+   --cil E:\Workspaces\<nazev> --kontrola` (K4, `skeleton/` + test 22/22).
+
+---
+
+## 3b. Jak to dopadlo: plán 4 granul je hotový (13. 10. 2026)
+
+| # | Granule | Vydal | PR | Výsledek |
+|---|---|---|---|---|
+| 1 | `world.coin` | ruční pilot (K4) | #1 | ✅ sloučeno, 33/33 testů |
+| 2 | `entity.enemy` | **conductor** (task 248) | #2 | ✅ sloučeno, 37/37 testů (2. pokus, rotace mistral → groq) |
+| 3 | `world.spawner` | **conductor** (task 249) | #3 | ✅ sloučeno (5. pokus, viz F13) |
+| 4 | `core.wiring` | **conductor** (task 250) | #4 | ✅ sloučeno na **1. pokus** |
+
+**Výsledek v repu hry:** `scripts/{coin,enemy,spawner,game,hud,level,player}.gd`,
+**`[test] 41 kontrol, 0 selhání`**, `check-wiring` / `check-schema` / `check-assets`
+vše zelené. Celkem **4 PR sloučené**, tři z nich **bez zásahu člověka**.
+
+**Co bylo potřeba ručně (a je to poučení):** u dvou granul jsem musel opravit
+**zadání** (chybějící kontrakt), aby prošly — ne kód. To je přesně ta práce,
+která patří člověku/plánovači: orchestra umí psát kód, ale **neumí si domyslet,
+co jí v zadání chybí** (F11, F13).
 
 **Další krok (můj, nezávislý na tokenu):**
 
