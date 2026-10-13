@@ -184,6 +184,13 @@ u H79 v K3) — **vyloučené, ale VYKÁZANÉ** vlastním čítačem (0× `.aide
 
 ## 4. PAT pro conductora — přesně jak ho nastavit (K4, 13. 10. 2026)
 
+> **✅ VYŘEŠENO 13. 10. 2026:** uživatel token vytvořil přesně podle tabulky níž
+> (All repositories + Actions RW + Contents R + Pull requests R + Metadata R),
+> jen s **„No expiration"** místo 1 roku — což je obhajitelné, ale znamená to,
+> že **nikdo nedostane upozornění, až přestane platit**; proto je datum vzniku
+> (13. 10. 2026) zapsané tady. Hodnota šla do Cloudflare jako `GITHUB_TOKEN`
+> a conductor od té chvíle **vydává úlohy** (F9).
+
 **Proč nový:** conductor má v Cloudflare tajemství **`GITHUB_TOKEN`** (ověřeno:
 `wrangler secret list`), ale jeho hodnota se **nedá přečíst** (Cloudflare ji
 nevrací) — takže se nedá zjistit, který token to je. Naměřeno, co ten token umí:
@@ -234,17 +241,155 @@ node tools\aktivuj-hru.mjs --hra coin-picker        # aktivuje a sleduje, co con
 
 ---
 
+## 2b. K4 pokračování: conductor vydává úlohy + co naměřily granule
+
+**Datum:** 13. 10. 2026, 13:05–13:55 UTC. **Co z toho platí:** čísla o stropem
+poskytovatelů (mění se s klíči) a o frontě (mění se každým tikem) — přeměřit.
+Nálezy F9–F11 platí dál.
+
+### F9 — Nový PAT conductora funguje (conductor skutečně vydává úlohy)
+
+Po vložení nového fine-grained PAT do Cloudflare (`GITHUB_TOKEN`) conductor
+**sám** vydal dvě granule (ne ruční dispatch jako v pilotu):
+
+```
+#491 running  task=248  "Nepřítel, který jde po mapě a dá se zabít"   → běh Forge #248
+#492 running  task=249  "Rozmisťovač mincí po mapě"                   → běh Forge #249
+```
+
+a `world.coin` (task 247) **přeskočil** — je `done: true` ✓ (doloženo i kódem
+`index.ts:1130`). Tím je splněno i poslední kritérium pilotu: **úlohu vydává
+conductor, ne člověk.**
+
+**Retry politika conductora** (naměřeno z `conductor/wrangler.toml`): selhaná
+granule se zkouší znovu za **`RETRY_HOURS=3`**, nejvýš **`MAX_ATTEMPTS=5`**;
+watchdog řeší `GRAIN_MAX_RUNS=8`. To znamená, že **oprava zadání má 3 hodiny
+na to, aby byla v repu dřív, než přijde další pokus** — a že plané tikání
+nespálí pokusy tak rychle, jak jsem se obával (403 je spálilo jen proto, že
+`dispatch_failed` se počítá okamžitě).
+
+### F10 — ⚠ STROP 8 000 TOKENŮ JE VLASTNOST GROQU, NE ORCHESTRY
+
+Celé K3 (rozdělení konvencí, hygiena zadání, „co se nevejde, se neposílá")
+vzniklo pod stropem **8 000 t**. Naměřeno 13. 10. 2026 **živými dotazy**:
+
+| Poskytovatel | Model | Strop/min (měřený) | Denní | Poznámka |
+|---|---|---|---|---|
+| **mistral** | `codestral-latest` | **625 000 t** | v hlavičkách NENÍ | nový klíč; `znaku_na_token` 3,99; 80 000 znaků prošlo |
+| **cerebras** | `gpt-oss-120b` | **30 000 t** | 1 000 000 t, 2 400 req | nový klíč **funguje** (dřívější „free tier zrušen" platilo pro starý stav) |
+| groq | `openai/gpt-oss-120b` | 8 000 t | 1 000 req | pilotní strop z K3 |
+
+**Co to mění:** stejná roadmapa má na Mistralu **~618 000 t rezervy** u každé
+granule místo stovek. Strop 8 000 tedy **není vlastnost orchestra** — je to
+vlastnost jednoho (nejmenšího) zdroje a orchestra si smí vybrat jiný.
+⚠ **Neověřeno:** denní/měsíční kvóta Mistralu v hlavičkách není; 625 000 je za
+**minutu**. Kdyby granule začaly padat na 429, je to tohle.
+
+**Zapsáno do `providers.json`** (obě kopie, hash shodný): `limits.tpm` pro
+mistral 625 000 a cerebras 30 000 **s datem a postupem** (`_mereno`, `_proc`,
+`_neovereno`). Předtím se u nich strop **hádal (32 000)** — brána by pustila
+request, který by poskytovatel odmítl. Ověřeno po opravě:
+`STROP (mistral/codestral-latest, mereno): 625000`.
+
+### F11 — Dvě granule spadly na parse — a obě proto, že jim CHYBĚLA ZNALOST
+
+| Granule | Poskytovatel | Request | Chyba | Co chybělo |
+|---|---|---|---|---|
+| `entity.enemy` | **mistral** (silná) | 5 829 t | `Identifier "collision_shape" not declared` | v zadání nebylo „každou proměnnou deklaruj" — model použil proměnnou, kterou nikde nedeklaroval |
+| `world.spawner` | groq (`any`) | 5 794 t | `Cannot find member "empty" in base "Array[Node]"` | sekce `05` **neměla řádek** `empty()` → `is_empty()` (model psal Godot 3) |
+
+**Ani jeden případ nebyl „model je hloupý"** — v obou se poslalo málo znalosti.
+Náprava (obojí v repu, ověřeno bránou):
+
+* `CONVENTIONS/05-godot3-konstanty.md`: přidán řádek `array.empty()` /
+  `string.empty()` / `dict.empty()` → `.is_empty()` + naměřený případ.
+  Sekce se tím nafoukla na **938 t** a `01+05` přelezlo strop **1 200 t** →
+  sekce se musela **zkrátit** (938 → 788 t; ukázkový blok a Naměřeno
+  zhuštěny). **Poučení: přidat znalost není zadarmo — má cenu v tokenech
+  a strop sekce je tvrdý.**
+* zadání `entity.enemy`: „KAŽDOU proměnnou deklaruj (`var kolize: CollisionShape2D
+  = CollisionShape2D.new()`)".
+
+Po opravě: **4 granule REQUEST_FITS, 0 nad 1 200 t konvencí, 1 varování**
+(zadání `entity.enemy` 428 t proti cíli 400 t — měkký cíl, místa je dost).
+
+### F12 — ✅ ORCHESTRA VYROBILA KÓD SAMA (celý řetěz, bez člověka)
+
+Granule `entity.enemy` (task 248), kterou **vydal conductor**, došla až do `main`:
+
+```
+běh Forge #248 (run_key 6018d013) → agent: [test] 37 kontrol, 0 selhání, klasifikace: OK
+job Otevři pull request: success   → PR #2
+job Automatické sloučení: success  → MERGED → scripts/enemy.gd v main (88a928b)
+```
+
+**Co to dokazuje:** conductor naplánoval → vydal → workflow vybral poskytovatele →
+brána rozpočtu pustila → agent napsal kód → **parse brána + testy (37/37)** →
+PR → CI → auto-merge. Člověk do toho nezasáhl (jen jsem dispatch jednou
+zopakoval ručně, když první pokus spadl — viz F11).
+
+**A jedna věc, která se ověřila mimochodem:** první pokus o tuhle granuli šel na
+**mistral**, spadl — a další dispatch (K2 rotace) zvolil **groq**; třetí běh
+spawneru zvolil **cerebras**. **Rotace poskytovatelů po neúspěchu funguje** —
+to je kritérium, které pilot v K4 nechal „neověřeno" (úspěšný běh ji nevyvolá).
+Naměřeno: třemi běhy prošli **mistral → groq → cerebras**.
+
+### F13 — Když model znalost DOSTANE a nepoužije ji: `world.spawner` (5 pokusů)
+
+Granule `world.spawner` (task 249) je **nejtěžší** v plánu (100 řádků, 5 členů,
+staví minci přes `set_script`, rozmisťuje po mapě) a spadla **čtyřikrát**,
+na třech různých poskytovatelích — **pátý pokus prošel**:
+
+| pokus | poskytovatel | kde spadl | chyba | bylo to v konvencích? |
+|---|---|---|---|---|
+| #249 (conductor) | groq | parse | `Cannot find member "empty"` | ❌ **nebylo** (sekce 05 ten řádek neměla) → doplněno |
+| #5 (ruční) | mistral | parse | `Cannot infer the type of "walkable_cells"` | ✅ **bylo** (`01-typy` to má i s příkladem) |
+| #7 (ruční) | cerebras | parse | `Cannot find member "empty"` | ✅ **bylo** (řádek doplněn a ověřen v `origin/main`) |
+| #8 (ruční) | mistral | **testy** | `rozmistni(3) vrátí 3 pozice (vrátil 0)` | ❌ **nebylo** — kontrakt neříkal, KDE hledat uzel `level` |
+| **#9 (ruční)** | groq | — | **OK → PR #3 → MERGED** | zadání dostalo „hledej uzel až v `rozmistni`, ne v `_init()`" |
+
+**Co to naučilo (tři nezávislé důkazy téhož):**
+1. **Konvence jako `--read` soubor nestačí** — model si ji přečte a stejně
+   napíše Godot 3 (`empty()`, `connect(…, self, …)`). Co zabralo, byla **řádka
+   v zadání** (u `world.coin` i tady).
+2. **Chybějící znalost vs. nepoužitá znalost jsou různé vady.** `empty()` v sekci
+   nebylo (doplnit stačilo); `:=` inference v `01-typy` **bylo** a model ho
+   nepoužil. První se opravuje dokumentací, druhé zadáním — a **plést si je
+   znamená přidávat text, který nikdo nečte.**
+3. **Kontrakt musí říct i KDE.** `rozmistni` vracelo prázdné pole, protože model
+   hledal uzel `level` v `_init()`, kde ještě není ve stromu (`get_tree()` je
+   `null`). Test to odhalil jako „vrátil 0" — a příčina byla v **zadání**, ne
+   v modelu.
+
+**Cena:** zadání spawneru je teď 454 t (cíl 400 t) — tři kontrakty se do
+„krátkého zadání" nevešly. Je to **varování, ne vada** (místa je 1 766 t), ale
+je to signál: **tahle granule je na hraně a příští úprava má být rozseknutí.**
+
+---
+
 ## 3. Co je BLOKOVANÉ a co je další krok
 
 **Blokované (na uživateli, jedno kliknutí):**
 
-1. **Token conductora → `Actions: Read and write`** (fine-grained PAT, který
-   conductor používá jako `GITHUB_TOKEN` v Cloudflare). Bez toho conductor
-   granule naplánuje, ale nevydá.
-2. **Hra je DEAKTIVOVANÁ** (`active=0`) — po opravě tokenu ji aktivovat:
-   `POST /game/active {"game_id":"coin-picker","active":true}`.
-   Pak conductor vydá zbylé tři granule (`entity.enemy`, `world.spawner`,
-   `core.wiring`) sám; `world.coin` je označená `done: true`, takže ji přeskočí.
+1. ~~**Token conductora → `Actions: Read and write`**~~ ✅ **VYŘEŠENO** — token
+   vložen 13. 10. 2026, conductor vydává úlohy (F9).
+2. ~~**Hra je DEAKTIVOVANÁ**~~ ✅ **VYŘEŠENO** — `coin-picker` je `active=1`,
+   `uo-shadows` zůstává `active=0` (podle schválení).
+
+**Zbývá (stav k 13. 10. 2026, 14:10 UTC):**
+
+3. **`core.wiring`** — poslední granule plánu (háček scény na nové komponenty,
+   `owns: scripts/game.gd`). Conductor ji vydá sám; je to **stresový případ
+   rozpočtu** (7 388 t proti 8 000 na Groqu, 612 t rezerva) — když neprojde, je
+   to nález o rozpočtu, ne o modelu.
+4. **⚠ `uo-shadows` má STARÝ (neplatný) Mistral klíč.** Uživatel Mistral klíč
+   regeneroval; hra je zmrazená a neaktivní, ale **až se zapne, každý silný
+   běh na Mistralu spadne na 401**. Oprava je stejná jako u Coin-Pickeru
+   (sealed box do secretu toho repa) — **patří uživateli rozhodnout**, protože
+   je to zápis do zmrazené hry.
+5. **Dvě měkká varování** v plánu: zadání `entity.enemy` 428 t a `world.spawner`
+   454 t proti cíli 400 t. Místa je dost (1 766–2 109 t); je to signál, že
+   příští úprava těchto granulí má být **rozseknutí**, ne další věta.
 
 **Další krok (můj, nezávislý na tokenu):**
 
