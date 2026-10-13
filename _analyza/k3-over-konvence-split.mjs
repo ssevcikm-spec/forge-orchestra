@@ -33,6 +33,7 @@ import { spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ZNAKU_NA_TOKEN } from '../repo/.forge/node/prompt-hygiene.mjs';
+import { revizePredRozdelenim } from './_revize-konvenci.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ORCH = dirname(__dir);
@@ -49,7 +50,11 @@ function arg(n, d = '') {
   const i = process.argv.indexOf(n);
   return i >= 0 ? process.argv[i + 1] : d;
 }
-const REV = arg('--rev', 'HEAD');
+// ⚠ VÝCHOZÍ ZÁKLAD NENÍ `HEAD` (naměřeno 13. 10. 2026 hned po prvním commitu
+// K3/K4): po commitu je v `HEAD` už ROZCESTNÍK, takže brána srovnávala index
+// s indexem → „0 bloků originálu, 14 chyb“ a vypadalo to jako ztracený text.
+// Revizi před rozdělením hledá společný helper (viz `_revize-konvenci.mjs`).
+const REV = arg('--rev') || revizePredRozdelenim();
 const tokeny = (text) => Math.ceil(text.length / ZNAKU_NA_TOKEN);
 
 let kontrol = 0;

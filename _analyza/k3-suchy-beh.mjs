@@ -26,6 +26,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, copyFileSyn
 import { spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { celyDokumentPredRozdelenim } from './_revize-konvenci.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ORCH = dirname(__dir);
@@ -76,8 +77,11 @@ kopiruj(join(REPO, 'CONVENTIONS'), join(SCRATCH, 'CONVENTIONS'));
 copyFileSync(join(REPO, 'CONVENTIONS.md'), join(SCRATCH, 'CONVENTIONS.md'));
 copyFileSync(join(REPO, '.forge', 'roadmap.pilot.json'), join(SCRATCH, '.forge', 'roadmap.json'));
 // CELY dokument PRED K3 — z gitu, ne z pracovniho stromu (ten uz je rozdelany).
-const orig = spawnSync('git', ['-C', ORCH, 'show', 'HEAD:repo/CONVENTIONS.md'], { encoding: 'utf8' });
-if (orig.status !== 0) { console.error('CHYBA: nejde precist original CONVENTIONS.md z gitu'); process.exit(2); }
+// CELY dokument PRED K3 — z revize před rozdělením, NE z `HEAD` (po commitu
+// K3/K4 je v HEAD rozcestník; řeší společný helper `_revize-konvenci.mjs`).
+const origText = celyDokumentPredRozdelenim();
+if (!origText) { console.error('CHYBA: original CONVENTIONS.md z gitu nejde precist'); process.exit(2); }
+const orig = { stdout: origText, status: 0 };
 writeFileSync(join(SCRATCH, 'CONVENTIONS.cely.md'), orig.stdout, 'utf8');
 // Realne dokumenty hry pro protizkousku P2 (jen cteme ze zmrazene hry).
 for (const d of ['TDD.md', 'ARCHITEKTURA.md']) {

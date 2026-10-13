@@ -36,6 +36,7 @@ import { fileURLToPath } from 'node:url';
 import { sanitizuj } from '../repo/.forge/node/prompt-hygiene.mjs';
 import { ZNAKU_NA_TOKEN } from '../repo/.forge/node/prompt-hygiene.mjs';
 import { rozpocet } from '../repo/.forge/node/request-budget.mjs';
+import { celyDokumentPredRozdelenim } from './_revize-konvenci.mjs';
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const ORCH = dirname(__dir);
@@ -70,8 +71,12 @@ function kopiruj(odkud, kam) {
 kopiruj(join(REPO, '.forge'), join(SCRATCH, '.forge'));
 kopiruj(join(REPO, 'CONVENTIONS'), join(SCRATCH, 'CONVENTIONS'));
 copyFileSync(join(REPO, 'CONVENTIONS.md'), join(SCRATCH, 'CONVENTIONS.md'));
-const orig = spawnSync('git', ['-C', ORCH, 'show', 'HEAD:repo/CONVENTIONS.md'], { encoding: 'utf8' });
-if (orig.status !== 0) { console.error('CHYBA: original CONVENTIONS.md z gitu nejde přečíst'); process.exit(2); }
+// POZOR: bere se revize PŘED rozdělením konvencí, ne `HEAD` — po commitu K3/K4
+// je v HEAD už rozcestník a měření by jako „starý stav“ četlo 836 t místo
+// celého dokumentu (3 802 t). Řeší společný helper.
+const origText = celyDokumentPredRozdelenim();
+if (!origText) { console.error('CHYBA: původní CONVENTIONS.md z gitu nejde přečíst'); process.exit(2); }
+const orig = { stdout: origText };
 writeFileSync(join(SCRATCH, 'CONVENTIONS.cely.md'), orig.stdout, 'utf8');
 // Realne soubory zmrazene hry (jen cteme) — pro behy C a D.
 for (const [z, c] of [['scripts/game.gd', 'scripts/monolit-real.gd'], ['scripts/registry.gd', 'scripts/registry.gd'],

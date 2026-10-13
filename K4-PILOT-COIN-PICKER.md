@@ -140,6 +140,28 @@ conductor ji přeskočí. Doloženo kódem: `conductor/src/index.ts:1130`
 (`if (i.done === true …) continue;`) a `:1150` (`i.done !== true` ve filtru
 připravených).
 
+### F7 — Brána, která čte `HEAD`, po commitu tiše měří JINÝ dokument
+
+Tři nástroje K3 berou „původní `CONVENTIONS.md` před rozdělením“ z **`HEAD`**.
+Dokud byly změny jen v pracovním stromě, bylo to správně. **Po commitu K3/K4**
+je v `HEAD` rozcestník (836 t) místo celého dokumentu (3 802 t) — a nástroje
+naměřily něco jiného, než si myslely:
+
+* brána rozdělení: `27 kontrol, 14 chyb, 0 bloků originálu` (index vs index),
+* měření aiderem by jako „starý stav“ četlo rozcestník → **rozdíl A/B by zmizel**.
+
+**Náprava:** společný helper `_analyza/_revize-konvenci.mjs` hledá revizi
+**těsně před rozdělením** (commit, který přidal `CONVENTIONS/01-typy.md`,
+a jeho rodič). Ověřeno reprodukcí: po opravě vracejí všechny tři nástroje
+**tatáž čísla jako před commitem** (originál 3 802 t; A 4 917 / B 7 879 /
+C 37 173 / D 13 853 t; brána 41/0; suchý běh 14/0).
+
+**Poučení, které platí obecně:** „změř to před commitem a po commitu je to
+hotové“ je past — **měřidlo ukotvené na `HEAD` měří po commitu jiný stav**.
+Kdo takovou bránu píše, ať si ukotvení **pojmenuje a ověří** (tady: `--rev`
+a dynamické hledání základu), nebo ať se ptá na **obsah** (blok v souboru),
+ne na revizi.
+
 ---
 
 ## 3. Co je BLOKOVANÉ a co je další krok
