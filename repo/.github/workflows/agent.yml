@@ -173,6 +173,9 @@ jobs:
           # SPRÁVNĚ odmítl editovat a odpověděl „Please add the file's content to
           # the chat". Udělaly to VŠECHNY modely (mistral 17–36 tokenů,
           # cerebras 179–204) a běh skončil jako „agent nic nezměnil".
+          # (K3, 12. 10. 2026: `--read CONVENTIONS.md` už tu není — konvence jdou
+          # z deklarace granule, viz blok výš. Historii nechávám, je to důvod,
+          # proč soubory k editaci NESMÍ chybět v chatu.)
           #
           # Vysvětluje to i vzorec úspěch/neúspěch: granule, které soubor jen
           # VYTVÁŘELY, prošly – na nový soubor není potřeba SEARCH blok. Granule,
@@ -230,10 +233,36 @@ jobs:
           # tedy zadání NIKDY nedozvěděl. Hygiena cesty nahradí a vypíše úsporu.
           ZADANI=$(node .forge/node/prompt-hygiene.mjs "$FORGE_PROMPT")
 
+          # ── K3 (12. 10. 2026): KONVENCE JEN PODLE DEKLARACE GRANULE ────────
+          # PROČ: do K3 tu bylo `--read CONVENTIONS.md` v KAŽDÉM běhu. Celý
+          # dokument má ~3 900 t a strop Groqu zdarma je 8 000 t/min, takže se
+          # request vůbec neposlal (naměřeno 12. 10. 2026: hygienické zadání M0
+          # mělo 14 097 t a všech 20 běhů dne selhalo). Konvence se proto
+          # rozdělily na sekce (`CONVENTIONS/*.md`) a GRANULE DEKLARUJE, které
+          # potřebuje: `"konvence": ["01-typy", "06-soubor-granule"]` v roadmapě.
+          # „Co se má poslat“ je vlastnost granule — hádat to podle klíčových
+          # slov v zadání by bylo věštění (a věštění se nedaří měřit).
+          # ROZPOČET DOSTÁVÁ TOTÉŽ přes `--konvence` — jinak by počítal request
+          # bez konvencí a brána by byla slepá přesně tam, kde rozhoduje.
+          KONVENCE=$(node .forge/files-to-edit.mjs --grain "$FORGE_GRAIN" --konvence || true)
+          ARG_KONVENCE=""
+          if [ -n "$KONVENCE" ]; then
+            echo "Sekce konvencí (agent je dostane jako --read):"
+            echo "$KONVENCE" | sed 's/^/  /'
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              # shellcheck disable=SC2086
+              ARG_KONVENCE="$ARG_KONVENCE --read $f"
+            done <<< "$KONVENCE"
+          else
+            echo "::warning::granule nedeklaruje konvence a v repu není CONVENTIONS.md – agent dostane jen zadání"
+          fi
+
           # Rozpočet se ptá PŘED voláním: nevejde-li se, běh skončí pojmenovaně
           # a nespálí pokus ani kvótu. `TRIDA` jde do prostředí pro report.
           if ! node .forge/node/request-budget.mjs \
                  --zadani-text "$ZADANI" --soubory "$DO_EDITACE" --cteni "$CIT_DEPS" \
+                 --konvence "$KONVENCE" \
                  --poskytovatel "$FORGE_PROVIDER" --model "$FORGE_MODEL"; then
             echo "REQUEST_TOO_LARGE: rozpocet requestu prevysil strop poskytovatele" >> agent.log
             echo "TRIDA=REQUEST_TOO_LARGE" >> "$GITHUB_ENV"
@@ -248,7 +277,7 @@ jobs:
             casovy_kod=0
             timeout 300 aider \
               --model "openai/${FORGE_MODEL}" \
-              --read CONVENTIONS.md \
+              $ARG_KONVENCE \
               $ARG_CTENI \
               $ARG_SOUBORY \
               --map-tokens 0 \
@@ -291,6 +320,7 @@ jobs:
                   nacti_poskytovatele
                   if node .forge/node/request-budget.mjs \
                         --zadani-text "$ZADANI" --soubory "$DO_EDITACE" --cteni "$CIT_DEPS" \
+                        --konvence "$KONVENCE" \
                         --poskytovatel "$FORGE_PROVIDER" --model "$FORGE_MODEL"; then
                     spust_agenta
                   else
@@ -350,16 +380,18 @@ jobs:
             # Naměřeno 1. 10. 2026 (běh #241): skutečná příčina selhání
             # (ALIGN_LEFT neexistuje v Godotu 4) se v tom šumu ztratila.
             # Kódové ukázky proto BEZ apostrofů – jen slovy a v uvozovkách.
-            echo "TIP: nejčastější příčiny (CONVENTIONS.md §1c/§1d/§1f):"
-            echo "     - File/json místo FileAccess/JSON"
+            echo "TIP: nejčastější příčiny (sekce konvencí dostane agent jako --read):"
+            echo "     - File/json místo FileAccess/JSON (CONVENTIONS/04-soubory-json.md §1c)"
             echo "     - kolize jmen s enginem: class_name Item, funkce get()"
+            echo "       (CONVENTIONS/02-reservovana-jmena.md §1d, 03-kolize-clenu.md §1f)"
             echo "     - NIKDY nedeklaruj promenne position/scale/rotation/visible/name"
             echo "       (členové Area2D/Node2D → 'Member redefined')"
             echo "     - prirazeni z load(...) nebo z uzlu potrebuje VYJADRENY typ"
             echo "       ('var x: Node = ...'), jinak 'Cannot infer the type of x'"
+            echo "       (CONVENTIONS/01-typy.md §1)"
             echo "     - 'Identifier X not declared' bývá jen NÁSLEDEK předchozích"
             echo "       chyb v témž souboru – oprav první z nich."
-            echo "     - konstanty z Godotu 3 NEEXISTUJÍ (CONVENTIONS.md §1h):"
+            echo "     - konstanty z Godotu 3 NEEXISTUJÍ (CONVENTIONS/05-godot3-konstanty.md §1h):"
             echo "       ALIGN_LEFT -> HORIZONTAL_ALIGNMENT_LEFT, VALIGN_TOP ->"
             echo "       VERTICAL_ALIGNMENT_TOP (naměřeno 1. 10. 2026, běh #241)."
             exit 1
@@ -533,7 +565,12 @@ jobs:
         # nedá rotovat poskytovatele ani odpustit pokus granulí.
         if: always() && steps.verdict.outputs.status != 'success'
         env:
-          FORGE_URL: ${{ secrets.FORGE_CONDUCTOR_URL }}
+          # K4 (12. 10. 2026): URL se bere i z PROMĚNNÝCH — není to tajemství
+          # (je to adresa služby, kterou stejně vidí každý běh) a díky tomu ji
+          # jde nové hře zapsat přes API bez sealed-box crypto. Hra pak potřebuje
+          # jen DVA secrety: `FORGE_PAT` a `FORGE_WEBHOOK_SECRET`.
+          # Tajemství tajemstvím zůstává: `FORGE_SECRET` se z proměnných NEbere.
+          FORGE_URL: ${{ secrets.FORGE_CONDUCTOR_URL || vars.FORGE_CONDUCTOR_URL }}
           FORGE_SECRET: ${{ secrets.FORGE_WEBHOOK_SECRET }}
           FORGE_RUN_KEY: ${{ inputs.run_key }}
         run: |
@@ -618,7 +655,8 @@ jobs:
         # otevřený a conductor si ho najde sám přes GitHub API (polling).
         continue-on-error: true
         env:
-          FORGE_URL: ${{ secrets.FORGE_CONDUCTOR_URL }}
+          # K4: URL i z proměnných (viz komentář u kroku „Report při selhání“).
+          FORGE_URL: ${{ secrets.FORGE_CONDUCTOR_URL || vars.FORGE_CONDUCTOR_URL }}
           FORGE_SECRET: ${{ secrets.FORGE_WEBHOOK_SECRET }}
           FORGE_RUN_KEY: ${{ inputs.run_key }}
         run: node .forge/report.mjs success "PR vytvoren" "${{ steps.pr.outputs.pull-request-url }}"

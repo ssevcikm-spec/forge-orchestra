@@ -137,12 +137,43 @@ function strukturaWorkflow(text) {
   return JSON.stringify({ vstupy, kroky, envKlice }, null, 1);
 }
 
+// ⚠ ZÁMĚRNĚ ROZDÍLNÉ (K3, 12. 10. 2026) — a proč to NENÍ tichá výjimka:
+// `--sync` kopíruje šablona → hra. U dvou souborů níž by to ale UDĚLALO ŠKODU,
+// takže rozdíl NENÍ vada, kterou má někdo opravit:
+//
+//   CONVENTIONS.md — od K3 je v šabloně ROZCESTNÍK (836 t) k sekcím
+//     v `CONVENTIONS/`; hra má pořád CELÝ dokument (3 893 t), protože její
+//     workflow ho čte přes `--read CONVENTIONS.md`. Kdyby ho `--sync` přepsal,
+//     hra by přišla o všechny poučky a dostala jen rozcestník — tichá ztráta
+//     znalosti. Navíc je `CONVENTIONS.md` podle rozhodnutí uživatele (O6/P27,
+//     8. 10. 2026: „souhlasím“) soubor HRY, ne orchestry — jeho směr je
+//     hra → šablona (`tools/sync-sablona-hra.py`), ne naopak.
+//
+//   .forge/files-to-edit.mjs — šablona má nový režim `--konvence`; dokud hra
+//     používá STARÝ workflow (bez `--konvence`), je ten režim pro ni mrtvý kód.
+//     Podmínka výjimky je proto MĚŘENÁ, ne pocitová: platí, jen dokud hra
+//     v `.github/workflows/agent.yml` nemá `--konvence`. Jakmile ho tam dá
+//     (tj. převezme K3), výjimka zmizí a soubor se musí synchronizovat.
+const ZAMERNE_ROZDILNE = [
+  {
+    soubor: 'CONVENTIONS.md',
+    proc: 'patří HŘE (rozhodnutí uživatele O6/P27) a hra je ZMRAZENÁ; sync by jí vzal celý dokument a nechal jen rozcestník',
+    plati: () => true,
+  },
+  {
+    soubor: '.forge/files-to-edit.mjs',
+    proc: 'hra má starý workflow bez `--konvence` (režim je pro ni mrtvý kód); sync až s ním',
+    plati: (obsahHry) => !obsahHry.includes('--konvence'),
+  },
+];
+
 const sync = process.argv.includes('--sync');
 const normalizuj = (cesta) =>
   readFileSync(cesta, 'utf8').replace(/\r\n/g, '\n'); // klon má CRLF, šablona LF
 
 let rozdilu = 0;
 let zkontrolovano = 0;
+let zamerne = 0;
 
 for (const hra of HRY) {
   const cil = HRA;
@@ -167,10 +198,21 @@ for (const hra of HRY) {
       : normalizuj(a) === normalizuj(b);
     if (stejne) {
       console.log(`  OK   ${f}${jeYaml(f) ? ' (struktura)' : ''}`);
-    } else {
-      rozdilu++;
-      console.log(`  ROZDÍL ${f}`);
-      if (jeYaml(f)) {
+      continue;
+    }
+    // Záměrný rozdíl? Podmínka se MĚŘÍ (ne „je to tak nějak v pořádku“)
+    // a vypisuje se i důvod — potlačený rozdíl bez důvodu je slepé místo.
+    const vynimka = ZAMERNE_ROZDILNE.find((z) => z.soubor === f);
+    if (vynimka && vynimka.plati(normalizuj(b))) {
+      zamerne++;
+      console.log(`  ROZDÍL ZÁMĚRNÝ ${f}`);
+      console.log(`    (${vynimka.proc})`);
+      console.log(`    → needituje se a NESYNCUJE: ${sync ? 'přeskočeno' : 'sync by uškodil'}`);
+      continue;
+    }
+    rozdilu++;
+    console.log(`  ROZDÍL ${f}`);
+    if (jeYaml(f)) {
         // Ukaž, co konkrétně se liší – ať je vidět, jestli jde o práci, nebo šum.
         const sa = JSON.parse(strukturaWorkflow(normalizuj(a)));
         const sb = JSON.parse(strukturaWorkflow(normalizuj(b)));
@@ -197,12 +239,12 @@ for (const hra of HRY) {
         }
       }
       if (sync) { copyFileSync(a, b); console.log(`    → přepsáno šablonou`); }
-    }
   }
 }
 
-console.log(`\nZkontrolováno souborů: ${zkontrolovano}, rozdílů: ${rozdilu}`);
+console.log(`\nZkontrolováno souborů: ${zkontrolovano}, rozdílů: ${rozdilu}, záměrných: ${zamerne}`);
 if (rozdilu && !sync) {
   console.log('Spusť s --sync pro sjednocení (šablona → hra), pak zkontroluj git diff.');
+  console.log('(Záměrné rozdíly se NESYNCUJÍ — viz výpis výš. `--sync` je přeskočí.)');
   process.exitCode = 1;
 }

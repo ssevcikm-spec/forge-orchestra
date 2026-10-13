@@ -401,6 +401,47 @@ BRANY = [
     ("g3 klasifikátor podle chování (H87/NA33)",
      ["python", "<ANALYZA>/test-h87-klasifikator.py"],
      r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
+    # ═══ PŘIDÁNO 12. 10. 2026 (K3: kontext se musí vejít do stropu) ═══════════
+    # PROČ: K1/K2 postavily hygiena zadání, rozpočet requestu a klasifikátor —
+    # a JEJICH TESTY NEBYLY V TOMHLE SEZNAMU. Naměřeno 12. 10. 2026: sada
+    # `priprava.test.mjs` byla **31/32** (jedna kontrola červená) a `g3` to
+    # neviděl, protože ji vůbec nespouštěl — přesně past „brána, která
+    # neproběhne, není brána". Oba testy se proto registrují tady.
+    ("K1/K2/K3: nástroje přípravy (hygiena, rozpočet, klasifikace)",
+     ["node", "<FORGE>/node/priprava.test.mjs"],
+     # POZOR: `priprava.test.mjs` tiskne "VYSLEDEK" BEZ diakritiky (tak ho
+     # napsala K1). Vzor s "VÝSLEDEK" by NIKDY nesedl — a g3 by u zelené brány
+     # vypsal "vzor nic nenašel", tedy „nevíme, co změřila" (naměřeno 12. 10.
+     # 2026 při prvním zápisu do tohohle seznamu). Vzor se musí opsat z VÝSTUPU,
+     # ne z toho, jak by slovo mělo vypadat.
+     r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
+    ("otukání: měření stropu poskytovatele",
+     ["node", "<FORGE>/node/probe-provider.test.mjs"],
+     r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
+    # K3 rozdělil `CONVENTIONS.md` (3 893 t, tedy polovina stropu Groqu) na sekce
+    # <= 1 200 t. Brána porovnává KAŽDÝ blok originálu (z GITU, ne z pracovního
+    # stromu) proti sekcím — ztráta textu při přesunu se jinak nepozná, protože
+    # nikdo nečte nový dokument proti starému.
+    ("K3: konvence rozdělené na sekce (nic se neztratilo)",
+     ["node", "<ANALYZA>/k3-over-konvence-split.mjs"],
+     r"ZMĚŘENO:\s*(\d+) kontrol, (\d+) chyb"),
+    ("K3: mutace rozdělení konvencí (4 vraty)",
+     ["python", "<ANALYZA>/k3-mutace-konvence-split.py"],
+     r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
+    # Suchý běh pouští PRESNE ty příkazy, které pouští `agent.yml`, a k tomu dvě
+    # protizkoušky (nafouknutá deklarace a cesta v zadání) — bez nich by „všechno
+    # se vejde" mohlo být hradlo, které nemá jak selhat.
+    ("K3: suchý běh workflow + protizkouška",
+     ["node", "<ANALYZA>/k3-suchy-beh.mjs"],
+     r"ZMĚŘENO:\s*(\d+) kontrol, (\d+) chyb"),
+    ("K3: mutace rozpočtu a deklarací (5 vrat)",
+     ["python", "<ANALYZA>/k3-mutace-rozpoctu.py"],
+     r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
+    # POZNÁMKA: `_analyza/k3-mer-requestu.mjs` tu ZÁMĚRNĚ NENÍ. Měří reálný
+    # request aiderem proti falešnému poskytovateli a potřebuje lokální venv
+    # s aiderem 0.86.2 (`.tmp/otukani/venv`) — na jiném stroji by „nespuštěno"
+    # vypadalo jako zelená. Je to MĚŘIDLO, ne brána; jeho výsledek je v
+    # `K3-ROZDELENI-KONVENCI.md` a dá se spustit ručně.
 ]
 
 vse = []

@@ -43,7 +43,17 @@ WS = pathlib.Path(os.environ.get("FORGE_WS") or pathlib.Path(__file__).resolve()
 REPA = [("orchestra", WS), ("hra", WS.parent / "uo-shadows")]
 # ⚠ `_archiv` tu ZÁMĚRNĚ NENÍ (H86): skenuje se taky, ale jeho nálezy jdou
 # do jiné přihrádky. Kdyby tu zůstal, vyloučení by bylo zase tiché.
-SKIP = {".git", "node_modules", "__pycache__"}
+# ⚠ `.tmp` PŘIDÁNO 12. 10. 2026 (K3) — a je to OPRAVA FALEŠNÉHO POPLACHU,
+# ne oslabení brány. Naměřeno: brána hlásila **4 neplatné escape sekvence**,
+# a VŠECHNY čtyři byly v `pydub/utils.py` z **cizího balíčku** v aiderském
+# venv (`.tmp/otukani/venv/Lib/site-packages/…`), který si 12. 10. 2026
+# postavila session K1 pro MĚŘENÍ režie. `.tmp` je podle konvence projektu
+# LOKÁLNÍ SCRATCH (gitignorovaný) — ne kód projektu; skenovat vendorované
+# `site-packages` znamená měřit cizí kód a červenat kvůli němu.
+# Že vyloučení není slepé, hlídá `test-h79-escape.py`: jeho pozitivní kontrola
+# (sonda s vadnou sekvencí) leží v `_analyza/`, tedy MIMO `.tmp` — kdyby
+# vyloučení bylo široké, sonda by zmizela a test by zčervenal.
+SKIP = {".git", "node_modules", "__pycache__", ".tmp"}
 # ⚠ P19 (6. 10. 2026), nález **H98**: stejná díra jako v `n32-kompilovatelnost.py`.
 # `snapshot-*/` (zmrazené doklady) a `*-scratch/` (pracovní kopie pro mutace)
 # se počítaly jako ŽIVÝ strom — takže vada v KOPII by zčervenala jako vada kódu.

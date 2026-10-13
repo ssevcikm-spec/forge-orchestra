@@ -20,8 +20,24 @@
 // Použití:
 //   node .forge/files-to-edit.mjs --grain core.skills
 //   node .forge/files-to-edit.mjs --prompt "V scripts/skills.gd vytvoř …"
+//   node .forge/files-to-edit.mjs --grain core.skills --konvence   # sekce konvencí
+//
+// K3 (12. 10. 2026) — REŽIM `--konvence`:
+//   Dřív workflow posílal `aider --read CONVENTIONS.md` do KAŽDÉHO běhu. Celý
+//   dokument má ~3 900 t a strop Groqu je 8 000 t/min, takže se 14 097 t velký
+//   request neposlal vůbec (naměřeno 12. 10. 2026). Konvence se proto rozdělily
+//   na sekce (`CONVENTIONS/*.md`) a **granule deklaruje, které potřebuje**:
+//   `"konvence": ["01-typy", "06-soubor-granule"]`.
+//   „Co se má poslat" je vlastnost GRANULE — odhadovat to podle klíčových slov
+//   v zadání by bylo věštění.
+//
+//   Deklarace je POVINNÁ v plánu (`rozpocet-granuli.mjs` ji vynucuje). Tady je
+//   kvůli zpětné kompatibilitě jen most: když granule `konvence` nemá, pošle se
+//   VŠE, co je k dispozici (u starých her celý `CONVENTIONS.md`) — a rozpočet to
+//   ZAPOČÍTÁ. Tichý přechod na „žádné konvence" by byl horší: model by dostal
+//   zadání bez pouček a spálil běh na chybách, které konvence popisují.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 
 const args = process.argv.slice(2);
 const hodnota = (n) => {
@@ -32,6 +48,7 @@ const prepinac = (n) => args.includes(n);
 const grain = hodnota('--grain');
 const prompt = hodnota('--prompt');
 const readDeps = prepinac('--read-deps');
+const konvenceRezim = prepinac('--konvence');
 const roadmapCesta = hodnota('--roadmap') || '.forge/roadmap.json';
 
 const vydat = (seznam, odkud) => {
@@ -60,6 +77,44 @@ const nactiRoadmapu = () => {
     return null;
   }
 };
+
+// 0) Režim `--konvence`: které SEKCE konvencí má granule dostat (jen KE ČTENÍ).
+//    Výstup jde do `aider --read <cesta>` a do rozpočtu (`--konvence`), takže
+//    se do requestu počítá přesně to, co se pošle.
+const SEKCE_DIR = 'CONVENTIONS';
+if (konvenceRezim) {
+  const vsechny = nactiRoadmapu();
+  const g = vsechny && grain ? vsechny.find((x) => x.id === grain) : null;
+  const deklarovane = (g && Array.isArray(g.konvence) ? g.konvence : [])
+    .map((s) => String(s).trim().replace(/^CONVENTIONS\//, '').replace(/\.md$/, ''))
+    .filter(Boolean);
+
+  if (deklarovane.length) {
+    const cesty = deklarovane.map((s) => `${SEKCE_DIR}/${s}.md`);
+    // Chybějící sekce NENÍ varování: `aider --read` na neexistující cestu spadne
+    // a příčina by se v logu hledala těžko. Pojmenuje se to hned.
+    const chybi = cesty.filter((c) => !existsSync(c));
+    if (chybi.length) {
+      console.error(`CHYBA: granule ${grain} deklaruje sekce, které v repu nejsou: ${chybi.join(', ')}`);
+      console.error(`       (deklarováno: ${JSON.stringify(g.konvence)}; složka ${SEKCE_DIR}/)`);
+      process.exit(2);
+    }
+    console.error(`[files-to-edit] konvence: ${cesty.length} sekce(í) deklarovaných granulí ${grain}`);
+    console.log(cesty.join('\n'));
+    process.exit(0);
+  }
+
+  // Most pro roadmapy bez deklarace (staré hry) — a JE VIDĚT.
+  const vSekcich = existsSync(SEKCE_DIR)
+    ? readdirSync(SEKCE_DIR).filter((f) => f.endsWith('.md')).sort().map((f) => `${SEKCE_DIR}/${f}`)
+    : [];
+  const poCem = vSekcich.length ? vSekcich : (existsSync('CONVENTIONS.md') ? ['CONVENTIONS.md'] : []);
+  console.error(`[files-to-edit] POZOR: granule ${grain || '(bez --grain)'} NEMÁ deklarované 'konvence' `
+    + `→ posílám VŠE, co je k dispozici (${poCem.length} souborů). `
+    + `Doplň do roadmapy "konvence": [...] — rozpočet to jinak započítá celé.`);
+  if (poCem.length) console.log(poCem.join('\n'));
+  process.exit(0);
+}
 
 // 0) Režim `--read-deps`: soubory granulí z `depends_on` (jen KE ČTENÍ).
 //    Naměřeno 30. 9. 2026 (běh #131, granule entity.npc): model pojmenoval typ

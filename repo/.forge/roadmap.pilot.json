@@ -1,0 +1,149 @@
+{
+  "_popis": [
+    "K3 (12. 10. 2026) — PILOTNÍ ROADMAPA: 5 granul, na kterých se ověřuje, že se",
+    "request vejde do stropu poskytovatele (Groq zdarma = 8 000 t/min).",
+    "",
+    "⚠ CO TENHLE SOUBOR JE A CO NENÍ:",
+    "  JE to UKÁZKA (fixtura), na které se dá spustit brána",
+    "    node .forge/node/rozpocet-granuli.mjs --roadmap .forge/roadmap.pilot.json",
+    "  NENÍ to plán žádné hry. `roadmap.json` (prázdný) zůstává správným stavem",
+    "  ŠABLONY — plán patří HŘE. Až se nová hra zakládá, zkopíruje se tenhle",
+    "  soubor na `roadmap.json` a přepíše se obsahem hry; hra, která si napíše",
+    "  vlastní plán, tenhle soubor SMAŽE (jinak by v repu ležely dva plány a",
+    "  nebylo by jasné, který je živý — vada S4/S5).",
+    "",
+    "PROČ ZROVNA TYHLE GRANULE: každá má JEDEN soubor do ~120 řádků a deklarované",
+    "sekce konvencí; dohromady tvoří malou, ale CELOU hru (mapa → hráč → mince →",
+    "HUD → scéna), takže pilot není „něco, co se vejde“, ale běh, po kterém existuje",
+    "hratelný základ. Data úrovně se zatím staví v kódu — záměrně: cesta k datovému",
+    "souboru v zadání by si do chatu přitáhla celý soubor (naměřeno K1: +8 000 t).",
+    "",
+    "⚠ ZÁVISLOSTI INTEGRAČNÍ GRANULE BYLY ZMĚŘENÉ ZKRÁCENY (12. 10. 2026):",
+    "`core.game` měl `depends_on` na VŠECHNY čtyři granule. Jenže workflow čte",
+    "soubory závislostí přes `--read` — a naměřeno se započítaným odhadem:",
+    "4 závislosti = **4 265 t navíc**, takže request vyšel **9 822 t > strop 8 000**.",
+    "Smyčka `depends_on` na `core.level` stačí (smlouvy hráče, lišty i mince nese",
+    "ZADÁNÍ granule) a request se vejde na **6 937 t**. Poučení je obecné:",
+    "`depends_on` není jen pořadí, je to i KONTEXT — každá závislost se platí.",
+    "Kdyby to nešlo zkrátit, správná odpověď je vložit smlouvu do zadání, ne číst",
+    "další soubor (skill `game-developer` §4.1b).",
+    "",
+    "KONTRAKT PATŘÍ DO ZADÁNÍ, NE ODKAZEM (skill `game-developer` §4.1b): zadání",
+    "nesmí odkazovat cestou na dokument — místo „viz docs/TDD.md §3“ nese 5–15",
+    "řádků smlouvy samo. Proto jsou v promptech pojmenované veřejné členy.",
+    "",
+    "FORMÁT NAVÍC OPROTI `roadmap.json`:",
+    "  konvence    POVINNÉ: seznam sekcí z `CONVENTIONS/`, které granule dostane",
+    "              (`aider --read`). Každá sekce <= 1 200 t a součet <= 1 200 t;",
+    "              „co se má poslat“ je vlastnost GRANULE, ne odhad podle zadání.",
+    "  size_lines  u granul nad 60 řádků POVINNÉ — rozpočet z něj počítá horní",
+    "              odhad velikosti editovaného souboru, i když ještě neexistuje."
+  ],
+  "grains": [
+    {
+      "id": "core.level",
+      "title": "Mapa úrovně: mřížka a průchodnost",
+      "kind": "code",
+      "prompt": "Vytvoř ve souboru, který máš v chatu (je nový, prázdný), třídu mapy úrovně. SMLOUVA – přesně tyhle veřejné členy, volá je hráč i scéna: (1) `nacti_mrizku(radky: Array) -> bool` – z pole řádků udělá mřížku; znak `#` je zeď, `.` je průchodné; vrať false a push_error, když je seznam prázdný nebo řádky nemají stejnou délku. (2) `is_walkable_cell(cx: int, cy: int) -> bool`, `is_walkable_at(pozice: Vector2) -> bool` a `cell_center(cx: int, cy: int) -> Vector2` – souřadnice políčka přepočítej vlastností `cell` (velikost políčka v pixelech, výchozí 32). (3) `spawn_cell: Vector2i`, `width: int`, `height: int`, `cell: int`. (4) `_ready()` – načti pevnou mřížku 20x15 (jen okraj jsou zdi) a přidej se do skupiny `level`. Soubor začni `extends Node`, žádné `class_name`, `_init()` bez povinného argumentu. Vlastnosti nikdy nepojmenuj `position`, `name` ani `owner`. Nic nemaž, soubor vzniká teď.",
+      "owns": [
+        "scripts/level.gd"
+      ],
+      "depends_on": [],
+      "acceptance": [
+        "tests",
+        "wiring"
+      ],
+      "size_lines": 110,
+      "model": "strong",
+      "konvence": [
+        "01-typy",
+        "06-soubor-granule"
+      ]
+    },
+    {
+      "id": "entity.player",
+      "title": "Hráč: pohyb po mapě a skóre",
+      "kind": "code",
+      "prompt": "Vytvoř ve souboru, který máš v chatu (je nový, prázdný), třídu hráče. SMLOUVA – tyhle veřejné členy volá scéna, mince i HUD: (1) `move(smer: Vector2) -> void` – posun o vektor; kudy se dá chodit, se PTEJ uzlu ve skupině `level` přes `is_walkable_at` (žádné vlastní meze ani konstanty). (2) `skore: int = 0`, `hp: int = 3`, `max_hp: int = 3`, `rychlost: float = 120.0`. (3) signál `sebrano(body: int)` – vyšli ho s počtem bodů, které má mince přidat; scéna ho poslouchá. (4) `_physics_process(delta: float) -> void` – pohyb klávesami (šipky a WASD) složí směr a zavolá `move`. Soubor začni `extends Area2D`, `_init()` bez povinného argumentu, v `_ready()` se přidej do skupiny `player`. Vlastnosti nikdy nepojmenuj `position`, `name`, `scale` ani `visible` a nedefinuj funkci `get()` ani `set()`. Nic nemaž, soubor vzniká teď.",
+      "owns": [
+        "scripts/player.gd"
+      ],
+      "depends_on": [
+        "core.level"
+      ],
+      "acceptance": [
+        "tests",
+        "wiring"
+      ],
+      "size_lines": 100,
+      "model": "strong",
+      "konvence": [
+        "01-typy",
+        "03-kolize-clenu"
+      ]
+    },
+    {
+      "id": "ui.hud",
+      "title": "Stavová lišta se skóre",
+      "kind": "code",
+      "prompt": "Vytvoř ve souboru, který máš v chatu (je nový, prázdný), třídu stavové lišty. SMLOUVA: (1) `nastav_label(jmeno: String) -> void` – uloží jméno uzlu Label, který má lišta ovládat (scéna ho volá dřív, než lišta vstoupí do scény). (2) `nastav_skore(body: int) -> void` – přepíše text Labelu na `Skóre: <body>` (česky, s diakritikou). (3) `_ready() -> void` – když jméno Labelu není nastavené, použij `Hud`. Soubor začni `extends Node`, `_init()` bez povinného argumentu. POZOR: Godot 4 – zarovnání se nastavuje vlastnostmi `horizontal_alignment` a `vertical_alignment`, NE `align`/`valign`; `autowrap` je `autowrap_mode`. Nepoužívej konstantu, kterou jsi v projektu neviděl – radši ji vynech. Nic nemaž, soubor vzniká teď.",
+      "owns": [
+        "scripts/hud.gd"
+      ],
+      "depends_on": [],
+      "acceptance": [
+        "tests",
+        "wiring"
+      ],
+      "size_lines": 60,
+      "konvence": [
+        "01-typy",
+        "05-godot3-konstanty"
+      ]
+    },
+    {
+      "id": "world.coin",
+      "title": "Mince, kterou hráč sebere",
+      "kind": "code",
+      "prompt": "Vytvoř ve souboru, který máš v chatu (je nový, prázdný), třídu mince. SMLOUVA: (1) `extends Area2D`, `_init()` bez povinného argumentu; v `_ready()` se přidej do skupiny `coin`, nastav `monitoring = true` a připoj signál `body_entered` na vlastní metodu `_on_body_entered`. (2) `hodnota: int = 1` – veřejná vlastnost, kolik bodů mince dá (testy ji čtou). (3) `_on_body_entered(body) -> void` – když je `body` ve skupině `player`, přičti jeho `skore` o `hodnota` a zavolej `queue_free()` (mince zmizí). Uzel se staví z kódu přes `Area2D.new()` – vlastní vlastnost (`hodnota`) proto MUSÍ být deklarovaná v tomhle skriptu a uzel musí dostat skript přes `set_script`; do holého `Area2D.new()` vlastnost přidat nejde. Vlastnosti nikdy nepojmenuj `position`, `name` ani `owner`. Nic nemaž, soubor vzniká teď.",
+      "owns": [
+        "scripts/coin.gd"
+      ],
+      "depends_on": [
+        "entity.player"
+      ],
+      "acceptance": [
+        "tests",
+        "wiring"
+      ],
+      "size_lines": 70,
+      "model": "strong",
+      "konvence": [
+        "06-soubor-granule",
+        "07-uzel-a-kostra"
+      ]
+    },
+    {
+      "id": "core.game",
+      "title": "Scéna: postav mapu, hráče, mince a lištu",
+      "kind": "code",
+      "prompt": "Vytvoř ve souboru, který máš v chatu (je nový, prázdný), skript, který postaví scénu. SMLOUVA: (1) `_ready() -> void` – vytvoř potomky v tomto pořadí a přidej je do scény: mapa, hráč, stavová lišta (každý dostane `name` a je ve své skupině; scénu stavěj v KÓDU, žádný nový soubor scény). (2) Deset mincí rozmísti ROVNOMĚRNĚ po mapě – souřadnice ber z mřížky mapy (`cell_center`), nikdy ne náhodně, aby mince neskončila ve zdi. (3) Napoj signál hráče `sebrano(body: int)` na metodu `_on_sebrano`, která minci nastaví skóre a předá ho liště přes `nastav_skore`. (4) `_on_sebrano(body: int) -> void`. Mapu i hráče ber z uzlů podle skupin (`level`, `player`), ne z pevných cest. Soubor začni `extends Node`, `_init()` bez povinného argumentu, `get_tree().get_first_node_in_group(...)`. Vlastnosti nikdy nepojmenuj `position`, `name` ani `owner`. Nezapisuj nic do testů ani do projektového nastavení – jen tenhle soubor.",
+      "owns": [
+        "scripts/game.gd"
+      ],
+      "depends_on": [
+        "core.level"
+      ],
+      "acceptance": [
+        "tests",
+        "wiring"
+      ],
+      "size_lines": 100,
+      "model": "strong",
+      "konvence": [
+        "06-soubor-granule",
+        "08-meze-a-overeni"
+      ]
+    }
+  ]
+}

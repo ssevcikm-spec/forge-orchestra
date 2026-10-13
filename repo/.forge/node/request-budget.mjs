@@ -32,6 +32,31 @@ import { ZNAKU_NA_TOKEN } from './prompt-hygiene.mjs';
 //  ho nahradilo. Nástroj: .tmp/otukani/mer-rezii-aideru.mjs - v repu orchestry.)
 export const REZIE_HARNESSU = 1800;
 
+// DRUHA REZIE — OBAL ZADANI. NENI to to same jako REZIE_HARNESSU a NESMI se
+// s ni scitat pod jednim jmenem (omyl #71: „jedno jmeno nesmi znamenat dve
+// veliciny“).
+//
+// ZMERENO 12. 10. 2026 (K3, aider 0.86.2 proti falesnemu poskytovateli,
+// `_analyza/k3-mer-requestu.mjs`): krome systemoveho promptu posila aider
+// v zadani jeste dalsi text, ktery se v nasem souctu NIKDE NEOBJEVIL —
+// instrukce k diff formatu, seznam souboru v chatu, JSON obalka requestu
+// a escapovani koncu radku a tabulatoru. Namereno na trech ruznych zadAnich
+// (rozdil mezi REALNYM requestem a nasim modelem, ktery zna jen obsah souboru):
+//
+//   beh  souboru v chatu   realny request   model bez obalu   neobjasneno
+//   A)   3 (2 sekce + prázdný)   14 897 zn.        14 102 zn.      795 zn.
+//   B)   2 (cely dokument)       23 871 zn.        22 410 zn.    1 461 zn.
+//   D)   4 (monolit + registry)  41 974 zn.        39 550 zn.    2 424 zn.
+//   → 795–2 424 znaku navic, tedy 262–800 tokenu; kdyz se ale pocita i obsah
+//   souboru, ktery model NEZNA (prislusnost k chatu), je horni odhad 2 250 t.
+// Konstanta je zaokrouhlena NAHORU (2 500), aby rozpocet nelhal optimismem.
+//
+// DUSLEDEK, KTERY STAL ZA TO: K1 kalibracni kontrola v `priprava.test.mjs`
+// („16 000 znaku se pri 3,03 znaku/token NEVEJDE“) s REZIE 1 800 VYCHAZELA
+// jako „vejde se“ — byla cervena. S obalem zadani vysla spravne. Test tedy
+// nebyl vadny; chybela velicina.
+export const REZIE_CHATU = 2500;
+
 export const tokeny = (znaku) => Math.ceil(znaku / ZNAKU_NA_TOKEN);
 
 /** Nacte strop z providers.json (blok `limits`), kdyz je k dispozici. */
@@ -65,20 +90,35 @@ export function velikosti(soubory, koren = process.cwd()) {
   return out;
 }
 
-/** Vypocet rozpoctu - cista funkce, aby ji test VOLAL, ne opisoval. */
-export function rozpocet({ zadaniText = '', soubory = '', cteni = '', konvence = '', strop, rezije = REZIE_HARNESSU, koren = process.cwd() }) {
+/** Vypocet rozpoctu - cista funkce, aby ji test VOLAL, ne opisoval.
+ *
+ *  `bude_t` je obsah, ktery v requestu BUDE, i kdyz dnes na disku neni: soubor
+ *  ZAVISLOSTI, ktera je jen drivejsi v DAG (pri behu te granule uz existuje) —
+ *  POCITA SE DO ROZPOCTU, jinak by planovaci brana lhala optimismem (naměřeno
+ *  12. 10. 2026 na `world.spawner`: 5 477 t bez ni vs 6 355 t s ni).
+ *
+ *  `navic_t` je KONZERVATIVNI ODHAD souboru, ktere v requestu jeste NEJSOU
+ *  (nove soubory granul: workflow do nich pred volanim zapise prazdny soubor).
+ *  Ptá se tim na JINOU otazku nez zbytek funkce — „co bude, az soubor bude mit
+ *  deklarovanych N radku“ — a proto se vystup hlasi ZVLAST (`celkem_plny`),
+ *  ne jako by to bylo mereni. Kdo to slije dohromady, dostane cislo, ktere
+ *  neodpovida ani jednomu stavu (omyl #71: dve veliciny pod jednim jmenem).
+ */
+export function rozpocet({ zadaniText = '', soubory = '', cteni = '', konvence = '', strop, rezije = REZIE_HARNESSU, rezijeChatu = REZIE_CHATU, koren = process.cwd(), bude_t = 0, navic_t = 0 }) {
   const zadani = { znaku: zadaniText.length, tokenu: tokeny(zadaniText.length) };
   const edit = velikosti(soubory, koren);
   const read = velikosti(cteni, koren);
   const konv = velikosti(konvence, koren);
   const soucet = zadani.tokenu + edit.reduce((a, x) => a + x.tokenu, 0)
     + read.reduce((a, x) => a + x.tokenu, 0) + konv.reduce((a, x) => a + x.tokenu, 0);
-  const celkem = soucet + rezije;
+  const celkem = soucet + rezije + rezijeChatu + bude_t;
+  const celkem_plny = celkem + navic_t;
   return {
-    zadani, edit, read, konvence: konv, rezije,
-    soucet_obsahu: soucet, celkem,
+    zadani, edit, read, konvence: konv, rezije, rezijeChatu, bude_t,
+    soucet_obsahu: soucet, celkem, navic_t, celkem_plny,
     strop: strop ?? null,
     vejde_se: strop ? celkem <= strop : null,
+    vejde_se_plny: strop ? celkem_plny <= strop : null,
     zbyva: strop ? strop - celkem : null,
   };
 }
@@ -110,6 +150,7 @@ function main() {
     konvence: arg('--konvence'),
     strop,
     rezije: Number(arg('--rezije', '') || REZIE_HARNESSU),
+    rezijeChatu: Number(arg('--rezije-chatu', '') || REZIE_CHATU),
   });
   r.strop_zdroj = zdroj;
   const trida = rozhodni(r, zdroj);
@@ -120,7 +161,8 @@ function main() {
     if (trida === 'TOO_LARGE') process.exit(1);
   } else {
     console.log(`ROZPOCET: ~${r.celkem} tokenu (zadani ${r.zadani.tokenu} + editace ${r.edit.reduce((a, x) => a + x.tokenu, 0)}` +
-      ` + cteni ${r.read.reduce((a, x) => a + x.tokenu, 0)} + konvence ${r.konvence.reduce((a, x) => a + x.tokenu, 0)} + rezie ${r.rezije})`);
+      ` + cteni ${r.read.reduce((a, x) => a + x.tokenu, 0)} + konvence ${r.konvence.reduce((a, x) => a + x.tokenu, 0)}` +
+      ` + rezie ${r.rezije} + obal zadani ${r.rezijeChatu})`);
     console.log(`STROP (${poskytovatel || 'rucni'}/${model || '-'}, ${zdroj}): ${strop} tokenu | zbyva ${r.zbyva}`);
     console.log(`TRIDA=REQUEST_${trida}`);
     if (trida === 'TOO_LARGE') {
