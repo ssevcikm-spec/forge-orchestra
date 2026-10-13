@@ -162,6 +162,26 @@ Kdo takovou bránu píše, ať si ukotvení **pojmenuje a ověří** (tady: `--r
 a dynamické hledání základu), nebo ať se ptá na **obsah** (blok v souboru),
 ne na revizi.
 
+### F8 — Cizí scratch shodil bránu kompilovatelnosti (a nebyla to vada kódu)
+
+`g3` po mé práci hlásil **novou** červenou bránu `kompilovatelnost — mutace (NA32)`
+a `n32-kompilovatelnost.py` označil „zdravý strom“ za vadný:
+
+```
+[orchestra] .aider-browser-test\src\hello.py:1  invalid non-printable character U+FEFF
+```
+
+Složka `.aider-browser-test/` je **gitignorovaná scratch** (vznikla dnes,
+`.gitignore:101` ji kryje `.aider*`) — **není moje a nesahal jsem na ni**
+(pravidlo: nesahej na práci souběžné session). Vada byla v **rozsahu brány**:
+počítala aider scratch jako živý kód, a protože si aider do svých probe souborů
+píše i BOM, brána červenala kvůli cizímu experimentu.
+
+**Náprava:** `N32` má nové kategorie `.aider*` a `.tmp` (stejná třída jako `.tmp`
+u H79 v K3) — **vyloučené, ale VYKÁZANÉ** vlastním čítačem (0× `.aider*`,
+7 195× `.tmp`). Ověřeno: zdravý strom **247 souborů, 0 nekompilovatelných**
+(exit 0) a mutační test **9/0** — pořád chytí BOM vložený do živého souboru.
+
 ---
 
 ## 3. Co je BLOKOVANÉ a co je další krok

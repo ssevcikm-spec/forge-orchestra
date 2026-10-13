@@ -56,10 +56,20 @@ REPA = [("orchestra", WS), ("hra", HRA)]
 # POŘADÍ ROZHODUJE — bere se PRVNÍ shoda, aby byl soubor počítaný právě jednou.
 SNAP_RE = re.compile(r"^snapshot-\d")
 SCRATCH_RE = re.compile(r".*-scratch$")
+# K4 (13. 10. 2026): `.aider*` (a `.tmp/`) jsou LOKÁLNÍ SCRATCH nástroje aider,
+# ne kód projektu — a aider si do nich píše i PROBE soubory, které klidně BOM
+# mají. Naměřeno: `.aider-browser-test/src/hello.py` (gitignorovaný, vzniklý
+# během práce) shodil tuhle bránu na `invalid non-printable character U+FEFF`,
+# takže „zdravý strom" vycházel jako červený a mutační test neměl jak projít.
+# Stejná třída jako `.tmp` u H79 (K3) — vyluujeme a VYKAZUJEME.
+AIDER_RE = re.compile(r"^\.aider")
+TMP_RE = re.compile(r"^\.tmp$")
 KATEGORIE = [
     ("_archiv", lambda c: c == "_archiv", "_archiv"),
     ("snapshot-*", lambda c: bool(SNAP_RE.search(c)), "snapshot-*"),
     ("*-scratch", lambda c: bool(SCRATCH_RE.search(c)), "*-scratch"),
+    (".aider*", lambda c: bool(AIDER_RE.search(c)), ".aider*"),
+    (".tmp", lambda c: bool(TMP_RE.search(c)), ".tmp"),
 ]
 
 
