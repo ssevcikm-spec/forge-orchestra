@@ -205,6 +205,22 @@ MUTATIONS = [
      CONDUCTOR,
      'console.log(`tick-prof: iso=${IZO_ID} faze=${stav} ${fazeMs.join(" ")}`);',
      'console.log(`tick-prof: iso=${IZO_ID} faze=${stav}`);'),
+    # M25 (13. 10. 2026, K5) vrací DÍRU V A1 na cestě `/report`: `success`
+    #     z workflow znamená „doběhly jeho kroky“, NE „PR je sloučené“.
+    #     Naměřeno v produkci: `world.door` (#256) bylo `done`, PR #7 OTEVŘENÝ
+    #     a `scripts/door.gd` v `origin/main` NEBYL (sloučení selhalo na závodě
+    #     „Base branch was modified“). Mutace vrátí staré pravidlo „úspěch = done“
+    #     — testovací sada to musí chytit (scénář J).
+    ("M25 report success zapise done (dira v A1)",
+     CONDUCTOR,
+     'if (body.status === "success") {\n'
+     '        await env.DB.prepare(\n'
+     '          `UPDATE runs SET finished_at=datetime(\'now\'), summary=?, pr_url=?,',
+     'if (body.status === "success") {\n'
+     '        await env.DB.prepare("UPDATE tasks SET status=\'done\' WHERE id=?")\n'
+     '          .bind(run.task_id).run();\n'
+     '        await env.DB.prepare(\n'
+     '          `UPDATE runs SET finished_at=datetime(\'now\'), summary=?, pr_url=?,',),
 ]
 
 checks = 0

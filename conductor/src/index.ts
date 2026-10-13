@@ -2151,21 +2151,30 @@ export default {
       if (!run) return json({ error: "neznamy run_key" }, 404);
 
       const artifacts = body.artifacts ? JSON.stringify(body.artifacts).slice(0, 4000) : null;
-      await env.DB.prepare(
-        `UPDATE runs SET status=?, finished_at=datetime('now'), summary=?, pr_url=?,
-                          log_tail=?, artifacts=?
-          WHERE run_key=?`,
-      ).bind(body.status, body.summary || null, body.pr_url || null,
-             (body.log_tail || "").slice(0, 8000), artifacts, body.run_key).run();
+      // ⚠ A1 — DÍRA ZAVŘENA 13. 10. 2026 (K5): `success` z reportu NENÍ „sloučeno“.
+      // Workflow hlásí `success`, když doběhly JEHO kroky — ne že se PR sloučilo.
+      // Naměřeno v produkci: `world.door` (#256) bylo v D1 `done`, PR #7 zůstal
+      // OTEVŘENÝ a `scripts/door.gd` v `origin/main` NEBYL; sloučení přitom
+      // selhalo na závodě `GraphQL: Base branch was modified` (při MAX_CONCURRENT=5
+      // se `main` posunul pod PR). Report proto o stavu ÚLOHY nerozhoduje: nechá
+      // běh ve stavu `running`, aby ho našel poll (`SQL_POLL_RUNS` čte právě
+      // `running`), a ten zapíše `done` JEN když ověří `merged_at` (`ok && merged`).
+      if (body.status === "success") {
+        await env.DB.prepare(
+          `UPDATE runs SET finished_at=datetime('now'), summary=?, pr_url=?,
+                            log_tail=?, artifacts=? WHERE run_key=?`,
+        ).bind(body.summary || null, body.pr_url || null,
+               (body.log_tail || "").slice(0, 8000), artifacts, body.run_key).run();
+      } else {
+        await env.DB.prepare(
+          `UPDATE runs SET status=?, finished_at=datetime('now'), summary=?, pr_url=?,
+                            log_tail=?, artifacts=? WHERE run_key=?`,
+        ).bind(body.status, body.summary || null, body.pr_url || null,
+               (body.log_tail || "").slice(0, 8000), artifacts, body.run_key).run();
+      }
 
       // Úspěch = hotovo. Selhání se vrací do fronty, dokud jsou pokusy.
-      if (body.status === "success") {
-        await env.DB.prepare("UPDATE tasks SET status='done', updated_at=datetime('now') WHERE id=?")
-          .bind(run.task_id).run();
-        await env.DB.prepare(
-          "UPDATE roadmap SET status='done', updated_at=datetime('now') WHERE task_id=?",
-        ).bind(run.task_id).run().catch(() => undefined);
-      } else {
+      if (body.status !== "success") {
         const t = await env.DB.prepare("SELECT attempts, status FROM tasks WHERE id=?")
           .bind(run.task_id).first<{ attempts: number; status: string }>();
         // `blocked` je terminální (úklid) – report ho nesmí vzkřísit na 'ready'.
@@ -2173,9 +2182,29 @@ export default {
         if (t?.status === "blocked" || t?.status === "done") {
           return json({ ok: true, task_id: run.task_id, poznamka: `stav '${t.status}' se nemění` });
         }
-        const nextStatus = (t?.attempts ?? 0) >= Number(env.MAX_ATTEMPTS || "5") ? "failed" : "ready";
-        await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
-          .bind(nextStatus, run.task_id).run();
+        // ⚠ K5 (13. 10. 2026): QUOTA NENÍ VINA GRANULE ANI MODELU — je to kapacita
+        // poskytovatele a limit bývá ZA MINUTU (naměřeno: `Rate limit reached …
+        // Requested 4720. Please try again in 2.5575s`). U QUOTA se proto pokus
+        // VRACÍ (`attempts - 1`) a cooldown je krátký (10 min). Klasifikaci nese
+        // `summary` z workflow (`TRIDA=QUOTA`).
+        const kvota = /QUOTA/i.test(String(body.summary || ""));
+        const maxPokusu = Number(env.MAX_ATTEMPTS || "5");
+        const nextStatus = kvota ? "ready"
+          : ((t?.attempts ?? 0) >= maxPokusu ? "failed" : "ready");
+        // ⚠ DVA různé zápisy (a test je měří podle TEXTU, ne podle bindů):
+        // u QUOTA jde úloha na `ready` a pokus se VRACÍ; jinde na `nextStatus`.
+        // (Jediný zápis s přepínačem v bindech by z textu nepoznal — a testovací
+        //  sada by pak netvrdila nic o tom, co si myslí.)
+        if (kvota) {
+          await env.DB.prepare(
+            `UPDATE tasks SET status='ready',
+               attempts = CASE WHEN attempts > 0 THEN attempts - 1 ELSE 0 END,
+               updated_at=datetime('now') WHERE id=?`,
+          ).bind(run.task_id).run();
+        } else {
+          await env.DB.prepare("UPDATE tasks SET status=?, updated_at=datetime('now') WHERE id=?")
+            .bind(nextStatus, run.task_id).run();
+        }
         // B1: `naposledy_selhalo` se plní při KAŽDÉM selhání, ne jen u
         // posledního pokusu — cooldown se ptá na něj, takže kdyby tu chybělo,
         // granule by se po opakovatelném selhání vydala okamžitě.
@@ -2184,6 +2213,13 @@ export default {
             `UPDATE roadmap SET status='failed', updated_at=datetime('now'),
                naposledy_selhalo = datetime('now') WHERE task_id=?`,
           ).bind(run.task_id).run().catch(() => undefined);
+        } else if (kvota) {
+          // Krátký cooldown: `naposledy_selhalo` se posune DO MINULOSTI tak, aby
+          // tick (ptá se „je to starší než RETRY_HOURS?“) viděl vypršeno za 10 min.
+          const retryMin = Number(env.RETRY_HOURS || "3") * 60;
+          await env.DB.prepare(
+            `UPDATE roadmap SET status='ready', naposledy_selhalo = datetime('now', ?) WHERE task_id=?`,
+          ).bind(`-${Math.max(1, retryMin - 10)} minutes`, run.task_id).run().catch(() => undefined);
         } else {
           await env.DB.prepare(
             `UPDATE roadmap SET naposledy_selhalo = datetime('now') WHERE task_id=?`,

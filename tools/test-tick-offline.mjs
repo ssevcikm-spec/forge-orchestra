@@ -763,14 +763,67 @@ async function main() {
     check('I: a čas selhání se zapíše taky', bylZapis(log, /naposledy_selhalo/), true);
   }
 
-  // ── J) /report: ÚSPĚCH → done ────────────────────────────────────────────
+  // ── J) /report: ÚSPĚCH → o stavu úlohy rozhoduje POLL, ne report ─────────
+  // ⚠ PŘEPSÁNO 13. 10. 2026 (K5): do té doby tu stálo „J: úloha je done“ — a to
+  // byla DÍRA V A1. `success` z workflow znamená „doběhly jeho kroky“, NE
+  // „PR je sloučené“. Naměřeno v produkci: `world.door` (#256) bylo `done`,
+  // PR #7 OTEVŘENÝ a `scripts/door.gd` v `origin/main` NEBYL (sloučení selhalo
+  // na závodě `Base branch was modified`). Report teď běh nechá `running`, aby
+  // ho poll našel (`SQL_POLL_RUNS` čte právě `running`) a rozhodl podle
+  // `ok && merged` (scénáře E a F výš).
   {
     const calls = [];
     stubGithub(calls, { aktivniHra: true });
     const { env, log } = envFor({ aktivniHra: true, reportRun: behRow() });
-    await report(mod, env, { run_key: RUN_KEY, status: 'success', pr_url: 'https://x/1' });
-    check('J: úloha je `done`', bylZapis(log, /UPDATE tasks SET status='done'/), true);
-    check('J: i granule je `done`', bylZapis(log, /UPDATE roadmap SET status='done'/), true);
+    const { status } = await report(mod, env, { run_key: RUN_KEY, status: 'success', pr_url: 'https://x/1' });
+    check('J: /report odpoví 200', status, 200);
+    check('J: report NEZAPÍŠE úloze `done` (o stavu rozhoduje poll)',
+      bylZapis(log, /UPDATE tasks SET status='done'/), false);
+    check('J: a nezapíše ani `awaiting_human` (to je případ F z pollu)',
+      bylZapis(log, /UPDATE tasks SET status='awaiting_human'/), false);
+    check('J: a nezapíše `done` ani do roadmapy',
+      bylZapis(log, /UPDATE roadmap SET status='done'/), false);
+    check('J: běh zůstane `running` – UPDATE runs BEZ `status=` (poll ho musí najít)',
+      bylZapis(log, /UPDATE runs SET finished_at=/), true);
+    check('J: běh se NEPŘEPÍŠE na `success` (to dělá až poll po ověření `merged_at`)',
+      bylZapis(log, /UPDATE runs SET status=\?/), false);
+  }
+
+  // ── AI) /report: QUOTA není vina granule → pokus zpět + krátký cooldown ──
+  // DŮVOD: naměřeno 13. 10. 2026 (K5) — `entity.heart` spálil pokus na groqu
+  // (`Rate limit reached … Requested 4720. Please try again in 2.5575s`), protože
+  // limit je ZA MINUTU. U QUOTA se proto pokus vrací a cooldown je 10 min místo
+  // `RETRY_HOURS` (3 h); `naposledy_selhalo` se posouvá do minulosti tak, aby
+  // tick viděl „starší než RETRY_HOURS“ už za 10 minut.
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, attempts: 1, reportRun: behRow() });
+    const { status } = await report(mod, env, {
+      run_key: RUN_KEY, status: 'failure', summary: 'QUOTA | TRIDA=QUOTA KLASIFIKACE: QUOTA',
+    });
+    check('AI: /report odpoví 200', status, 200);
+    check('AI: úloha jde zpět na `ready`', bylZapis(log, /UPDATE tasks SET status='ready'/), true);
+    check('AI: pokus se VRACÍ (`attempts - 1`) — model nedostal šanci',
+      bylZapis(log, /attempts = CASE WHEN attempts > 0 THEN attempts - 1/), true);
+    check('AI: granule se NEoznačí `failed`', bylZapis(log, /UPDATE roadmap SET status='failed'/), false);
+    check('AI: cooldown je POSUNUTÝ (krátký), ne „teď“',
+      bylZapis(log, /naposledy_selhalo = datetime\('now', \?\)/), true);
+    check('AI: a NENÍ to plný cooldown `RETRY_HOURS`',
+      bylZapis(log, /naposledy_selhalo = datetime\('now'\) WHERE task_id/), false);
+  }
+
+  // ── AJ) /report: OBYČEJNÉ selhání (ne QUOTA) pokus NEVRACÍ ───────────────
+  {
+    const calls = [];
+    stubGithub(calls, { aktivniHra: true });
+    const { env, log } = envFor({ aktivniHra: true, attempts: 2, reportRun: behRow() });
+    await report(mod, env, { run_key: RUN_KEY, status: 'failure', summary: 'PARSE | Parse Error' });
+    check('AJ: úloha jde na `ready`', bylZapis(log, /UPDATE tasks SET status=\?/), true);
+    check('AJ: pokus se NEVRACÍ (to je jen u QUOTA)',
+      bylZapis(log, /attempts = CASE WHEN/), false);
+    check('AJ: a cooldown se zapíše na „teď“',
+      bylZapis(log, /naposledy_selhalo = datetime\('now'\) WHERE task_id/), true);
   }
 
   // ── K) /report: neznámý run_key → 404 a ŽÁDNÉ zápisy ─────────────────────
