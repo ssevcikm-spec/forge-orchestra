@@ -297,8 +297,14 @@ A) Token opravený → conductor vydá zbylé granule sám. Sleduj `entity.enemy
    že se rozsvítily její kontroly v testech, a že PR vzniklo/sloučilo se.
    ⚠ `core.wiring` je navržený jako STRESOVÝ případ (rozpočet 7 388 t z 8 000) —
    když neprojde, je to nález o rozpočtu, ne o modelu.
-B) Token pořád chybí → neposílej nic naprázdno (každý tik spálí pokus);
-   udělej krok 3–4 z §3 (forge new + drift) a připrav, co půjde po opravě.
+B) Token pořád chybí → neposílej nic naprázdno (každý tik spálí pokus) a
+   **NEaktivuj hru**. Základna je hotová z K4: `forge new` (další hra = jeden
+   příkaz), `validate-all` zná víc her, `skeleton/` je v repu. Zbývá jen:
+   (1) `probe-provider.mjs` na Mistral/Cerebras, když jsou klíče (větší strop),
+   (2) dohodnout se uživatelem scope další hry a vygenerovat ji `forge new`,
+   (3) nepřepisovat `HANDOFF.md` (patří P41) — stav drž v K4 dokumentu.
+   ⚠ `validate-all` v tom stavu hlásí „aspoň jedna hra je aktivní — (žádná)“
+   a to je PRAVDA (obě hry jsou vypnuté záměrně), ne vada stromu.
 
 BRÁNY (v tomto pořadí, nic mezi tím):
 python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json
