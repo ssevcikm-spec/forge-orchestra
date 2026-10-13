@@ -182,6 +182,56 @@ u H79 v K3) — **vyloučené, ale VYKÁZANÉ** vlastním čítačem (0× `.aide
 7 195× `.tmp`). Ověřeno: zdravý strom **247 souborů, 0 nekompilovatelných**
 (exit 0) a mutační test **9/0** — pořád chytí BOM vložený do živého souboru.
 
+## 4. PAT pro conductora — přesně jak ho nastavit (K4, 13. 10. 2026)
+
+**Proč nový:** conductor má v Cloudflare tajemství **`GITHUB_TOKEN`** (ověřeno:
+`wrangler secret list`), ale jeho hodnota se **nedá přečíst** (Cloudflare ji
+nevrací) — takže se nedá zjistit, který token to je. Naměřeno, co ten token umí:
+roadmapu hry **přečte** (vidí i nové repo), ale `POST .../dispatches` vrací
+**403 `Resource not accessible by personal access token`** → chybí mu
+**Actions: write**.
+
+**Jak token vystavit (UI, 5 minut):** GitHub → Settings → Developer settings →
+Personal access tokens → **Fine-grained tokens** → Generate new token.
+
+| Pole | Hodnota | Proč |
+|---|---|---|
+| Token name | `forge-conductor` | aby se dal dohledat (dnes se neví, který to je) |
+| Expiration | **1 rok** | a **zapsat datum** — vypršelý token už jednou tiše spálil 15 běhů (H180/H171) |
+| Resource owner | `ssevcikm-spec` | hry jsou pod tímhle účtem |
+| Repository access | **All repositories** | orchestra je OBECNÁ a přepíná se mezi hrami; conductor musí umět dispatchnout každou hru, i tu, která ještě nevznikla. „Only select repositories" znamená ruční editaci tokenu u každé nové hry — přesně past, do které jsme spadli (token viděl `coin-picker`, ale neuměl do něj nic zapsat) |
+| **Actions** | **Read and write** | `POST /repos/{repo}/actions/workflows/{wf}/dispatches` (vydání úlohy) + čtení běhů (`/actions/runs`, `/actions/workflows/{wf}/runs`) |
+| **Contents** | **Read** | `GET /contents/{roadmap_file}` (roadmapa hry) a `GET /git/trees/origin%2Fmain` |
+| **Pull requests** | **Read** | REST `/pulls` i GraphQL `pullRequests(states: MERGED)` — podle sloučených PR pozná hotovou granuli |
+| Metadata | Read (povinné) | základ, GitHub ho přidává sám |
+
+**Co conductor NEPOTŘEBUJE** (prošel jsem VŠECHNA jeho volání na GitHub):
+Contents write, Pull requests write, Issues, Secrets, Workflows, Administration.
+(`method: "POST"` v jeho kódu míří jen na Telegram, Discord, ntfy a na GitHub
+GraphQL dotaz — ne na zápis do repa.)
+
+**Instalace:** hodnotu **nepsat do chatu** — uložit ji na stanici do
+`.secrets/conductor_github_token.txt`. Zapsat ji umí tenhle nástroj (wrangler je
+na stanici přihlášený):
+```powershell
+cd E:\Workspaces\forge-orchestra\conductor
+Get-Content ..\.secrets\conductor_github_token.txt -Raw |
+  .\node_modules\.bin\wrangler.cmd secret put GITHUB_TOKEN
+```
+Tím se Worker **rovnou nasadí** s novým tajemstvím. (Hodnota nejde přes příkazovou
+řádku, takže se neobjeví v historii.)
+
+⚠ **Tři různé tokeny, tři různé role** — neplést:
+`GITHUB_TOKEN` (Cloudflare, conductor: plánuje a dispatchuje) ·
+`FORGE_PAT` (secret v repu HRY, workflow: zakládá a slučuje PR) ·
+`.secrets/github_pat.txt` (klasický, stanice: čte API a pushuje).
+
+**Až token poběží:**
+```powershell
+node tools\aktivuj-hru.mjs --hra coin-picker        # aktivuje a sleduje, co conductor vydá
+```
+(předtím je hra schválně vypnutá — každý tik s `dispatch_failed` spálí pokus granule)
+
 ---
 
 ## 3. Co je BLOKOVANÉ a co je další krok
@@ -198,20 +248,27 @@ u H79 v K3) — **vyloučené, ale VYKÁZANÉ** vlastním čítačem (0× `.aide
 
 **Další krok (můj, nezávislý na tokenu):**
 
-3. **Zobecnit `forge new`** — hru jsem postavil ručně (kopie šablony + skeleton
-   + roadmapa). Generátor s testem znamená, že další hra je **jeden příkaz**;
-   součástí je i doplnění šablony o to, co tahle hra odhalila jako chybějící:
-   `export_presets.cfg` a skeleton (`project.godot`, `main.tscn`,
-   `tests/run_tests.gd`, `assets/spec.json` + minimální assety).
-4. **Doplnit `kontrola-driftu.mjs`** o nástroje `.forge/node/*` — při zakládání
-   hry se kopírují, ale drift je nehlídá, takže se šablona a hra mohou rozejít
-   (naměřeno v K4: musel jsem je synchronizovat ručně).
-5. **`validate-all` naučit, která hra je aktivní** (nález F6) — dnes hlásí
-   4 problémy, které nejsou vadami dat. Buď ať se ptá `/games` (aktivní hra),
-   nebo ať cache srovnává **po hrách** (`{game}/*`), ne proti jednomu souboru.
-   Do té doby platí: **4 z 7 problémů `validate-all` jsou o přepnutí hry,
-   ne o kódu** — a to je přesně tahle věta, kterou je potřeba číst, aby se
-   nezačalo „opravovat“ zdravý strom.
+3. ✅ **HOTOVO — `forge new`** (13. 10. 2026): `skeleton/` (18 souborů vytažených
+   z ověřené hry) + `tools/forge-new.mjs` + brána `_analyza/test-forge-new.mjs`
+   (**22/22**). Generátor kopíruje orchestraci ze `repo/` + skeleton, přepíše
+   název hry ve všech textových souborech, **resetuje roadmapu** (nová hra nesmí
+   tvrdit `done: true` po cizím pilotu) a s `--kontrola` spustí brány
+   vygenerované hry (schéma, assety, zapojení, rozpočet, testy) — naměřeno:
+   vygenerovaná hra má **28/28 testů** (mince je granule, ne základ — proto
+   `skeleton` soubor `scripts/coin.gd` záměrně neveze) a `REQUEST_FITS`
+   u všech 4 granulí.
+4. ✅ **HOTOVO — `validate-all` zná víc her** (nález F6): kontrola se ptá na
+   **registr** (`/games`), ne na počet aktivních her; tvrdí „**aspoň jedna** hra
+   je aktivní“ (ne že to je `uo-shadows`); cache srovnává se VŠEMI hrami, jejichž
+   klon na stanici je, a hry bez klonu **vypíše** místo aby je počítal jako
+   osiřelé. Naměřeno po opravě: `osiřelé=0`, `cache=22, soubory=25 za 2 her`.
+5. ⚠ **OPRAVA MÉHO VLASTNÍHO PLÁNU:** chtěl jsem do `kontrola-driftu.mjs` přidat
+   `.forge/node/*`. **To by byla chyba** — drift by u zmrazené `uo-shadows`
+   hlásil dalších ~14 rozdílů a brána by se stala nečitelnou. Správná odpověď je
+   jiná: **nástroje do hry dává `forge new`** (a jejich zdroj je `repo/.forge/`),
+   takže „sync" není potřeba u nových her; u starých to řeší jejich session.
+6. **Zbývá:** `probe-provider` na Mistral/Cerebras (větší strop = víc místa pro
+   obsah granulí), a rozhodnutí o scopu další hry.
 
 ---
 
