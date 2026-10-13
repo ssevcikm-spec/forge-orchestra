@@ -383,11 +383,13 @@ je to signál: **tahle granule je na hraně a příští úprava má být rozsek
    `success`, PR #4 automaticky sloučen). Stresový případ rozpočtu (7 388 t proti
    8 000 na Groqu) **neprošel na strop** — silná granule šla na Mistral (625 000).
    **Tím je celý plán 4 granul hotový a hra má 41/41 testů.**
-4. **⚠ `uo-shadows` má STARÝ (neplatný) Mistral klíč.** Uživatel Mistral klíč
-   regeneroval; hra je zmrazená a neaktivní, ale **až se zapne, každý silný
-   běh na Mistralu spadne na 401**. Oprava je stejná jako u Coin-Pickeru
-   (sealed box do secretu toho repa) — **patří uživateli rozhodnout**, protože
-   je to zápis do zmrazené hry.
+4. ~~**⚠ `uo-shadows` má STARÝ (neplatný) Mistral klíč.**~~ ✅ **VYŘEŠENO
+   13. 10. 2026** — uživatel rozhodl a klíče jsou vyměněné: `MISTRAL_API_KEY`
+   (změněno 13:49 UTC) i `CEREBRAS_API_KEY` (změněno 14:07 UTC) v repu
+   `uo-shadows` teď nesou **naměřeně živé** hodnoty. Zapsáno nástrojem
+   `tools/zapis-secret-do-repa.py` (vznikl z téhle práce — dnes se stejný
+   skript psal třikrát ručně, což je signál, že patří do repa).
+   Ostatní secrety hry (FORGE_*, GEMINI, GROQ, OPENROUTER) zůstaly z 29. 9.
 5. **Dvě měkká varování** v plánu: zadání `entity.enemy` 428 t a `world.spawner`
    454 t proti cíli 400 t. Místa je dost (1 766–2 109 t); je to signál, že
    příští úprava těchto granulí má být **rozseknutí**, ne další věta.
