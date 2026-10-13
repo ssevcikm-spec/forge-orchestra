@@ -367,8 +367,10 @@ Potřebujeme další hru?“* → odpověď zněla **ne, další hru ne** a uži
 | `ui.timer`, `world.trap`, `save.best`, `entity.heart`, `world.door` | **Jmenovatel metriky autonomie** — mají projít napoprvé. `save.best` navíc cvičí `user://` + JSON (konvence 04). |
 
 **Vědomě se NEMĚŘÍ** (a je to zapsané i v roadmapě): `owns` konflikt dvou granul
-na jednom souboru — conductor má `MAX_CONCURRENT=1`, takže zámek souborů se při
-jednom běhu vůbec neuplatní; a watchdog (B3a) se stropem `GRAIN_MAX_RUNS=8`,
+na jednom souboru — v téhle vlně **žádné dvě granule nesdílejí soubor**, takže zámek
+se neměl kde projevit. *(⚠ Oprava: původně tu stálo „conductor má `MAX_CONCURRENT=1`“ —
+**naměřeno 13. 10. 2026 v §10.1: nasazené je `MAX_CONCURRENT = 5`**, takže konflikt
+měřitelný JE a patří do příští vlny.)* A watchdog (B3a) se stropem `GRAIN_MAX_RUNS=8`,
 který se spustí, jen když granule selže 3×/8× (to se nedá naplánovat, jen pozorovat).
 
 ### 9.2 Přeměřený rozpočet — a je to vidět číslem
@@ -418,3 +420,84 @@ kontext vede na **1 pokus** (hypotéza) nebo ne.
 * **`ui.gameover` má skončit `awaiting_human`** a **nespálit pokus** — když skončí `done`, znamená to, že se diff vešel do 60 řádků a test nevyšel (taky výsledek, jen jiný).
 * **`sim.progress` (9 016 t) NESMÍ jít na groq** (8 000 t). Když na něj dojde, request se nepošle a **pokus se spálí** — to by byl nález o volbě poskytovatele, ne o modelu.
 * V logu `agent.yml` roste `[test] N kontrol` s každou dospělou granulí (41 → až ~120).
+
+---
+
+## 10. První běh druhé vlny (13. 10. 2026, 19:47–20:10 UTC) — co orchestra udělala SAMA
+
+> **Co je v tomhle oddílu:** **záznam o provedení + měření.** Push: orchestra
+> `0ffa8dc` a hra `e2f5e0a` v **19:47 UTC**; do 20:10 UTC orchestra vydala
+> 8 úloh vlastními silami. **Není to návrh** — co z toho platí dál, je v §10.6.
+
+### 10.1 Co se stalo (naměřeno, ne odhad)
+
+* Conductor si roadmapu převzal **do minuty** (tik čte `.forge/roadmap.json` z `origin/main`).
+* **Vytvořil 8 úloh** (#251–258) — a **jen 8 z 10**: `ui.gameover` a `core.wiring2`
+  **řádek nedostaly**, protože mají nesplněné `depends_on`. **DAG filtr tedy drží.**
+* `running` vystoupalo na **5** → nasazený `MAX_CONCURRENT = "5"` (⚠ moje dřívější
+  poznámka „1“ byla **špatná**; offline `test-tick-offline.mjs` měří variantu s 1).
+* **3 granule došly do `main` do 5 minut**: `ui.timer` (PR #6), `world.trap` (PR #5),
+  `world.portal` (PR #8) — **portál, nejsložitější smlouva vlny, napoprvé**.
+* **4 granule spadly na první pokus** a **jedna skončila jako `done`, i když její PR
+  je otevřený a soubor v `main` NENÍ** (§10.4).
+
+### 10.2 Tři ze čtyř selhání byly VADY MÉHO ZADÁNÍ (a jsou opravené)
+
+| granule | běh / poskytovatel | chyba z logu | příčina |
+|---|---|---|---|
+| `sim.progress` | #11 / mistral | `Parse Error: Function "cil" has the same name as a previously declared variable.` | metoda `cil()` se bila s proměnnou `cil` — **zadání ji nepojmenovalo** |
+| `save.best` | #14 / groq | `Parse Error: The variable type is being inferred from a Variant value. (Warning treated as error.)` | `:=` nad `JSON.parse_string` (vrací `Variant`) |
+| `entity.heart` | #15 / groq | `SCRIPT ERROR: Invalid call. Nonexistent function 'has' in base 'Area2D (player.gd)'` | `hrac.has("hp")` — správně `"hp" in hrac` |
+| `entity.patrol` | #18 / cerebras | testy proběhly, ale `FAIL po dosažení bodu jde hlídka na další` + `FAIL hlídka dojde přesně na bod` | smlouva o pohybu byla nedostatečná (chyběl krok-za-krokem příklad) |
+
+**Tohle je nezávislé potvrzení poučky K4 (F11/F13) na nových datech: neuspěl model,
+ale zadání — a každá chybějící znalost je jednořádková.** Opravené zadání je v repu
+(commit **`020cd25`**), takže **další pokus dostane opravu** (retry zakládá NOVÝ úkol —
+`conductor/src/index.ts:915`).
+
+### 10.3 Nález: QUOTA nespouští rotaci poskytovatele
+
+`entity.heart` spadl na groqu s `litellm.RateLimitError … Requested 4720`;
+klasifikátor to správně pojmenoval `TRIDA=QUOTA`. Workflow u QUOTA **druhého
+poskytovatele nezkouší** (vědomě: „šetřím kvótu, druhý poskytovatel se nezkouší“) →
+**pokus se spálí**, i když by mistral (625 000 t) tuhle granuli vzal.
+**Otázka k rozhodnutí:** má QUOTA rotovat? (Cena: pár tokenů; zisk: nespálený pokus.)
+
+### 10.4 ⚠ NÁLEZ: `done` bez sloučeného PR — A1/A2 má díru v `/report`
+
+**Naměřeno (všechno doložené):**
+1. `GET /queue` i `GET /roadmap`: úloha **#256 `world.door` = `done`**.
+2. GitHub: **PR #7 je `open`**, `merged=false`, `head=forge/task-256`, 2 soubory / 35 řádků, `mergeable_state=clean`.
+3. `git ls-tree origin/main scripts/`: **`door.gd` tam NENÍ** (jsou tam coin, enemy, game, hud, level, player, portal, spawner, timer, trap).
+4. Kód: **`POST /report`** (`conductor/src/index.ts:2172–2178`) píše `status='done'` **jen podle `body.status === "success"`** — **bez kontroly `merged`**. Poll cesta na `:713` má správně `ok && merged`.
+5. **Proč to nastalo:** workflow doběhl `success`, ale sloučení PR #7 selhalo na **závodě** — log auto-merge jobu: `GraphQL: Base branch was modified. Review and try the merge again.` (s `MAX_CONCURRENT=5` se do `main` slévalo víc PR naráz).
+
+**Důsledek:** granule je `done` → vypadne z DAG → conductor ji **už nikdy nevydá** →
+práce se do hry nedostane. To je přesně třída S29/S33 („`done` je tvrzení, ne důkaz“),
+kterou A1/A2 zavíraly **na poll cestě** — a `/report` zůstal se starým pravidlem.
+
+**Doporučená oprava (návrh, neprovedeno):** dát `/report` totéž pravidlo jako `:713`
+(nedostupné `merged` → `awaiting_human`, ne `done`), plus v auto-merge po
+`Base branch was modified` merge zopakovat. **Nasazení conductora je změna běžící
+služby → patří uživateli.**
+
+### 10.5 Metrika po prvním běhu (proti baseline K4)
+
+| Metrika | K4 (4 granule) | druhá vlna (8 úloh, 1. pokus) |
+|---|---|---|
+| úloh vytvořených conductorem | ruční pilot + 3 sám | **8 z 10** (2 čekají na DAG) |
+| do `main` do 5 minut | 3 ze 4 (postupně) | **3 z 8** |
+| selhalo na 1. pokus | 6 z 10 **běhů** (60 %) | **4 z 8 úloh** (50 %) |
+| zásahů člověka do zadání | 3 | **4** (opraveno, `020cd25`) |
+| `done` bez práce v `main` | 0 (po A1) | **1** ← nález §10.4 |
+
+**Velký kontext (`sim.progress`) hypotézu zatím nepotvrdil ani nevyvrátil** — spadl
+na jmenné kolizi v mém zadání, ne na velikosti. Rozhodne až druhý pokus (po `RETRY_HOURS=3`).
+
+### 10.6 Co z toho čeká na tebe (doplnění §6)
+
+1. **PR #7 (dveře) sloučit ručně** — jinak je granule `done` a `scripts/door.gd`
+   se do `main` nikdy nedostane. *(Alternativa: nechat ji vydat znovu přes `POST /roadmap/reset`.)*
+2. **Rozhodnout díru v `/report`** (§10.4) — oprava je jedno místo v kódu, ale znamená nasazení conductora.
+3. **Rozhodnout, má-li QUOTA rotovat** (§10.3).
+4. Do příští vlny: **`owns` konflikt je teď měřitelný** (nasazené `MAX_CONCURRENT=5`, §10.1).
