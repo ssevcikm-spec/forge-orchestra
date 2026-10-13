@@ -442,6 +442,15 @@ BRANY = [
     # s aiderem 0.86.2 (`.tmp/otukani/venv`) — na jiném stroji by „nespuštěno"
     # vypadalo jako zelená. Je to MĚŘIDLO, ne brána; jeho výsledek je v
     # `K3-ROZDELENI-KONVENCI.md` a dá se spustit ručně.
+    # ═══ PŘIDÁNO 13. 10. 2026 (K4: nová hra) ═════════════════════════════════
+    # Generátor nové hry (`tools/forge-new.mjs`) je nástroj, na kterém stojí
+    # KAŽDÁ další hra — a jeho vady se poznají až v CI nové hry (přesně to se
+    # stalo s chybějícím `export_presets.cfg`, kvůli kterému první hra spadla
+    # na posledním kroku CI). Test proto generátor SPUSTÍ, vygenerovanou hru
+    # změří branami a ověří, že o sobě netvrdí nepravdu (`done: true` po cizím
+    # pilotu, jméno vzorové hry kdekoli v textu).
+    ("K4: forge new (generátor nové hry)", ["node", "<ANALYZA>/test-forge-new.mjs"],
+     r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
 ]
 
 vse = []
