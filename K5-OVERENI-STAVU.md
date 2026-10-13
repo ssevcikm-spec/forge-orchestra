@@ -501,3 +501,80 @@ na jmenné kolizi v mém zadání, ne na velikosti. Rozhodne až druhý pokus (p
 2. **Rozhodnout díru v `/report`** (§10.4) — oprava je jedno místo v kódu, ale znamená nasazení conductora.
 3. **Rozhodnout, má-li QUOTA rotovat** (§10.3).
 4. Do příští vlny: **`owns` konflikt je teď měřitelný** (nasazené `MAX_CONCURRENT=5`, §10.1).
+
+---
+
+## 11. Díra v A1 zavřena, nasazena a ověřena (13. 10. 2026, 21:0x–21:2x UTC)
+
+> **Co je v tomhle oddílu:** **záznam o provedení** na pokyn uživatele
+> (*„PR můžeš sloučit ty. Nevadí mi nasadit conductora… asi dává smysl ho opravit.“*).
+
+### 11.1 Co bylo za problém (lidsky)
+
+Conductor měl **dvě cesty**, jak rozhodnout „hotovo“:
+
+1. **poll** — ptá se GitHubu: *je PR sloučený?* (`ok && merged`) → **správně**.
+2. **`/report`** — workflow se sám hlásí a conductor bral `status = "success"`
+   **jako hotovo** (`index.ts:2172`).
+
+Jenže `success` znamená **„doběhly kroky workflow“**, ne „PR je sloučené“. Když
+sloučení selhalo (závod `GraphQL: Base branch was modified`, protože při
+`MAX_CONCURRENT=5` se `main` posunul pod PR), granule byla **`done`, ale kód
+v `main` nebyl** — přesně vada, kterou A1/A2 zavíraly na poll cestě.
+
+### 11.2 Oprava (dvě věci, obě v `conductor/src/index.ts`)
+
+* **`/report` už o stavu ÚLOHY nerozhoduje.** U `success` nechá běh ve stavu
+  `running` (a nezapíše `done` ani `awaiting_human`) — rozhodne **poll**, který
+  jako jediný ověřuje `merged_at`. Tím je rozhodovací místo **jedno**.
+* **QUOTA nespálí pokus:** úloha jde zpět na `ready`, `attempts` se **vrátí**
+  (`attempts - 1`) a cooldown je **10 min** místo `RETRY_HOURS` (3 h) — limit je
+  obvykle za minutu (`… Requested 4720. Please try again in 2.5575s`).
+
+### 11.3 Doklady (měřeno, ne tvrzeno)
+
+| Krok | Naměřeno |
+|---|---|
+| offline sada conductoru | **284 kontrol, 0 chyb** (bylo 271/0 — přibyly scénáře J, AI, AJ) |
+| mutační důkaz | **M25** („report zapíše `done`“) sadu **shodí**; `tick-mutace` **51/0** |
+| typová kontrola | `tsc --noEmit` **exit 0** |
+| plný `g3` | **beze změny** — 7 známých nenulových (hra, deklarovaný, P41, K3) |
+| push | `60fcb02` na `origin/main`, 0 nepushnutých |
+| **nasazení 1** | push dorazil ✅ |
+| **nasazení 2** | deploy **#43 `success` na commitu `60fcb02`** ✅ |
+| **nasazení 3** | **živý tail posílá `scriptVersion.id = 786ed3a2-…`** = verze z #43 (stará `db95d2d3-…`), `ok=true`, cron tiká ✅ |
+| PR #7 (dveře) | **sloučen ručně** (`4822228`), `scripts/door.gd` je v `origin/main`; testy hry **86/86** (bylo 75) |
+
+**Poznámka k práci P41:** v `conductor/src/index.ts` je i její necommitnutá změna
+(profil fází `roadmapTick`). **Nestageoval jsem ji** — do indexu jsem dostal jen
+svůj hunk (kontrola: `git diff --cached | grep P41` = **0×**), takže po commitu
+zůstává P41ho práce dál necommitnutá.
+
+**Co ještě NENÍ doložené živě:** že úloha po `success` skutečně projde
+`awaiting_human` → `done`. Nejde to vyrobit ručně (report potřebuje skutečný
+`run_key`); přijde to s dalším úspěšným během. **U prvního dalšího běhu to
+zkontrolovat** (`/queue` + `/status`).
+
+### 11.4 QUOTA: co je lepší než rotace poskytovatele
+
+**Rotace není správná odpověď na QUOTA.** Naměřený limit byl **za minutu**
+(„try again in 2.5575s“) — rotace ho neobejde, jen přesune kolizi na druhý
+poskytovatel a spotřebuje jeho kvótu. (K4 to ostatně naměřil i v extrému:
+„429 ze všech providerů naráz“.)
+
+**Co je lepší, v pořadí hodnota/cena:**
+
+1. **✅ HOTOVO — nezapočítat QUOTA jako pokus + krátký cooldown** (§11.2).
+   Princip je stejný jako u `awaiting_human`: pokus patří **modelu**, ne kapacitě.
+2. **⏳ DOPORUČENO (neimplementováno) — nedávat dva souběžné běhy na stejný
+   poskytovatel.** Kořen není rotace, ale to, že **5 souběžných běhů startuje na
+   tomtéž** poskytovateli (groq má 8 000 t/min a dva naše requesty se do minuty
+   nevejdou). `pick-provider.mjs` by mohl začínat od priority **posunuté podle
+   `run_key`** — pět běhů by začalo na různých zdrojích a limit by se vůbec
+   netrefil. Je to změna v **šabloně i ve hře** (drift) a chce vlastní test.
+3. **Zvážit, ale nedělat:** číst `Retry-After` a čekat v CI (spí runner, platí se čas).
+4. **Nedělat:** rotovat na QUOTA (viz výše).
+
+**`owns` konflikt dvou granul na jednom souboru** (§10.1) **odkládám do příští
+vlny** — je to měřitelné, ale předchází jen souběžné editaci jednoho souboru;
+do té doby nemá prioritu před body 1–2.
