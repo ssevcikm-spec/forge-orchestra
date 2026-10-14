@@ -545,6 +545,11 @@ v `main` nebyl** — přesně vada, kterou A1/A2 zavíraly na poll cestě.
 | **nasazení 3** | **živý tail posílá `scriptVersion.id = 786ed3a2-…`** = verze z #43 (stará `db95d2d3-…`), `ok=true`, cron tiká ✅ |
 | PR #7 (dveře) | **sloučen ručně** (`4822228`), `scripts/door.gd` je v `origin/main`; testy hry **86/86** (bylo 75) |
 
+> **⚠ P42 (14. 10. 2026): doklady téhle tabulky jsou PŘEMĚŘENÉ v §12.** „`86/86`"
+> u testů hry je **stav ve svém čase** (dnes živé CI hlásí **119/0**); živá verze
+> i push jsou ověřené **bez tailu** a **negativní větev opravy ani QUOTA nemají
+> živý výskyt** — detail a meze v §12.1–§12.3. Tabulka se nepřepisuje.
+
 **Poznámka k práci P41:** v `conductor/src/index.ts` je i její necommitnutá změna
 (profil fází `roadmapTick`). **Nestageoval jsem ji** — do indexu jsem dostal jen
 svůj hunk (kontrola: `git diff --cached | grep P41` = **0×**), takže po commitu
@@ -578,3 +583,131 @@ poskytovatel a spotřebuje jeho kvótu. (K4 to ostatně naměřil i v extrému:
 **`owns` konflikt dvou granul na jednom souboru** (§10.1) **odkládám do příští
 vlny** — je to měřitelné, ale předchází jen souběžné editaci jednoho souboru;
 do té doby nemá prioritu před body 1–2.
+
+---
+
+## 12. Přeměření K5 vlastním měřidlem a živé ověření opravy (P42, 14. 10. 2026, 05:30–06:20 UTC)
+
+> **Co je v tomhle oddílu:** **záznam o PŘEMĚŘENÍ**, ne plán ani zadání. Session
+> P42 **nepsala kód** — jen nezávisle zopakovala doklady z §11.3 vlastním
+> postupem a ověřila živě, co §11.3 nechala otevřené. **Co z toho platí dál, se
+> musí přeměřit znovu**; čísla níž jsou z 14. 10. 2026, 05:30–06:20 UTC.
+> *(Mezi prvním čtením stavu 13. 10. 21:31Z a měřením je 8 h pauzy sessionu —
+> proto se živá čísla v §10/§11 a tady liší: svět se pohnul, ne dokument.)*
+
+### 12.1 Co jsem měřil a co vyšlo (vlastní běh, ne opis)
+
+| Doklad | §11.3 tvrdí | P42 naměřeno | Verdikt |
+|---|---|---|---|
+| offline sada na **nasazeném commitu** `60fcb02` | 284 kontrol, 0 chyb | **284/0, `exit 0`** (čistý `git worktree`, měřený soubor == blob) | ✅ sedí |
+| offline sada v pracovním stromě | — | **284/0** (i s necommitnutou prací P41) | ✅ sedí |
+| `tick-mutace` na `60fcb02` | **51/0** (počet vrat v záznamu není) | **51 kontrol, 0 chyb, `vrat: 25`** | ✅ sedí (25 = (51−1)/2) |
+| M25 („report zapíše `done`") sadu shodí | ano | v logu `M25 … → brana SPADLA` + `soubor vracen bajt na bajt` | ✅ sedí |
+| obnova souborů po mutacích | (implicitně) | **643 souborů bajt na bajt**; liší se jen 3 soubory, které si brána sama generuje (`_analyza/tick-scratch/index.js`, `.map`, `README.md`) | ✅ sedí |
+| `tsc --noEmit` na `60fcb02` | `exit 0` | **`exit 0`**, bez výstupu | ✅ sedí |
+| push | `60fcb02` na `origin/main`, 0 nepushnutých | `origin/main` = `HEAD` = **`c0660d5`**, `rev-list --count` = **0**, `60fcb02` je předek (`merge-base --is-ancestor` = ANO) | ✅ sedí |
+| deploy #43 | `success` na `60fcb02` | `deploy.yml` **#43**, `60fcb02`, `completed/success`, `2026-10-13T21:14:28Z` | ✅ sedí |
+| živá verze `786ed3a2-…` | `scriptVersion.id` z tailu | aktivní nasazení = **100 % `786ed3a2-55ab-4f7b-b1f1-079d475ccb7a`**, vytvořeno `21:14:51Z` (23 s po startu deploye) | ✅ sedí |
+| PR #7 (dveře) | sloučen ručně `4822228` | PR `merged=true`, `merged_at 2026-10-13T20:34:04Z`, `merge_commit 4822228…`; `scripts/door.gd` **je** v `origin/main` | ✅ sedí |
+| testy hry | **86/86** (bylo 75) | živé CI #36 na `d437d631`: **119 kontrol, 0 selhání** | ⚠ **číslo zestárlo** (viz 12.2) |
+
+**Jak byla měřena živá verze:** `wrangler deployments status` — **ne tailem**.
+Je to levnější a hlavně to neporušuje **H200** (dvě `wrangler tail` session si
+berou eventy); tvrzení „živá verze == nasazený commit" se dá doložit i bez tailu.
+
+### 12.2 Co je v záznamu jinak, než jsem čekal (a jeden málem-vyrobený falešný nález)
+
+1. **`tick-mutace`: v záznamu nic chybného není — a málem jsem tam vadu vyrobil.**
+   §11.3 uvádí `51/0` a **počet vrat nechává dopočítat**; naměřil jsem `51/0` a
+   `vrat: 25`, což je totéž (25 = (51−1)/2). ⚠ **Ale číslo „`43/0` / 21 vrat"
+   patří k P40** (menší sada, kotva je v `NEXT-SESSION-INSTRUKCE.md`). Při psaní
+   tohohle oddílu jsem si je **spletl s K5** a málem do záznamu napsal „K5 uvádí
+   chybně 21 vrat". Byl to **falešný nález o správném dokumentu** — táž past jako
+   „různé čítače nesou stejné jméno". Rozhodlo ověření proti `git show HEAD:…`,
+   kde stojí jen `51/0`; číslo z hlavy by bylo do záznamu zaneslo lež.
+2. **„testy hry 86/86" byl stav ve svém čase.** Dnes (14. 10. 2026) hlásí živé
+   CI hry **119/0** — nové granule rozsvítily další spící bloky testů. Číslo se
+   **nepřepisuje**, jen se u něj musí číst datum.
+3. **⚠ Vada S27 se opakuje: K3/K4/K5 dokumenty NEJSOU v seznamu žádné brány.**
+   `tools/kontrola-diakritiky.py` má **ruční seznam** (`SOUBORY`) a hledání
+   `OVERENI|PILOT-COIN|ROZDELENI` v `tools/` dá **0 nálezů** → brána ty tři
+   dokumenty **nikdy neotevřela**, a přesto hlásí `VŠE OK`. Je to přesně
+   pravidlo z `AGENTS.md` („kdo přidá dokument, přidá ho i do seznamu") a **už
+   několikátý** výskyt téže vady (S27). Počet výskytů jsem **neměřil**, proto ho
+   netvrdím. **Neopravil jsem to** — viz 12.5.
+
+### 12.3 Živé ověření opravy `/report` (úkol B): co je doložené a co NE
+
+Po nasazení #43 (`21:14Z`) proběhlo do `05:35Z` **12 běhů agenta**: **3 uspěly**
+(`#258` 22:57, `#254` 04:57, `#259` 05:00), **9 selhalo**.
+
+* ✅ **Invariant, který oprava chrání, dnes živě platí:** u **všech 7** úloh ve
+  stavu `done` (`#252, #253, #254, #256, #257, #258, #259`) jsem ověřil, že PR
+  je **sloučený** a jeho `merge_commit` **je předkem `origin/main` hry** →
+  **0 rozporů**. Díra z §10.4 (u `#256`) je uzavřená i po ručním sloučení.
+* ⚠ **Negativní větev opravy NEMÁ živý výskyt.** „`success` bez sloučeného PR →
+  `awaiting_human`" se po nasazení **nestalo ani jednou** — ve všech třech
+  úspěších byl PR sloučen. Doložená je jen **offline** (scénář F sady + mutace
+  M5/M25).
+* ⚠ **QUOTA po nasazení NEBYLA ani jednou.** Třídy všech 12 běhů:
+  **`REQUEST_TOO_LARGE` 3×, `PARSE` 4×, `TESTS` 2×, `OK` 3×** (součet 12).
+  Větev „QUOTA vrátí pokus a cooldown je 10 min" je tedy doložená **jen offline**
+  (scénáře AI/AJ) — a **mutace na QUOTA v `tick-mutace.py` není** (je to slabší
+  důkaz než u zbytku).
+
+→ Poslední odstavec §11.3 tedy **zůstává otevřený v obou větvích**, ale jeho
+hlavní smysl (nedělat `done` bez práce v `main`) je dnes živě potvrzený.
+
+### 12.4 NOVÝ NÁLEZ (živý, měřený): `REQUEST_TOO_LARGE` spálí pokus, i když workflow tvrdí opak
+
+* `sim.progress` (`#251`) je dnes **terminálně `failed`, `attempts=5`** — a
+  **3 z jeho 5 běhů** byly klasifikovány **`REQUEST_TOO_LARGE` na groqu**
+  (strop **8 000 t** proti requestu **9 016 t**); zbylé 2 byly `PARSE`.
+* Workflow u toho má komentář *„…a nespálí pokus ani kvótu"*
+  (`agent.yml:261–262`), ale **mechanismus v conductoru je jiný**: `attempts` se
+  zvyšuje **už při dispatchi** (`conductor/src/index.ts:1553` a `:1613`,
+  `attempts=attempts+1`) a **vrací ho jen QUOTA** (`:2201`, `attempts - 1`).
+  `REQUEST_TOO_LARGE` jde cestou **běžného selhání** (speciálně se testuje jen
+  `/QUOTA/i` v `summary`) → **pokus zůstane spálený**. Request se přitom **vůbec
+  neposlal** (model nedostal ani šanci), takže „kvóta" ušetřená je — ale **„pokus
+  ne"**, jak komentář slibuje. **Kód a komentář si odporují.**
+* Je to přesně to, co **§9.2 předpovědělo** („to by byl nález o volbě
+  poskytovatele, ne o modelu") a co **§9.5 zakazovalo** („`sim.progress`
+  NESMÍ jít na groq") — stalo se to **třikrát**.
+* **Návrh (nedělám ho tady):** volba poskytovatele má znát **rozpočet requestu**
+  (dnes ho zná brána `request-budget.mjs`, ale dispatch ne) a granule, která se
+  na daný strop nevejde, se na něj nemá posílat vůbec — místo aby tam spálila
+  pokus. Tím by se `sim.progress` dovezl na mistral (625 000 t) místo smrti.
+
+### 12.5 Co jsem NEMĚŘIL (přiznaná mez)
+
+* **`g3` (56 bran) jsem nepřeměřoval.** Běh přepisuje **živý** registr
+  `_analyza/_registr-bran.json` a ve stromě je **cizí necommitnutá práce P41**;
+  místo plošného běhu jsem doklady z §11.3 měřil jednotlivě (12.1). Kdo chce
+  `g3`, ať ho pustí s `FORGE_REGISTR` mimo repo a s klidným stromem.
+* **Testy hry jsem nespouštěl lokálně** (Godot) — vzal jsem je z **živého CI**,
+  což je pro tvrzení „testy prošly" silnější důkaz (běželo to na `origin/main`).
+* **Na necommitnutou práci P41 jsem nesahal** (`conductor/src/index.ts` +
+  `_analyza/p41-*`): číslo „284/0" proto měřím **i na pracovním stromě** a
+  rozhodující je běh na **commitu** `60fcb02`.
+* **S27 v 12.2 jsem neopravil.** Dopsat tři dokumenty do ručního seznamu je
+  změna **brány** (`.py`) → znamená přegenerovat inventář a projít `g3` +
+  `validate-all`, a to na stromě, kde je cizí necommitnutá práce. Patří to do
+  session, která ten strom vlastní — a systémová náprava („projít složku, ne
+  seznam") je v projektu **už zapsaná jako samostatný úkol**.
+
+### 12.6 Můj vlastní omyl (stál 20 minut a vypadal jako nález o cizím kódu)
+
+První běh mutací jsem pustil v **čerstvém `git worktree`** — a git si soubory
+vycheckoutoval s **`core.autocrlf=true`**: `conductor/src/index.ts` měl
+**2 250× CRLF**, zatímco **blob v gitu je LF**. Víceřádkové kotvy (M9, M10, M14,
+M25) proto nesedly → `47 kontrol, 4 CHYBY` a hlášení „mutace se neprovedla".
+**Vypadalo to jako vada K5 a byla to vada mého měřidla.** Náprava: do worktree
+jsem zapsal **přesně bajty blobu** (`git cat-file blob 60fcb02:…`,
+`hash-object --no-filters` == blob) → `51/0`.
+
+**Poučení je táž past, kterou `AGENTS.md` zná:** *kdo měří na disku, najde vady,
+které neexistují; autorita je blob, ne velikost souboru.* A druhá polovina:
+**kdyby knihovna `_mutace` neměla kontrolu „kotva je v souboru právě 1×", zapsal
+bych „M25 nefunguje" a bylo by to nepravdivé.** Brána, která umí říct „mutace se
+neprovedla", je to jediné, co rozdíl mezi „prošlo" a „neměřilo se" udrželo.
