@@ -746,9 +746,9 @@ neprovedla", je to jediné, co rozdíl mezi „prošlo" a „neměřilo se" udr�
 | Soubor | Změna |
 |---|---|
 | `repo/.github/workflows/agent.yml` (šablona) | předběžná kontrola rozpočtu **rotuje**: `pick-provider --next` → `nacti_poskytovatele` → znovu rozpočet (max 4 poskytovatelé); `exit 1` zůstává **jen** pro „nevejde se NIKAM" |
-| `coin-picker/.github/workflows/agent.yml` (hra) | totéž, kopie **bajt na bajt** (sha256 shodné se šablonou) |
+| `coin-picker/.github/workflows/agent.yml` (hra) | totéž; **blob shodný se šablonou** (`git hash-object` = `e3792dc1…`) |
 | `repo/.forge/node/priprava.test.mjs` | **+4 kontroly**: rotace je před `TRIDA=…`, je ve smyčce, načte poskytovatele, **a kalibrační případ** (text bez rotace musí vyjít jako vadný) |
-| `coin-picker/.forge/node/priprava.test.mjs` | totéž, kopie **bajt na bajt** |
+| `coin-picker/.forge/node/priprava.test.mjs` | totéž; **blob shodný** (`git hash-object` = `099f69bf…`) |
 
 ### 13.3 Doklady (všechno spuštěné, nic z hlavy)
 
@@ -790,3 +790,22 @@ padá na `ENOENT … .forge/roadmap.pilot.json` (fixtura je jen v šabloně).
 následek opravy**. Je to **slepé místo**: synchronizovaný test, který v tomhle
 stromě nemůže proběhnout (v šabloně, kde ho pouští brána, funguje).
 **Neopravil jsem** — patří to session, která vlastní synchronizaci šablony do her.
+
+### 13.6 Dodatek: co se pohnulo při pushi (a další past s konci řádků)
+
+* **Push do hry byl nejdřív odmítnut** (`non-fast-forward`): než jsem stihl
+  pushnout, orchestra do `origin/main` hry **sloučila PR #9–#11**. Po rebasi na
+  `d437d63` prošel; `origin/main` hry = **`4e6cabb`** = HEAD, 0 nepushnutých.
+  *(Je to táž past jako „než začneš psát, ověř, kdo v repu píše" — jen na straně
+  ČTENÍ: klon může být pozadu, aniž si toho všimneš, dokud push nespadne.)*
+* **⚠ „Bajt na bajt" platilo jen do rebase — a to je poučení.** Po rebasi se
+  **diskové** kopie rozešly v koncích řádků (šablona **CRLF**, klon hry **LF**),
+  takže `Get-FileHash` na disku dává **jiné hashe**. **Bloby jsou přitom
+  shodné** — `git hash-object` = `e3792dc1…` (workflow) a `099f69bf…` (test)
+  v obou repech — a `origin/main` hry posílá právě tyhle bloby
+  (`git ls-tree origin/main` = tytéž hashe). **Autorita je blob**, ne bajty ani
+  velikost na disku; kdo by měřil disk, „najde" dvě různé pravdy tam, kde je
+  jedna. *(Táž past je v `AGENTS.md` a v §12.6 — potkala mě dvakrát za session.)*
+* **Push orchestry s touhle opravou:** `origin/main` = **`f933cc1`** (ověřeno
+  `rev-list --count` = 0 v tu chvíli); do hry **`4e6cabb`**. Bloby opravy jsou
+  v `origin/main` **obou** repů (`git ls-tree origin/main`).
