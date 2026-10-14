@@ -61,12 +61,46 @@ const nas = (behy.workflow_runs || []).filter((x) => /Deploy conductor/i.test(x.
 for (const r of nas.slice(0, 5)) {
   console.log(`  #${r.run_number} ${r.status}/${r.conclusion || '-'} head:${r.head_sha.slice(0, 9)} ${r.created_at}`);
 }
-// Hledá se deploy na **poslední změně conductor/** — ne na HEADu main.
-const naCommitu = nas.find((r) => r.head_sha === shaConductoru);
-test('kód conductora z main JE nasazený (deploy na poslední změně conductor/)',
-  !!naCommitu && naCommitu.conclusion === 'success',
-  naCommitu ? `#${naCommitu.run_number} success head:${naCommitu.head_sha.slice(0, 9)}`
-            : `na ${shaConductoru?.slice(0, 9)} žádný deploy`);
+// Hledá se deploy, který poslední změnu conductor/ **OBSAHUJE** — ne jen takový,
+// jehož `head_sha` je přesně ona.
+//
+// ⚠ NAMĚŘENO 14. 10. 2026 (K6): poslední změna conductor/ byla `cfa8a85`
+// (práce P41) a hned za ní šel commit `a4c4e1b` (mění jen brány mimo conductor/).
+// Deploy běžel na `a4c4e1b` — a brána hlásila „na cfa8a856d žádný deploy“, i když
+// nasazený kód oba commity OBSAHUJE a `conductor/src/index.ts` je v obou stejný.
+// **Falešný poplach na správném stavu** — a to je dražší než slepá brána, protože
+// nutí „opravovat“ fungující věc (táž třída jako výš: měřidlo se ptalo na přesnou
+// shodu místo na dosažitelnost).
+//
+// Nově se proto připouští i deploy na POZDĚJŠÍM commitu, jehož je poslední změna
+// conductor/ předkem (compare API: `ahead` / `identical`). Když deploy chybí
+// úplně (nebo je starší), brána padá dál — ověřeno mutací, která z výběru
+// kandidátů vypustí ten NEJNOVĚJŠÍ (první prvek pole `nas` níž): brána SPADNE.
+// (Pozor na past H199: kdyby tu ta kotva byla vypsaná doslovně, `_mutace.py`
+//  odmítne mutovat — „kotva je v souboru 2×“ — a mutace by se tiše neprovedla.)
+let naCommitu = null;
+let kandidatBezUspechu = null;
+for (const r of nas.slice(0, 8)) {
+  let obsahuje = r.head_sha === shaConductoru;
+  if (!obsahuje && shaConductoru) {
+    const cmp = await gh(`/repos/${REPO}/compare/${shaConductoru}...${r.head_sha}`);
+    obsahuje = cmp?.status === 'ahead' || cmp?.status === 'identical';
+    console.log(`  ? #${r.run_number} ${r.conclusion} head:${r.head_sha.slice(0, 9)}`
+      + ` vs změna ${shaConductoru.slice(0, 9)} → ${cmp?.status || 'ERR'}`);
+  }
+  if (obsahuje) {
+    if (r.conclusion === 'success') { naCommitu = r; break; }
+    if (!kandidatBezUspechu) kandidatBezUspechu = r;
+  }
+}
+test('kód conductora z main JE nasazený (deploy obsahuje poslední změnu conductor/)',
+  !!naCommitu,
+  naCommitu
+    ? `#${naCommitu.run_number} success head:${naCommitu.head_sha.slice(0, 9)}`
+      + (naCommitu.head_sha === shaConductoru ? '' : ` (obsahuje ${shaConductoru?.slice(0, 9)})`)
+    : (kandidatBezUspechu
+      ? `#${kandidatBezUspechu.run_number} ${kandidatBezUspechu.conclusion} head:${kandidatBezUspechu.head_sha.slice(0, 9)} — deploy na změně conductor/ NEDOBĚHL`
+      : `na ${shaConductoru?.slice(0, 9)} žádný deploy (ani na pozdějším commitu)`));
 // A když uživatel zadal konkrétní sha, ověří se, že na NĚM deploy opravdu byl
 // (to je původní smysl parametru — „B1 musí být nasazené").
 if (cekanyNorm) {
