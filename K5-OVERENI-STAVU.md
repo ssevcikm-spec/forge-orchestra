@@ -628,13 +628,22 @@ berou eventy); tvrzení „živá verze == nasazený commit" se dá doložit i b
 2. **„testy hry 86/86" byl stav ve svém čase.** Dnes (14. 10. 2026) hlásí živé
    CI hry **119/0** — nové granule rozsvítily další spící bloky testů. Číslo se
    **nepřepisuje**, jen se u něj musí číst datum.
-3. **⚠ Vada S27 se opakuje: K3/K4/K5 dokumenty NEJSOU v seznamu žádné brány.**
-   `tools/kontrola-diakritiky.py` má **ruční seznam** (`SOUBORY`) a hledání
-   `OVERENI|PILOT-COIN|ROZDELENI` v `tools/` dá **0 nálezů** → brána ty tři
-   dokumenty **nikdy neotevřela**, a přesto hlásí `VŠE OK`. Je to přesně
-   pravidlo z `AGENTS.md` („kdo přidá dokument, přidá ho i do seznamu") a **už
-   několikátý** výskyt téže vady (S27). Počet výskytů jsem **neměřil**, proto ho
-   netvrdím. **Neopravil jsem to** — viz 12.5.
+3. **⚠ VLASTNÍ FALEŠNÝ NÁLEZ (napsán v P42, opraven v P42-dodatku téhož dne):
+   „K3/K4/K5 nejsou v žádné bráně" NEBYLA PRAVDA.** Původně tu stálo, že
+   `tools/kontrola-diakritiky.py` má ruční seznam a hledání
+   `OVERENI|PILOT-COIN|ROZDELENI` v `tools/` dá **0 nálezů** → že brána ty
+   dokumenty **nikdy neotevřela**. **Chyba byla v mém úsudku, ne v bráně:**
+   ta seznam **rozšiřuje projitím složky** — `kontrola-diakritiky.py:361–376`
+   ke svému ručnímu základu přidá **VŠECHNY `.md` a `.py`** v kořeni workspace
+   a v `_analyza/`, deduplikuje podle `resolve()` a **sama to vypisuje**:
+   `PROJITÍ SLOŽKY: přidáno 222 souborů (kořen + _analyza)`.
+   Jméno dokumentu se ve zdroji **nemusí objevit, protože ho chytá vzor** — což
+   je přesně past „hledáš řetězec a najdeš jen ruční seznam". Druhý doklad:
+   po přidání jednoho mého `.py` se počet sám zvedl **362 → 363**, což by se
+   u ručního seznamu nestalo.
+   **Poučení:** než označím bránu za slepou, musím změřit, **které soubory
+   opravdu otevřela** — brána to vypisuje. „Jméno není ve zdroji" **není**
+   důkaz, že soubor nevidí.
 
 ### 12.3 Živé ověření opravy `/report` (úkol B): co je doložené a co NE
 
@@ -678,6 +687,7 @@ hlavní smysl (nedělat `done` bez práce v `main`) je dnes živě potvrzený.
   (dnes ho zná brána `request-budget.mjs`, ale dispatch ne) a granule, která se
   na daný strop nevejde, se na něj nemá posílat vůbec — místo aby tam spálila
   pokus. Tím by se `sim.progress` dovezl na mistral (625 000 t) místo smrti.
+  → **PROVEDENO v §13** (14. 10. 2026, táž session P42, na pokyn „Rozhodni sám").
 
 ### 12.5 Co jsem NEMĚŘIL (přiznaná mez)
 
@@ -690,11 +700,11 @@ hlavní smysl (nedělat `done` bez práce v `main`) je dnes živě potvrzený.
 * **Na necommitnutou práci P41 jsem nesahal** (`conductor/src/index.ts` +
   `_analyza/p41-*`): číslo „284/0" proto měřím **i na pracovním stromě** a
   rozhodující je běh na **commitu** `60fcb02`.
-* **S27 v 12.2 jsem neopravil.** Dopsat tři dokumenty do ručního seznamu je
-  změna **brány** (`.py`) → znamená přegenerovat inventář a projít `g3` +
-  `validate-all`, a to na stromě, kde je cizí necommitnutá práce. Patří to do
-  session, která ten strom vlastní — a systémová náprava („projít složku, ne
-  seznam") je v projektu **už zapsaná jako samostatný úkol**.
+* **Nic k opravě nebylo — „S27" v 12.2 byl můj omyl** (opravený bod 3):
+  `kontrola-diakritiky.py` seznam **rozšiřuje projitím složky**, takže K3/K4/K5
+  **kontroluje** a procházejí zeleně. Systémová náprava „projít složku, ne
+  seznam" je v tomhle nástroji **už hotová** — a to je i důvod, proč se moje
+  domněnka nedala poznat z výpisu jmen ve zdroji.
 
 ### 12.6 Můj vlastní omyl (stál 20 minut a vypadal jako nález o cizím kódu)
 
@@ -711,3 +721,72 @@ které neexistují; autorita je blob, ne velikost souboru.* A druhá polovina:
 **kdyby knihovna `_mutace` neměla kontrolu „kotva je v souboru právě 1×", zapsal
 bych „M25 nefunguje" a bylo by to nepravdivé.** Brána, která umí říct „mutace se
 neprovedla", je to jediné, co rozdíl mezi „prošlo" a „neměřilo se" udrželo.
+
+---
+
+## 13. Oprava (P42): rozpočet se umí uhnout na jiného poskytovatele (14. 10. 2026, 07:50–08:30 UTC)
+
+> **Co je v tomhle oddílu:** **záznam o PROVEDENÍ §12.4** na pokyn uživatele
+> *„Rozhodni sám"*. Není to plán — co z toho platí dál, se musí přeměřit.
+
+### 13.1 Co bylo špatně (změřeno, ne odhad)
+
+* `sim.progress` má request **9 105 t**, pick-provider ho poslal na **groq**
+  (strop **8 000 t**) → předběžná kontrola rozpočtu udělala `exit 1` → **pokus
+  spálen**. Stalo se to **3× z 5 běhů** té granule (§12.4).
+* `attempts` roste **už při dispatchi** (`conductor/src/index.ts:1553`, `:1613`)
+  a **vrací ho jen QUOTA** (`:2201`) → komentář „nespálí pokus ani kvótu"
+  v `agent.yml:261` byl **proti kódu**.
+* **Kde to je:** volba poskytovatele žije v **repozitáři HRY**
+  (`.forge/pick-provider.mjs` + `agent.yml`), **ne v conductoru** — proto tahle
+  oprava **nepotřebuje nasazení** (a nebylo tedy na co čekat od uživatele).
+
+### 13.2 Co se změnilo (dva soubory, dvě kopie téhož)
+
+| Soubor | Změna |
+|---|---|
+| `repo/.github/workflows/agent.yml` (šablona) | předběžná kontrola rozpočtu **rotuje**: `pick-provider --next` → `nacti_poskytovatele` → znovu rozpočet (max 4 poskytovatelé); `exit 1` zůstává **jen** pro „nevejde se NIKAM" |
+| `coin-picker/.github/workflows/agent.yml` (hra) | totéž, kopie **bajt na bajt** (sha256 shodné se šablonou) |
+| `repo/.forge/node/priprava.test.mjs` | **+4 kontroly**: rotace je před `TRIDA=…`, je ve smyčce, načte poskytovatele, **a kalibrační případ** (text bez rotace musí vyjít jako vadný) |
+| `coin-picker/.forge/node/priprava.test.mjs` | totéž, kopie **bajt na bajt** |
+
+### 13.3 Doklady (všechno spuštěné, nic z hlavy)
+
+* **Sémantika — má kam uhnout** (`node .forge/node/rozpocet-granuli.mjs`):
+  na **groqu** je `sim.progress` 9 105 t a `core.wiring2` 12 094 t
+  `REQUEST_TOO_LARGE`; na **cerebras** i **mistral** je **14/14 `REQUEST_FITS`**.
+* **Brána:** `node repo/.forge/node/priprava.test.mjs` → **55/55 kontrol, 0 chyb**
+  (bylo 51/51; čtyři nové jsou moje).
+* **Mutační důkaz** (`_analyza/p42-mutace-workflow.py`, nově v repu):
+  M-A zruší rotaci v předběžném rozpočtu, M-B přejmenuje čítač smyčky →
+  brána **v obou případech SPADLA** a soubor se vrátil **bajt na bajt**
+  (`VYSLEDEK: 5 kontrol, 0 chyb`). Bez toho by nová kontrola byla jen tvrzení.
+* **YAML:** oba workflow se **parsují** (pyyaml), **24 kroků** — struktura
+  nezměněná, měnil se jen obsah `run`.
+* **Drift:** `kontrola-driftu.mjs` hlásí **1 rozdíl** — ten **známý** (šablona má
+  jiné názvy čtyř kroků než `uo-shadows`). Moje změna je v obsahu `run` bloku
+  a tenhle nástroj **obsah neporovnává** (měřeno: rozdíl se v jeho výpisu
+  neobjevil) — proto je ověření obsahu na mně, ne na něm.
+
+### 13.4 Co ještě ověřené NENÍ (a kdy se to pozná)
+
+* **Zapojení v Actions** (že bash smyčka na runneru opravdu proběhne) ověří až
+  **první další dispatch**, u kterého se granule nevejde do prvního
+  poskytovatele. Pozná se to takto: v logu kroku „Spusť agenta" je
+  `::notice::request se nevešel do předchozího poskytovatele – použiji …`
+  a běh **neskončí** `TRIDA=REQUEST_TOO_LARGE`, pokud je v řetězci zdroj, který
+  se vejde. **Do té doby je oprava „zelená jen lokálně".**
+* `sim.progress` je **terminálně `failed`** (5 pokusů) — oprava mu pomůže až
+  u **nové úlohy** (reset granule / další vlna). Sám jsem reset **nedělal**:
+  je to zásah do živého stavu, který bez nové úlohy nic nepřinese.
+* **`uo-shadows`** má vlastní, starší kopii workflow (drift to hlásí). Je
+  **vypnutá** a vede ji **cizí session** → nesahal jsem na ni.
+
+### 13.5 Nález mimo zadání (předexistující, neopravený)
+
+`coin-picker/.forge/node/priprava.test.mjs` **se v repu hry nedá spustit**:
+padá na `ENOENT … .forge/roadmap.pilot.json` (fixtura je jen v šabloně).
+Řádek 130 — tedy **před** mým dodatkem na konci souboru, takže to **není
+následek opravy**. Je to **slepé místo**: synchronizovaný test, který v tomhle
+stromě nemůže proběhnout (v šabloně, kde ho pouští brána, funguje).
+**Neopravil jsem** — patří to session, která vlastní synchronizaci šablony do her.
