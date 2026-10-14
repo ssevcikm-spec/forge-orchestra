@@ -71,6 +71,15 @@ ARTEFAKTY = {
     "zaloha-p8", "zaloha-p8b", "zaloha-p8d", "zaloha-p8l",
     "snapshot-20261002-181237", "snapshot-20261002-183213",
     "fixcheck", "patch-test", "patch",
+    # ⚠ PŘIDÁNO 14. 10. 2026 (K6): SCRATCH ADRESÁŘE NÁSTROJŮ. Naměřeno: kdo si
+    # do `.tmp` rozbalí logy z GitHub CI, dostane do měřidla ČESKÉ NÁZVY JOBŮ
+    # („Automatické sloučení (jen bezpečné změny)“) → brána ohlásí „non-ASCII
+    # v názvu: 0, naměřeno 48“ a shodí TRVALÁ PRAVIDLA. Přitom je to scratch,
+    # ne zdrojový kód — tedy přesně to, co tahle množina vylučuje (táž past jako
+    # `ci-rozbal*` 4. 10. 2026). Seznam se proto srovnává se skenerem
+    # `hl-neanglicky-v-kodu.py`, který tytéž adresáře vylučuje vzorem
+    # `\.tmp/|\.test/|\.npm-cache/|\.wrangler/` — jedno měřidlo, jeden rozsah.
+    ".tmp", ".test", ".npm-cache", ".wrangler",
 }
 
 if not AGENTS.is_file():

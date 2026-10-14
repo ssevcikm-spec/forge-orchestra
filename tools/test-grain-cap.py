@@ -205,8 +205,18 @@ def main() -> int:
         check("D: dispatch smyčka počítá klíč přes `grainKeyOf`", "grainKeyOf(" in usek_task, True)
     check("D: počítadlo se měří JEDNOU za tik a jde do watchdogu",
           bool(re.search(r"escalateStuckTasks\(env,\s*grainRunsMap\)", kod)), True)
+    # ⚠ KOTVA BYLA PŘÍLIŠ DOSLOVNÁ (opraveno 14. 10. 2026, K6): hledala
+    # `…grainRunsMap, cap)` — tedy i ZAVÍRACÍ závorku hned za `cap`. Když P41
+    # přidal pátý argument (profil fází: `cap, profOn ? znacka : undefined`),
+    # brána přestala volání nacházet a hlásila „týž map se nepředává“ — a to
+    # o kódu, který ho předává. Naměřeno: `g3` → `B3b: strop na granuli` exit 1
+    # a `validate-all` problém „lokální kód = repo“ (K5 §3, kořen B).
+    # Měří se dál TOTÉŽ (oba argumenty musí být ve volání), jen se za `cap`
+    # připouští ČÁRKA (další argumenty) NEBO zavírací závorka.
+    # Past, na kterou to upozorňuje: textová kotva, kterou rozbije refaktor,
+    # nevypadá jako vada brány — vypadá jako vada kódu (H199).
     check("D: týž map se předává do roadmapTick (jedno číslo pro všechny)",
-          bool(re.search(r"roadmapTick\(env,\s*retryH,\s*grainRunsMap,\s*cap\)", kod)), True)
+          bool(re.search(r"roadmapTick\(env,\s*retryH,\s*grainRunsMap,\s*cap\s*[,)]", kod)), True)
 
     # E) konfigurace: strop musí být čitelné číslo; test VYPÍŠE, jak je nastaven
     hodnota = toml_var(wtext, "GRAIN_MAX_RUNS")

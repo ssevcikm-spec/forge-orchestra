@@ -107,13 +107,34 @@ def main() -> int:
     # `git checkout -- .`, takže testy v scratchi vrátí na verzi bez bloku B.
     # Tenhle skript proto NESMÍ spoléhat na stav, který tam nechal někdo jiný —
     # synchronizuje si oba soubory sám na začátku (a `git checkout` nevolá).
+    # ⚠ PŘEMĚŘENO 14. 10. 2026 (K6): synchronizovat TŘI VYJMENOVANÉ soubory
+    # NESTAČÍ. Fixtura `a-ukol-scratch` je snímek hry z doby Úkolu A; hra se od té
+    # doby hnula (přibyl `scripts/registry.gd` s granulí `engine.registry`) a testy
+    # (synchronizované z klonu) ho začaly volat → „ZDRAVÝ KÓD: 92 kontrol, 1 selhání“
+    # a brána SPRÁVNĚ odmítla měřit (mutace by nic nedokázala). Naměřeno v `g3`:
+    # `mutace B (combat)` → exit 2, „běžela, ale vzor nic nenašel“ (119 B).
+    # Poučení: brána nad ZASTARALOU fixturou neměří kód, ale minulost — a vypadá
+    # to jako mrtvá brána. Fixtura se proto synchronizuje CELÁ (`scripts/` a
+    # `tests/` z klonu), ne tři soubory; když hra dostane další soubor, sedne to
+    # samo (a `git clone` by v sandboxu nešel — viz `dsh-prostredi`).
     import shutil
-    for rel in ("scripts/combat.gd", "tests/run_tests.gd", "scripts/player.gd"):
-        zdroj = KOREN.parent / "uo-shadows" / rel
-        cil = scratch / rel
-        if zdroj.is_file() and cil.parent.is_dir() and zdroj.read_bytes() != cil.read_bytes():
-            shutil.copyfile(zdroj, cil)
-            print("synchronizováno z klonu: %s" % rel)
+    zdroj_repo = KOREN.parent / "uo-shadows"
+    synchronizovano = 0
+    for pod in ("scripts", "tests"):
+        zdroj_dir = zdroj_repo / pod
+        cil_dir = scratch / pod
+        if not (zdroj_dir.is_dir() and cil_dir.is_dir()):
+            continue
+        for zdroj in sorted(zdroj_dir.rglob("*")):
+            if not zdroj.is_file() or zdroj.suffix not in (".gd", ".uid"):
+                continue
+            cil = cil_dir / zdroj.relative_to(zdroj_dir)
+            cil.parent.mkdir(parents=True, exist_ok=True)
+            if not cil.is_file() or zdroj.read_bytes() != cil.read_bytes():
+                shutil.copyfile(zdroj, cil)
+                synchronizovano += 1
+    print("synchronizováno z klonu: %d souborů (scripts/ + tests/, .gd/.uid)"
+          % synchronizovano)
 
     # Kontrola, že testovací blok je opravdu v tom, co se spustí.
     testy = (scratch / "tests" / "run_tests.gd").read_text(encoding="utf-8")

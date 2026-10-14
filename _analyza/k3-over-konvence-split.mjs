@@ -111,6 +111,66 @@ const ZNAME_ZMENY = [
     novy: '(viz sekce `08-meze-a-overeni`)',
     duvod: 'sekce jsou teď samostatné soubory, odkaz na § míří do jiného souboru',
   },
+  // ── §1h: ZMĚNY K4/F11 (13. 10. 2026) — DOREGISTROVÁNO 14. 10. 2026 (K6) ───
+  // K4 v F11 tenhle blok legitimně upravil (doplnil `empty()` -> `is_empty()`
+  // a zkrátil ukázku i odstavce), ale NEPŘIDAL ho sem. Brána proto porovnávala
+  // blok bajt na bajt s PŘED-rozdělovým originálem → `CHYBA blok §1h … (text
+  // bajt na bajt)`, a to i když sama hlásila „0 ztracených“ (K5 §3, kořen C;
+  // K5 §5.2 to nechala jako rozhodnutí, co má brána tvrdit).
+  //
+  // Rozhodnutí (K6): brána tvrdí dál TOTÉŽ — „text bloku je v sekci, až na
+  // VYJMENOVANÉ změny“ — jen se sem změny dopisují. Není to povolení zelené:
+  // každý pár se ověřuje OBOUSTRANNĚ (starý text musí být v originálu, nový
+  // v sekci; viz `ocekavane`/`skutecne` níž), takže špatně opsaná výjimka bránu
+  // shodí. Zbytek bloku se pořád srovnává bajt na bajt — cokoli jiného než tyhle
+  // čtyři změny a jedno doplnění = chyba.
+  {
+    klic: '1h',
+    stary: 'Model má v trénovacích datech spoustu Godotu 3 a píše jeho konstanty.',
+    novy: 'Model má v datech spoustu Godotu 3 a píše jeho konstanty.',
+    duvod: 'K4/F11: zkrácení úvodu (sekce se musí vejít do stropu 1 200 t)',
+  },
+  {
+    klic: '1h',
+    stary: 'je přejmenoval na delší a významově jiná jména – a **parse to odhalí**:',
+    novy: 'je přejmenoval\n– a **parse to odhalí**:',
+    duvod: 'K4/F11: zkrácení téhož úvodu (jen přelomení a vypuštěná vsuvka)',
+  },
+  {
+    klic: '1h',
+    stary: 'label.valign = Label.VALIGN_TOP\nlabel.autowrap = true\n\n# SPRÁVNĚ – Godot 4\n'
+      + 'label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT\n'
+      + 'label.vertical_alignment = VERTICAL_ALIGNMENT_TOP\n'
+      + 'label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART',
+    novy: '# SPRÁVNĚ – Godot 4: label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT',
+    duvod: 'K4/F11: zkrácená ukázka (tabulka o pár řádků níž říká totéž)',
+  },
+  {
+    klic: '1h',
+    stary: '| `connect("signal", self, "_on_x")` | `signal.connect(_on_x)` |',
+    novy: '| `connect("signal", self, "_on_x")` | `signal.connect(_on_x)` |\n'
+      + '| `array.empty()` / `string.empty()` / `dict.empty()` | '
+      + '`array.is_empty()` / `string.is_empty()` / `dict.is_empty()` |',
+    duvod: 'K4/F11: DOPLNĚNÝ řádek `empty()` -> `is_empty()` — na tom spadla granule world.spawner',
+  },
+  {
+    klic: '1h',
+    stary: '**Naměřeno 1. 10. 2026:** granule `ui.hud` (běh #241) na tomhle spadla –',
+    novy: '**Naměřeno 13. 10. 2026 (K4):** granule `world.spawner` (běh `Forge #249`) spadla\n'
+      + 'na `Cannot find member "empty" in base "Array[Node]"` — model napsal\n'
+      + '`pole.empty()` jako v Godotu 3. Sekce se posílala, řádek v tabulce ale **nebyl**.\n\n'
+      + '**Naměřeno 1. 10. 2026:** granule `ui.hud` (běh #241) na tomhle spadla –',
+    duvod: 'K4/F11: DOPLNĚNÝ měřený případ (doklad, proč řádek v tabulce přibyl)',
+  },
+  {
+    klic: '1h',
+    stary: '`Cannot find member "ALIGN_LEFT" in base "Label"` na `scripts/hud.gd:8` a\n'
+      + '`VALIGN_TOP` na `:9`. Soubor se kvůli tomu **nikdy nedostal do repa** a HUD\n'
+      + 'nemá stavovou lištu.',
+    novy: '`Cannot find member "ALIGN_LEFT" in base "Label"` na `scripts/hud.gd:8`; soubor\n'
+      + 'se kvůli tomu **nikdy nedostal do repa**.',
+    duvod: 'K4/F11: zkrácení téhož měřeného případu (duplikovalo tabulku)',
+  },
 ];
 
 // ── 1) original z GITU ──────────────────────────────────────────────────────
