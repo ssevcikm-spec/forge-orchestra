@@ -99,6 +99,20 @@ if (existsSync(cil)) {
   test('hra má sekce konvencí z šablony', existsSync(join(cil, 'CONVENTIONS', '01-typy.md')));
   test('do hry se NEZkopírovala tajemství (.env / provider.env)',
     !existsSync(join(cil, '.forge', 'node', '.env')) && !existsSync(join(cil, '.forge', 'provider.env')));
+  // K6 (14. 10. 2026): testy, které měří ŠABLONU, se do hry nevezou. Naměřeno
+  // v `coin-picker`: `priprava.test.mjs` tam spadl na ENOENT (chybějící fixtura)
+  // a když se fixtura doplnila, spadly 2 kontroly K3 (rozpočet pilotních granulí
+  // 8 617 t a 8 890 t proti stropu 8 000 t) — protože pilotní granule vlastní
+  // SKUTEČNÉ soubory a ty mají v reálné hře jinou velikost než v šabloně.
+  test('do hry se NEveze test ŠABLONY (.forge/node/priprava.test.mjs)',
+    !existsSync(join(cil, '.forge', 'node', 'priprava.test.mjs')));
+  test('do hry se NEveze fixtura šablony (.forge/roadmap.pilot.json)',
+    !existsSync(join(cil, '.forge', 'roadmap.pilot.json')));
+  // Protizkouška: kdyby generátor přestal kopírovat VŠE, předchozí dva testy
+  // projdou „soubor tu není" i nad prázdným stromem — a to by nebyla zelená,
+  // ale slepá. Testy nástrojů, které do hry PATŘÍ, proto musí v cíli být.
+  test('testy nástrojů, které do hry PATŘÍ, tam jsou (protizkouška)',
+    existsSync(join(cil, '.forge', 'node', 'provider-choice.test.mjs')));
 }
 
 // ── záporné případy: musí SPADNOUT a POJMENOVAT to ──────────────────────────

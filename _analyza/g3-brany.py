@@ -451,6 +451,22 @@ BRANY = [
     # pilotu, jméno vzorové hry kdekoli v textu).
     ("K4: forge new (generátor nové hry)", ["node", "<ANALYZA>/test-forge-new.mjs"],
      r"VYSLEDEK:\s*(\d+)/(\d+) kontrol"),
+    # ═══ PŘIDÁNO 14. 10. 2026 (K6: mrtvé kopie testů nástrojů ve hrách) ══════
+    # PROČ: orchestra kopíruje `.forge/node/*` i do her, ale testy, které se tím
+    # do hry dostanou, v hře NIKDO nespouštěl (herní `ci.yml` je nezná) — a jedna
+    # z kopií se tam ani nedala spustit (`.forge/roadmap.pilot.json` se do hry
+    # nekopíroval). Naměřeno 14. 10. 2026 v `coin-picker`: ENOENT a 15 z 55
+    # kontrol, které se nikdy nespustily. Brána každý takový test SPUSTÍ a žádá
+    # `exit 0`; soubor, který v hře být nemá (měří šablonu), se z hry odstranil.
+    ("K6: testy nástrojů ve hrách (spustí se a musí být zelené)",
+     ["python", "<ANALYZA>/k6-over-testy-nastroju.py"],
+     r"ZMĚŘENO:\s*(\d+)/(\d+) testů zelených"),
+    # A důkaz, že brána umí spadnout: kalibrační test staví DVĚ falešné hry
+    # (zdravou a s chybějící fixturou) a chce exit 0 vs. exit 1 s pojmenovaným
+    # nálezem — jinak by „5/5 zelených" mohlo být jen „nic jsem nespustil".
+    ("K6: kalibrace brány testů nástrojů (umí spadnout)",
+     ["python", "<ANALYZA>/test-k6-testy-nastroju.py"],
+     r"VÝSLEDEK:\s*(\d+) kontrol, (\d+) chyb"),
 ]
 
 vse = []

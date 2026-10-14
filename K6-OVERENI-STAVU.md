@@ -450,3 +450,59 @@ stromě, **nemohla zezelenat** — a to byl poslední ze 3 problémů `validate-
    nová hra.
 6. **`_analyza/p36-g3-registr.json`** leží netrackovaný v pracovním stromě
    (generovaný registr z cizího harness běhu) — nemažu cizí soubor, jen hlásím.
+
+---
+
+## 14. DODATEK (pokračování téže session): §13.5 bod 4 DOŘEŠEN — a byly to MRTVÉ TESTY (H203, H204)
+
+> **Co je v tomhle oddílu:** **záznam o PROVEDENÍ** z pokračování session K6
+> (14. 10. 2026, 14:2x–15:3x UTC). Oddíly §1–§13 se **nepřepisují**.
+> **Zadání:** uživatel: *„K6 ověření stavu, pokračuj“*.
+
+### 14.1 Co bylo otevřené a co se naměřilo
+
+§13.5 bod 4 nechal otevřené: *„slepé místo `priprava.test.mjs` ve hře trvá“*.
+**Dořešeno — a je to horší, než to vypadalo:**
+
+| Co | Naměřeno 14. 10. 2026 |
+|---|---|
+| herní `ci.yml` spouští `*.test.mjs`? | **NE** — jen Godot testy, schéma, assety, zapojení, vision. V `coin-picker` tedy ležely **4** testy nástrojů, které **nikdo nikdy nepustil** (v `uo-shadows` 2) |
+| `node .forge/node/priprava.test.mjs` v hře | **exit 1**, `ENOENT … .forge/roadmap.pilot.json` → **15 z 55 kontrol se nikdy nespustilo** |
+| po doplnění fixtury (první pokus) | **53/55** — `entity.player` **8 617 t**, `core.game` **8 890 t** proti stropu groq **8 000 t** |
+| proč to nejde opravit fixturou | oddíl K3 měří **velikost stromu ŠABLONY** (pilotní granule vlastní `scripts/player.gd`, `scripts/game.gd`) — v reálné hře tytéž kontroly **projít nemohou** |
+
+### 14.2 Oprava (tři soubory + jedna brána)
+
+1. **`tools/forge-new.mjs`** → `SKIP_SABLONOVE = {priprava.test.mjs,
+   roadmap.pilot.json}` (do hry se neveze test šablony ani jeho fixtura).
+2. **`coin-picker`**: `priprava.test.mjs` **odstraněn** commit `fc01255`;
+   push ověřen (`rev-list --count origin/main..HEAD` = 0), CI **#44 `success`**,
+   release **#32 `success`** (job „Nasazení webu“ `success` 14:32:49Z), Pages
+   `last-modified` **14:32:32Z**.
+3. **Nová brána `_analyza/k6-over-testy-nastroju.py`**: auto-discovery her
+   (sourozenci s `.forge/node/*.test.mjs`), každý test **spustí** a žádá
+   `exit 0`; `--hry` pro kalibraci; „0 testů“ = **neměřený stav** (exit 1).
+   Naměřeno: **`coin-picker` 3/3 + `uo-shadows` 2/2 = 5/5**.
+4. **Kalibrace `_analyza/test-k6-testy-nastroju.py`** (13/0): staví dvě falešné
+   hry — zdravou (test zapíše značku, že **opravdu běžel**) a vadnou (test čte
+   soubor, který v ní není) — a chce `exit 0` vs. `exit 1` s **pojmenovaným**
+   nálezem; navíc „adresář bez testů → exit 1“ a „smíšený běh → 1/2“.
+5. **`g3`** rozšířen o obě brány → **58 bran, 1 nenulový exit (deklarovaný)**;
+   `AGENTS.md` přeměřen (56 → 58) a `ag-over-cisla.py` tím zezelenal.
+
+### 14.3 Vlastní omyly (oba chycené měřením, ne dojmem)
+
+1. **Falešná zelená z kopie:** první opravu jsem ověřoval na scratch kopii hry,
+   do které jsem nezkopíroval `scripts/` → rozpočet vyšel 5/5 FITS. Na skutečné
+   hře **53/55**. („Ověřeno na kopii“ je měření kopie, ne cíle.)
+2. **Brána nevypisovala důvod:** první verze brala z chybového výstupu první
+   „nerušivý“ řádek — `return binding.readFileUtf8(...)` (řádek kódu Node).
+   Chytil to vlastní kalibrační test; opraveno na hledání `Error`/`ENOENT`.
+
+### 14.4 Brány po tomto dodatku
+
+`inventář` **10 777** · `g3` **58 bran / 1 deklarovaný nenulový / 0
+nedeklarovaných / 0 bez čítače** · `validate-all` **exit 0** · `ag-over-cisla`
+**6 OK, 0 rozchodů** · testy hry `coin-picker` **161/0** (po rebasi na
+`bcb675e`) · testy nástrojů ve hrách **5/5** · `K4: forge new` **25/25**
+(+3 kontroly o `SKIP_SABLONOVE`).

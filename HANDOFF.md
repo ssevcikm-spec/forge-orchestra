@@ -5320,3 +5320,194 @@ a s plným prostředím).
 > práce ho nemohla splnit, protože ho neznala. **Příště: pravidla projektu patří
 > do zadání delegace, ne do hlavy zadavatele.**
 
+---
+
+## 72. K6 — PŘEMĚŘENÍ STAVU, PĚT OPRAV BRAN A NASAZENÍ; **TESTY NÁSTROJŮ VE HRÁCH BYLY MRTVÉ** (H203, H204) (14. 10. 2026)
+
+> **Co je tenhle oddíl:** **STAV** po session K6 (14. 10. 2026) — „odkud se
+> pokračuje".
+> **Co NENÍ:** záznam o měření a provedení. Ten je v **`K6-OVERENI-STAVU.md`**
+> (§1–§12 = přeměření stavu **před** opravami, §13 = opravy, nasazení, Pages,
+> §14 = dodatek z pokračování session).
+> **Datum spotřeby:** živé údaje níž jsou měřené **14. 10. 2026, 14:15–15:2x UTC**
+> a **musí se přeměřit** (§72.8).
+> **Kotvy:** orchestra **`9fc143d`** (před commity téhle session) · hra
+> **`coin-picker`** = **`fc01255`** (push ověřen, CI **#44 `success`**,
+> release **#32 `success`** včetně jobu „Nasazení webu") · živý registr bran
+> **58 bran**.
+>
+> **⚠ HANDOFF BYL DO DNEŠKA ZASTARALÝ:** poslední oddíl byl **§71 = P40
+> (12. 10. 2026)**. Session **P41, P42, K3, K4 a K5** v něm oddíl **nemají**
+> (a v kronice taky ne) — jejich záznamy jsou ve vlastních dokumentech
+> (`K3-ROZDELENI-KONVENCI.md`, `K4-PILOT-COIN-PICKER.md`, `K5-OVERENI-STAVU.md`,
+> `K6-OVERENI-STAVU.md`). **Je to dluh a je vypsaný v §72.6.**
+
+### 72.1 Živý stav (měřeno 14. 10. 2026 14:15 a 14:32 UTC)
+
+| Co | Naměřeno | Čím |
+|---|---|---|
+| **Conductor žije a tiká** | `ok=true`, `ready=3`, `running=0`, `last_cron 14:31:50Z` (`zdroj: cron`), `min=1` | `GET /health` |
+| **Workeři** | `oracle-frankfurt` **1 min** zpoždění; `pc-domaci` **13 983 min** (mrtvý, známý stav) | `GET /health` |
+| **Stav cíle** (ne jen služba) | `coin-picker`: `main_ci: success` (**#44**, `head=fc01255`), `forge.ok=true`, `selhani_v_rade=0` | `GET /health` → `targets` |
+| **Roadmapa** | **34 granul: 31 `done`, 3 `queued`** — a ty 3 jsou **`uo-shadows`** (`engine.input` #244, `world.bodies` #245, `engine.shell` #246; `attempts=3`, `task_status=ready`) | `GET /roadmap` |
+| **Fronta** | 3 `ready` (tytéž granule `uo-shadows`) — **nevydají se, dokud je hra vypnutá** (B4) | `GET /queue` |
+| **Hra `coin-picker`** | **push `fc01255` ověřen** (`rev-list --count origin/main..HEAD` = 0, `ls-remote` = HEAD) | git + REST |
+| **CI hry na tom commitu** | `CI (testy a build)` **#44 → success**, `Vydání hry` **#32 → success** (job „Nasazení webu" `success` 14:32:49Z) | GitHub Actions API |
+| **Pages posílají NOVÝ artefakt** | `https://ssevcikm-spec.github.io/coin-picker/` → **200**, `last-modified` **14:32:32Z** (předchozí build **13:08:32Z**) | `fetch HEAD` |
+| **Testy hry** | **161 kontrol, 0 selhání** (Godot headless, po rebasi na `bcb675e`) — K6 ráno měřila 119 (vlna přidala testy) | Godot |
+| **Testy nástrojů ve hrách** | `coin-picker` **3/3**, `uo-shadows` **2/2** → **5/5 zelených** (nová brána, §72.3) | `k6-over-testy-nastroju.py` |
+
+### 72.2 Co K6 opravila a nasadila (doklady jsou v `K6-OVERENI-STAVU.md` §13)
+
+1. **GitHub Pages pro `coin-picker` jsou ŽIVÉ** — K5 §1 a §6.2 uzavřeno (API
+   `200`, `build_type: workflow`), a protože poslední `release.yml` běžel
+   **před** zapnutím, byl job „Nasazení webu" `skipped`; po dispatchi je
+   **`success`** a URL vrací **200** s novým `last-modified` (tři kroky
+   z `AGENTS.md`, „Jak ověřit nasazení").
+2. **Pět oprav bran**, každá s vlastním důkazem: kotva `tools/test-grain-cap.py`
+   (`cap\)` → `cap[,)]`, kořen B), `ZNAME_ZMENY` v
+   `_analyza/k3-over-konvence-split.mjs` (kořen C), `ARTEFAKTY` v
+   `_analyza/ag-over-cisla.py` (scratch v `.tmp` shazoval **trvalá pravidla**;
+   doloženo kalibrací), zastaralá fixtura v `_analyza/b-mutace.py` a
+   `_analyza/f3-over-deploy.mjs` (přesná shoda → „obsahuje").
+3. **Práce P41 je commitnutá** (`cfa8a85`, autor P41, na pokyn uživatele) —
+   jinak nemohla zezelenat kontrola `validate-all` „lokální kód = repo".
+   **Záměrně necommitnuto:** `NEXT-SESSION-INSTRUKCE.md` (hlavička se
+   necommituje) a `_analyza/p36-g3-registr.json` (cizí generovaný registr).
+4. **`wallTime`/CPU tiku se neměnily** — tahle session na conductora nesahala.
+
+### 72.3 NOVÉ: testy nástrojů, které orchestra kopíruje do her, byly MRTVÉ (H203, H204)
+
+**Co bylo naměřeno (táž třída jako „brána, která nemá jak selhat"):**
+`tools/forge-new.mjs` kopíruje do hry celý `.forge/node/`, ale **herní `ci.yml`
+žádný `*.test.mjs` nespouští** — takže v každé hře leží testy, které **nikdo
+nikdy nepustí** (`coin-picker` 4, `uo-shadows` 2). A jedna z kopií se ve hře
+**ani nedala spustit**:
+
+| Stav `coin-picker` | `node .forge/node/priprava.test.mjs` |
+|---|---|
+| před opravou (chybí `.forge/roadmap.pilot.json`) | **exit 1**, `ENOENT … roadmap.pilot.json` — **15 z 55 kontrol se nikdy nespustilo** (celý oddíl K3 + P42) |
+| po doplnění fixtury (první pokus o opravu) | **53/55**, 2 kontroly **NELZE** splnit: `entity.player` **8 617 t** a `core.game` **8 890 t** proti stropu groq **8 000 t** |
+| **po správné opravě** (test se do hry neveze) | test v hře **není**; zbylé 3 testy **3/3 zelené** |
+
+**H204 (a je to poučení o MĚŘIDLE):** oddíl K3 toho testu měří **velikost stromu
+ŠABLONY**. Pilotní granule vlastní **skutečné soubory** (`scripts/player.gd`,
+`scripts/game.gd`), takže v šabloně (téměř prázdné soubory) vyjde `5/5
+REQUEST_FITS`, ale v reálné hře tytéž kontroly **projít nemohou**. Test je proto
+**test šablony** (spouští ho `g3` nad `repo/`) a **do hry nepatří**.
+
+**Oprava (měřená, ne dojem):**
+
+* `tools/forge-new.mjs` → `SKIP_SABLONOVE` (`priprava.test.mjs`,
+  `roadmap.pilot.json`) — nová hra je nedostane;
+* z `coin-picker` se `priprava.test.mjs` **odstranil** (commit `fc01255`);
+* **nová brána `_analyza/k6-over-testy-nastroju.py`** spustí **každý**
+  `.forge/node/*.test.mjs`, který v hře leží, a žádá `exit 0` (+ `--hry` pro
+  kalibraci); **`_analyza/test-k6-testy-nastroju.py`** dokazuje, že brána umí
+  spadnout (zdravá falešná hra → 0, vadná s chybějící fixturou → 1 s
+  pojmenovaným nálezem, adresář bez testů → 1 „neměřeno", smíšený běh → 1/2);
+* obojí je **zaregistrované v `g3`** (58 bran) a `AGENTS.md` má přeměřené číslo.
+
+> **H203 = mrtvé kopie testů ve hrách** (nikdo je nespouštěl a jedna se nedala
+> spustit). **H204 = měřidlo, které měří ŠABLONU, se do hry nesmí kopírovat** —
+> a kdyby se to neověřilo na **skutečné** hře, zůstalo by to „zelené" (viz
+> §72.4, omyl 1).
+
+### 72.4 Vlastní omyly K6 (dva, oba chycené vlastním měřením)
+
+1. **Falešná zelená z neúplné kopie.** První pokus o opravu (zkopírovat do hry
+   chybějící fixturu) jsem ověřoval na **scratch kopii hry, do které jsem
+   nezkopíroval `scripts/`** → rozpočet vyšel 5/5 FITS a vypadalo to vyřešené.
+   **Na skutečné hře to bylo 53/55** (8 617 t a 8 890 t). **Poučení: „ověřeno na
+   kopii" je měření kopie, ne cíle** — a chybějící vstup vypadá jako zelená.
+2. **Brána nejmenovala vadu.** První verze `k6-over-testy-nastroju.py` brala
+   z chybového výstupu **první „nerušivý" řádek** — a tím byl `return
+   binding.readFileUtf8(...)`, tedy **řádek kódu Node**, ne důvod. Chytil to
+   **vlastní kalibrační test** (`nález jmenuje CHYBĚJÍCÍ soubor`); opraveno tak,
+   že se hledá řádek s `Error`/`ENOENT`.
+
+### 72.5 Brány po commitech téhle session (naměřeno 14. 10. 2026, 15:0x–15:3x UTC)
+
+Pořadí **inventář → `g3` (plný, zapisuje živý registr) → inventář →
+`validate-all`**:
+
+| Co | Naměřeno |
+|---|---|
+| inventář | **10 777 nálezů** (K6 ráno 10 728; +49 za nová měřidla) |
+| `g3` | **58 bran**, nenulový exit **1** — **deklarovaný** (`zadání kontrola`, protože `NEXT-SESSION-INSTRUKCE.md` mělo kotvy z 12. 10.); **NEDEKLAROVANÝCH 0** · bran, které vůbec nezačaly: **0** · bran bez čítače mimo deklarovaný stav: **0** · nové brány: `K6: testy nástrojů ve hrách` **5/5** a `K6: kalibrace` **13/0** · `K4: forge new` **25/25** (byly 22/22, +3 kontroly o `SKIP_SABLONOVE`) · `K1/K2/K3` **55/55** |
+| `validate-all` | **`exit 0`** — až po opravě čísla v `AGENTS.md` (registr 56 → **58**); `ag-over-cisla` byl kvůli tomu **jeden běh červený** a to je správné chování brány |
+| `ag-over-cisla.py` | **6 OK, 2 historická, 0 rozchodů** |
+| `kronika-kontrola.py` | **KRONIKA SEDÍ** — **56 sessions**, **202 nálezů H** (H201–H202), 208 omylů |
+| `handoff-kontrola-uplnost.py` | **83/83** |
+
+### 72.6 Co zůstalo OTEVŘENÉ
+
+1. **Dluh záznamů: P41, P42, K3, K4 a K5 nemají oddíl v HANDOFFu ani řádek
+   v kronice.** Jejich měření žijí jen ve vlastních dokumentech. **Co s tím:**
+   doplnit je může jen session, která je dělala (nebo to musí být výslovně
+   označené jako „přepsáno z cizího dokumentu") — **nedomýšlet historii**.
+   K3 a K5 navíc ve svých textech používají **H201/H202**, které **nejsou
+   v evidenci nálezů** (kronika má H1–H200) — registrace patří jim.
+2. **K5 §13.4 — rotace rozpočtu na runneru se živě pořád neověřila.** Potřebuje
+   dispatch, kde je **první volbou `groq` (8 000 t)** a request je větší;
+   u `sim.progress`/`core.wiring2` to už nastat nemůže (jsou `done`) → uzavře to
+   až **další vlna**.
+3. **K5 §13.5 / H203 — opraveno pro `coin-picker` a nové hry** (§72.3), ale
+   **`uo-shadows` má tytéž mrtvé kopie** (2 testy: `provider-choice`, `vision`
+   — oba **zelené**, ale nikdo je nespouští). Do hry se **nesahalo** (vede ji
+   cizí session, je zmrazená); nová brána je hlídá **ze strany orchestra**.
+4. **`kontrola-driftu.mjs` = 1 rozdíl + 2 záměrné** (šablona vs `uo-shadows`) —
+   známý stav, ne regrese.
+5. **`_analyza/p36-g3-registr.json`** leží netrackovaný v pracovním stromě
+   (generovaný registr z cizího harness běhu) — **nemazal jsem cizí soubor**.
+6. **H197 — cíl <10 ms u tiku NESPLNĚN** (P40): živý `cpuTime` cronu se
+   zlevněním nesnížil; hypotéza (a) „chybí model" vs (b) „platí se start
+   izolátu" **není rozhodnutá**. Na conductora tahle session nesahala.
+7. **`kontrola-diakritiky.py` má ruční seznam souborů (S27)** — kdo přidá
+   dokument, musí ho přidat i tam (jinak projde zeleně, aniž ho kontrola
+   otevřela).
+
+### 72.7 Co čeká na tebe (uživatel)
+
+1. **Rozhodnout, co má orchestra dělat — je to dnes jediné věcné rozhodnutí.**
+   `coin-picker` má **14/14 granul hotových** (31 `done` z 34), conductor tedy
+   **tiká a čeká**. Možnosti: **(a)** zapnout `uo-shadows` (3 granule `ready`,
+   ale každý neúspěch spálí pokus — dnes `attempts=3`), **(b)** další vlna granul
+   do `coin-pickeru`, **(c)** **nová hra**:
+   `node tools/forge-new.mjs --nazev <nazev> --cil E:\Workspaces\<nazev> --kontrola`
+   (u (c) chybí jen **žánr a rozsah**).
+2. **ROZHODNUTÍ B — `FORGE_PAT`** v repu hry (fine-grained; Contents + Pull
+   requests RW, expirace ≥ 90 dní) — **agent to neudělá**; ověření: jeden běh
+   a v logu `create-pull-request` **vytvořený PR** místo `could not read Username`.
+3. **Zdali zapsat dluh z §72.6 bodu 1** (doplnit řádky kroniky pro P41–K5),
+   nebo ho nechat jako přiznaný.
+4. *(Uzavřeno v K6, nechte být:)* Pages pro `coin-picker` **jsou zapnuté**
+   a ověřené; práce P41 je **commitnutá**; `ag-over-cisla` je **opravená**.
+
+### 72.8 Jak to ověřit (co spustit)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+cd E:\Workspaces\forge-orchestra
+python _analyza\k6-over-testy-nastroju.py      # 5/5 testů nástrojů ve hrách zelených
+python _analyza\test-k6-testy-nastroju.py      # 13/0 — brána umí spadnout
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json   # 10 777
+python _analyza\g3-brany.py                    # 58 bran, 1 nenulový (deklarovaný)
+python _analyza\ag-over-cisla.py               # exit 0 (čísla v AGENTS.md sedí)
+node tools\validate-all.mjs                    # exit 0
+node tools\kontrola-driftu.mjs                 # 12 souborů, 1 rozdíl + 2 záměrné
+python _analyza\kronika-kontrola.py ; python _analyza\handoff-kontrola-uplnost.py
+cd E:\Workspaces\coin-picker
+& "E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script res://tests/run_tests.gd   # 161/0
+python .forge\check-wiring.py .
+node .forge\node\provider-choice.test.mjs ; node .forge\node\vision.test.mjs ; node .forge\node\probe-provider.test.mjs
+```
+
+**Živý stav orchestra** (`/health` jde bez secretu; `/queue` a `/roadmap` chtějí
+hlavičku `x-forge-secret` z `.secrets/cf-secrets.json` — **soubor má UTF-8 BOM**,
+`JSON.parse` na něm bez odstranění BOM spadne):
+
+```powershell
+node -e "const r=await fetch('https://forge-conductor.ssevcikm.workers.dev/health');console.log(JSON.stringify(await r.json(),null,1))"
+```
+

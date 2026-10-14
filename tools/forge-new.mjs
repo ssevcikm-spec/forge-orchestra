@@ -43,6 +43,17 @@ const SKELETON = join(ORCH, 'skeleton');
 // Co se NEKOPÍRUJE ze šablony: tajemství a cache.
 const SKIP_NAZVY = new Set(['.env', 'provider.env', 'provider.json', '__pycache__', '.git']);
 
+// ⚠ CO SE DO HRY NEVEZE, PROTOŽE TO MĚŘÍ ŠABLONU (K6, 14. 10. 2026 — naměřeno):
+//   `priprava.test.mjs` má oddíl K3, který nad `roadmap.pilot.json` vyžaduje
+//   `REQUEST_FITS` proti stropu groq (8 000 t). Pilotní granule ale vlastní
+//   SKUTEČNÉ soubory (`scripts/player.gd`, `scripts/game.gd` …), takže rozpočet
+//   závisí na velikosti stromu: v šabloně (téměř prázdné soubory) vyjde 5/5
+//   `REQUEST_FITS`, v reálné hře `coin-picker` naměřeno 8 617 t a 8 890 t
+//   → ty dvě kontroly NEMOHOU projít nikdy. Test je proto test ŠABLONY
+//   (spouští ho `g3` nad `repo/`) a do hry se nekopíruje.
+//   `roadmap.pilot.json` je jeho fixtura a nečte ji nikdo jiný — ve hře by ležela ladem.
+const SKIP_SABLONOVE = new Set(['priprava.test.mjs', 'roadmap.pilot.json']);
+
 const arg = (n, d = '') => {
   const i = process.argv.indexOf(n);
   return i >= 0 ? process.argv[i + 1] : d;
@@ -82,7 +93,7 @@ if (basename(cil) !== nazev) {
 const kopiruj = (odkud, kam, { prepsat = true } = {}) => {
   mkdirSync(kam, { recursive: true });
   for (const e of readdirSync(odkud, { withFileTypes: true })) {
-    if (SKIP_NAZVY.has(e.name)) continue;
+    if (SKIP_NAZVY.has(e.name) || SKIP_SABLONOVE.has(e.name)) continue;
     const a = join(odkud, e.name);
     const b = join(kam, e.name);
     if (e.isDirectory()) kopiruj(a, b, { prepsat });
