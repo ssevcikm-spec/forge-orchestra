@@ -43,15 +43,20 @@ const SKELETON = join(ORCH, 'skeleton');
 // Co se NEKOPÍRUJE ze šablony: tajemství a cache.
 const SKIP_NAZVY = new Set(['.env', 'provider.env', 'provider.json', '__pycache__', '.git']);
 
-// ⚠ CO SE DO HRY NEVEZE, PROTOŽE TO MĚŘÍ ŠABLONU (K6, 14. 10. 2026 — naměřeno):
+// ⚠ CO SE DO HRY NEVEZE, PROTOŽE TO MĚŘÍ ŠABLONU (K6, 14. 10. 2026 — naměřeno;
+//   číslo u `core.game` OPRAVENO 14. 10. 2026 v K7 — HANDOFF.md §73.2, nález H206):
 //   `priprava.test.mjs` má oddíl K3, který nad `roadmap.pilot.json` vyžaduje
 //   `REQUEST_FITS` proti stropu groq (8 000 t). Pilotní granule ale vlastní
 //   SKUTEČNÉ soubory (`scripts/player.gd`, `scripts/game.gd` …), takže rozpočet
 //   závisí na velikosti stromu: v šabloně (téměř prázdné soubory) vyjde 5/5
-//   `REQUEST_FITS`, v reálné hře `coin-picker` naměřeno 8 617 t a 8 890 t
+//   `REQUEST_FITS`, na stromě hry `coin-picker` (stav `fc01255`) naměřeno 8 617 t
+//   (`entity.player`) a 9 247 t (`core.game`)
 //   → ty dvě kontroly NEMOHOU projít nikdy. Test je proto test ŠABLONY
 //   (spouští ho `g3` nad `repo/`) a do hry se nekopíruje.
 //   `roadmap.pilot.json` je jeho fixtura a nečte ji nikdo jiný — ve hře by ležela ladem.
+//   (K6 uváděla 8 890 t; to je `game.gd` ze stavu PR #4 — měření KOPIE, ne cíle.
+//   Přeměřeno K7 dvěma nezávislými způsoby: vlastním přepočtem i oficiálním
+//   `rozpocet-granuli.mjs` nad skutečnými soubory hry.)
 const SKIP_SABLONOVE = new Set(['priprava.test.mjs', 'roadmap.pilot.json']);
 
 const arg = (n, d = '') => {

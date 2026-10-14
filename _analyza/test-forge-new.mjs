@@ -99,11 +99,15 @@ if (existsSync(cil)) {
   test('hra má sekce konvencí z šablony', existsSync(join(cil, 'CONVENTIONS', '01-typy.md')));
   test('do hry se NEZkopírovala tajemství (.env / provider.env)',
     !existsSync(join(cil, '.forge', 'node', '.env')) && !existsSync(join(cil, '.forge', 'provider.env')));
-  // K6 (14. 10. 2026): testy, které měří ŠABLONU, se do hry nevezou. Naměřeno
-  // v `coin-picker`: `priprava.test.mjs` tam spadl na ENOENT (chybějící fixtura)
-  // a když se fixtura doplnila, spadly 2 kontroly K3 (rozpočet pilotních granulí
-  // 8 617 t a 8 890 t proti stropu 8 000 t) — protože pilotní granule vlastní
-  // SKUTEČNÉ soubory a ty mají v reálné hře jinou velikost než v šabloně.
+  // K6 (14. 10. 2026): testy, které měří ŠABLONU, se do hry nevezou. Dvě RŮZNÉ
+  // vady, které se nesmí plést (rozlišeno v K7 — HANDOFF.md §73.2, nález H207):
+  //   * `coin-picker` byl postaven RUČNĚ a dostal test BEZ fixtury → `ENOENT`,
+  //     15 z 55 kontrol se nikdy nespustilo;
+  //   * strom, kde fixtura JE (tak ho dodával starý generátor), test spustí
+  //     a spadnou 2 kontroly K3: rozpočet pilotních granulí šablony nad
+  //     SKUTEČNÝMI soubory hry — naměřeno 8 617 t (`entity.player`) a 9 247 t
+  //     (`core.game`) proti stropu 8 000 t. (K6 uváděla 8 890 t; to je `game.gd`
+  //     ze stavu PR #4, tj. měření KOPIE — přeměřeno K7 dvěma způsoby.)
   test('do hry se NEveze test ŠABLONY (.forge/node/priprava.test.mjs)',
     !existsSync(join(cil, '.forge', 'node', 'priprava.test.mjs')));
   test('do hry se NEveze fixtura šablony (.forge/roadmap.pilot.json)',

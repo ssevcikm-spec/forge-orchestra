@@ -506,3 +506,43 @@ nedeklarovaných / 0 bez čítače** · `validate-all` **exit 0** · `ag-over-ci
 **6 OK, 0 rozchodů** · testy hry `coin-picker` **161/0** (po rebasi na
 `bcb675e`) · testy nástrojů ve hrách **5/5** · `K4: forge new` **25/25**
 (+3 kontroly o `SKIP_SABLONOVE`).
+
+---
+
+## 15. DODATEK CIZÍ SESSION (K7, 14. 10. 2026): DVĚ ČÍSLA OPRAVENA, JEDNA NUANCE — A CO Z TOHOTO ZÁZNAMU PLATÍ
+
+> **Co je tenhle oddíl:** **dodatek session K7** k záznamu K6. **Nepsal ho autor
+> měření** — vznikl tím, že si K7 práci K6 **nezávisle přeměřila** (vlastním
+> postupem, `NEXT-SESSION-INSTRUKCE.md` §1). **Nic výš se nepřepisuje** (text K6
+> zůstává bajt na bajt); tenhle oddíl říká, co z něj dnes platí a co ne.
+> **Datum spotřeby:** měřeno **14. 10. 2026, 15:45–16:20 UTC** (K7). Kdo to čte
+> později, **přeměří**.
+
+### 15.1 Co se rozešlo s měřením
+
+| # | Co záznam K6 uvádí | Co naměřila K7 | Dopad |
+|---|---|---|---|
+| 1 | `core.game` v `coin-picker` = **8 890 t** (§14.1, `tools/forge-new.mjs:51`) | **9 247 t** — dvěma nezávislými způsoby: vlastním přepočtem vzorce (`ceil(znaky/3,03)` + rezije) **i** oficiálním `rozpocet-granuli.mjs` nad **skutečnými** soubory hry. **8 890 t je `game.gd` ze stavu PR #4 (`9ae37eb`, 3 868 znaků)** — měření **KOPIE**, ne cíle | **Verdikt se NEMĚNÍ** (obojí > 8 000 t, tytéž 2 kontroly padají). Je to chyba **ČÍSLA**, ne závěru → nález **H206** |
+| 2 | „`priprava.test.mjs` tam spadl na ENOENT … a když se fixtura doplnila, spadly 2 kontroly" (§14.1) | Jsou to **dva různé stromy**: `ENOENT` patří `coin-pickeru`, postavenému **ručně**, který fixturu **nikdy neměl** (v jeho historii **0 commitů** s `roadmap.pilot.json`); „53/55 se 2 červenými" je strom, kde fixtura **je** (tak ho dodával **starý generátor**) | Formulace míchá dvě vady → nález **H207** |
+| 3 | „pilotní granule vlastní SKUTEČNÉ soubory (`scripts/player.gd`, `scripts/game.gd`)" | Přesné je: **granule jsou ze ŠABLONY** (`repo/.forge/roadmap.pilot.json`: `core.game`, `entity.player`) a měří se nad **soubory hry**. V `coin-pickerově` roadmapě (`.forge/roadmap.json`, 14 jiných granulí) tyhle dvě **nejsou** | Zkratka ve formulaci, **ne nepravda** |
+| 4 | „v reálné hře nemůže projít nikdy" (§14.2, H204) | **Potvrzeno:** šablona `repo/` dnes **6 937 t** (`core.game`, `REQUEST_FITS`; totéž číslo je v `roadmap.pilot.json` `_popis`) vs. hra **9 247 t** | H204 **platí** |
+
+### 15.2 Co K7 ověřila jako SPRÁVNÉ (jiným postupem, než jak to vzniklo)
+
+* **`SKIP_SABLONOVE` opravdu funguje** — **A/B se starým generátorem**, vytaženým
+  z gitu **byte-exact** (blob `262b47ad…` = `git rev-parse 890b838:tools/forge-new.mjs`):
+  starý dodal `priprava.test.mjs` **i** `roadmap.pilot.json`, dnešní ani jedno
+  (a `<protizkouška>`: ostatní testy v nové hře **jsou**).
+* **Brána `_analyza/test-forge-new.mjs` UMÍ SPADNOUT** — s vráceným
+  `SKIP_SABLONOVE` hlásí **23/25, 2 pojmenované chyby** (proti 25/25 v kontrolním
+  běhu), po návratu souboru je `git status` čistý. Mutační skript je doklad
+  `_analyza/k7-mutace-generatoru.py` (v `g3` **není** — viz §73.3 bod 4).
+* **`53/55` i `15 z 55`** (ENOENT) reprodukováno na vlastní hře **mimo repa**.
+* **`5/5` testů nástrojů ve hrách** a **`5/5` → `19/0` kalibrace** (K7 ji rozšířila,
+  viz `HANDOFF.md` §73.3).
+
+### 15.3 Co ověřit NELZE (přiznaná mez)
+
+**„8 890 t na živém cíli v čase K6" už zpětně změřit nelze** — reprodukce je
+z gitu **na kopii**. Hypotéza „K6 měřila starší stav" je **odvozená** (časová
+shoda + §14.3 bod 1), **ne přímé měření**.

@@ -24,6 +24,18 @@ CO BRANA MERI:
   Kdyz test spadne na chybejici soubor, vypise se JMENO toho souboru - to je
   konkretni vada (chybejici fixtura), ne "neco spadlo".
 
+  ⚠ DVE PRAVIDLA PRIBÝLA 14. 10. 2026 (K7) - obe z MERENI, ne z dojmu:
+
+  1) Zeleny test musi hlasit ASPON JEDNU NENULOVOU kontrolu. Namereno (K7,
+     falesna hra): test, ktery si chybejici vstup TISE preskoci a vypise
+     "PRESKOCENO: 0/0 kontrol", koncil `exit 0` a brana ho brala jako zeleny -
+     pritom je to tataz trida jako H203 (kontroly se nikdy nespustily), jen se
+     test nerozbil, ale preskocil. "0/0" neni zelená, je to neměřeno.
+  2) Test ve VNORENE slozce (`.forge/node/sub/x.test.mjs`) je CHYBA, ne ticho.
+     `glob` je nerekurzivni, takze takovy test brana vubec nevidela. Dnes
+     (zmereno 14. 10. 2026) nema vnoreny test ani sablona, ani `coin-picker`,
+     ani `uo-shadows` - pravidlo tedy nic nevyhazuje, jen zavira tichou diru.
+
 POUZITI:
   python _analyza/k6-over-testy-nastroju.py                 # auto-discovery
   python _analyza/k6-over-testy-nastroju.py --hry <c1>;<c2> # kalibrace
@@ -77,6 +89,19 @@ def prvni_zajimavy_radek(text: str) -> str:
             continue
         return r
     return "(prazdny vystup)"
+
+
+def ma_merene_kontroly(radek: str) -> bool:
+    """Hlasi zeleny test aspon JEDNU skutecne provedenou kontrolu?
+
+    ⚠ Namereno 14. 10. 2026 (K7) na falesne hre: test, ktery si chybejici vstup
+    tise preskoci, vypise "PRESKOCENO: fixtura neni, 0/0 kontrol" a skonci
+    `exit 0` - a brana ho hlasila jako zeleny. Vsechna cisla v souhrnu jsou
+    proto druha podminka zelene: aspon jedno musi byt NENULOVE.
+    (Kdyby souhrn cisla nemel vubec, je to taky "neměřeno" - brana pak hlasi
+    "souhrn nehlasí ani jednu kontrolu" a to je presne to, co ma videt.)
+    """
+    return any(int(n) > 0 for n in re.findall(r"\d+", radek or ""))
 
 
 def spust_test(hra: pathlib.Path, test: pathlib.Path) -> dict:
@@ -133,21 +158,32 @@ def main() -> int:
     bez_testu = []
 
     for hra in hry:
-        testy = sorted((hra / ".forge" / "node").glob(VZOR_SOUBORU))
+        zaklad = hra / ".forge" / "node"
+        testy = sorted(zaklad.glob(VZOR_SOUBORU))
+        vnorene = sorted(p for p in zaklad.rglob(VZOR_SOUBORU) if p.parent != zaklad)
         print(f"\n--- {hra.name} ({hra}) ---")
-        if not testy:
+        if not testy and not vnorene:
             print("  ⚠ ZADNE testy (`.forge/node/*.test.mjs` tu nejsou)")
             bez_testu.append(hra.name)
             continue
         for t in testy:
             celkem += 1
             v = spust_test(hra, t)
-            if v["exit"] == 0:
+            if v["exit"] == 0 and ma_merene_kontroly(v["radek"]):
                 zelenych += 1
                 print(f"  ok     {v['soubor']}: {v['radek']}")
             else:
                 chyb += 1
-                print(f"  CHYBA  {v['soubor']}: exit {v['exit']} | {v['radek']}")
+                if v["exit"] == 0:
+                    print(f"  CHYBA  {v['soubor']}: exit 0, ale souhrn nehlasi ANI "
+                          f"JEDNU kontrolu (nemeneno, ne zelena) | {v['radek']}")
+                else:
+                    print(f"  CHYBA  {v['soubor']}: exit {v['exit']} | {v['radek']}")
+        for p in vnorene:
+            celkem += 1
+            chyb += 1
+            print(f"  CHYBA  {p.relative_to(hra).as_posix()}: test lezi ve VNORENE "
+                  f"slozce -> brana ho nespousti; presun ho na uroven `.forge/node/`")
 
     print()
     print(f"ZMĚŘENO: {zelenych}/{celkem} testů zelených, {chyb} chyb "
