@@ -6,6 +6,11 @@
 > co K5 nechala otevřené** (§13.4 a §13.5). Nové je: **nález o měřidle** (§6)
 > a **nález o citaci v K5** (§7).
 >
+> **⚠ A PAK SE NĚCO ZMĚNILO:** v **§13** je **záznam o PROVEDENÍ** na pokyn
+> uživatele („Pages povoleno · Dokončeme opravy orchestry · Commit a push“) —
+> tam tahle session **kód opravila, commitla, pushla a spustila nasazení**.
+> **Kdo hledá „co je dnes stav“: §1–§12 = měření PŘED opravami, §13 = po nich.**
+>
 > **Co NENÍ:** stav projektu (`HANDOFF.md`), kronika (`KRONIKA-PROJEKTU.md`) ani
 > zadání pro příští session (`NEXT-SESSION-INSTRUKCE.md` — ta patří P41 a je
 > pořád necommitnutá).
@@ -364,3 +369,84 @@ node -e "const r=await fetch('https://forge-conductor.ssevcikm.workers.dev/healt
 `k6-run-*.zip` (logy běhů #31–#35), `k6-gh.mjs`, `k6-live.mjs`, `k6-metrika.mjs`.
 **⚠ Rozbalené logy z těchto zipů do `.tmp` NEROZBALUJ** — mají české názvy jobů a
 shodí `ag-over-cisla` (§6).
+
+---
+
+## 13. Opravy dokončeny a nasazeny (14. 10. 2026, 13:0x–14:1x UTC)
+
+> **Co je v tomhle oddílu:** **záznam o PROVEDENÍ** — na pokyn uživatele
+> („Pages povoleno · Dokončeme opravy orchestry · Commit a push“).
+> **Oddíly §1–§12 výš se NEPŘEPISUJÍ**: jsou to měření **před** opravami a mají
+> zůstat jako doklad, z čeho se opravovalo (`g3` 56/7, `validate-all` 3 problémy).
+
+### 13.1 GitHub Pages jsou ŽIVÉ — K5 §1 a §6.2 uzavřeno
+
+Uživatel Pages zapnul (API `200`, `build_type: workflow`) — **ale to samo nestačí**:
+poslední `release.yml` (#29) běžel **před** zapnutím, takže job „Nasazení webu“ byl
+`skipped` a URL vracela **404**. Následovalo tedy spuštění běhu a jeho ověření
+(tři kroky z `AGENTS.md`, „Jak ověřit nasazení“):
+
+| Krok | Naměřeno |
+|---|---|
+| **1. spuštění běhu** | `workflow_dispatch` na `main`; PAT z `.secrets/conductor_pat.txt` i `coin-picker_forge_pat.txt` → **HTTP 403** (chybí `actions:write`), uspěl **classic PAT** `.secrets/github_pat.txt` → **204** |
+| **2. build na správném commitu** | `release.yml` **#31** `Build a vydání` = `success`, `head=bcb675e` (druhý dispatch #30 zrušila `concurrency`) |
+| **3. server posílá NOVÝ artefakt** | `https://ssevcikm-spec.github.io/coin-picker/` → **200**, `last-modified` **13:08:32** (dispatch 13:07:32), `index.wasm` → **200** `application/wasm` |
+| **job, který byl `skipped`** | **`Nasazení webu` = `completed/success`** (13:08:27–13:08:44), krok „Nasadit na GitHub Pages“ `success` |
+| Release hry | `latest` má **3 balíčky**: windows 38,1 MB · linux 28,5 MB · web 10,3 MB |
+
+**Hra je tedy hratelná v prohlížeči** — a je to doložené tím, že se změnil
+`last-modified` **po** dispatchi, ne jen HTTP 200 (starý web odpovídá 200 taky).
+
+### 13.2 Pět oprav bran (každá s vlastním důkazem)
+
+| # | Soubor | Co bylo špatně | Důkaz po opravě |
+|---|---|---|---|
+| 1 | `tools/test-grain-cap.py` | kotva hledala i závorku **hned za** `cap` → po přidání 5. argumentu (P41) hlásila „týž map se nepředává“ o kódu, který ho předává (**kořen B**) | `22 kontrol, 0 chyb`, exit 0 |
+| 2 | `_analyza/k3-over-konvence-split.mjs` | K4/F11 upravil blok §1h a **nedoregistroval** ho do `ZNAME_ZMENY` → „text bajt na bajt“ i s „0 ztracených“ (**kořen C**) | `41 kontrol, 0 chyb`; **mutační test 14/14** |
+| 3 | `_analyza/ag-over-cisla.py` | `ARTEFAKTY` neznaly scratch → rozbalené CI logy v `.tmp` falešně shodily **TRVALÁ PRAVIDLA** (§6) | **kalibrace:** český název v `.tmp` → **exit 0**; týž název ve zdroji → **exit 1** |
+| 4 | `_analyza/b-mutace.py` | fixtura `a-ukol-scratch` byla zastaralá (chyběl `scripts/registry.gd`) → „ZDRAVÝ KÓD: 92 kontrol, 1 selhání“ a brána správně odmítla měřit (exit 2) | fixtura se synchronizuje celá → **`chyceno 2 z 2`**, exit 0 |
+| 5 | `_analyza/f3-over-deploy.mjs` | žádala **přesnou shodu** head deploye s poslední změnou `conductor/` → po pushi, kde za změnou conductor/ šel commit mimo conductor/, hlásila „na `cfa8a856d` žádný deploy“, i když nasazený commit tu změnu **obsahuje** (falešný poplach na správném stavu) | **kalibrace:** zdravý běh **exit 0** (`#44 success head:a4c4e1bdc (obsahuje cfa8a856d)`); mutace, která vypustí nejnovější deploy, bránu **shodí** na pojmenované kontrole |
+
+**Pozor na past, kterou jsem si sám vyrobil (H199):** první verze komentáře u
+opravy 5 obsahovala **doslovnou mutační kotvu** — `_mutace.py` pak správně odmítl
+mutovat („kotva je v souboru 2×“). Kdyby tu kontrolu knihovna neměla, mutace by se
+**tiše neprovedla** a já bych zapsal „mutace prošla“ o mutaci, která se nestala.
+Komentář je přeformulovaný, kotva je v souboru **právě 1×**.
+
+### 13.3 Práce P41 je commitnutá — a proč to bylo nutné
+
+Brána `validate-all` má kontrolu **„lokální kód = repo“**, která srovnává soubor na
+disku s **obsahem na GitHubu** (ne s `HEAD`). Dokud byla práce P41 jen v pracovním
+stromě, **nemohla zezelenat** — a to byl poslední ze 3 problémů `validate-all`.
+
+* Commit **`cfa8a85`** = práce P41 **tak, jak byla** (nic jsem v ní needitoval),
+  s **připsáním v message** („autor P41, commitnuto v K6 na pokyn uživatele“).
+* **Záměrně necommitnuto:** `NEXT-SESSION-INSTRUKCE.md` (jeho vlastní hlavička
+  říká, že se hlavička necommituje) a `_analyza/p36-g3-registr.json` (stray
+  generovaný registr — přesně ta past z K5 §12.2).
+
+### 13.4 Stav po opravách (naměřeno)
+
+| Co | Naměřeno |
+|---|---|
+| `validate-all` | **`✓ VŠE V POŘÁDKU`** (0 problémů; bylo 3) — ⚠ v jednom běhu **uprostřed deploye** hlásil 2 problémy (`deploy` ještě běžel); o minutu později 0. Je to **závod**, ne stav — a je to poučení: měřit se má po dokončení nasazení |
+| `g3` | **56 bran, 1 nenulový exit** — a je to **deklarovaný** (`zadání kontrola`); **0 bran bez čítače** (byly 3) |
+| push orchestry | `9f29838..a4c4e1b` (+ `72f9969`), ověřeno `rev-list --count origin/main..HEAD` = **0** |
+| deploy conductora | **#44 `success` na `a4c4e1b`**; živá verze **`278ecb1f-…`** (byla `786ed3a2-…`), vytvořena 13:17:39Z |
+| conductor žije | `/health` `ok`, `last_cron` tiká (`zdroj: cron`), `forge.ok=true` |
+
+### 13.5 Co zůstává otevřené i po opravách
+
+1. **`zadání kontrola` = `exit 1` (deklarovaný).** `NEXT-SESSION-INSTRUKCE.md` má
+   kotvy z **12. 10.** a je záměrně necommitnutá — patří session, která píše zadání
+   pro další session (a ta se má psát **na konci** session, ne uprostřed práce).
+2. **`kontrola-driftu.mjs` = 1 rozdíl + 2 záměrné** (šablona vs `uo-shadows`) — známý stav.
+3. **K5 §13.4 (rotace rozpočtu) živě pořád neověřena** — potřebuje první volbu
+   `groq` (8 000 t) u requestu > 8 000 t (viz §4).
+4. **K5 §13.5 (slepé místo `priprava.test.mjs` ve hře)** trvá — fixtura
+   `roadmap.pilot.json` je jen v šabloně (viz §5).
+5. **`coin-picker` nemá další granule** (14/14 hotových) → orchestra čeká na
+   rozhodnutí uživatele: zapnout `uo-shadows` (3 granule `ready`), další vlna, nebo
+   nová hra.
+6. **`_analyza/p36-g3-registr.json`** leží netrackovaný v pracovním stromě
+   (generovaný registr z cizího harness běhu) — nemažu cizí soubor, jen hlásím.
