@@ -1,0 +1,232 @@
+# p41-c — rozbor živého tailu: p41-f-tail-raw-vystup.txt
+# objektů v dokladu: 81
+
+okno Z DOKLADU: 12:11:16 .. 12:22:36 = 11.3 min (81 eventů conductora z 81 objektů)
+scriptVersion.id: 3642d75f-b42d-48ff-bee8-3583b7626d4d  (JEDINÁ verze)
+
+## Eventy v pořadí (cpu/wall z tailu; fáze z logu `tick-prof:`)
+  #      cas zdroj            iso       faze                cpu   wall  faze ms
+  1 12:11:16 cron             d0b68559  celkem               13   2101  start=0 zaklad=102 poll=0 watchdog=104 stale=110 hry=109 roadmap=1123 zombie=105 dispatch=110
+  2 12:12:16 cron             d0b68559  celkem               12   2092  start=0 zaklad=110 poll=0 watchdog=103 stale=102 hry=138 roadmap=1161 zombie=108 dispatch=107
+  3 12:12:34 http:heartbeat                                   6     52  
+  4 12:12:34 http:claim                                       9     43  
+  5 12:13:16 cron             d0b68559  celkem               10   2009  start=0 zaklad=108 poll=0 watchdog=104 stale=106 hry=101 roadmap=1107 zombie=105 dispatch=107
+  6 12:13:57 http:health                                     13    966  
+  7 12:13:58 manual           f6823121  celkem               29   1763  start=0 zaklad=27 poll=0 watchdog=24 stale=22 hry=25 roadmap=1539 zombie=26 dispatch=24
+  8 12:14:00 manual           f6823121  celkem               19   2855  start=0 zaklad=25 poll=0 watchdog=23 stale=23 hry=23 roadmap=2639 zombie=28 dispatch=23
+  9 12:14:03 manual           f6823121  celkem               17   1557  start=0 zaklad=24 poll=0 watchdog=23 stale=25 hry=25 roadmap=1338 zombie=23 dispatch=25
+ 10 12:14:05 manual           f6823121  celkem               22   1304  start=0 zaklad=26 poll=0 watchdog=22 stale=23 hry=21 roadmap=1079 zombie=26 dispatch=22
+ 11 12:14:06 manual           f6823121  celkem               14   1350  start=0 zaklad=27 poll=0 watchdog=28 stale=23 hry=23 roadmap=1127 zombie=26 dispatch=26
+ 12 12:14:07 manual           f6823121  celkem               12   1381  start=0 zaklad=24 poll=0 watchdog=24 stale=22 hry=24 roadmap=1167 zombie=24 dispatch=24
+ 13 12:14:09 manual+faze      f6823121  stop-po-start         0      1  start=0
+ 14 12:14:09 manual+faze      f6823121  stop-po-start         0      1  start=0
+ 15 12:14:09 manual+faze      f6823121  stop-po-start         0      1  start=0
+ 16 12:14:09 manual+faze      f6823121  stop-po-start         1      2  start=0
+ 17 12:14:10 manual+faze      f6823121  stop-po-zaklad        2     31  start=0 zaklad=25
+ 18 12:14:10 manual+faze      f6823121  stop-po-watchdog      2     60  start=0 zaklad=28 poll=0 watchdog=23
+ 19 12:14:11 manual+faze      f6823121  stop-po-stale         4    103  start=0 zaklad=28 poll=0 watchdog=32 stale=23
+ 20 12:14:12 manual+faze      f6823121  stop-po-hry           3    114  start=0 zaklad=22 poll=0 watchdog=23 stale=21 hry=23
+ 21 12:14:13 manual+faze      f6823121  stop-po-roadmap      14   1309  start=0 zaklad=27 poll=0 watchdog=22 stale=23 hry=26 roadmap=1188
+ 22 12:14:14 manual+faze      f6823121  stop-po-roadmap      13   1234  start=0 zaklad=26 poll=0 watchdog=23 stale=24 hry=26 roadmap=1108
+ 23 12:14:16 manual+faze      f6823121  stop-po-roadmap      13   1170  start=0 zaklad=26 poll=0 watchdog=28 stale=26 hry=24 roadmap=1041
+ 24 12:14:17 manual+faze      f6823121  stop-po-roadmap      10   1203  start=0 zaklad=28 poll=0 watchdog=24 stale=26 hry=25 roadmap=1075
+ 25 12:14:16 cron             d0b68559  celkem               14   2289  start=0 zaklad=105 poll=0 watchdog=106 stale=101 hry=104 roadmap=1398 zombie=107 dispatch=111
+ 26 12:14:18 manual+faze      f6823121  stop-po-roadmap      11   1155  start=0 zaklad=26 poll=0 watchdog=23 stale=27 hry=26 roadmap=1032
+ 27 12:14:19 manual+faze      f6823121  stop-po-roadmap      13   6733  start=0 zaklad=24 poll=0 watchdog=35 stale=25 hry=25 roadmap=6610
+ 28 12:14:26 manual+faze      f6823121  stop-po-zombie       14   1249  start=0 zaklad=25 poll=0 watchdog=24 stale=23 hry=22 roadmap=1105 zombie=23
+ 29 12:14:27 manual+faze      f6823121  stop-po-zombie       11   1214  start=0 zaklad=29 poll=0 watchdog=24 stale=26 hry=24 roadmap=1059 zombie=26
+ 30 12:14:29 manual+faze      f6823121  stop-po-zombie       13   1302  start=0 zaklad=24 poll=0 watchdog=24 stale=32 hry=31 roadmap=1135 zombie=26
+ 31 12:14:30 manual+faze      f6823121  stop-po-zombie       11   1371  start=0 zaklad=23 poll=0 watchdog=25 stale=23 hry=22 roadmap=1232 zombie=24
+ 32 12:14:31 manual+faze      f6823121  stop-po-zombie       13   1883  start=0 zaklad=27 poll=0 watchdog=24 stale=22 hry=26 roadmap=1746 zombie=22
+ 33 12:14:34 http:heartbeat                                   5     39  
+ 34 12:14:34 http:claim                                       6     23  
+ 35 12:14:33 manual+faze      f6823121  stop-po-zombie       10   1252  start=0 zaklad=30 poll=0 watchdog=24 stale=24 hry=29 roadmap=1097 zombie=23
+ 36 12:14:35 manual+faze      f6823121  celkem               15   1214  start=0 zaklad=26 poll=0 watchdog=22 stale=23 hry=22 roadmap=1039 zombie=23 dispatch=25
+ 37 12:14:36 manual+faze      f6823121  celkem               15   1306  start=0 zaklad=36 poll=0 watchdog=24 stale=28 hry=22 roadmap=1113 zombie=26 dispatch=23
+ 38 12:14:37 manual+faze      f6823121  celkem               14   1225  start=0 zaklad=24 poll=0 watchdog=23 stale=22 hry=22 roadmap=1058 zombie=22 dispatch=23
+ 39 12:14:38 manual+faze      f6823121  celkem               14   1243  start=0 zaklad=30 poll=0 watchdog=21 stale=23 hry=23 roadmap=1066 zombie=24 dispatch=23
+ 40 12:14:40 manual+faze      f6823121  celkem               12   1281  start=0 zaklad=23 poll=0 watchdog=22 stale=23 hry=22 roadmap=1120 zombie=21 dispatch=24
+ 41 12:14:41 manual+faze      f6823121  celkem               15   1362  start=0 zaklad=23 poll=0 watchdog=21 stale=34 hry=22 roadmap=1183 zombie=25 dispatch=24
+ 42 12:14:42 manual+faze      f6823121  stop-po-start         0      1  start=0
+ 43 12:14:42 manual+faze      f6823121  stop-po-start         0      1  start=0
+ 44 12:14:43 manual+faze      f6823121  stop-po-start         0      2  start=0
+ 45 12:14:44 manual+faze      f6823121  stop-po-stale         4    105  start=0 zaklad=25 poll=0 watchdog=24 stale=27
+ 46 12:14:46 manual+faze      f6823121  stop-po-hry           3    123  start=0 zaklad=28 poll=0 watchdog=32 stale=22 hry=24
+ 47 12:14:46 manual+faze      f6823121  stop-po-roadmap      11   6465  start=0 zaklad=24 poll=0 watchdog=23 stale=23 hry=22 roadmap=6364
+ 48 12:14:53 manual+faze      f6823121  stop-po-roadmap      12   6758  start=0 zaklad=24 poll=0 watchdog=24 stale=23 hry=28 roadmap=6648
+ 49 12:14:59 manual+faze      f6823121  stop-po-roadmap      11   1294  start=0 zaklad=25 poll=0 watchdog=23 stale=21 hry=36 roadmap=1174
+ 50 12:15:01 manual+faze      f6823121  stop-po-roadmap      13   3032  start=0 zaklad=31 poll=0 watchdog=24 stale=23 hry=23 roadmap=2915
+ 51 12:15:04 manual+faze      f6823121  stop-po-roadmap      13   1319  start=0 zaklad=27 poll=0 watchdog=25 stale=23 hry=34 roadmap=1188
+ 52 12:15:05 manual+faze      f6823121  stop-po-roadmap      12   1387  start=0 zaklad=26 poll=0 watchdog=24 stale=26 hry=19 roadmap=1270
+ 53 12:15:07 manual+faze      f6823121  stop-po-zombie       13   1551  start=0 zaklad=25 poll=0 watchdog=26 stale=23 hry=24 roadmap=1405 zombie=25
+ 54 12:15:08 manual+faze      f6823121  stop-po-zombie       18   1408  start=0 zaklad=24 poll=0 watchdog=30 stale=33 hry=29 roadmap=1239 zombie=21
+ 55 12:15:10 manual+faze      f6823121  stop-po-zombie       16   1273  start=0 zaklad=31 poll=0 watchdog=38 stale=24 hry=36 roadmap=1093 zombie=22
+ 56 12:15:11 manual+faze      f6823121  stop-po-zombie       14   1195  start=0 zaklad=26 poll=0 watchdog=22 stale=22 hry=24 roadmap=1038 zombie=29
+ 57 12:15:12 manual+faze      f6823121  stop-po-zombie       11   1572  start=0 zaklad=27 poll=0 watchdog=20 stale=25 hry=23 roadmap=1432 zombie=23
+ 58 12:15:14 manual+faze      f6823121  stop-po-zombie       13   1379  start=0 zaklad=26 poll=0 watchdog=25 stale=25 hry=26 roadmap=1233 zombie=24
+ 59 12:15:15 manual+faze      f6823121  celkem               10   1473  start=0 zaklad=24 poll=0 watchdog=21 stale=24 hry=21 roadmap=1305 zombie=24 dispatch=27
+ 60 12:15:17 manual+faze      f6823121  celkem               13   1452  start=0 zaklad=23 poll=0 watchdog=26 stale=29 hry=20 roadmap=1278 zombie=24 dispatch=26
+ 61 12:15:16 cron             d0b68559  celkem               10   2104  start=0 zaklad=104 poll=0 watchdog=100 stale=106 hry=104 roadmap=1221 zombie=105 dispatch=106
+ 62 12:15:18 manual+faze      f6823121  celkem               11   1255  start=0 zaklad=24 poll=0 watchdog=22 stale=28 hry=20 roadmap=1084 zombie=21 dispatch=28
+ 63 12:15:20 manual+faze      f6823121  celkem               12   1267  start=0 zaklad=27 poll=0 watchdog=26 stale=24 hry=25 roadmap=1077 zombie=25 dispatch=28
+ 64 12:15:21 manual+faze      f6823121  celkem               14   1218  start=0 zaklad=24 poll=0 watchdog=21 stale=27 hry=21 roadmap=1042 zombie=27 dispatch=27
+ 65 12:15:22 manual+faze      f6823121  celkem               12   1318  start=0 zaklad=26 poll=0 watchdog=22 stale=25 hry=23 roadmap=1147 zombie=21 dispatch=23
+ 66 12:15:24 http:health                                      5    164  
+ 67 12:16:16 cron             d0b68559  celkem               13  12161  start=0 zaklad=111 poll=0 watchdog=105 stale=106 hry=105 roadmap=11253 zombie=108 dispatch=113
+ 68 12:16:34 http:heartbeat                                   5     50  
+ 69 12:16:35 http:claim                                       2     19  
+ 70 12:17:16 cron             d0b68559  celkem               12   3400  start=0 zaklad=108 poll=0 watchdog=103 stale=109 hry=102 roadmap=2506 zombie=103 dispatch=107
+ 71 12:18:16 cron             d0b68559  celkem                9   2052  start=0 zaklad=104 poll=0 watchdog=103 stale=103 hry=106 roadmap=1151 zombie=109 dispatch=105
+ 72 12:18:35 http:heartbeat                                   4     47  
+ 73 12:18:35 http:claim                                       3     17  
+ 74 12:19:16 cron             d0b68559  celkem               12   2166  start=0 zaklad=102 poll=0 watchdog=104 stale=103 hry=108 roadmap=1268 zombie=105 dispatch=110
+ 75 12:20:16 cron             d0b68559  celkem               12   2075  start=0 zaklad=103 poll=0 watchdog=102 stale=110 hry=108 roadmap=1175 zombie=106 dispatch=110
+ 76 12:20:35 http:heartbeat                                   2     32  
+ 77 12:20:35 http:claim                                       1     15  
+ 78 12:21:16 cron             d0b68559  celkem               16  13162  start=0 zaklad=103 poll=0 watchdog=135 stale=101 hry=100 roadmap=12248 zombie=107 dispatch=111
+ 79 12:22:16 cron             d0b68559  celkem               11   2002  start=0 zaklad=109 poll=0 watchdog=103 stale=101 hry=103 roadmap=1100 zombie=103 dispatch=109
+ 80 12:22:35 http:heartbeat                                   5     48  
+ 81 12:22:36 http:claim                                       2     17  
+
+## Izoláty (`iso=` je modulová konstanta → přežije jen v jednom izolátu)
+  iso=d0b68559  eventů=12  první=12:11:16 (cron)  cpu první=13  cpu medián=12.0  cpu rozsah=9–16
+      12:11:16 cron               faze=celkem             cpu=13 wall=2101
+      12:12:16 cron               faze=celkem             cpu=12 wall=2092
+      12:13:16 cron               faze=celkem             cpu=10 wall=2009
+      12:14:16 cron               faze=celkem             cpu=14 wall=2289
+      12:15:16 cron               faze=celkem             cpu=10 wall=2104
+      12:16:16 cron               faze=celkem             cpu=13 wall=12161
+      12:17:16 cron               faze=celkem             cpu=12 wall=3400
+      12:18:16 cron               faze=celkem             cpu=9 wall=2052
+      12:19:16 cron               faze=celkem             cpu=12 wall=2166
+      12:20:16 cron               faze=celkem             cpu=12 wall=2075
+      12:21:16 cron               faze=celkem             cpu=16 wall=13162
+      12:22:16 cron               faze=celkem             cpu=11 wall=2002
+  iso=f6823121  eventů=55  první=12:13:58 (manual)  cpu první=29  cpu medián=12  cpu rozsah=0–29
+      12:13:58 manual             faze=celkem             cpu=29 wall=1763
+      12:14:00 manual             faze=celkem             cpu=19 wall=2855
+      12:14:03 manual             faze=celkem             cpu=17 wall=1557
+      12:14:05 manual             faze=celkem             cpu=22 wall=1304
+      12:14:06 manual             faze=celkem             cpu=14 wall=1350
+      12:14:07 manual             faze=celkem             cpu=12 wall=1381
+      12:14:09 manual+faze        faze=stop-po-start      cpu=0 wall=1
+      12:14:09 manual+faze        faze=stop-po-start      cpu=0 wall=1
+      12:14:09 manual+faze        faze=stop-po-start      cpu=0 wall=1
+      12:14:09 manual+faze        faze=stop-po-start      cpu=1 wall=2
+      12:14:10 manual+faze        faze=stop-po-zaklad     cpu=2 wall=31
+      12:14:10 manual+faze        faze=stop-po-watchdog   cpu=2 wall=60
+      12:14:11 manual+faze        faze=stop-po-stale      cpu=4 wall=103
+      12:14:12 manual+faze        faze=stop-po-hry        cpu=3 wall=114
+      12:14:13 manual+faze        faze=stop-po-roadmap    cpu=14 wall=1309
+      12:14:14 manual+faze        faze=stop-po-roadmap    cpu=13 wall=1234
+      12:14:16 manual+faze        faze=stop-po-roadmap    cpu=13 wall=1170
+      12:14:17 manual+faze        faze=stop-po-roadmap    cpu=10 wall=1203
+      12:14:18 manual+faze        faze=stop-po-roadmap    cpu=11 wall=1155
+      12:14:19 manual+faze        faze=stop-po-roadmap    cpu=13 wall=6733
+      12:14:26 manual+faze        faze=stop-po-zombie     cpu=14 wall=1249
+      12:14:27 manual+faze        faze=stop-po-zombie     cpu=11 wall=1214
+      12:14:29 manual+faze        faze=stop-po-zombie     cpu=13 wall=1302
+      12:14:30 manual+faze        faze=stop-po-zombie     cpu=11 wall=1371
+      12:14:31 manual+faze        faze=stop-po-zombie     cpu=13 wall=1883
+      12:14:33 manual+faze        faze=stop-po-zombie     cpu=10 wall=1252
+      12:14:35 manual+faze        faze=celkem             cpu=15 wall=1214
+      12:14:36 manual+faze        faze=celkem             cpu=15 wall=1306
+      12:14:37 manual+faze        faze=celkem             cpu=14 wall=1225
+      12:14:38 manual+faze        faze=celkem             cpu=14 wall=1243
+      12:14:40 manual+faze        faze=celkem             cpu=12 wall=1281
+      12:14:41 manual+faze        faze=celkem             cpu=15 wall=1362
+      12:14:42 manual+faze        faze=stop-po-start      cpu=0 wall=1
+      12:14:42 manual+faze        faze=stop-po-start      cpu=0 wall=1
+      12:14:43 manual+faze        faze=stop-po-start      cpu=0 wall=2
+      12:14:44 manual+faze        faze=stop-po-stale      cpu=4 wall=105
+      12:14:46 manual+faze        faze=stop-po-hry        cpu=3 wall=123
+      12:14:46 manual+faze        faze=stop-po-roadmap    cpu=11 wall=6465
+      12:14:53 manual+faze        faze=stop-po-roadmap    cpu=12 wall=6758
+      12:14:59 manual+faze        faze=stop-po-roadmap    cpu=11 wall=1294
+      12:15:01 manual+faze        faze=stop-po-roadmap    cpu=13 wall=3032
+      12:15:04 manual+faze        faze=stop-po-roadmap    cpu=13 wall=1319
+      12:15:05 manual+faze        faze=stop-po-roadmap    cpu=12 wall=1387
+      12:15:07 manual+faze        faze=stop-po-zombie     cpu=13 wall=1551
+      12:15:08 manual+faze        faze=stop-po-zombie     cpu=18 wall=1408
+      12:15:10 manual+faze        faze=stop-po-zombie     cpu=16 wall=1273
+      12:15:11 manual+faze        faze=stop-po-zombie     cpu=14 wall=1195
+      12:15:12 manual+faze        faze=stop-po-zombie     cpu=11 wall=1572
+      12:15:14 manual+faze        faze=stop-po-zombie     cpu=13 wall=1379
+      12:15:15 manual+faze        faze=celkem             cpu=10 wall=1473
+      12:15:17 manual+faze        faze=celkem             cpu=13 wall=1452
+      12:15:18 manual+faze        faze=celkem             cpu=11 wall=1255
+      12:15:20 manual+faze        faze=celkem             cpu=12 wall=1267
+      12:15:21 manual+faze        faze=celkem             cpu=14 wall=1218
+      12:15:22 manual+faze        faze=celkem             cpu=12 wall=1318
+
+## Agregace
+  cron (čerstvý izolát)        n=12  cpu min/med/max = 9/12.0/16   wall min/med/max = 2002/2102.5/13162
+  ruční /tick (teplý izolát?)  n=55  cpu min/med/max = 0/12/29   wall min/med/max = 1/1273/6758
+  outcome ne-`ok`: 0
+
+## Cena fáze z ROZDÍLU `cpuTime` mezi `?faze=N` a `?faze=N+1` (jen TÝŽ izolát)
+  iso=f6823121:
+      faze=0 cpu=0 wall=2  stop-po-start
+      faze=1 cpu=2 wall=31  stop-po-zaklad
+      faze=3 cpu=2 wall=60  stop-po-watchdog
+      faze=4 cpu=4 wall=105  stop-po-stale
+      faze=5 cpu=3 wall=123  stop-po-hry
+      faze=6 cpu=12 wall=1387  stop-po-roadmap
+      faze=7 cpu=13 wall=1379  stop-po-zombie
+
+## Wall time po fázích (plné tiky s `faze=celkem`)
+  12:11:16 cron       iso=d0b68559  cpu=13 wall=2101  soucet fazi=1763  start=0 zaklad=102 poll=0 watchdog=104 stale=110 hry=109 roadmap=1123 zombie=105 dispatch=110
+  12:12:16 cron       iso=d0b68559  cpu=12 wall=2092  soucet fazi=1829  start=0 zaklad=110 poll=0 watchdog=103 stale=102 hry=138 roadmap=1161 zombie=108 dispatch=107
+  12:13:16 cron       iso=d0b68559  cpu=10 wall=2009  soucet fazi=1738  start=0 zaklad=108 poll=0 watchdog=104 stale=106 hry=101 roadmap=1107 zombie=105 dispatch=107
+  12:13:58 manual     iso=f6823121  cpu=29 wall=1763  soucet fazi=1687  start=0 zaklad=27 poll=0 watchdog=24 stale=22 hry=25 roadmap=1539 zombie=26 dispatch=24
+  12:14:00 manual     iso=f6823121  cpu=19 wall=2855  soucet fazi=2784  start=0 zaklad=25 poll=0 watchdog=23 stale=23 hry=23 roadmap=2639 zombie=28 dispatch=23
+  12:14:03 manual     iso=f6823121  cpu=17 wall=1557  soucet fazi=1483  start=0 zaklad=24 poll=0 watchdog=23 stale=25 hry=25 roadmap=1338 zombie=23 dispatch=25
+  12:14:05 manual     iso=f6823121  cpu=22 wall=1304  soucet fazi=1219  start=0 zaklad=26 poll=0 watchdog=22 stale=23 hry=21 roadmap=1079 zombie=26 dispatch=22
+  12:14:06 manual     iso=f6823121  cpu=14 wall=1350  soucet fazi=1280  start=0 zaklad=27 poll=0 watchdog=28 stale=23 hry=23 roadmap=1127 zombie=26 dispatch=26
+  12:14:07 manual     iso=f6823121  cpu=12 wall=1381  soucet fazi=1309  start=0 zaklad=24 poll=0 watchdog=24 stale=22 hry=24 roadmap=1167 zombie=24 dispatch=24
+  12:14:16 cron       iso=d0b68559  cpu=14 wall=2289  soucet fazi=2032  start=0 zaklad=105 poll=0 watchdog=106 stale=101 hry=104 roadmap=1398 zombie=107 dispatch=111
+  12:14:35 manual+faze iso=f6823121  cpu=15 wall=1214  soucet fazi=1180  start=0 zaklad=26 poll=0 watchdog=22 stale=23 hry=22 roadmap=1039 zombie=23 dispatch=25
+  12:14:36 manual+faze iso=f6823121  cpu=15 wall=1306  soucet fazi=1272  start=0 zaklad=36 poll=0 watchdog=24 stale=28 hry=22 roadmap=1113 zombie=26 dispatch=23
+  12:14:37 manual+faze iso=f6823121  cpu=14 wall=1225  soucet fazi=1194  start=0 zaklad=24 poll=0 watchdog=23 stale=22 hry=22 roadmap=1058 zombie=22 dispatch=23
+  12:14:38 manual+faze iso=f6823121  cpu=14 wall=1243  soucet fazi=1210  start=0 zaklad=30 poll=0 watchdog=21 stale=23 hry=23 roadmap=1066 zombie=24 dispatch=23
+  12:14:40 manual+faze iso=f6823121  cpu=12 wall=1281  soucet fazi=1255  start=0 zaklad=23 poll=0 watchdog=22 stale=23 hry=22 roadmap=1120 zombie=21 dispatch=24
+  12:14:41 manual+faze iso=f6823121  cpu=15 wall=1362  soucet fazi=1332  start=0 zaklad=23 poll=0 watchdog=21 stale=34 hry=22 roadmap=1183 zombie=25 dispatch=24
+  12:15:15 manual+faze iso=f6823121  cpu=10 wall=1473  soucet fazi=1446  start=0 zaklad=24 poll=0 watchdog=21 stale=24 hry=21 roadmap=1305 zombie=24 dispatch=27
+  12:15:17 manual+faze iso=f6823121  cpu=13 wall=1452  soucet fazi=1426  start=0 zaklad=23 poll=0 watchdog=26 stale=29 hry=20 roadmap=1278 zombie=24 dispatch=26
+  12:15:16 cron       iso=d0b68559  cpu=10 wall=2104  soucet fazi=1846  start=0 zaklad=104 poll=0 watchdog=100 stale=106 hry=104 roadmap=1221 zombie=105 dispatch=106
+  12:15:18 manual+faze iso=f6823121  cpu=11 wall=1255  soucet fazi=1227  start=0 zaklad=24 poll=0 watchdog=22 stale=28 hry=20 roadmap=1084 zombie=21 dispatch=28
+  12:15:20 manual+faze iso=f6823121  cpu=12 wall=1267  soucet fazi=1232  start=0 zaklad=27 poll=0 watchdog=26 stale=24 hry=25 roadmap=1077 zombie=25 dispatch=28
+  12:15:21 manual+faze iso=f6823121  cpu=14 wall=1218  soucet fazi=1189  start=0 zaklad=24 poll=0 watchdog=21 stale=27 hry=21 roadmap=1042 zombie=27 dispatch=27
+  12:15:22 manual+faze iso=f6823121  cpu=12 wall=1318  soucet fazi=1287  start=0 zaklad=26 poll=0 watchdog=22 stale=25 hry=23 roadmap=1147 zombie=21 dispatch=23
+  12:16:16 cron       iso=d0b68559  cpu=13 wall=12161  soucet fazi=11901  start=0 zaklad=111 poll=0 watchdog=105 stale=106 hry=105 roadmap=11253 zombie=108 dispatch=113
+  12:17:16 cron       iso=d0b68559  cpu=12 wall=3400  soucet fazi=3138  start=0 zaklad=108 poll=0 watchdog=103 stale=109 hry=102 roadmap=2506 zombie=103 dispatch=107
+  12:18:16 cron       iso=d0b68559  cpu=9 wall=2052  soucet fazi=1781  start=0 zaklad=104 poll=0 watchdog=103 stale=103 hry=106 roadmap=1151 zombie=109 dispatch=105
+  12:19:16 cron       iso=d0b68559  cpu=12 wall=2166  soucet fazi=1900  start=0 zaklad=102 poll=0 watchdog=104 stale=103 hry=108 roadmap=1268 zombie=105 dispatch=110
+  12:20:16 cron       iso=d0b68559  cpu=12 wall=2075  soucet fazi=1814  start=0 zaklad=103 poll=0 watchdog=102 stale=110 hry=108 roadmap=1175 zombie=106 dispatch=110
+  12:21:16 cron       iso=d0b68559  cpu=16 wall=13162  soucet fazi=12905  start=0 zaklad=103 poll=0 watchdog=135 stale=101 hry=100 roadmap=12248 zombie=107 dispatch=111
+  12:22:16 cron       iso=d0b68559  cpu=11 wall=2002  soucet fazi=1728  start=0 zaklad=109 poll=0 watchdog=103 stale=101 hry=103 roadmap=1100 zombie=103 dispatch=109
+
+## cpuTime podle fáze (jen `?faze=N`; medián z opakování, kvantum 1 ms)
+  iso=f6823121:
+      faze                  n  cpu med cpu prumer  cpu min-max  wall med   delta cpu (med)
+      faze=0 start          7        0       0.14     0-1              1                 -
+      faze=1 zaklad         1        2       2.00     2-2             31                +2
+      faze=3 watchdog       1        2       2.00     2-2             60                +0
+      faze=4 stale          2      4.0       4.00     4-4          104.0                +2
+      faze=5 hry            2      3.0       3.00     3-3          118.5                -1
+      faze=6 roadmap       12     12.5      12.17    10-14        1314.0               +10
+      faze=7 zombie        12     13.0      13.08    10-18        1336.5                +0
+      -> CELY TIK z rozdilu (dispatch - start) = +13 ms
+
+## Wall time po fázích (medián z plných tiků `faze=celkem`, jen TÝŽ izolát)
+  iso=f6823121 (n=18):
+      start      n=18 wall med=      0 ms  min-max=0-0
+      zaklad     n=18 wall med=     24 ms  min-max=23-36
+      poll       n=18 wall med=      0 ms  min-max=0-0
+      watchdog   n=18 wall med=     22 ms  min-max=21-28
+      stale      n=18 wall med=     24 ms  min-max=22-34
+      hry        n=18 wall med=     22 ms  min-max=20-25
+      roadmap    n=18 wall med=   1124 ms  min-max=1039-2639
+      zombie     n=18 wall med=     24 ms  min-max=21-28
+      dispatch   n=18 wall med=     24 ms  min-max=22-28
+

@@ -52,7 +52,10 @@ MUTATIONS = [
      ""),
     ("M5 roadmapTick dostane null, 0",
      CONDUCTOR,
-     "roadmapTick(env, retryH, grainRunsMap, cap)",
+     # P41/H202: kotva následuje VOLÁNÍ (přibyl pátý argument — profil fází),
+     # takže se musí změnit s kódem; jinak mutace „neprovede se“ a hlásí totéž
+     # co mutace, která projde (H199).
+     "roadmapTick(env, retryH, grainRunsMap, cap, profOn ? znacka : undefined)",
      "roadmapTick(env, retryH, null, 0)"),
 ]
 

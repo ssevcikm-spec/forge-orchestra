@@ -20,15 +20,28 @@
 //   proto píše jen to, co VIDĚLA: pořadí, stav, čas odpovědi a text zprávy.
 //   V JEDNU CHVÍLI SE VEDE JEN JEDEN TAIL (H200 — dva si berou eventy).
 //
-// Použití: node _analyza/p41-a-teplota-sonda.mjs
-// Výstup:  _analyza/p41-a-sonda-vystup.txt   (VLASTNÍ jméno — H191)
+// Použití: node _analyza/p41-a-teplota-sonda.mjs [teplo|zima|opakuj]
+//   teplo (výchozí) — teplý izolát: 6 plných tiků + série `faze=`
+//   zima            — MĚŘENÍ ČERSTVÉHO IZOLÁTU: jako PRVNÍ jde `?faze=0` a
+//                     `?faze=8` (po deployi je izolát nový) a teprve pak zbytek
+//   opakuj          — každá fáze 6× (kvantum cpuTime je 1 ms → medián z 6 dá
+//                     rozlišení pod 0,5 ms)
+// Výstup:  _analyza/p41-a-sonda-vystup.txt (teplo) ·
+//          p41-a2-sonda-zima-vystup.txt (zima) · p41-a3-sonda-opakuj-vystup.txt
+//          (VLASTNÍ jméno pro každý režim — H191)
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const WS = dirname(dirname(fileURLToPath(import.meta.url)));
-const OUT = join(WS, "_analyza", "p41-a-sonda-vystup.txt");
+const REZIM = (process.argv[2] || "teplo").toLowerCase();
+const OUT_JMENA = {
+  teplo: "p41-a-sonda-vystup.txt",
+  zima: "p41-a2-sonda-zima-vystup.txt",
+  opakuj: "p41-a3-sonda-opakuj-vystup.txt",
+};
+const OUT = join(WS, "_analyza", OUT_JMENA[REZIM] || `p41-a-sonda-${REZIM}-vystup.txt`);
 const BASE = "https://forge-conductor.ssevcikm.workers.dev";
 
 // Tajemství jen ze souboru a NIKDY se nevypisuje (posílá se v hlavičce).
@@ -65,9 +78,8 @@ const postTick = async (popis, faze) => {
 };
 
 const vysledky = [];
-const pockej = (ms) => new Promise((r) => setTimeout(r, ms));
 
-zapis(`# p41-a — ŽIVÁ sonda: cron vs ruční POST /tick (teplý izolát) + rozklad ?faze=N`);
+zapis(`# p41-a — ŽIVÁ sonda (režim ${REZIM}): cron vs ruční POST /tick + rozklad ?faze=N`);
 zapis(`# ${new Date().toISOString()}  ${BASE}`);
 zapis(`# POZOR: cpuTime se ČTE Z TAILU — tahle sonda měří jen pořadí a wall time odpovědi.`);
 zapis();
@@ -81,6 +93,21 @@ try {
   zapis(`  last_cron=${hj.last_cron ?? "-"} (${hj.last_cron_min ?? "?"} min) zdroj=${hj.last_tick_zdroj ?? "-"}`);
   zapis();
 
+  // ── 0b) REŽIM `zima`: PRVNÍ requesty po deployi = čerstvý izolát ─────────
+  // Tohle je JÁDRO rozhodnutí mezi „chybí model“ a „platí se start izolátu“:
+  // `?faze=0` nedělá NIC než log, takže jeho `cpuTime` je cena izolátu a modulu
+  // (a prvního průchodu kódem), a `?faze=8` na TÉMŽ izolátu hned po něm je
+  // plný tik v TOMTÉŽ čerstvém izolátu. Opakuje se dvakrát: druhý pár už má
+  // izolát teplý, takže rozdíl mezi páry je cena „startu“.
+  if (REZIM === "zima") {
+    zapis("## 0b) ČERSTVÝ IZOLÁT: `?faze=0` a `?faze=8` jako PRVNÍ requesty po deployi");
+    vysledky.push(await postTick("zima faze=0 #1", 0));
+    vysledky.push(await postTick("zima faze=8 #1", 8));
+    vysledky.push(await postTick("zima faze=0 #2", 0));
+    vysledky.push(await postTick("zima faze=8 #2", 8));
+    zapis();
+  }
+
   // ── 1) TEPLÝ IZOLÁT: šest plných tiků BEZ PAUZY ──────────────────────────
   // První z nich může být ještě čerstvý izolát — proto se jich dělá víc a
   // rozhoduje `iso=` v logu, ne pořadí.
@@ -90,12 +117,30 @@ try {
 
   // ── 2) ROZKLAD PO FÁZÍCH: `?faze=0..8`, DVĚ KOLA ─────────────────────────
   // `faze=0` = NULA práce → cena čerstvého izolátu a modulu (baseline).
-  zapis("## 2) Rozklad CPU po fázích: `?faze=0..8` (dvě kola po sobě)");
-  for (let kolo = 1; kolo <= 2; kolo++) {
-    zapis(`### kolo ${kolo}`);
-    for (let f = 0; f <= 8; f++) vysledky.push(await postTick(`faze=${f}`, f));
+  // V režimu `opakuj` se přeskakuje — nahrazuje ho 2b s šesti opakováními.
+  if (REZIM !== "opakuj") {
+    zapis("## 2) Rozklad CPU po fázích: `?faze=0..8` (dvě kola po sobě)");
+    for (let kolo = 1; kolo <= 2; kolo++) {
+      zapis(`### kolo ${kolo}`);
+      for (let f = 0; f <= 8; f++) vysledky.push(await postTick(`faze=${f}`, f));
+    }
+    zapis();
   }
-  zapis();
+
+  // ── 2b) REŽIM `opakuj`: KAŽDÁ FÁZE 6× ────────────────────────────────────
+  // PROČ OPAKOVAT: `cpuTime` z tailu má kvantum **1 ms**, takže jedna invokace
+  // nedokáže rozlišit fázi za 0,3 ms. Medián z 6 invokací TÉŽE fáze v TÉMŽ
+  // izolátu dá rozlišení pod 0,5 ms — a teprve pak má smysl tvrdit, KTERÁ fáze
+  // cenu nese (a která je šum). Dvě kola po sobě jsou kontrola proti driftu.
+  if (REZIM === "opakuj") {
+    zapis("## 2b) Každá fáze 6× (medián z tailu dá rozlišení pod 0,5 ms), dvě kola");
+    for (let kolo = 1; kolo <= 2; kolo++) {
+      for (let f = 0; f <= 8; f++) {
+        for (let i = 0; i < 6; i++) vysledky.push(await postTick(`kolo${kolo} faze=${f} #${i + 1}`, f));
+      }
+    }
+    zapis();
+  }
 
   // ── 3) KONTROLA: levný endpoint (izolát nemá být „na nule“) ──────────────
   zapis("## 3) Kontrolní levný endpoint (má být řádově levnější)");

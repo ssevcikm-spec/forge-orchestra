@@ -50,7 +50,12 @@ for (const g of stav.telo.games || []) {
 if (vypnout) process.exit(0);
 
 console.log(`\nSleduji ${minuty} minut, co conductor vydá (Ctrl+C ukončí):`);
-let videno = new Set();
+// ⚠ Nejdřív si vezmi ID nejnovějšího běhu: bez toho nástroj při startu "objeví"
+// celou historii a vypíše ji jako nové události (naměřeno 13. 10. 2026 —
+// 20 dispatch_failed běhů z minulosti vypadalo jako právě teď).
+const prvni = await api('/status');
+let videno = new Set((prvni.telo.runs || []).map((x) => x.id));
+console.log(`  (výchozí stav: ${videno.size} běhů v historii, čekám na NOVÉ)`);
 const konec = Date.now() + minuty * 60_000;
 while (Date.now() < konec) {
   const h = await (await fetch(`${env.FORGE_URL}/health`)).json();

@@ -1,0 +1,1463 @@
+{
+  "okno_min": 11.322716666666667,
+  "verze": [
+    "3642d75f-b42d-48ff-bee8-3583b7626d4d"
+  ],
+  "cron": {
+    "n": 12,
+    "cpu_min": 9,
+    "cpu_med": 12.0,
+    "cpu_max": 16
+  },
+  "manual": {
+    "n": 55,
+    "cpu_min": 0,
+    "cpu_med": 12,
+    "cpu_max": 29
+  },
+  "zaznamy": [
+    {
+      "cas": "12:11:16",
+      "ts": 1791807076765,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 13,
+      "wall": 2101,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 102,
+        "poll": 0,
+        "watchdog": 104,
+        "stale": 110,
+        "hry": 109,
+        "roadmap": 1123,
+        "zombie": 105,
+        "dispatch": 110
+      }
+    },
+    {
+      "cas": "12:12:16",
+      "ts": 1791807136761,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 2092,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 110,
+        "poll": 0,
+        "watchdog": 103,
+        "stale": 102,
+        "hry": 138,
+        "roadmap": 1161,
+        "zombie": 108,
+        "dispatch": 107
+      }
+    },
+    {
+      "cas": "12:12:34",
+      "ts": 1791807154135,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 6,
+      "wall": 52,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:12:34",
+      "ts": 1791807154283,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 9,
+      "wall": 43,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:13:16",
+      "ts": 1791807196762,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 10,
+      "wall": 2009,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 108,
+        "poll": 0,
+        "watchdog": 104,
+        "stale": 106,
+        "hry": 101,
+        "roadmap": 1107,
+        "zombie": 105,
+        "dispatch": 107
+      }
+    },
+    {
+      "cas": "12:13:57",
+      "ts": 1791807237754,
+      "src": "http:health",
+      "iso": "",
+      "faze": "",
+      "cpu": 13,
+      "wall": 966,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:13:58",
+      "ts": 1791807238792,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 29,
+      "wall": 1763,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 22,
+        "hry": 25,
+        "roadmap": 1539,
+        "zombie": 26,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:14:00",
+      "ts": 1791807240620,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 19,
+      "wall": 2855,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 23,
+        "hry": 23,
+        "roadmap": 2639,
+        "zombie": 28,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:14:03",
+      "ts": 1791807243516,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 17,
+      "wall": 1557,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 25,
+        "hry": 25,
+        "roadmap": 1338,
+        "zombie": 23,
+        "dispatch": 25
+      }
+    },
+    {
+      "cas": "12:14:05",
+      "ts": 1791807245163,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 22,
+      "wall": 1304,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 23,
+        "hry": 21,
+        "roadmap": 1079,
+        "zombie": 26,
+        "dispatch": 22
+      }
+    },
+    {
+      "cas": "12:14:06",
+      "ts": 1791807246540,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 14,
+      "wall": 1350,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 28,
+        "stale": 23,
+        "hry": 23,
+        "roadmap": 1127,
+        "zombie": 26,
+        "dispatch": 26
+      }
+    },
+    {
+      "cas": "12:14:07",
+      "ts": 1791807247993,
+      "src": "manual",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 1381,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 22,
+        "hry": 24,
+        "roadmap": 1167,
+        "zombie": 24,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:14:09",
+      "ts": 1791807249448,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 1,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:09",
+      "ts": 1791807249620,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 1,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:09",
+      "ts": 1791807249715,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 1,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:09",
+      "ts": 1791807249795,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 1,
+      "wall": 2,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:10",
+      "ts": 1791807250008,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zaklad",
+      "cpu": 2,
+      "wall": 31,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25
+      }
+    },
+    {
+      "cas": "12:14:10",
+      "ts": 1791807250983,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-watchdog",
+      "cpu": 2,
+      "wall": 60,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 28,
+        "poll": 0,
+        "watchdog": 23
+      }
+    },
+    {
+      "cas": "12:14:11",
+      "ts": 1791807251948,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-stale",
+      "cpu": 4,
+      "wall": 103,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 28,
+        "poll": 0,
+        "watchdog": 32,
+        "stale": 23
+      }
+    },
+    {
+      "cas": "12:14:12",
+      "ts": 1791807252941,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-hry",
+      "cpu": 3,
+      "wall": 114,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 22,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 21,
+        "hry": 23
+      }
+    },
+    {
+      "cas": "12:14:13",
+      "ts": 1791807253430,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 14,
+      "wall": 1309,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 23,
+        "hry": 26,
+        "roadmap": 1188
+      }
+    },
+    {
+      "cas": "12:14:14",
+      "ts": 1791807254781,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 13,
+      "wall": 1234,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 24,
+        "hry": 26,
+        "roadmap": 1108
+      }
+    },
+    {
+      "cas": "12:14:16",
+      "ts": 1791807256058,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 13,
+      "wall": 1170,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 28,
+        "stale": 26,
+        "hry": 24,
+        "roadmap": 1041
+      }
+    },
+    {
+      "cas": "12:14:17",
+      "ts": 1791807257270,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 10,
+      "wall": 1203,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 28,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 26,
+        "hry": 25,
+        "roadmap": 1075
+      }
+    },
+    {
+      "cas": "12:14:16",
+      "ts": 1791807256760,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 14,
+      "wall": 2289,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 105,
+        "poll": 0,
+        "watchdog": 106,
+        "stale": 101,
+        "hry": 104,
+        "roadmap": 1398,
+        "zombie": 107,
+        "dispatch": 111
+      }
+    },
+    {
+      "cas": "12:14:18",
+      "ts": 1791807258526,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 11,
+      "wall": 1155,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 27,
+        "hry": 26,
+        "roadmap": 1032
+      }
+    },
+    {
+      "cas": "12:14:19",
+      "ts": 1791807259724,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 13,
+      "wall": 6733,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 35,
+        "stale": 25,
+        "hry": 25,
+        "roadmap": 6610
+      }
+    },
+    {
+      "cas": "12:14:26",
+      "ts": 1791807266502,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 14,
+      "wall": 1249,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 23,
+        "hry": 22,
+        "roadmap": 1105,
+        "zombie": 23
+      }
+    },
+    {
+      "cas": "12:14:27",
+      "ts": 1791807267784,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 11,
+      "wall": 1214,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 29,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 26,
+        "hry": 24,
+        "roadmap": 1059,
+        "zombie": 26
+      }
+    },
+    {
+      "cas": "12:14:29",
+      "ts": 1791807269052,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 13,
+      "wall": 1302,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 32,
+        "hry": 31,
+        "roadmap": 1135,
+        "zombie": 26
+      }
+    },
+    {
+      "cas": "12:14:30",
+      "ts": 1791807270400,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 11,
+      "wall": 1371,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 25,
+        "stale": 23,
+        "hry": 22,
+        "roadmap": 1232,
+        "zombie": 24
+      }
+    },
+    {
+      "cas": "12:14:31",
+      "ts": 1791807271806,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 13,
+      "wall": 1883,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 22,
+        "hry": 26,
+        "roadmap": 1746,
+        "zombie": 22
+      }
+    },
+    {
+      "cas": "12:14:34",
+      "ts": 1791807274540,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 5,
+      "wall": 39,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:14:34",
+      "ts": 1791807274640,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 6,
+      "wall": 23,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:14:33",
+      "ts": 1791807273728,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 10,
+      "wall": 1252,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 30,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 24,
+        "hry": 29,
+        "roadmap": 1097,
+        "zombie": 23
+      }
+    },
+    {
+      "cas": "12:14:35",
+      "ts": 1791807275039,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 15,
+      "wall": 1214,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 23,
+        "hry": 22,
+        "roadmap": 1039,
+        "zombie": 23,
+        "dispatch": 25
+      }
+    },
+    {
+      "cas": "12:14:36",
+      "ts": 1791807276301,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 15,
+      "wall": 1306,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 36,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 28,
+        "hry": 22,
+        "roadmap": 1113,
+        "zombie": 26,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:14:37",
+      "ts": 1791807277645,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 14,
+      "wall": 1225,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 22,
+        "hry": 22,
+        "roadmap": 1058,
+        "zombie": 22,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:14:38",
+      "ts": 1791807278914,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 14,
+      "wall": 1243,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 30,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 23,
+        "hry": 23,
+        "roadmap": 1066,
+        "zombie": 24,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:14:40",
+      "ts": 1791807280193,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 1281,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 23,
+        "hry": 22,
+        "roadmap": 1120,
+        "zombie": 21,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:14:41",
+      "ts": 1791807281519,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 15,
+      "wall": 1362,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 34,
+        "hry": 22,
+        "roadmap": 1183,
+        "zombie": 25,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:14:42",
+      "ts": 1791807282927,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 1,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:42",
+      "ts": 1791807282975,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 1,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:43",
+      "ts": 1791807283018,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 2,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:14:44",
+      "ts": 1791807284956,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-stale",
+      "cpu": 4,
+      "wall": 105,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 27
+      }
+    },
+    {
+      "cas": "12:14:46",
+      "ts": 1791807286003,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-hry",
+      "cpu": 3,
+      "wall": 123,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 28,
+        "poll": 0,
+        "watchdog": 32,
+        "stale": 22,
+        "hry": 24
+      }
+    },
+    {
+      "cas": "12:14:46",
+      "ts": 1791807286520,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 11,
+      "wall": 6465,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 23,
+        "hry": 22,
+        "roadmap": 6364
+      }
+    },
+    {
+      "cas": "12:14:53",
+      "ts": 1791807293051,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 12,
+      "wall": 6758,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 23,
+        "hry": 28,
+        "roadmap": 6648
+      }
+    },
+    {
+      "cas": "12:14:59",
+      "ts": 1791807299847,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 11,
+      "wall": 1294,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 21,
+        "hry": 36,
+        "roadmap": 1174
+      }
+    },
+    {
+      "cas": "12:15:01",
+      "ts": 1791807301188,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 13,
+      "wall": 3032,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 31,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 23,
+        "hry": 23,
+        "roadmap": 2915
+      }
+    },
+    {
+      "cas": "12:15:04",
+      "ts": 1791807304270,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 13,
+      "wall": 1319,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 25,
+        "stale": 23,
+        "hry": 34,
+        "roadmap": 1188
+      }
+    },
+    {
+      "cas": "12:15:05",
+      "ts": 1791807305632,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-roadmap",
+      "cpu": 12,
+      "wall": 1387,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 26,
+        "hry": 19,
+        "roadmap": 1270
+      }
+    },
+    {
+      "cas": "12:15:07",
+      "ts": 1791807307067,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 13,
+      "wall": 1551,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 25,
+        "poll": 0,
+        "watchdog": 26,
+        "stale": 23,
+        "hry": 24,
+        "roadmap": 1405,
+        "zombie": 25
+      }
+    },
+    {
+      "cas": "12:15:08",
+      "ts": 1791807308656,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 18,
+      "wall": 1408,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 30,
+        "stale": 33,
+        "hry": 29,
+        "roadmap": 1239,
+        "zombie": 21
+      }
+    },
+    {
+      "cas": "12:15:10",
+      "ts": 1791807310104,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 16,
+      "wall": 1273,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 31,
+        "poll": 0,
+        "watchdog": 38,
+        "stale": 24,
+        "hry": 36,
+        "roadmap": 1093,
+        "zombie": 22
+      }
+    },
+    {
+      "cas": "12:15:11",
+      "ts": 1791807311414,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 14,
+      "wall": 1195,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 22,
+        "hry": 24,
+        "roadmap": 1038,
+        "zombie": 29
+      }
+    },
+    {
+      "cas": "12:15:12",
+      "ts": 1791807312661,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 11,
+      "wall": 1572,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 20,
+        "stale": 25,
+        "hry": 23,
+        "roadmap": 1432,
+        "zombie": 23
+      }
+    },
+    {
+      "cas": "12:15:14",
+      "ts": 1791807314276,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "stop-po-zombie",
+      "cpu": 13,
+      "wall": 1379,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 25,
+        "stale": 25,
+        "hry": 26,
+        "roadmap": 1233,
+        "zombie": 24
+      }
+    },
+    {
+      "cas": "12:15:15",
+      "ts": 1791807315693,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 10,
+      "wall": 1473,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 24,
+        "hry": 21,
+        "roadmap": 1305,
+        "zombie": 24,
+        "dispatch": 27
+      }
+    },
+    {
+      "cas": "12:15:17",
+      "ts": 1791807317208,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 13,
+      "wall": 1452,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 26,
+        "stale": 29,
+        "hry": 20,
+        "roadmap": 1278,
+        "zombie": 24,
+        "dispatch": 26
+      }
+    },
+    {
+      "cas": "12:15:16",
+      "ts": 1791807316771,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 10,
+      "wall": 2104,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 104,
+        "poll": 0,
+        "watchdog": 100,
+        "stale": 106,
+        "hry": 104,
+        "roadmap": 1221,
+        "zombie": 105,
+        "dispatch": 106
+      }
+    },
+    {
+      "cas": "12:15:18",
+      "ts": 1791807318702,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 11,
+      "wall": 1255,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 28,
+        "hry": 20,
+        "roadmap": 1084,
+        "zombie": 21,
+        "dispatch": 28
+      }
+    },
+    {
+      "cas": "12:15:20",
+      "ts": 1791807320070,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 1267,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 26,
+        "stale": 24,
+        "hry": 25,
+        "roadmap": 1077,
+        "zombie": 25,
+        "dispatch": 28
+      }
+    },
+    {
+      "cas": "12:15:21",
+      "ts": 1791807321376,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 14,
+      "wall": 1218,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 27,
+        "hry": 21,
+        "roadmap": 1042,
+        "zombie": 27,
+        "dispatch": 27
+      }
+    },
+    {
+      "cas": "12:15:22",
+      "ts": 1791807322638,
+      "src": "manual+faze",
+      "iso": "f6823121",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 1318,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 25,
+        "hry": 23,
+        "roadmap": 1147,
+        "zombie": 21,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:15:24",
+      "ts": 1791807324007,
+      "src": "http:health",
+      "iso": "",
+      "faze": "",
+      "cpu": 5,
+      "wall": 164,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:16:16",
+      "ts": 1791807376760,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 13,
+      "wall": 12161,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 111,
+        "poll": 0,
+        "watchdog": 105,
+        "stale": 106,
+        "hry": 105,
+        "roadmap": 11253,
+        "zombie": 108,
+        "dispatch": 113
+      }
+    },
+    {
+      "cas": "12:16:34",
+      "ts": 1791807394937,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 5,
+      "wall": 50,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:16:35",
+      "ts": 1791807395027,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 2,
+      "wall": 19,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:17:16",
+      "ts": 1791807436762,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 3400,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 108,
+        "poll": 0,
+        "watchdog": 103,
+        "stale": 109,
+        "hry": 102,
+        "roadmap": 2506,
+        "zombie": 103,
+        "dispatch": 107
+      }
+    },
+    {
+      "cas": "12:18:16",
+      "ts": 1791807496761,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 9,
+      "wall": 2052,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 104,
+        "poll": 0,
+        "watchdog": 103,
+        "stale": 103,
+        "hry": 106,
+        "roadmap": 1151,
+        "zombie": 109,
+        "dispatch": 105
+      }
+    },
+    {
+      "cas": "12:18:35",
+      "ts": 1791807515344,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 4,
+      "wall": 47,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:18:35",
+      "ts": 1791807515447,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 3,
+      "wall": 17,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:19:16",
+      "ts": 1791807556766,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 2166,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 102,
+        "poll": 0,
+        "watchdog": 104,
+        "stale": 103,
+        "hry": 108,
+        "roadmap": 1268,
+        "zombie": 105,
+        "dispatch": 110
+      }
+    },
+    {
+      "cas": "12:20:16",
+      "ts": 1791807616765,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 2075,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 103,
+        "poll": 0,
+        "watchdog": 102,
+        "stale": 110,
+        "hry": 108,
+        "roadmap": 1175,
+        "zombie": 106,
+        "dispatch": 110
+      }
+    },
+    {
+      "cas": "12:20:35",
+      "ts": 1791807635720,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 2,
+      "wall": 32,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:20:35",
+      "ts": 1791807635798,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 1,
+      "wall": 15,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:21:16",
+      "ts": 1791807676762,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 16,
+      "wall": 13162,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 103,
+        "poll": 0,
+        "watchdog": 135,
+        "stale": 101,
+        "hry": 100,
+        "roadmap": 12248,
+        "zombie": 107,
+        "dispatch": 111
+      }
+    },
+    {
+      "cas": "12:22:16",
+      "ts": 1791807736764,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 11,
+      "wall": 2002,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 109,
+        "poll": 0,
+        "watchdog": 103,
+        "stale": 101,
+        "hry": 103,
+        "roadmap": 1100,
+        "zombie": 103,
+        "dispatch": 109
+      }
+    },
+    {
+      "cas": "12:22:35",
+      "ts": 1791807755996,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 5,
+      "wall": 48,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:22:36",
+      "ts": 1791807756128,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 2,
+      "wall": 17,
+      "outcome": "ok",
+      "ceny": {}
+    }
+  ]
+}

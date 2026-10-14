@@ -1,0 +1,517 @@
+{
+  "okno_min": 1.22325,
+  "verze": [
+    "3642d75f-b42d-48ff-bee8-3583b7626d4d"
+  ],
+  "cron": {
+    "n": 1,
+    "cpu_min": 12,
+    "cpu_med": 12,
+    "cpu_max": 12
+  },
+  "manual": {
+    "n": 24,
+    "cpu_min": 0,
+    "cpu_med": 4.0,
+    "cpu_max": 23
+  },
+  "zaznamy": [
+    {
+      "cas": "12:04:32",
+      "ts": 1791806672739,
+      "src": "http:heartbeat",
+      "iso": "",
+      "faze": "",
+      "cpu": 3,
+      "wall": 36,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:04:32",
+      "ts": 1791806672820,
+      "src": "http:claim",
+      "iso": "",
+      "faze": "",
+      "cpu": 3,
+      "wall": 17,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:04:57",
+      "ts": 1791806697771,
+      "src": "http:health",
+      "iso": "",
+      "faze": "",
+      "cpu": 10,
+      "wall": 1075,
+      "outcome": "ok",
+      "ceny": {}
+    },
+    {
+      "cas": "12:04:58",
+      "ts": 1791806698912,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 18,
+      "wall": 1283,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 23,
+        "hry": 21,
+        "roadmap": 1071,
+        "zombie": 28,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:05:00",
+      "ts": 1791806700257,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 11,
+      "wall": 1370,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 28,
+        "poll": 0,
+        "watchdog": 25,
+        "stale": 25,
+        "hry": 24,
+        "roadmap": 1152,
+        "zombie": 22,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:05:01",
+      "ts": 1791806701679,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 15,
+      "wall": 11844,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 27,
+        "hry": 25,
+        "roadmap": 11644,
+        "zombie": 25,
+        "dispatch": 25
+      }
+    },
+    {
+      "cas": "12:05:13",
+      "ts": 1791806713584,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 11,
+      "wall": 1329,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 26,
+        "poll": 0,
+        "watchdog": 28,
+        "stale": 22,
+        "hry": 22,
+        "roadmap": 1122,
+        "zombie": 24,
+        "dispatch": 21
+      }
+    },
+    {
+      "cas": "12:05:14",
+      "ts": 1791806714948,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 23,
+      "wall": 12536,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 21,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 20,
+        "hry": 21,
+        "roadmap": 12347,
+        "zombie": 23,
+        "dispatch": 21
+      }
+    },
+    {
+      "cas": "12:05:16",
+      "ts": 1791806716774,
+      "src": "cron",
+      "iso": "d0b68559",
+      "faze": "celkem",
+      "cpu": 12,
+      "wall": 10936,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 104,
+        "poll": 0,
+        "watchdog": 107,
+        "stale": 111,
+        "hry": 106,
+        "roadmap": 10025,
+        "zombie": 105,
+        "dispatch": 115
+      }
+    },
+    {
+      "cas": "12:05:27",
+      "ts": 1791806727520,
+      "src": "manual",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 7,
+      "wall": 1279,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 32,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 25,
+        "hry": 22,
+        "roadmap": 1075,
+        "zombie": 24,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:05:28",
+      "ts": 1791806728830,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 0,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:05:28",
+      "ts": 1791806728879,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-zaklad",
+      "cpu": 0,
+      "wall": 27,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24
+      }
+    },
+    {
+      "cas": "12:05:28",
+      "ts": 1791806728940,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-poll",
+      "cpu": 1,
+      "wall": 27,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0
+      }
+    },
+    {
+      "cas": "12:05:29",
+      "ts": 1791806729034,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-watchdog",
+      "cpu": 1,
+      "wall": 47,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 19
+      }
+    },
+    {
+      "cas": "12:05:29",
+      "ts": 1791806729110,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-stale",
+      "cpu": 1,
+      "wall": 71,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 22,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 21
+      }
+    },
+    {
+      "cas": "12:05:29",
+      "ts": 1791806729219,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-hry",
+      "cpu": 1,
+      "wall": 103,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 31,
+        "poll": 0,
+        "watchdog": 19,
+        "stale": 23,
+        "hry": 20
+      }
+    },
+    {
+      "cas": "12:05:29",
+      "ts": 1791806729350,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-roadmap",
+      "cpu": 7,
+      "wall": 1120,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 22,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 19,
+        "hry": 24,
+        "roadmap": 1016
+      }
+    },
+    {
+      "cas": "12:05:30",
+      "ts": 1791806730499,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-zombie",
+      "cpu": 8,
+      "wall": 7705,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 23,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 21,
+        "hry": 22,
+        "roadmap": 7585,
+        "zombie": 22
+      }
+    },
+    {
+      "cas": "12:05:38",
+      "ts": 1791806738242,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 8,
+      "wall": 1292,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 19,
+        "stale": 22,
+        "hry": 29,
+        "roadmap": 1133,
+        "zombie": 21,
+        "dispatch": 23
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739590,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-start",
+      "cpu": 0,
+      "wall": 0,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739634,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-zaklad",
+      "cpu": 1,
+      "wall": 25,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 22
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739715,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-poll",
+      "cpu": 0,
+      "wall": 24,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 21,
+        "poll": 0
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739775,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-watchdog",
+      "cpu": 1,
+      "wall": 56,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 27,
+        "poll": 0,
+        "watchdog": 23
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739886,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-stale",
+      "cpu": 1,
+      "wall": 70,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 20,
+        "poll": 0,
+        "watchdog": 22,
+        "stale": 19
+      }
+    },
+    {
+      "cas": "12:05:39",
+      "ts": 1791806739991,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-hry",
+      "cpu": 2,
+      "wall": 103,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 21,
+        "poll": 0,
+        "watchdog": 23,
+        "stale": 26,
+        "hry": 18
+      }
+    },
+    {
+      "cas": "12:05:40",
+      "ts": 1791806740130,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-roadmap",
+      "cpu": 7,
+      "wall": 1177,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 22,
+        "poll": 0,
+        "watchdog": 21,
+        "stale": 21,
+        "hry": 19,
+        "roadmap": 1082
+      }
+    },
+    {
+      "cas": "12:05:41",
+      "ts": 1791806741342,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "stop-po-zombie",
+      "cpu": 6,
+      "wall": 3488,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 24,
+        "poll": 0,
+        "watchdog": 20,
+        "stale": 26,
+        "hry": 21,
+        "roadmap": 3364,
+        "zombie": 25
+      }
+    },
+    {
+      "cas": "12:05:44",
+      "ts": 1791806744874,
+      "src": "manual+faze",
+      "iso": "16d09f30",
+      "faze": "celkem",
+      "cpu": 6,
+      "wall": 1231,
+      "outcome": "ok",
+      "ceny": {
+        "start": 0,
+        "zaklad": 20,
+        "poll": 0,
+        "watchdog": 24,
+        "stale": 20,
+        "hry": 26,
+        "roadmap": 1081,
+        "zombie": 22,
+        "dispatch": 24
+      }
+    },
+    {
+      "cas": "12:05:46",
+      "ts": 1791806746134,
+      "src": "http:health",
+      "iso": "",
+      "faze": "",
+      "cpu": 2,
+      "wall": 143,
+      "outcome": "ok",
+      "ceny": {}
+    }
+  ]
+}

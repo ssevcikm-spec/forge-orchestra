@@ -860,8 +860,14 @@ async function roadmapTick(
   retryH: number,
   runs: Map<string, number> | null,
   cap: number,
+  // P41/H202: volitelná značka pro PROFIL FÁZÍ. Fáze `roadmap` nese většinu CPU
+  // tiku (naměřeno živě `?faze=5` → `?faze=6`: +5 až +10 ms z celkových 12,5 ms),
+  // takže „kde v roadmapě“ je další otázka. Značky se posílají do téhož řádku
+  // `tick-prof:` jako značky fází — jinak by se z tailu nedaly přečíst.
+  prof?: (nazev: string) => void,
 ): Promise<string> {
   const games = await listGames(env);
+  prof?.("rm-games");
 
   // ⚠ H178 (P37) + H196 (P40): existence sloupců se ověřuje TÍM dotazem, který
   // je stejně potřeba. Samostatná sonda
@@ -913,6 +919,7 @@ async function roadmapTick(
     schemaMigrovan = true;
     rows = await nactiRadky();
   }
+  prof?.("rm-radky");
 
   // Sloučené PR agentů: granule, jejíž úkol má sloučené PR, je hotová, i kdyby
   // úkol sám skončil jinak (typicky „agent nic nezměnil", protože práci stihl
@@ -954,6 +961,7 @@ async function roadmapTick(
       ).bind(...[...mergedTasks]),
     ]).catch(() => undefined);
   }
+  prof?.("rm-pr-merged");
 
   // Hotové / zablokované granule podle stavu úloh.
   // SELHANÁ granule smí znovu do fronty až po cooldownu (RETRY_HOURS): free
@@ -992,11 +1000,13 @@ async function roadmapTick(
   } catch {
     /* když se stav PR nepodaří zjistit, radši pokračujeme */
   }
+  prof?.("rm-pr-open");
 
   // Soubory uzamčené běžícími úlohami — dvě granule se nesmí dotýkat stejného souboru.
   const runningRows = await env.DB.prepare(
     "SELECT payload FROM tasks WHERE status='running' AND target='cloud'",
   ).all<{ payload: string | null }>();
+  prof?.("rm-running");
   const locked = new Set<string>();
   for (const r of runningRows.results || []) {
     for (const k of lockKeys(r.payload, env)) locked.add(k);
@@ -1180,6 +1190,7 @@ async function roadmapTick(
       createdKeys.push(key);
     }
   }
+  prof?.("rm-grainy");
 
   if (smazanoOsirelych) {
     await notify(env, "Forge: osiřelé granule uklizeny",
@@ -1393,7 +1404,7 @@ async function tick(env: Env, doFaze = 99): Promise<string> {
   // Počítají se jen CLOUDOVÉ úlohy – úkol pro domácí uzel (telefon/PC) nemá
   // blokovat práci, kterou dělá GitHub Actions.
   const roadmapMsg = aktivniHry.length
-    ? await roadmapTick(env, retryH, grainRunsMap, cap).catch((e) => `roadmapa selhala: ${String(e)}`)
+    ? await roadmapTick(env, retryH, grainRunsMap, cap, profOn ? znacka : undefined).catch((e) => `roadmapa selhala: ${String(e)}`)
     : "žádná aktivní hra – roadmapu neřeším (B4)";
   znacka("roadmap");
   if (doFaze <= 6) return stopFaze("roadmap");

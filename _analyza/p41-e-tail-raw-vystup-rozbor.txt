@@ -1,0 +1,94 @@
+# p41-c — rozbor živého tailu: p41-e-tail-raw-vystup.txt
+# objektů v dokladu: 29
+
+okno Z DOKLADU: 12:04:32 .. 12:05:46 = 1.2 min (29 eventů conductora z 29 objektů)
+scriptVersion.id: 3642d75f-b42d-48ff-bee8-3583b7626d4d  (JEDINÁ verze)
+
+## Eventy v pořadí (cpu/wall z tailu; fáze z logu `tick-prof:`)
+  #      cas zdroj            iso       faze                cpu   wall  faze ms
+  1 12:04:32 http:heartbeat                                   3     36  
+  2 12:04:32 http:claim                                       3     17  
+  3 12:04:57 http:health                                     10   1075  
+  4 12:04:58 manual           16d09f30  celkem               18   1283  start=0 zaklad=23 poll=0 watchdog=21 stale=23 hry=21 roadmap=1071 zombie=28 dispatch=23
+  5 12:05:00 manual           16d09f30  celkem               11   1370  start=0 zaklad=28 poll=0 watchdog=25 stale=25 hry=24 roadmap=1152 zombie=22 dispatch=23
+  6 12:05:01 manual           16d09f30  celkem               15  11844  start=0 zaklad=23 poll=0 watchdog=21 stale=27 hry=25 roadmap=11644 zombie=25 dispatch=25
+  7 12:05:13 manual           16d09f30  celkem               11   1329  start=0 zaklad=26 poll=0 watchdog=28 stale=22 hry=22 roadmap=1122 zombie=24 dispatch=21
+  8 12:05:14 manual           16d09f30  celkem               23  12536  start=0 zaklad=21 poll=0 watchdog=21 stale=20 hry=21 roadmap=12347 zombie=23 dispatch=21
+  9 12:05:16 cron             d0b68559  celkem               12  10936  start=0 zaklad=104 poll=0 watchdog=107 stale=111 hry=106 roadmap=10025 zombie=105 dispatch=115
+ 10 12:05:27 manual           16d09f30  celkem                7   1279  start=0 zaklad=32 poll=0 watchdog=21 stale=25 hry=22 roadmap=1075 zombie=24 dispatch=24
+ 11 12:05:28 manual+faze      16d09f30  stop-po-start         0      0  start=0
+ 12 12:05:28 manual+faze      16d09f30  stop-po-zaklad        0     27  start=0 zaklad=24
+ 13 12:05:28 manual+faze      16d09f30  stop-po-poll          1     27  start=0 zaklad=23 poll=0
+ 14 12:05:29 manual+faze      16d09f30  stop-po-watchdog      1     47  start=0 zaklad=23 poll=0 watchdog=19
+ 15 12:05:29 manual+faze      16d09f30  stop-po-stale         1     71  start=0 zaklad=22 poll=0 watchdog=21 stale=21
+ 16 12:05:29 manual+faze      16d09f30  stop-po-hry           1    103  start=0 zaklad=31 poll=0 watchdog=19 stale=23 hry=20
+ 17 12:05:29 manual+faze      16d09f30  stop-po-roadmap       7   1120  start=0 zaklad=22 poll=0 watchdog=22 stale=19 hry=24 roadmap=1016
+ 18 12:05:30 manual+faze      16d09f30  stop-po-zombie        8   7705  start=0 zaklad=23 poll=0 watchdog=22 stale=21 hry=22 roadmap=7585 zombie=22
+ 19 12:05:38 manual+faze      16d09f30  celkem                8   1292  start=0 zaklad=27 poll=0 watchdog=19 stale=22 hry=29 roadmap=1133 zombie=21 dispatch=23
+ 20 12:05:39 manual+faze      16d09f30  stop-po-start         0      0  start=0
+ 21 12:05:39 manual+faze      16d09f30  stop-po-zaklad        1     25  start=0 zaklad=22
+ 22 12:05:39 manual+faze      16d09f30  stop-po-poll          0     24  start=0 zaklad=21 poll=0
+ 23 12:05:39 manual+faze      16d09f30  stop-po-watchdog      1     56  start=0 zaklad=27 poll=0 watchdog=23
+ 24 12:05:39 manual+faze      16d09f30  stop-po-stale         1     70  start=0 zaklad=20 poll=0 watchdog=22 stale=19
+ 25 12:05:39 manual+faze      16d09f30  stop-po-hry           2    103  start=0 zaklad=21 poll=0 watchdog=23 stale=26 hry=18
+ 26 12:05:40 manual+faze      16d09f30  stop-po-roadmap       7   1177  start=0 zaklad=22 poll=0 watchdog=21 stale=21 hry=19 roadmap=1082
+ 27 12:05:41 manual+faze      16d09f30  stop-po-zombie        6   3488  start=0 zaklad=24 poll=0 watchdog=20 stale=26 hry=21 roadmap=3364 zombie=25
+ 28 12:05:44 manual+faze      16d09f30  celkem                6   1231  start=0 zaklad=20 poll=0 watchdog=24 stale=20 hry=26 roadmap=1081 zombie=22 dispatch=24
+ 29 12:05:46 http:health                                      2    143  
+
+## Izoláty (`iso=` je modulová konstanta → přežije jen v jednom izolátu)
+  iso=16d09f30  eventů=24  první=12:04:58 (manual)  cpu první=18  cpu medián=4.0  cpu rozsah=0–23
+      12:04:58 manual             faze=celkem             cpu=18 wall=1283
+      12:05:00 manual             faze=celkem             cpu=11 wall=1370
+      12:05:01 manual             faze=celkem             cpu=15 wall=11844
+      12:05:13 manual             faze=celkem             cpu=11 wall=1329
+      12:05:14 manual             faze=celkem             cpu=23 wall=12536
+      12:05:27 manual             faze=celkem             cpu=7 wall=1279
+      12:05:28 manual+faze        faze=stop-po-start      cpu=0 wall=0
+      12:05:28 manual+faze        faze=stop-po-zaklad     cpu=0 wall=27
+      12:05:28 manual+faze        faze=stop-po-poll       cpu=1 wall=27
+      12:05:29 manual+faze        faze=stop-po-watchdog   cpu=1 wall=47
+      12:05:29 manual+faze        faze=stop-po-stale      cpu=1 wall=71
+      12:05:29 manual+faze        faze=stop-po-hry        cpu=1 wall=103
+      12:05:29 manual+faze        faze=stop-po-roadmap    cpu=7 wall=1120
+      12:05:30 manual+faze        faze=stop-po-zombie     cpu=8 wall=7705
+      12:05:38 manual+faze        faze=celkem             cpu=8 wall=1292
+      12:05:39 manual+faze        faze=stop-po-start      cpu=0 wall=0
+      12:05:39 manual+faze        faze=stop-po-zaklad     cpu=1 wall=25
+      12:05:39 manual+faze        faze=stop-po-poll       cpu=0 wall=24
+      12:05:39 manual+faze        faze=stop-po-watchdog   cpu=1 wall=56
+      12:05:39 manual+faze        faze=stop-po-stale      cpu=1 wall=70
+      12:05:39 manual+faze        faze=stop-po-hry        cpu=2 wall=103
+      12:05:40 manual+faze        faze=stop-po-roadmap    cpu=7 wall=1177
+      12:05:41 manual+faze        faze=stop-po-zombie     cpu=6 wall=3488
+      12:05:44 manual+faze        faze=celkem             cpu=6 wall=1231
+  iso=d0b68559  eventů= 1  první=12:05:16 (cron)  cpu první=12  cpu medián=12  cpu rozsah=12–12
+      12:05:16 cron               faze=celkem             cpu=12 wall=10936
+
+## Agregace
+  cron (čerstvý izolát)        n=1   cpu min/med/max = 12/12/12   wall min/med/max = 10936/10936/10936
+  ruční /tick (teplý izolát?)  n=24  cpu min/med/max = 0/4.0/23   wall min/med/max = 0/611.5/12536
+  outcome ne-`ok`: 0
+
+## Cena fáze z ROZDÍLU `cpuTime` mezi `?faze=N` a `?faze=N+1` (jen TÝŽ izolát)
+  iso=16d09f30:
+      faze=0 cpu=0 wall=0  stop-po-start
+      faze=1 cpu=1 wall=25  stop-po-zaklad
+      faze=2 cpu=0 wall=24  stop-po-poll
+      faze=3 cpu=1 wall=56  stop-po-watchdog
+      faze=4 cpu=1 wall=70  stop-po-stale
+      faze=5 cpu=2 wall=103  stop-po-hry
+      faze=6 cpu=7 wall=1177  stop-po-roadmap
+      faze=7 cpu=6 wall=3488  stop-po-zombie
+
+## Wall time po fázích (plné tiky s `faze=celkem`)
+  12:04:58 manual     iso=16d09f30  cpu=18 wall=1283  soucet fazi=1210  start=0 zaklad=23 poll=0 watchdog=21 stale=23 hry=21 roadmap=1071 zombie=28 dispatch=23
+  12:05:00 manual     iso=16d09f30  cpu=11 wall=1370  soucet fazi=1299  start=0 zaklad=28 poll=0 watchdog=25 stale=25 hry=24 roadmap=1152 zombie=22 dispatch=23
+  12:05:01 manual     iso=16d09f30  cpu=15 wall=11844  soucet fazi=11790  start=0 zaklad=23 poll=0 watchdog=21 stale=27 hry=25 roadmap=11644 zombie=25 dispatch=25
+  12:05:13 manual     iso=16d09f30  cpu=11 wall=1329  soucet fazi=1265  start=0 zaklad=26 poll=0 watchdog=28 stale=22 hry=22 roadmap=1122 zombie=24 dispatch=21
+  12:05:14 manual     iso=16d09f30  cpu=23 wall=12536  soucet fazi=12474  start=0 zaklad=21 poll=0 watchdog=21 stale=20 hry=21 roadmap=12347 zombie=23 dispatch=21
+  12:05:16 cron       iso=d0b68559  cpu=12 wall=10936  soucet fazi=10673  start=0 zaklad=104 poll=0 watchdog=107 stale=111 hry=106 roadmap=10025 zombie=105 dispatch=115
+  12:05:27 manual     iso=16d09f30  cpu=7 wall=1279  soucet fazi=1223  start=0 zaklad=32 poll=0 watchdog=21 stale=25 hry=22 roadmap=1075 zombie=24 dispatch=24
+  12:05:38 manual+faze iso=16d09f30  cpu=8 wall=1292  soucet fazi=1274  start=0 zaklad=27 poll=0 watchdog=19 stale=22 hry=29 roadmap=1133 zombie=21 dispatch=23
+  12:05:44 manual+faze iso=16d09f30  cpu=6 wall=1231  soucet fazi=1217  start=0 zaklad=20 poll=0 watchdog=24 stale=20 hry=26 roadmap=1081 zombie=22 dispatch=24
+

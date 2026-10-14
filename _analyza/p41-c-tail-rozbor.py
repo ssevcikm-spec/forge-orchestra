@@ -229,6 +229,58 @@ def main() -> int:
               f"  soucet fazi={soucet}  " + " ".join(f"{k}={v}" for k, v in r["ceny"].items()))
     zapis()
 
+    # ── cpuTime podle FÁZE (medián z opakování; kvantum je 1 ms) ───────────
+    # Tohle je jádro odpovědi „kde je CPU“: runtime hlásí cpuTime jen za CELOU
+    # invokaci, takže cena fáze je ROZDÍL mezi `faze=N` a `faze=N+1` v TÉMŽ
+    # izolátu. Medián z opakování je nutný, protože 1ms kvantum jednu invokaci
+    # nerozliší (proto se fáze posílá 6×).
+    ZKRATKY = ["start", "zaklad", "poll", "watchdog", "stale", "hry", "roadmap",
+               "zombie", "dispatch"]
+    zapis("## cpuTime podle fáze (jen `?faze=N`; medián z opakování, kvantum 1 ms)")
+    for iso, rs in sorted(podle_iso.items(), key=lambda kv: kv[1][0]["ts"]):
+        podle_f = {}
+        for r in rs:
+            if r["src"].startswith("manual") and r["faze"].startswith("stop-po-"):
+                podle_f.setdefault(r["faze"], []).append(r)
+        if len(podle_f) < 3:
+            continue
+        zapis(f"  iso={iso}:")
+        zapis(f"      {'faze':<19} {'n':>3} {'cpu med':>8} {'cpu prumer':>10}"
+              f" {'cpu min-max':>12} {'wall med':>9}  {'delta cpu (med)':>16}")
+        predchozi = None
+        for k, nazev in enumerate(ZKRATKY):
+            rs2 = podle_f.get(f"stop-po-{nazev}")
+            if not rs2:
+                continue
+            cpu = [x["cpu"] for x in rs2 if isinstance(x["cpu"], int)]
+            wall = [x["wall"] for x in rs2 if isinstance(x["wall"], int)]
+            med = statistics.median(cpu)
+            prumer = sum(cpu) / len(cpu)
+            delta = "-" if predchozi is None else f"{med - predchozi:+.0f}"
+            zapis(f"      faze={k} {nazev:<12} {len(cpu):>3} {med:>8} {prumer:>10.2f}"
+                  f" {min(cpu):>5}-{max(cpu):<6} {statistics.median(wall):>9}  {delta:>16}")
+            predchozi = med
+        if predchozi is not None:
+            prvni = statistics.median([x["cpu"] for x in podle_f["stop-po-start"]])
+            zapis(f"      -> CELY TIK z rozdilu (dispatch - start) = {predchozi - prvni:+.0f} ms")
+    zapis()
+
+    # ── wall time po fázích (medián z plných tiků) ─────────────────────────
+    zapis("## Wall time po fázích (medián z plných tiků `faze=celkem`, jen TÝŽ izolát)")
+    for iso, rs in sorted(podle_iso.items(), key=lambda kv: kv[1][0]["ts"]):
+        plne_iso = [r for r in rs if r["faze"] == "celkem" and r["ceny"]
+                    and r["src"].startswith("manual")]
+        if len(plne_iso) < 2:
+            continue
+        zapis(f"  iso={iso} (n={len(plne_iso)}):")
+        for nazev in ZKRATKY:
+            hodnoty = [r["ceny"][nazev] for r in plne_iso if nazev in r["ceny"]]
+            if hodnoty:
+                zapis(f"      {nazev:<10} n={len(hodnoty):>2}"
+                      f" wall med={statistics.median(hodnoty):>7.0f} ms"
+                      f"  min-max={min(hodnoty)}-{max(hodnoty)}")
+    zapis()
+
     out.write_text("\n".join(radky) + "\n", encoding="utf-8", newline="\n")
     print(f"\n[doklad: {out}]")
 
