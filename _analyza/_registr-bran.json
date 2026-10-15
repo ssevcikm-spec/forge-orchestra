@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-14 18:15:04",
+  "kdy": "2026-10-15 07:40:59",
   "bran_celkem": 58,
   "s_nenulovym_exit": [],
   "ocekavane_nenulove": {
@@ -82,7 +82,7 @@
     {
       "nazev": "zadání kontrola",
       "exit": 0,
-      "otevrela": "239",
+      "otevrela": "252",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -411,7 +411,7 @@
     {
       "nazev": "K6: kalibrace brány testů nástrojů (umí spadnout)",
       "exit": 0,
-      "otevrela": "19 / 0",
+      "otevrela": "26 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-k6-testy-nastroju.py"
     }

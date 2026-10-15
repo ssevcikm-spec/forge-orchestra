@@ -5719,3 +5719,195 @@ node -e "const r=await fetch('https://forge-conductor.ssevcikm.workers.dev/healt
 ```
 
 
+
+## 74. K8 — PŘEMĚŘENÍ PRÁCE K7 VLASTNÍM POSTUPEM: **DRUHÁ DÍRA V TÉŽE BRÁNĚ, JEDNA NEDOLOŽENÁ ATRIBUCE — A SMĚR POŘÁD ČEKÁ NA UŽIVATELE** (H210–H212) (15. 10. 2026)
+
+> **Co je tenhle oddíl:** **STAV** po session K8 — „odkud se pokračuje".
+> **Co NENÍ:** kronika (ta je v `KRONIKA-PROJEKTU.md`, **řádek 63** a **§2.37**)
+> ani záznam K7 (ten je v **§73**) ani plán (`PLAN-DALSI-KROK.md`).
+> **Datum spotřeby:** živé údaje měřeny **15. 10. 2026, 05:05–07:0x UTC** a **musí
+> se přeměřit** (§74.8). **Kotvy (stav v čase měření):** orchestra **`50b0139`**
+> (před commity téhle session; hash po commitu je v hlavičce
+> `NEXT-SESSION-INSTRUKCE.md`, která se **necommituje**) · hra `coin-picker`
+> **`fc01255`** · `uo-shadows` **`6986b0d`** (`origin/main` = `01a9649`, **tři
+> commity nepushnuté**, vede ji **cizí session**) · živý registr bran **58**.
+
+### 74.1 Přeměření práce K7 vlastním postupem — co sedí a co ne
+
+**Postup, kterým to vzniklo (na tom záleží):** ne opakování bran K7, ale
+**A/B proti verzím z GITU** (brána K6 = blob z `eefcfa9`, brána K7 = `50b0139`)
+nad **týmiž devíti fixturami**, plus dva podagenti s **vlastním měřidlem**
+(nezávislý přepočet rozpočtu; nezávislé ověření dvou stromů a historie gitu).
+
+| Co K7 tvrdila | Naměřeno K8 (vlastním postupem) | Verdikt |
+|---|---|---|
+| **H205**: brána K6 brala každý `exit 0` za zelenou (tichý skip i vnořený test procházely) | **reprodukováno A/B z gitu**: brána z `eefcfa9` hlásila u fixtury „0/0 kontrol“ **`ok` a `exit 0`** a u vnořeného testu **1/1 zelených, aniž test kdy běžel**; dnešní brána u obojího **`exit 1`** s pojmenovaným nálezem | ✅ |
+| kalibrace brány K6 **13/0 → 19/0** | matice čtyř kombinací: **K6 kalibrace+K6 brána 13/0**, **K7+K7 19/0**, **K8+K8 26/0**, **K8 kalibrace+K7 brána 26/5 (exit 1)** | ✅ |
+| `k6-over-testy-nastroju.py` **5/5** ve hrách | **5/5** (`coin-picker` 3/3, `uo-shadows` 2/2), 0 chyb — a to i **po opravě K8** (tři reálné formáty souhrnu zůstaly zelené) | ✅ |
+| `k7-mutace-generatoru.py` **4/0**, brána generátoru **umí spadnout** (25/25 → 23/25) | reprodukováno: zdravý **25/25** → s vráceným `SKIP_SABLONOVE` **23/25 + 2 pojmenované chyby** (`exit 1`) → po návratu `sha256` **shodný** (`b9eb7f3b…`) | ✅ |
+| **H206**: `core.game` v `coin-picker` je **9 247 t**, ne 8 890 t | **9 247 t** (i **8 617 t** `entity.player`, **6 937 t** šablona) potvrzeno **nezávislým přepočtem** (vlastní implementace vzorce, kalibrace proti oficiálnímu nástroji 14/14 a 5/5, mutace konstanty 3,03 → 4,00 dala 8 047 t) | ✅ číslo |
+| **H206 — „8 890 = stav PR #4 = kopie“** | **atribuce NEDOLOŽENA**: `game.gd` se měnil v `bcb675e` (PR #14) **14. 10. 11:09:34 UTC**, tj. **uvnitř okna, ve kterém K6 měřila**; do 11:09 dával **živý** strom přesně 8 890 t → číslo **spíš zestárlo** | ❌ → **H211** |
+| **H207**: „starý generátor“ a „`coin-picker`“ jsou **dva stromy**; fixtura v coin-pickeru nikdy nebyla | nezávisle: coin-picker založen **13. 10. 13:37:46**, starý generátor (`890b838`, blob `262b47ad…`, 9 452 B) vznikl **13. 10. 14:47:02** (o **69 min** později); `rev-list --all -- .forge/roadmap.pilot.json` = **0**; starý generátor dodal **oba** soubory (60 souborů), dnešní **ani jeden** (58), protizkouška `provider-choice.test.mjs` v **obou** | ✅ |
+| **H207**: „15 z 55 kontrol se nespustilo“ | nezávisle: bez fixtury proběhlo **40** kontrol a pak `ENOENT`; s fixturou **55** → **55 − 40 = 15** | ✅ |
+| „se starým generátorem **55/55**“ | **NEPOTVRZENO**: se **dnešní** fixturou nad stromem `4e6cabb` vychází **53/55** (2 kontroly rozpočtu `REQUEST_TOO_LARGE`; počet kontrol to nemění) | ⚠ nuance |
+| **H208**: závorka „(H201–H202)“ v §72.5 byla chybná; dnes **209 nálezů H** | vlastní přepočet kroniky: **62 session-řádků**, **209 unikátních H bez děr**, `H201`/`H202` v **§2.36** | ✅ |
+| `g3` **58 bran, 0 nenulových** | **58 bran, 0 nenulových exitů**, 0 nezačatých, 0 bez čítače, registr **12 947 B** | ✅ |
+| `validate-all` **exit 0** | **`✓ VŠE V POŘÁDKU`, exit 0** | ✅ |
+| `ag-over-cisla` **exit 0** | **6 v pořádku, 2 historická, 0 rozchodů** | ✅ |
+| `kronika` **62 sessions / 209 H** | **62 / 209** (+ **208** omylů) | ✅ |
+| `handoff-uplnost` **83/83** | **83/83** | ✅ |
+| drift **12 souborů, 1 rozdíl + 2 záměrné** | **12 / 1 / 2** (`agent.yml`: šablona má 4 kroky, hra 3; záměrné `files-to-edit.mjs`, `CONVENTIONS.md`), `exit 1` = rozdíl se hlásí | ✅ |
+| hra `coin-picker` **161/0**, CI **#44 `success`**, Pages živé | **161 kontrol, 0 selhání** (Godot headless); CI **#44 `completed/success`** na `fc01255`; `release.yml` **#32 success**; Pages **200**, `last-modified` **14. 10. 14:32:32Z**; **0 otevřených PR** | ✅ |
+| inventář **10 787** (HANDOFF §73.1 uvádí i 10 783) | **10 799** po editacích K8 (před nimi **10 787**); číslo roste s každou editací `.md`/`.py` — **není to rozchod**, je to otisk vstupů | ✅ s vysvětlením |
+
+### 74.2 Co K8 našla a OPRAVILA
+
+1. **H210 — DRUHÁ DÍRA V TÉŽE BRÁNĚ (zavřena).** Pravidlo, kterým K7 zpevnila
+   bránu K6 („zelený test musí hlásit aspoň jednu **nenulovou** kontrolu“),
+   počítá **všechna čísla v řádku** — takže **i číslo selhání**. Naměřeno mým
+   A/B: test s `VYSLEDEK: 0/5 kontrol, 5 chyb` a `exit 0` brána hlásila jako
+   **zelený (1/1)**. Přitom je to táž třída jako H205 a `AGENTS.md` na ni má
+   pravidlo („**pojmenované skupiny, ne pořadové**“).
+   **Oprava:** souhrn se čte po řadě — (1) kladný počet chyb/selhání ⇒ **není
+   zelená**; (2) tvar `X/Y kontrol` ⇒ zelená jen když `X > 0`; (3) jinak původní
+   pravidlo K7. **Protizkouška proti falešnému nálezu:** tři **reálné** formáty
+   souhrnu („`14/14 kontrol, 0 chyb`“, „`21 kontrol, 0 selhání`“, „`Testů OK: 36,
+   chyb: 0`“) zůstávají zelené — bez toho by „zpevnění“ vyrobilo falešný nález
+   o správném testu a to je **horší než slepá brána**.
+   **Doklad:** kalibrace `_analyza/test-k6-testy-nastroju.py` **19 → 26 kontrol**
+   (2 nové vadné případy + 1 protizkouška na reálný formát); A/B: **K8 kalibrace
+   proti bráně K7 = 26/5, `exit 1`**, proti bráně K8 = 26/0; brána nad hrami
+   **5/5**.
+2. **H211 — ATRIBUCE „8 890 = MĚŘENÍ KOPIE“ JE NEDOLOŽENÁ (opraveno znění).**
+   K7 správně opravila číslo (8 890 → 9 247 t), ale staré číslo připsala **kopii
+   ve stavu PR #4** (`9ae37eb`). Měřením se ukázalo, že **`game.gd` se změnil
+   v `bcb675e` (PR #14) 14. 10. 11:09:34 UTC** — tedy **uvnitř okna, ve kterém K6
+   měřila** (10:51–15:3x UTC); do té doby dával **živý** strom hry přesně 8 890 t.
+   Nabízející se vysvětlení tedy je **zestárlé číslo**, ne kopie; co K6 četla,
+   zpětně prokázat nelze. **Opraveno** v komentářích `tools/forge-new.mjs`
+   a `_analyza/test-forge-new.mjs` a **doplněna nuance hybridu**: 9 247/8 617 t
+   jsou čísla **pilotní roadmapy ŠABLONY** měřená nad **soubory HRY** —
+   v roadmapě `coin-pickeru` (14 jiných granulí) ty granule **nejsou a nikdy
+   nebyly**.
+3. **H212 — DVĚ ČÍSLA TÉHOŽ JMÉNA (nuance, ne oprava).** Generátor hlásí
+   „zkopírováno a přejmenováno: **35 textových souborů**“, ve stromě je
+   **58 souborů**. Obě správně (35 = jen textové, binárky se nepřejmenovávají).
+   Kdo je cituje bez jednotky, vyrobí „rozchod“, který neexistuje.
+
+### 74.3 Vlastní omyly K8 (1)
+
+1. **V A/B tabulce je i POPIS ŘÁDKU tvrzení.** Můj harness na porovnání verzí
+   brány měl **mísně označený čtvrtý řádek** (ukazoval na kalibraci K7 místo K8),
+   takže tabulka na chvíli tvrdila „K8 kalibrace + K7 brána = **19/0**“. Odhalil
+   to až pohled na to, že čtvrtý řádek má být **26/5** — opraveno a **přeměřeno**.
+   Poučení: u tabulky měření se kontroluje **popis řádku stejně jako číslo**;
+   mísně označené měření se čte jako měření jiné věci.
+2. (Dvakrát jsem spustil `python -c` bez `PYTHONIOENCODING=utf-8` a dostal
+   `UnicodeEncodeError` — **známá past prostředí**, ne nález; zapsáno jen proto,
+   aby to nebylo překvapení pro další session.)
+
+### 74.4 Co K8 NEDĚLALA (a proč)
+
+* **Nezapnula žádnou hru, neměnila `active` v D1, nezaregistrovala novou hru** —
+  rozhodnutí o směru je na uživateli (§74.5).
+* **Nepsala do `uo-shadows`** (cizí session; jen čtení), **ani do `coin-picker`**
+  a `E:\Workspaces\game-clone`.
+* **Nedotkla se cizí práce:** netrackovaný `_analyza/p36-g3-registr.json` zůstal,
+  otevřený PR **#36** v `uo-shadows` (cizí session) se neřešil, tři nepushnuté
+  commity hry se nepushovaly.
+* **Nepřevzala cizí měření bez doložení** — kde doklad nebyl, je to v textu
+  napsané (a proto H211).
+* **Nepřidala mutační doklad generátoru do `g3`** (běh trvá minuty) — zůstává
+  rozhodnutím uživatele (§74.7 bod 4).
+
+### 74.5 Rozhodnutí o směru — PODKLADY (nic z toho se nezapnulo)
+
+**Živý stav orchestra (měřeno 15. 10. 2026, 05:17–05:19 UTC):**
+conductor **`ok=true`, `ready=3`, `running=0`**, `last_cron` tiká (`05:17:50Z`,
+`zdroj: cron`) · hry: **`coin-picker` `active=1`**, **`uo-shadows` `active=0`**
+(`/games`) · roadmapa **34 granule: 31 `done`, 3 `queued`** — všechny tři jsou
+**`uo-shadows`** (`244 engine.input`, `245 world.bodies`, `246 engine.shell`,
+`attempts=3`, `task_status=ready`, `updated_at` 9. 10.) · fronta: 50 řádků
+historie, z toho 3 `ready`.
+
+| Možnost | Co je dnes naměřeno | Co to znamená / co by to potřebovalo |
+|---|---|---|
+| **(a) zapnout `uo-shadows`** | hra **`active=0`**, 3 granule **`ready`** s **`attempts=3`** (`MAX_ATTEMPTS=5` ⇒ každé selhání spálí pokus); **3 commity nepushnuté** (běhy vidí `origin/main` = `01a9649`); **poslední commit sám říká „ZASTAVENO … projekt zastaven rozhodnutím uživatele 2026-10-12“**; v `/failed` je **`#240` failed (5 pokusů)** a v `/queue` **`#241`–`#243` `blocked` (5 pokusů)** se **stejnými tituly** jako ty tři `ready` | Vydá práci **okamžitě**, ale do **zmrazené** hry, jejíž zastavení je zapsané **v jejím vlastním repu**, a do stavu, který je **za** nepushnutými commity. Historie týchž granulí (5 neúspěšných pokusů) je **konkrétní riziko**, že se spálí i zbývající 2 pokusy |
+| **(b) další vlna do `coin-pickeru`** | hra **celá zelená**: testy **161/0**, CI **#44 `success`** na `fc01255`, `release.yml` **#32 success**, Pages živé (`last-modified` 14. 10. 14:32:32Z), `check-wiring` OK, **14/14 granul hotových**, **0 otevřených PR**, **0 čerstvých běhů** `agent.yml`; `.forge/roadmap.json` má **14 granulí** (klíče: `id, title, kind, prompt, size_lines, model, owns, konvence, acceptance, depends_on, done, _done`); **2 z těch 14** jsou při stropu **groq 8 000 t** nad limitem (`sim.progress` **9 384 t**, `core.wiring2` **9 349 t** — dnes hotové, ale pro novou vlnu je to **limit, se kterým se musí počítat**) | Chce **nové granule** (kdo je napíše, musí dodat `prompt`, `owns`, `konvence`, `acceptance`, `size_lines`) — a **uzavře K5 §13.4** (živá rotace rozpočtu na runneru: potřebuje dispatch, kde je první volbou `groq` a request je větší) |
+| **(c) nová hra** | generátor **funguje offline** (K8 vlastní běh): `node tools/forge-new.mjs --nazev <nazev> --cil <cesta>` → **35 textových souborů** (**58 celkem**), **4 granule** (`world.coin`, `entity.enemy`, `world.spawner`, `core.wiring`), **0 `done: true`**, „zrušeno `done` u 1“; sám vypíše, co **NEDĚLÁ**: založit repo a pushnout, vystavit secrety (**`FORGE_PAT`**, `FORGE_WEBHOOK_SECRET`, klíče poskytovatelů), zaregistrovat hru (`POST /game`, `POST /game/active`); jeho brána **umí spadnout** (doklad §74.1) | Chybí **žánr a rozsah**; dál je potřeba **založit repo** (změna cizí služby = na uživateli) a **napsat roadmapu** — 4 granule jsou jen start |
+
+**Co je na tom nezávislé na volbě:** orchestra **tiká a čeká** (nikoli „nic
+nedělá“) — `ready=3` se nevydá, protože jediná hra s frontou je `active=0`.
+
+### 74.6 Co zůstalo OTEVŘENÉ
+
+1. **H197 — cíl <10 ms u tiku NESPLNĚN** (P40): živý `cpuTime` cronu se
+   zlevněním nesnížil; hypotéza (a) „chybí model“ vs (b) „platí se start izolátu“
+   **není rozhodnutá**. Cesta zpět: `git revert fb1b2c2` + nasazení.
+2. **K5 §13.4 — rotace rozpočtu na runneru se živě neověřila**; uzavře to až
+   **další vlna** (§74.5 (b)).
+3. **H209 — bloky omylů se od P22 nepíšou** (čítač omylů **208**); K8 to
+   **nechala být** (je to rozhodnutí uživatele: dopsat bloky zpětně, nebo čítač
+   nahradit). **Do rozhodnutí se nic nepřepisuje.**
+4. **`uo-shadows` má mrtvé kopie testů** (2: `provider-choice`, `vision` —
+   zelené, ale nikdo je nespouští); hlídá je brána **ze strany orchestra**.
+5. **`uo-shadows`: 3 nepushnuté commity + otevřený PR #36** (obojí **cizí
+   session**) — K8 jen naměřila a **nesahala na to**.
+6. **ROZHODNUTÍ B — `FORGE_PAT`** v repu hry (fine-grained; Contents + Pull
+   requests RW, expirace ≥ 90 dní) — **agent to neudělá**.
+7. **`kontrola-driftu.mjs` = 1 rozdíl + 2 záměrné** (`agent.yml`), známý stav.
+8. **`kontrola-diakritiky.py` má ruční seznam souborů (S27)** — kdo přidá
+   dokument, přidá ho i tam.
+9. **Mutační doklad `_analyza/k7-mutace-generatoru.py` není v `g3`** — vědomé
+   rozhodnutí (běh trvá minuty).
+10. **`_analyza/p36-g3-registr.json`** leží netrackovaný (cizí generovaný
+    registr) — **nemazat cizí soubor**, jen hlásit.
+11. **`E:\Workspaces\_k7-scratch\` a `_k8-scratch\`** — doklady mimo repo
+    (harnessy, A/B stromy, junction mirror): **nechat, nebo smazat** (rozhodnutí
+    uživatele).
+
+### 74.7 Co čeká na tebe (uživatel)
+
+1. **Rozhodnutí o směru** — (a) zapnout `uo-shadows`, (b) další vlna do
+   `coin-pickeru`, (c) nová hra; podklady v **§74.5**. **Nic z toho K8 nezapnula.**
+2. **`FORGE_PAT`** v repu hry (viz §74.6 bod 6).
+3. **H209** — zda dopsat bloky omylů (P24–K8) zpětně, nebo čítač nahradit.
+4. **Zda přidat mutační doklad generátoru do `g3`** (58 → 59 bran, každý běh
+   +minuty).
+5. **Osud `_k7-scratch` / `_k8-scratch`** (v repu nic nezabírají).
+6. **Co s `uo-shadows`**: její zastavení je zapsané v jejím repu; tři commity
+   nepushnuté a otevřený PR #36 vede **cizí session** — K8 do toho nezasahovala.
+
+### 74.8 Jak to ověřit (spustitelné)
+
+```powershell
+$env:PYTHONIOENCODING='utf-8'
+cd E:\Workspaces\forge-orchestra
+python _analyza\k6-over-testy-nastroju.py                  # 5/5 testů nástrojů ve hrách
+python _analyza\test-k6-testy-nastroju.py                  # 26/0 — brána umí spadnout (3 nové případy)
+python _analyza\k7-mutace-generatoru.py                    # 4/0 — generátor 25/25 vs 23/25 (NEsoučasně s g3!)
+python _analyza\hl-neanglicky-v-kodu.py --json _analyza\_inventar.json   # 10 799
+python _analyza\g3-brany.py                                # 58 bran, 0 nenulových exitů
+python _analyza\ag-over-cisla.py                           # exit 0
+node tools\validate-all.mjs                                # exit 0 (NIKDY současně s g3)
+python _analyza\kronika-kontrola.py                        # 63 sessions, 212 nálezů H
+python _analyza\handoff-kontrola-uplnost.py                # 83/83
+node tools\kontrola-driftu.mjs                             # 12 souborů, 1 rozdíl + 2 záměrné (známý)
+cd E:\Workspaces\coin-picker
+& "E:\Tools\godot\Godot_v4.7.2-stable_win64_console.exe" --headless --path . --script res://tests/run_tests.gd   # 161/0
+node .forge\node\provider-choice.test.mjs ; node .forge\node\vision.test.mjs ; node .forge\node\probe-provider.test.mjs
+```
+
+**Doklady K8 mimo repo** (v `E:\Workspaces\_k8-scratch\`): `mer\k8-over-h205.py`
+(vlastní A/B 9 fixtur × 2 verze brány), `mer\k8-verze-kalibraci.py` (matice
+K6/K7/K8), `mer\k8-zivy-stav.mjs`, `mer\k8-gh.mjs` (GitHub + Pages),
+`mer\k8-kronika-prepočet.py`, `subA\ZPRAVA-K8-subA.md` (rozpočet granulí),
+`subB\K8-VERIFIKACE.md` (dva stromy a historie gitu).
+
+**Živý stav orchestra** (`/health` jde bez secretu; `/queue`, `/roadmap`, `/games`
+chtějí hlavičku `x-forge-secret` z `.env` — **soubor má UTF-8 BOM**):
+
+```powershell
+node -e "const r=await fetch('https://forge-conductor.ssevcikm.workers.dev/health');console.log(JSON.stringify(await r.json(),null,1))"
+```
+

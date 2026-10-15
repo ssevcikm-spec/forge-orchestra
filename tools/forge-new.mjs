@@ -50,13 +50,17 @@ const SKIP_NAZVY = new Set(['.env', 'provider.env', 'provider.json', '__pycache_
 //   SKUTEČNÉ soubory (`scripts/player.gd`, `scripts/game.gd` …), takže rozpočet
 //   závisí na velikosti stromu: v šabloně (téměř prázdné soubory) vyjde 5/5
 //   `REQUEST_FITS`, na stromě hry `coin-picker` (stav `fc01255`) naměřeno 8 617 t
-//   (`entity.player`) a 9 247 t (`core.game`)
+//   (`entity.player`) a 9 247 t (`core.game`) — pozor, je to HYBRID: pilotní
+//   roadmapa je ze šablony, soubory jsou hry (v roadmapě hry ty granule NEJSOU).
 //   → ty dvě kontroly NEMOHOU projít nikdy. Test je proto test ŠABLONY
 //   (spouští ho `g3` nad `repo/`) a do hry se nekopíruje.
 //   `roadmap.pilot.json` je jeho fixtura a nečte ji nikdo jiný — ve hře by ležela ladem.
-//   (K6 uváděla 8 890 t; to je `game.gd` ze stavu PR #4 — měření KOPIE, ne cíle.
-//   Přeměřeno K7 dvěma nezávislými způsoby: vlastním přepočtem i oficiálním
-//   `rozpocet-granuli.mjs` nad skutečnými soubory hry.)
+//   (K6 uváděla 8 890 t; naměřeno K8 15. 10. 2026: to je STARŠÍ STAV TÉHOŽ STROMU,
+//   ne kopie — `game.gd` měl do commitu `bcb675e` (PR #14, 14. 10. 11:09 UTC)
+//   3 868 znaků = 8 890 t a ten commit padl DOVNITŘ okna, ve kterém K6 měřila;
+//   číslo tedy zestárlo. Atribuci „měření kopie" (K7) doložit nelze.)
+//   Přeměřeno nezávisle (K7 i K8): vlastním přepočtem i oficiálním
+//   `rozpocet-granuli.mjs` nad skutečnými soubory hry.
 const SKIP_SABLONOVE = new Set(['priprava.test.mjs', 'roadmap.pilot.json']);
 
 const arg = (n, d = '') => {

@@ -18,6 +18,15 @@ musí prokázat OBĚ:
      naměřeno na falešné hře, že to brána DŘÍV brala jako zelenou).
   6) VNOŘENÝ test (`.forge/node/sub/`) → `exit 1` a nález jmenuje ten soubor
      (dřív ho nerekurzivní `glob` vůbec neviděl).
+  7) SOUHRN BEZ PROVEDENÉ KONTROLY S CHYBAMI: „VYSLEDEK: 0/5 kontrol, 5 chyb"
+     a `exit 0` → `exit 1` (K8, 15. 10. 2026 — naměřeno vlastním A/B proti
+     verzi brány z gitu, že to pravidlo K7 „aspoň jedno NENULOVÉ číslo" bralo
+     jako zelenou: číslo selhání není důkaz provedené kontroly).
+  8) SOUHRN S KLADNÝM POČTEM SELHÁNÍ: „VYSLEDEK: 5 kontrol, 2 selhání" a
+     `exit 0` → `exit 1` (K8).
+  9) PROTIZKOUŠKA: reálný formát souhrnu „Testů OK: 36, chyb: 0" (tak ho píše
+     `vision.test.mjs` v obou hrách) musí zůstat ZELENÝ — jinak by zpevnění
+     vyrobilo falešný nález o správném testu (K8).
 
 Falešné hry se stavějí do `.tmp/` UVNITŘ repa (ne do systémového tempu) a po
 testu se uklidí. Do žádné skutečné hry se nezasahuje.
@@ -59,6 +68,25 @@ if (!existsSync('.forge/roadmap.pilot.json')) {
   process.exit(0);
 }
 console.log('VYSLEDEK: 5/5 kontrol, 0 chyb');
+"""
+
+# K8 (15. 10. 2026): zbývající díra v pravidle K7 — "aspoň jedno NENULOVÉ číslo"
+# bere i ČÍSLO SELHÁNÍ. Naměřeno vlastním A/B K8: test, který vypíše
+# "VYSLEDEK: 0/5 kontrol, 5 chyb" a skončí `exit 0`, hlasila brána jako zelený.
+TEST_NULA_S_CHYBAMI = """// Falesna hra: nula provedenych kontrol, pet chyb, ale exit 0.
+console.log('VYSLEDEK: 0/5 kontrol, 5 chyb');
+process.exit(0);
+"""
+
+TEST_SELHANI_BEZ_SLASH = """// Falesna hra: pet kontrol, dve selhani, ale exit 0.
+console.log('VYSLEDEK: 5 kontrol, 2 selhání');
+process.exit(0);
+"""
+
+# PROTIZKOUŠKA: třetí reálný formát souhrnu nesmí nové pravidlo shodit.
+# Naměřeno 15. 10. 2026 v `coin-picker`/`uo-shadows`: "Testů OK: 36, chyb: 0".
+TEST_FORMAT3 = """// Falesna hra: format souhrnu, ktery pisou realne testy ve hrach.
+console.log('Testů OK: 36, chyb: 0');
 """
 
 kontroly = []
@@ -148,6 +176,33 @@ try:
     zk(kod5 == 1, "vnořený test → exit 1", f"exit={kod5}")
     zk("vnoreny.test.mjs" in v5, "nález jmenuje VNOŘENÝ soubor")
     zk("VNORENE" in v5, "nález řekne, že leží ve vnořené složce")
+
+    # ── 7) souhrn hlásí NULU provedených kontrol a 5 chyb, ale exit 0 (K8) ─
+    print("\n--- 7) souhrn '0/5 kontrol, 5 chyb' a přesto exit 0 ----------------------")
+    nula = postav_hru("nula-provedenych", TEST_NULA_S_CHYBAMI)
+    kod6, v6 = spust_branu([nula])
+    zk(kod6 == 1, "0 provedených kontrol, 5 chyb → exit 1", f"exit={kod6}")
+    zk("0/1 testů zelených" in v6, "čítač hlásí 0/1 (ne tichou zelenou)",
+       [l for l in v6.splitlines() if "ZMĚŘENO" in l][:1])
+    zk("ANI JEDNU" in v6, "nález pojmenuje důvod (souhrn nehlásí ani jednu kontrolu)")
+
+    # ── 8) souhrn hlásí KLADNÝ počet selhání, ale exit 0 (K8) ───────────
+    print("\n--- 8) souhrn '5 kontrol, 2 selhání' a přesto exit 0 --------------------")
+    selh = postav_hru("selhani-bez-slash", TEST_SELHANI_BEZ_SLASH)
+    kod7, v7 = spust_branu([selh])
+    zk(kod7 == 1, "2 selhání → exit 1", f"exit={kod7}")
+    zk("0/1 testů zelených" in v7, "čítač hlásí 0/1",
+       [l for l in v7.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 9) PROTIZKOUŠKA: reálný formát 3 musí zůstat zelený ─────────────
+    # Bez tohohle případu by šlo "zpevnit" bránu tak, že vyrobí FALEŠNÝ nález
+    # o správném testu (AGENTS.md: nastražená brána je horší než slepá).
+    print("\n--- 9) protizkouška: reálný formát 'Testů OK: 36, chyb: 0' ----------------")
+    f3 = postav_hru("format3", TEST_FORMAT3)
+    kod8, v8 = spust_branu([f3])
+    zk(kod8 == 0, "reálný formát souhrnu → exit 0 (žádný falešný nález)", f"exit={kod8}")
+    zk("1/1 testů zelených" in v8, "čítač hlásí 1/1",
+       [l for l in v8.splitlines() if "ZMĚŘENO" in l][:1])
 finally:
     if KALIBR.exists():
         shutil.rmtree(KALIBR, ignore_errors=True)

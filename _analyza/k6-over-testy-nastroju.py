@@ -92,7 +92,7 @@ def prvni_zajimavy_radek(text: str) -> str:
 
 
 def ma_merene_kontroly(radek: str) -> bool:
-    """Hlasi zeleny test aspon JEDNU skutecne provedenou kontrolu?
+    """Hlasi zeleny test aspon JEDNU skutecne provedenou kontrolu a NULA chyb?
 
     ⚠ Namereno 14. 10. 2026 (K7) na falesne hre: test, ktery si chybejici vstup
     tise preskoci, vypise "PRESKOCENO: fixtura neni, 0/0 kontrol" a skonci
@@ -100,8 +100,34 @@ def ma_merene_kontroly(radek: str) -> bool:
     proto druha podminka zelene: aspon jedno musi byt NENULOVE.
     (Kdyby souhrn cisla nemel vubec, je to taky "neměřeno" - brana pak hlasi
     "souhrn nehlasí ani jednu kontrolu" a to je presne to, co ma videt.)
+
+    ⚠ ZBYVAJICI DIRA, NAMERENA 15. 10. 2026 (K8, vlastni A/B proti verzi z gitu):
+    "aspon jedno NENULOVE cislo" bere I CISLO SELHANI. Test, ktery vypise
+    "VYSLEDEK: 0/5 kontrol, 5 chyb" a skonci `exit 0`, hlasila brana jako zeleny
+    (1/1) - pritom neprobehla ani jedna kontrola a pet jich selhalo. Je to tataz
+    trida jako "brana cte jine cislo, nez si mysli" (AGENTS.md: pouzivej
+    pojmenovane skupiny, ne poradove). Souhrn se proto cte v tomto poradi:
+
+      1) je v nem KLADNY pocet chyb/selhani ("N chyb", "N selh...", "chyb: N")
+         -> NENI zelena, at je zbytek radku jakykoli;
+      2) je v nem tvar "X/Y kontrol" -> zelena jen kdyz X (provedene) > 0;
+      3) jinak plati puvodni pravidlo K7 (aspon jedno NENULOVE cislo).
+
+    Body 2 a 3 jsou schvalne: testy ve hrach pisou TRI formaty souhrnu
+    ("14/14 kontrol, 0 chyb", "21 kontrol, 0 selhání", "Testů OK: 36, chyb: 0" -
+    vsechny tri namerene 15. 10. 2026 v `coin-picker` a `uo-shadows`), takze
+    tvrdy parser na jediny format by vyrabel FALESNY nalez o spravnem testu.
     """
-    return any(int(n) > 0 for n in re.findall(r"\d+", radek or ""))
+    t = (radek or "").lower()
+    for vzor in (r"(?P<n>\d+)\s*(?:chyb|selh)",
+                 r"(?:chyb\w*|selh\w*)\s*:?\s*(?P<n>\d+)"):
+        m = re.search(vzor, t)
+        if m and int(m.group("n")) > 0:
+            return False
+    m = re.search(r"(?P<ok>\d+)\s*/\s*(?P<celkem>\d+)\s*kontrol", t)
+    if m:
+        return int(m.group("ok")) > 0
+    return any(int(n) > 0 for n in re.findall(r"\d+", t))
 
 
 def spust_test(hra: pathlib.Path, test: pathlib.Path) -> dict:

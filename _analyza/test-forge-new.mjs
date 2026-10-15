@@ -106,8 +106,12 @@ if (existsSync(cil)) {
   //   * strom, kde fixtura JE (tak ho dodával starý generátor), test spustí
   //     a spadnou 2 kontroly K3: rozpočet pilotních granulí šablony nad
   //     SKUTEČNÝMI soubory hry — naměřeno 8 617 t (`entity.player`) a 9 247 t
-  //     (`core.game`) proti stropu 8 000 t. (K6 uváděla 8 890 t; to je `game.gd`
-  //     ze stavu PR #4, tj. měření KOPIE — přeměřeno K7 dvěma způsoby.)
+  //     (`core.game`) proti stropu 8 000 t. POZOR: je to hybrid (pilotní
+  //     roadmapa ze ŠABLONY, soubory z HRY; v roadmapě hry ty granule nejsou).
+  //     (K6 uváděla 8 890 t; naměřeno K8 15. 10. 2026: je to STARŠÍ STAV TÉHOŽ
+  //     STROMU, ne kopie — `game.gd` měl do `bcb675e` (PR #14, 14. 10. 11:09 UTC)
+  //     3 868 znaků = 8 890 t a ten commit padl dovnitř okna K6; atribuci
+  //     „měření kopie" doložit nelze.)
   test('do hry se NEveze test ŠABLONY (.forge/node/priprava.test.mjs)',
     !existsSync(join(cil, '.forge', 'node', 'priprava.test.mjs')));
   test('do hry se NEveze fixtura šablony (.forge/roadmap.pilot.json)',
