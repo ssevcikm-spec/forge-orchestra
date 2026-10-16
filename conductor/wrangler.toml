@@ -46,7 +46,16 @@ ROADMAP_MAX_PRS = "5"
 # pálil pokusy. Původně 6 h; zkráceno na 3 h, protože typická příčina selhání
 # bývá syntaktická chyba v jednom souboru, kterou další pokus s jiným modelem
 # často trefí — a 6 h zdržení u 18granulového DAG znamenalo stát půl dne.
-RETRY_HOURS = "3"
+#
+# ⚠ ZKRÁCENO NA 30 MIN 15. 10. 2026 (rozhodnutí uživatele; u hry `uo-shadows`
+# po resetu plánu). Naměřeno ten den: tři granule spadly třikrát za sebou
+# (běhy #519–#527, 9 běhů) a mezi pokusy se čekalo 3 h — přitom šlo o DVĚ
+# syntaktické chyby, které se daly opravit hned (zadání i `CONVENTIONS.md` se
+# doplnily během hodiny). U 11granulového plánu znamenal 3h cooldown, že se
+# za odpoledne stihla jedna vlna. `MAX_ATTEMPTS` (5) a `GRAIN_MAX_RUNS` (8)
+# zůstávají — ty drží strop, takže kratší cooldown nezpůsobí nekonečnou smyčku.
+# Cesta zpět je jeden řádek: `RETRY_HOURS = "3"` a znovu nasadit.
+RETRY_HOURS = "0.5"
 
 # Kolik pokusů smí úloha mít, než zůstane 'failed'. Slabé free modely mají
 # úspěšnost kolem 10 %, takže tři pokusy jsou málo (naměřeno 30. 9. 2026).
