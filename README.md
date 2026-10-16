@@ -218,7 +218,7 @@ podle něj **posune pořadí** — ale jen mezi štědrými; skromné (gemini ~2
 openrouter 50/den) zůstávají na konci. Ověřeno testy: tři pokusy po sobě zkusí
 tři různé modely (`mistral → cerebras → groq`).
 
-**Cooldown.** `RETRY_HOURS` (3 h) drží selhanou granuli mimo frontu, aby se
+**Cooldown.** `RETRY_HOURS` (0,5 h = 30 min) drží selhanou granuli mimo frontu, aby se
 kvóta nepálila okamžitým retry. Vynucuje se na **dvou místech**, protože
 selhání zapisují dvě cesty:
 
@@ -234,7 +234,9 @@ selhání zapisují dvě cesty:
 > `ANALYZA-ARCHITEKTURY-ORCHESTRA.md` S12/S13). Guard se ptá na **tentýž
 > sloupec**, do kterého se píše i **vznik** řádku — takže:
 >
-> 1. **Nová granule se 3 h nevydá.** `roadmapTick:643-646` zapíše řádek
+> 1. **Nová granule se `RETRY_HOURS` (0,5 h = 30 min) nevydá** (měřeno
+>    1. 10. 2026, kdy bylo `RETRY_HOURS` = 3 h — číslo je ve svém čase správné).
+>    `roadmapTick:643-646` zapíše řádek
 >    s `updated_at = now` a guard (`:796-804`) ho považuje za „právě selhal".
 >    Replika SQL v SQLite: nová granule → `[]`, týž řádek starý 4 h → `[1]`.
 >    **Navenek to vypadá jako „orchestra nic nedělá", a `/queue` hlásí `ready`.**

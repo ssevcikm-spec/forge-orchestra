@@ -113,9 +113,21 @@ def main() -> int:
     sql_guard = pick(src, "NOT EXISTS", "naposledy_selhalo")
     okno = toml_var(wtext, "RETRY_HOURS")
     print(f"=== RETRY_HOURS z wrangler.toml: {okno!r} h ===")
-    if not okno.isdigit() or int(okno) <= 0:
+    # ⚠ H218 (K10, 16. 10. 2026): brána ZAKAZOVALA HODNOTU místo aby měřila
+    # CHOVÁNÍ. `okno.isdigit()` přijímalo jen celé číslo — uživatel zkrátil
+    # cooldown z 3 h na 30 min (`RETRY_HOURS = "0.5"`, commit `7cae0f3`) a brána
+    # spadla s „RETRY_HOURS není kladné číslo ('0.5')", přitom 0.5 h JE kladné
+    # číslo a `datetime('now','-0.5 hours')` je platný modifikátor SQLite
+    # (naměřeno). Bere se proto KLADNÉ ČÍSLO, i desetinné; odmítne se jen to, co
+    # kladné číslo NENÍ (nula, záporné, nesmysl) — to je vada konfigurace.
+    try:
+        okno_h = float(okno)
+    except (TypeError, ValueError):
+        okno_h = float("nan")
+    if not (okno_h > 0):
         print(f"CHYBA: RETRY_HOURS není kladné číslo ({okno!r})")
         return 1
+    print(f"=== cooldown = {okno_h:g} h = {okno_h * 60:.0f} min ===")
 
     # A) čerstvé selhání přes /report → guard úkol NEVYDÁ
     db = prepare()
@@ -128,20 +140,24 @@ def main() -> int:
           vydane(db, sql_guard, okno), [1])
 
     # B) cooldown je OKNO: po RETRY_HOURS (a víc) guard úkol vydá
+    #    (okno se počítá z `float`, aby fungovalo i pro desetinné hodiny)
     db = prepare()
     db.execute(sql_report, (1,))
     db.execute("UPDATE roadmap SET naposledy_selhalo = datetime('now', ?)",
-               (f"-{int(okno) + 1} hours",))
+               (f"-{okno_h + 1:g} hours",))
     db.commit()
     check("B: po uplynutí RETRY_HOURS guard úkol VYDÁ", vydane(db, sql_guard, okno), [1])
 
-    # B2) těsně před vypršením ještě ne
+    # B2) uvnitř okna (v jeho polovině) ještě ne — platí pro celé i desetinné
+    #     hodiny; dřív tu bylo `int(okno) - 1`, což pro `0.5` dalo 0 (a popisek
+    #     „hodinu před vypršením" pak byl nepravdivý).
     db = prepare()
     db.execute(sql_report, (1,))
     db.execute("UPDATE roadmap SET naposledy_selhalo = datetime('now', ?)",
-               (f"-{max(int(okno) - 1, 0)} hours",))
+               (f"-{okno_h / 2:g} hours",))
     db.commit()
-    check("B: hodinu PŘED vypršením cooldownu guard ještě NEVYDÁ", vydane(db, sql_guard, okno), [])
+    check("B: uvnitř okna cooldownu (v polovině) guard ještě NEVYDÁ",
+          vydane(db, sql_guard, okno), [])
 
     # C) poslední pokus (status='failed') zakládá cooldown taky
     db = prepare()

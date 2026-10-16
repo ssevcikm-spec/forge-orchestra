@@ -39,6 +39,10 @@ musí prokázat OBĚ:
      (podstatné jméno „chyby" se počítá dál). Bez tohohle případu by šlo
      „opravit" H213 tak, že by brána přestala vidět chyby vůbec.
  13) PROTIZKOUŠKA na obrácené pořadí: „0 chyb, 14/14 kontrol" → ZELENÁ.
+ 14) PROTIZKOUŠKA na ČTVRTÝ reálný formát (K10, 16. 10. 2026): souhrn
+     „[test] 161 kontrol, 0 selhání" (tak ho píše `tests/run_tests.gd` v obou
+     hrách) musí zůstat ZELENÝ. Formát v kalibraci K9 NEBYL — naměřil ho
+     vlastním skenem až K10.
 
 Falešné hry se stavějí do `.tmp/` UVNITŘ repa (ne do systémového tempu) a po
 testu se uklidí. Do žádné skutečné hry se nezasahuje.
@@ -125,6 +129,19 @@ process.exit(0);
 # K9: PROTIZKOUŠKA na obrácené pořadí — nula chyb se nesmí splést s chybějícím.
 TEST_OBRACENE_PORADI = """// Falesna hra: nula chyb, obracene poradi.
 console.log('0 chyb, 14/14 kontrol');
+"""
+
+# K10 (16. 10. 2026): ČTVRTÝ REÁLNÝ FORMÁT. Vlastním skenem obou her jsem
+# naměřil, že souhrn testů píše i `tests/run_tests.gd` (Godot sada, 161 kontrol)
+# — a to ve tvaru `[test] N kontrol, M selhání`. Tenhle formát v kalibraci NEBYL;
+# kdyby ho někdo „zpevnil" tvrdým parserem na tři známé tvary, vyrobil by
+# FALEŠNÝ nález o správném testu (AGENTS.md: nastražená brána je horší než slepá).
+# Poznámka k rozsahu: brána dnes čte jen `.forge/node/*.test.mjs`, takže na `.gd`
+# nedosáhne — fixtura je pojistka pro případ, že takový souhrn začne psát i
+# test v `.forge/node/` (a zároveň měření, že se nová pravidla K8/K9 chovají
+# správně i na formátu, který neznají).
+TEST_FORMAT_R4 = """// Falesna hra: format souhrnu z tests/run_tests.gd (Godot sada, obe hry).
+console.log('[test] 161 kontrol, 0 selhání');
 """
 
 kontroly = []
@@ -274,6 +291,15 @@ try:
     zk(kod12 == 0, "obrácené pořadí → exit 0", f"exit={kod12}")
     zk("1/1 testů zelených" in v12, "čítač hlásí 1/1",
        [l for l in v12.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 14) PROTIZKOUŠKA na ČTVRTÝ reálný formát (K10) ─────────────────
+    print("\n--- 14) protizkouška: reálný formát '[test] 161 kontrol, 0 selhání' -----")
+    r4 = postav_hru("format-r4-godot", TEST_FORMAT_R4)
+    kod13, v13 = spust_branu([r4])
+    zk(kod13 == 0, "formát z tests/run_tests.gd → exit 0 (žádný falešný nález)",
+       f"exit={kod13}")
+    zk("1/1 testů zelených" in v13, "čítač hlásí 1/1",
+       [l for l in v13.splitlines() if "ZMĚŘENO" in l][:1])
 finally:
     if KALIBR.exists():
         shutil.rmtree(KALIBR, ignore_errors=True)

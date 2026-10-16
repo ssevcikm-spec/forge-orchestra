@@ -64,9 +64,9 @@ někdo diví, že „hra vypadá jinak", první otázka je **odkud ji pouští**
   dispatch nese `max_lines`+`model` (brána auto-merge posuzuje limit podle
   granule), dále `grain` (podle něj workflow vybere soubory k editaci)
   a `attempt` (číslo pokusu — podle něj se posouvá pořadí modelů).
-  Selhané granule se vracejí do fronty po cooldownu `RETRY_HOURS` (**3 h**) —
+  Selhané granule se vracejí do fronty po cooldownu `RETRY_HOURS` (**0,5 h = 30 min**) —
   free modely mají denní limity, okamžitý retry jen pálí pokusy.
-  **Ale pozor: tentýž guard zpožďuje i NOVOU granuli o 3 h (invariant 15)
+  **Ale pozor: tentýž guard zpožďuje i NOVOU granuli o 0,5 h (invariant 15)
   a u selhání přes `/report` se naopak neuplatní (invariant 16).**
   Hotová granule se pozná i podle sloučeného PR (konec smyčky „conductor vydává
   hotovou granuli znovu").
@@ -144,7 +144,7 @@ někdo diví, že „hra vypadá jinak", první otázka je **odkud ji pouští**
     protože je prah 8 > strop 5 a počítá **běhy úkolu**, **nikdy se nespustí.**
     Stav je vidět v `/tick`. **(B3a to opravil: watchdog je dnes na granuli —
     viz `tools\test-watchdog-granule.py`, 17 kontrol, a `_analyza\b3-mutace.py`.)**
-15. **Nová granule se `RETRY_HOURS` (3 h) NEVYDÁ — naměřeno.** `roadmapTick`
+15. **Nová granule se `RETRY_HOURS` (0,5 h = 30 min) NEVYDÁ — naměřeno.** `roadmapTick`
     zakládá řádek roadmapy s `updated_at = now` (`:643-646`), ale dispatch guard
     (`:796-804`) se ptá **jen na čas** — tedy na tentýž sloupec jako cooldown po
     selhání. Replika SQL v SQLite: nová granule → `[]`, týž řádek starý 4 h →

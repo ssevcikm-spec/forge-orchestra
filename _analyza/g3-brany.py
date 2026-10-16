@@ -182,8 +182,15 @@ BRANY = [
     # v kódu čtyři mutanty (P24, 7. 10. 2026).
     ("over-skilly: mutace delegovaných cest",
      ["python", "<ANALYZA>/test-over-skilly-delegovane.py"], r"Kontrol: (\d+)"),
+    # ⚠ OPRAVENO 16. 10. 2026 (K10, nález **H227**): vzor byl `(\d+) z (\d+)`
+    # a mířil na řádek „N z M: …“ — ten ale `lint-roadmapa.py` vypisuje **JEN
+    # když existují granule bez `size_lines`** (dnes: „žádné – všechny granule
+    # mají deklarovanou velikost“). `g3` proto legitimně hlásil „běžela, ale vzor
+    # nic nenašel“ a **`exit 1` i ve stavu, kdy bylo všech 58 bran zelených**.
+    # Čítač, který závisí na stavu dat, není čítač: bere se proto řádek
+    # `ZMĚŘENO: …`, který brána vypisuje **VŽDY** (naměřeno spuštěním).
     ("lint-roadmapa", ["python", "<TOOLS>/lint-roadmapa.py", "<HRA>"],
-     r"(\d+) z (\d+)"),
+     r"(\d+) granulí zkontrolováno, (\d+) problém"),
     # ⚠ OPRAVENO 2. 10. 2026 (plánovací session, nález **H8**):
     # Tady dřív stálo `["node", "orchestra/tools/validate-all.mjs", "--jen", "hra"]`
     # — a to je VADA MĚŘIDLA: `validate-all.mjs` **nemá žádný přepínač `--jen`**

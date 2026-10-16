@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""MUTAČNÍ TEST: měří novou část `tools\over-skilly.py` (cesty v DELEGOVANÝCH
 dokumentech, přidáno 7. 10. 2026 při optimalizaci KB) **a nový TVAR cest
-(P28/B5, 8. 10. 2026)**.
+(P28/B5, 8. 10. 2026)** a **ZÁZNAM MINULÉHO STAVU (H217, K10, 16. 10. 2026)**.
 
 PROČ TENHLE TEST EXISTUJE: skilly `orchestra` a `game-developer` přesunuly část
 znalosti do projektových dokumentů (`PROVOZ-ORCHESTRA.md`, `BRANY-HRY.md`).
@@ -30,6 +30,8 @@ if hasattr(sys.stdout, "reconfigure"):
 WS = pathlib.Path(__file__).resolve().parents[1]
 SCRATCH = WS / "_analyza" / "_scratch-over-skilly"
 BRANA = WS / "tools" / "over-skilly.py"
+sys.path.insert(0, str(WS / "_analyza"))
+from _mutace import mutuj  # noqa: E402
 
 kontrol = 0
 chyb = 0
@@ -190,6 +192,77 @@ try:
     test("TÁŽ cesta v JINÉM skillu → exit 1 (výjimka neprosakuje)",
          kod == 1, f"exit={kod}")
     test("a je pojmenovaná", "vision.py" in out, out[-200:])
+
+    # ── 9) H217 (K10, 16. 10. 2026): ZÁZNAM MINULÉHO STAVU NENÍ ŽIVÝ ODKAZ ───
+    # Naměřeno: dokument HRY `docs/BRANY-HRY.md:133` popisuje větou v MINULÉM
+    # čase, že „v repu ležela rekurzivní kopie repa (`_analyza/_selftest-copy/`,
+    # 11 416 souborů) a brána spadla“. Cesta dnes existovat NEMÁ — a brána ji
+    # brala jako živý odkaz (1. NEDEKLAROVANÝ nenulový exit `g3`). Táž třída
+    # jako H24: brána měřila ZÁZNAM místo živého tvrzení.
+    print()
+    print("--- 9) H217: záznam v minulém čase vs ŽIVÝ mrtvý odkaz ---------------")
+    # 9a) záznam na JEDNOM řádku (takhle to vyšlo v dokumentu hry)
+    f_h217a = SCRATCH / "fixtura-h217-jeden-radek.md"
+    f_h217a.write_text(
+        "Naměřeno 15. 10. 2026: když v repu ležela rekurzivní kopie repa "
+        "(`_analyza/_selftest-copy/`, 11 416 souborů), brána spadla.\n",
+        encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_h217a])
+    test("9a záznam v minulém čase („ležela“ na témž řádku) → exit 0",
+         kod == 0, f"exit={kod} — {out[-160:]}")
+
+    # 9b) ZALÁMANÁ VĚTA: dokumenty jsou zalámané na ~78 znaků, takže slovo
+    #     o minulosti běžně zůstane na PŘEDCHOZÍM řádku. Naměřeno vlastní
+    #     kalibrací (poprvé to brána shodila) — proto je okno 2 řádky.
+    f_h217b = SCRATCH / "fixtura-h217-zalamane.md"
+    f_h217b.write_text(
+        "**Naměřeno 15. 10. 2026:** když v repu **ležela** rekurzivní kopie repa\n"
+        "(`_analyza/_selftest-copy/`, **11 416 souborů / 240 složek**), brána spadla.\n",
+        encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_h217b])
+    test("9b zalámaná věta (slovo o minulosti na PŘEDCHOZÍM řádku) → exit 0",
+         kod == 0, f"exit={kod} — {out[-160:]}")
+
+    # 9c) OHRANIČENOST OKNA: záznam o tři řádky výš už cestu krýt NESMÍ. Jedna
+    #     fixtura měří OBĚ strany: řádek 1 je záznam (přeskočí se), řádek 4 je
+    #     živý mrtvý odkaz (musí spadnout) — jinak by z pravidla bylo ticho.
+    f_h217c = SCRATCH / "fixtura-h217-okno.md"
+    f_h217c.write_text(
+        "Záznam: v repu ležela kopie (`_analyza/_selftest-copy/`).\n"
+        "\n"
+        "\n"
+        "Živý odkaz na `tools\\mrtvy-nastroj-h217.py`.\n",
+        encoding="utf-8", newline="\n")
+    kod, out = spust_nad([f_h217c])
+    test("9c záznam na ř. 1 NEKRÝVÁ cestu na ř. 4 (okno je OHRANIČENÉ) → exit 1",
+         kod == 1, f"exit={kod}")
+    test("9c a nález jmenuje ŽIVOU cestu (ne tu z záznamu)",
+         "mrtvy-nastroj-h217.py" in out and "_selftest-copy" not in out,
+         out[-240:])
+
+    # ── 9b) MUTAČNÍ DŮKAZ: seznam `ZAZNAM_MINULOSTI` je NOSNÝ ──────────────
+    # Kdyby seznam „spolkl“ všechno (`.*`), brána by oslepla — mrtvá cesta bez
+    # slova o minulosti by prošla jako zelená. Test to musí VIDĚT: pod mutací
+    # se verdikt změní z `exit 1` na `exit 0`. (Kdyby se nezměnil, znamenalo by
+    # to, že seznam nic neřídí a kalibrace měří jinou věc, než si myslí.)
+    print()
+    print("--- 9b) sabotáž: seznam záznamu = '.*' musí bránu OSLEPIT ------------")
+    kotva = r'|ležel\w*|existoval\w*|býval\w*")'
+    try:
+        with mutuj(BRANA, kotva, r'|ležel\w*|.*")') as m:
+            kod_slep, out_slep = spust_nad([f_spatna])
+    except ValueError as e:
+        test("mutace seznamu záznamu se PROVEDLA", False, str(e)[:120])
+    else:
+        test("bez slova o minulosti pod sabotáží brána OSLNE (exit 0)",
+             kod_slep == 0, f"exit={kod_slep}")
+        test("soubor brány vracen bajt na bajt",
+             m.hash_po_navratu == m.hash_pred, f"sha256 {m.hash_po_navratu[:16]}")
+
+    # a po vrácení musí být brána znovu PŘESNÁ (ne „slepá zůstala“)
+    kod, out = spust_nad([f_spatna])
+    test("po vrácení mutace je brána znovu PŘESNÁ (mrtvá cesta → exit 1)",
+         kod == 1, f"exit={kod}")
 
 finally:
     shutil.rmtree(SCRATCH, ignore_errors=True)

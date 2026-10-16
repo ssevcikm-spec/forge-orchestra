@@ -90,6 +90,27 @@ def zkontroluj(cesta: pathlib.Path, pozadovane: list[str], popis: str) -> None:
 
 
 print("=== orchestra/README.md ===")
+# ⚠ H225 (16. 10. 2026, K10): HODNOTA COOLDOWNU SE ČTE Z KONFIGURACE, NEZAPEČENÁ.
+# Naměřeno: rozhodnutí uživatele zkrátilo `RETRY_HOURS` z 3 h na 30 min
+# (`conductor/wrangler.toml` ř. 58, commit `7cae0f3`), ale tenhle seznam
+# **vyžadoval text „(3 h)“** — takže kdo opravil dokument, bránu SHODIL, a kdo
+# neopravil, nechal dokument LHÁT. **Zapečená hodnota v bráně je táž vada jako
+# zapečená hodnota v dokumentu.** Bere se proto z JEDNOHO zdroje pravdy; když se
+# hodnota vrátí na 3 h, musí se vrátit i text v dokumentech — a brána to pozná
+# (doklad: sabotáž, kterou ke K10 zapisuje `HANDOFF.md` §76.10).
+def _retry_tvary() -> tuple:
+    """(krátký, dlouhý) tvar cooldownu odvozený z `conductor/wrangler.toml`."""
+    t = (REPO / "conductor" / "wrangler.toml").read_text(encoding="utf-8")
+    m = re.search(r'^RETRY_HOURS\s*=\s*"([0-9.]+)"', t, flags=re.M)
+    if not m:
+        return ("?", "?")
+    h = float(m.group(1))
+    kratky = (f"{h:g} h").replace(".", ",")
+    return (kratky, kratky if h >= 1 else f"{kratky} = {h * 60:.0f} min")
+
+
+RETRY_KRATKY, RETRY_DLOUHY = _retry_tvary()
+print(f"  (cooldown z konfigurace: {RETRY_KRATKY} → v dokumentech „{RETRY_DLOUHY}“)")
 zkontroluj(REPO / "README.md", [
     "Jak agent dostane soubory",
     "Opakované pokusy: každý zkusí jiný model",
@@ -101,7 +122,7 @@ zkontroluj(REPO / "README.md", [
     # 1. 10. 2026: README musí přiznat, že cooldown má dvě díry a že návod na
     # úklid je s dnešním kódem nebezpečný. Kdyby to tam nebylo, README by
     # radilo postup, který smaže cache roadmapy (S12/S13, S11).
-    "Nová granule se 3 h nevydá",
+    "Nová granule se `RETRY_HOURS` (%s) nevydá" % RETRY_DLOUHY,
     "tenhle postup je v dnešním kódu NEBEZPEČNÝ",
     "Stav obálky k 1. 10. 2026",
 ], "README")
@@ -128,7 +149,7 @@ print("=== PROVOZ-ORCHESTRA.md (přesunuto ze skillu orchestra, 7. 10. 2026) ===
 # nikde jinde (audit, který je chtěl „zkrátit", by znalost zničil).
 zkontroluj(PROVOZ, [
     "Analýza a diagnostika",
-    "(**3 h**)",
+    "(**%s**)" % RETRY_DLOUHY,
     "Cooldown se vynucuje ČASEM",
     # 1. 10. 2026: text „MAX_ATTEMPTS` je mrtvý kód" BYL v skillu a byla to
     # NEPRAVDA — analýza architektury naměřila, že se MAX_ATTEMPTS čte na pěti
@@ -139,7 +160,7 @@ zkontroluj(PROVOZ, [
     "MAX_ATTEMPTS` NENÍ mrtvý kód",
     "soubor v EDITOVATELNÉM chatu",
     # 1. 10. 2026: naměřené vady conductoru (invarianty 15–18).
-    "Nová granule se `RETRY_HOURS` (3 h) NEVYDÁ",
+    "Nová granule se `RETRY_HOURS` (%s) NEVYDÁ" % RETRY_DLOUHY,
     "Cooldown se u selhání přes `/report` OBCHÁZÍ",
     # 1. 10. 2026 (odpoledne): zámek BYL rozbitý a skill to tak měl zapsané
     # („neblokuje nic"). Oprava je hotová a otestovaná, takže kontrola míří na

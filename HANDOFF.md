@@ -6222,3 +6222,356 @@ po regeneraci inventáře (když hra necommitovala) je brána `n1-over-inventar`
 **Poučení: atribuce je tvrzení** (H211) — a platí i na měření vlastní session:
 dvě různé hypotézy o jedné příčině vypadají Obě jako vysvětlení, dokud se nezměří,
 **která z nich obstojí**.
+
+---
+
+## 76. K10 — PŘEMĚŘENÍ PRÁCE K9 VLASTNÍM POSTUPEM: **K9 OBSTÁLA** (26/5, 4 vado-formy, NASTRAŽENÁ brána reprodukována) A **DVA NEDEKLAROVANÉ EXITY ZAVŘENY** (H218 v bráně, H217 v bráně); `g3` má dnes ale **6 nenulových a 3 nedeklarované** (H221) (16. 10. 2026)
+
+> **Co tenhle oddíl JE:** **záznam session K10** a **současně stav** (nejnovější
+> oddíl = dnešní stav; předchozí je **§75**, K9). Vznikl jako **přeměření práce
+> K9 VLASTNÍM postupem** (ne přečtením jejích dokladů) a jako **provedení
+> rozhodnutí (a) a (b)** ze zadání; **(c) a H209 zůstávají na uživateli**.
+>
+> **⚠ VŠECHNA ČÍSLA NESOU ČAS.** Měření probíhala **16. 10. 2026 14:05–14:35 UTC**
+> (16:05–16:35 +02:00). Cokoli o „dnešním stavu" platí pro ten okamžik.
+
+### 76.1 Úkol 1 — přeměření práce K9 vlastním postupem (A/B proti verzím brány z GITU)
+
+**Postup (ne opsaný z K9):** obě brány i obě kalibrace se vytáhly **z gitu jako
+BAJTY** (`git show <rev>:<cesta>` do souboru přes Python, ne přes PowerShell)
+a pustily se **proti sobě navzájem**; k tomu **13 vlastních fixtur** (falešné
+hry s jedním `.test.mjs`), jejichž **formáty souhrnu jsem naměřil skenem disku**
+(obě hry + šablona + `tests/run_tests.gd`), a **dvě mutace ŽIVÉ konstanty**
+`CHYB_POCET`. Vše v `E:\Workspaces\_k10-scratch\mer\` (`k10-premereni-k9.py`,
+spuštěn **dvakrát** — podruhé po přidání 4. formátu do kalibrace).
+
+| Verze brány (z gitu) | Revize | `sha256` (16) |
+|---|---|---|
+| K7 | `50b0139` | `e45bc5e7cee19e6f` |
+| K8 | `3c96498` | `ddbbe5cefe16b7e6` |
+| K9 | `13b1f47` | `177f75901abce9ce` |
+
+**A) A/B matice (13 fixtur × 3 verze brány) — naměřeno, co která verze říká:**
+
+| Fixtura | Co to je | K7 | K8 | K9 |
+|---|---|---|---|---|
+| R1 `VYSLEDEK: 14/14 kontrol, 0 chyb` | reálný formát (`probe-provider.test.mjs`) | zelená | zelená | zelená |
+| R2 `Testů OK: 36, chyb: 0` | reálný formát (`vision.test.mjs`) | zelená | zelená | zelená |
+| R3 `14 kontrol, 0 selhání` | reálný formát (`provider-choice.test.mjs`) | zelená | zelená | zelená |
+| **R4 `[test] 161 kontrol, 0 selhání`** | **4. REÁLNÝ formát** — `tests/run_tests.gd` (obě hry, 161 kontrol) | zelená | zelená | zelená |
+| **R5 `OK: 145   FAIL: 2   NEMĚŘENO: 0   (celkem 145 kontrol)`** | **5. REÁLNÝ formát** — `.forge/over-dokumenty.py` hry → **viz H223** | zelená | zelená | zelená |
+| V1 `0/5 kontrol, 5 chyb` | vada, kterou zavřela K8 (H210a) | **zelená** | červená | červená |
+| V2 `5 kontrol, 2 selhání` | vada, kterou zavřela K8 (H210b) | **zelená** | červená | červená |
+| V3 `kontrol: 14, chybí: 2 volitelné fixtury` | **NASTRAŽENÁ brána (H213)** | zelená | **červená (falešný nález)** | zelená |
+| V4 `kontrol: 14, chybějící: 2 fixtury` | táž vada jiným tvarem | zelená | **červená (falešný nález)** | zelená |
+| V5 `2 chybějící fixtury z 14` | táž vada obráceně | zelená | **červená (falešný nález)** | zelená |
+| V6 `14/14 kontrol, 2 chyby` | ochrana proti PŘEOPRAVĚ | zelená | červená | **červená** |
+| V7 `PRESKOCENO: fixtura neni, 0/0 kontrol` | tichý skip (K7) | červená | červená | červená |
+| V8 `0 chyb, 14/14 kontrol` | protizkouška (nula chyb) | zelená | zelená | zelená |
+
+**→ Tvrzení K9 o chování obou bran SEDÍ, naměřeno znovu a nezávisle:** brána K7 je
+zelená na **4 vado-formách**, brána K8 **vyrábí 3 falešné nálezy** o správném
+testu (nastražená brána) a brána K9 je zelená na **všech 5 vado-formách** a
+zároveň **červená na skutečných chybách** (V6).
+
+**B) Kalibrace z gitu proti bránám z gitu (reprodukce cizího čísla):**
+
+| Kalibrace | proti bráně K7 | proti bráně K8 | proti bráně K9 |
+|---|---|---|---|
+| **K8** (26 kontrol) | **26 kontrol, 5 chyb** (`exit 1`) | 26/0 | 26/0 |
+| **K9** (34 kontrol) | 34/7 | **34/2** (obě chyby = falešný nález na „chybí“) | 34/0 |
+
+**→ „kalibrace K8 proti bráně K7 = 26/5“ je REPRODUKOVÁNO** (to je tvrzení, které
+K8 zapsala a K9 převzala) — a **34/2 proti bráně K8** je totéž měření díry H213
+z druhé strany.
+
+**C) Mutace ŽIVÉ konstanty `CHYB_POCET` (přes `_analyza/_mutace.py`, ne vlastním
+`replace()`), kalibrace = živá (po přidání R4 = 36 kontrol):**
+
+| Mutace | Co vrací | Kalibrace | Návrat |
+|---|---|---|---|
+| MA: `chyb(?:a\|y\|…)?(?!\w)` → `chyb\w*` | díru K8 („chybí“ je počet chyb) | **SPADLA** (36/2) | bajt na bajt |
+| MB: → `chyb(?!\w)` | přeopravu („chyby“ se nepočítá) | **SPADLA** (36/2) | bajt na bajt |
+
+`sha256` brány zpět **`177f75901abce9ce`** — shodný s tím, který zapsala K9.
+
+**→ Úkol 1 uzavřen: práce K9 je přeměřená a obstála.** Navíc jsem naměřil
+**4. reálný formát** (`[test] 161 kontrol, 0 selhání` z `tests/run_tests.gd`) a
+**přidal ho do kalibrace** (`test-k6-testy-nastroju.py` **34 → 36 kontrol**, obě
+nové kontroly protizkouška „formát → `exit 0`“ a „čítač 1/1“); po přidání jsem
+**znovu pustil obě mutace** a kalibrace pod nimi **znovu spadla**. Pátý reálný
+formát (`FAIL: 2`) **neuzavírám** — viz **H223**.
+
+### 76.2 H218 ZAVŘENO — brána bere KLADNÉ ČÍSLO, ne jen celé (rozhodnutí (a) ze zadání)
+
+**Vada (naměřena K9):** `tools/test-report-cooldown.py:116` měl `okno.isdigit()`,
+takže **zakazoval hodnotu** místo aby měřil chování — `RETRY_HOURS = "0.5"`
+(30 min, rozhodnutí uživatele, commit `7cae0f3`) shodil bránu B2, její mutační
+test i `validate-all`. **Brána kontrolovala TVAR, ne SMYSL** (vzor L14).
+
+**Oprava (dvě místa, obě v orchestra — do konfigurace se nesahá):**
+
+1. `tools/test-report-cooldown.py` — hodnota se čte jako `float` a odmítne se
+   jen to, co **kladné číslo není** (nula, záporné, nesmysl). Naměřeno, že
+   `datetime('now','-0.5 hours')` je **platný modifikátor SQLite**. Okna B/B2 se
+   počítají z `float` (`-{okno_h+1:g}` a `-{okno_h/2:g}`), takže popisek
+   kontroly („uvnitř okna v polovině“) **není nepravdivý** ani pro desetinné
+   hodiny — dřív tam bylo `int(okno) - 1`, což pro `0.5` dalo `0`.
+2. `_analyza/b2-mutace.py` — kotva M3 byla **zapečený literál**
+   `RETRY_HOURS = "3"`; dnes se **ČTE ze souboru** (a je to celý přiřazovací
+   řádek, zakotvený na začátek řádku — viz **H224**). Přibyly **dvě nové vady
+   M5 (`-1`) a M6 (`abc`)**: oprava nesmí bránu **oslepit** na hodnoty, které
+   kladné číslo nejsou.
+
+| Doklad | Naměřeno |
+|---|---|
+| `python tools/test-report-cooldown.py` | **8 kontrol, 0 chyb**, `exit 0` (dřív `exit 1` s `CHYBA: RETRY_HOURS není kladné číslo ('0.5')`) |
+| `python _analyza/b2-mutace.py` | **13 kontrol, 0 chyb**, `exit 0` — **6 vrat**, každé bránu shodilo (M1, M2, M3 `0`, M4, M5 `-1`, M6 `abc`), každý soubor vrácen bajt na bajt |
+| `conductor/wrangler.toml` | **beze změny** (`git diff --stat -- conductor/` prázdný) |
+
+### 76.3 H217 ZAVŘENO V BRÁNĚ — záznam minulosti není živý odkaz (rozhodnutí (b): brána, ne hra)
+
+**Vada (naměřena K9):** `tools/over-skilly.py` čte cesty k nástrojům i
+v **delegovaných dokumentech** a v dokumentu **HRY** `docs/BRANY-HRY.md:133`
+vzalo **větu v minulém čase** („v repu **ležela** rekurzivní kopie repa
+(`_analyza/_selftest-copy/`)“) jako **živý odkaz** → `exit 1` → **1. NEDEKLAROVANÝ
+nenulový exit `g3`**. Táž třída jako **H24**: brána měřila ZÁZNAM.
+
+**Proč v bráně, a ne ve hře:** `docs/BRANY-HRY.md` patří **hře**, kterou vede
+**cizí session** — do té se nezasahuje (zadání to zakazuje). Vada je navíc
+**v měřidle**: pravidlo „cesta, kterou text SÁM přiznává jako minulou, není
+vada“ tam **už bylo** (slova „neexistuje/už není/smazán/odstraněn/~~“), jen
+neznalo **věty bez těch slov**.
+
+**Oprava:** seznam se přesunul do **pojmenované konstanty `ZAZNAM_MINULOSTI`**
+(přibyla slovesa `ležel\w*`, `existoval\w*`, `býval\w*`) — a záměrně se
+**NEROZŠIŘUJE** o obecná slova („dřív“, „byl“), která stojí i ve větách o ŽIVÉM
+odkazu; ta by bránu **oslepila**. Hledá se v **OKNĚ 2 řádků** (`OKNO_ZAZNAMU`),
+protože dokumenty jsou zalámané na ~78 znaků — viz **H222**.
+
+| Doklad | Naměřeno |
+|---|---|
+| `python tools/over-skilly.py` | **Skillů: 18, chyb: 0** · **76 zmínek, 0 mrtvých**, `exit 0` (dřív 76 / **1 mrtvá** / `exit 1`) — **zmínek neubylo**, jen zmizel falešný nález |
+| `python _analyza/test-over-skilly-delegovane.py` | **24 kontrol, 0 chyb**, `exit 0` — **bylo 17** (registr bran u téže brány: `otevrela: 17`) |
+| nová část kalibrace (H217) | 9a záznam na témž řádku → `exit 0`; 9b **zalámaná věta** (slovo o minulosti na PŘEDCHOZÍM řádku) → `exit 0`; 9c záznam na ř. 1 **nekryje** cestu na ř. 4 → `exit 1` a nález jmenuje **živou** cestu; 9d **sabotáž** `ZAZNAM_MINULOSTI = ".*"` → brána **oslepne** (`exit 0`) a soubor je vrácen bajt na bajt |
+
+### 76.4 Co jsem naměřil NAVÍC (H221–H226) — a co to mění proti zadání
+
+**H221 — `g3` dnes: 58 bran, 6 nenulových, 0 deklarovaných, 3 NEDEKLAROVANÉ
+(K9: 5/2) — a příčina je JINÁ, než tvrdí zadání.** Naměřeno vlastním během
+`g3` (**16. 10. 14:05–14:30 UTC**): nenulové exity `C2: mutace N1` (**exit=2**,
+nově — je to **důsledek** téhož, co shodí `n1-over-inventar`), `over-skilly`
+(1), obě B2 (1), `n1-over-inventar` (2), `validate-all (CELEK)` (1); z toho
+**nedeklarované 3** (`n1-over-inventar`, `over-skilly`, `validate-all`) a
+**4 brány běžely bez čítače**. **Přesná atribuce otisku (vlastní sonda
+`k10-kdo-rozhodil-otisk.py`):** rozešel se **JEDINÝ** soubor —
+`NEXT-SESSION-INSTRUKCE.md` (**19 785 → 20 246 B**); **hra je čistá**
+(`c72b309`, 0 změn) a `_analyza/_registr-bran.json` **v otisku VŮBEC NENÍ**
+(hypotéza „g3 si zneplatní inventář sám“ je **vyvrácena měřením**). Dnešní
+příčina je tedy **editace DOKUMENTU (zadání) po poslední regeneraci inventáře**,
+ne commit hry (H219 platil ve svém čase; dnes platí tenhle mechanismus).
+
+**H222 — okno záznamu (dokončení H217).** První verze opravy H217 hledala
+slovo o minulosti **jen na témž řádku** — a **vlastní kalibrace to hned
+vyvrátila**: fixtura, kde je „ležela“ na řádku 1 a cesta na řádku 2 (**TÁŽ
+VĚTA**, jen zalámaná), bránu **pořád shodila**. V dokumentu hry to vyšlo na
+jeden řádek **náhodou**. Okno je proto **2 řádky** a je **ohraničené**: 9c
+měří, že záznam o tři řádky výš už cestu **nekryje**.
+
+**H223 — brána `k6-over-testy-nastroju.py` nezná anglické `FAIL: N`.** Reálný
+souhrn hry (`.forge/over-dokumenty.py`) `OK: 145   FAIL: 2   NEMĚŘENO: 0
+(celkem 145 kontrol)` bere **všechny tři verze brány** (K7, K8, K9) jako
+**ZELENÝ** (naměřeno fixturou R5). Je to **táž třída jako H210** (pravidlo měří
+**slovo**, ne smysl), ale dnes **NEDOSAŽITELNÉ**: brána pouští jen
+`.forge/node/*.test.mjs` a ty píšou česky. **Nezavíral jsem to** (rozšíření
+vzoru o `fail`/`failed`/`failure` je zásah do pravidla, který si zaslouží
+vlastní protizkoušky). **Navíc naměřeno:** 4. reálný formát
+`[test] 161 kontrol, 0 selhání` (`tests/run_tests.gd`) brána bere **správně** →
+přidán do kalibrace jako protizkouška (34 → **36 kontrol**).
+
+**H224 — moje vlastní past: mutační kotva mířila do KOMENTÁŘE.** `wrangler.toml`
+má o řádek výš `# Cesta zpět je jeden řádek: RETRY_HOURS = "3" a znovu
+nasadit.` První verze mého čtení hodnoty použila **nezakotvený** vzor → našla
+ten **komentář**, mutace M3 „proběhla“ (změnila komentář), brána zůstala zelená
+a test ohlásil „M3 → brána nespadla“ (**bylo 9/1**). **Zachytil to sám test** —
+a je to přesně past z `AGENTS.md` („statická kontrola musí číst KÓD, ne
+komentáře“). Opraveno **zakotvením na začátek řádku**; dnes **13/0**.
+
+**H225 — živé dokumenty tvrdí 3 h, konfigurace je 0,5 h — a BRÁNA TEN STARÝ
+TEXT VYŽADUJE.** `conductor/wrangler.toml` má `RETRY_HOURS = "0.5"`, ale
+`README.md:221`, `PROVOZ-ORCHESTRA.md:67` a `:147` (invariant 15) píšou
+**„3 h“**; `tools/zapis-dokumentaci.py:74,81` ten text **generuje** a
+`tools/over-dokumentaci.py:142` ho **vyžaduje** („Nová granule se `RETRY_HOURS`
+(3 h) NEVYDÁ“) — **dokument tedy nejde opravit bez změny brány**. To je
+**druhá půlka H218** (brána drží hodnotu). **Doplněno 16. 10. 2026 večer:**
+uživatel rozhodl **přepsat dokumenty, generátor i bránu na `0,5 h = 30 min`** —
+a brána od té chvíle hodnotu **ČTE z `conductor/wrangler.toml`**, takže
+zapečená hodnota v měřidle zmizela → viz **§76.11**.
+
+**H226 — hra dnes selhává ze TŘÍ důvodů (a čtvrtý je z K9).** Vlastním čtením
+**jobů a logů** (ne `conclusion`) běhů `#397`–`#401` (všechny na `c72b309`):
+
+| Běh | Kde to spadlo | Příčina z logu |
+|---|---|---|
+| `#401` | job `Agent (free LLM)`, krok 13 „Agent nic nezměnil“ | `litellm.RateLimitError … Request too large` (3×) |
+| `#400`, `#399` | totéž | `litellm.RateLimitError … Tokens per minute` (6–8×) |
+| **`#398`** | **krok 9 „Kontrola parsování (rychlá brána)“** | **`##[error]Skript se neparsuje – scripts/game.gd`** → „1 souborů se neparsuje“ (**agentův vlastní zápis**; brána kontroluje jen ZMĚNĚNÉ soubory) |
+| `#391` (K9) | job `Otevři pull request` | `could not read Username` → `exit 128` — **dnes se neopakoval** (v `#397`–`#401` byl PR job `skipped`, protože spadl agent) |
+
+**A tři čísla, která se od K9 ZMĚNILA (proto se musí měřit, ne přebírat):**
+`selhani_v_rade` je dnes **7** (K9: 19→20) — **není srovnatelné v čase**, protože
+roadmapu někdo přeplánoval; `ready` je **3** (K9: 1) a **`#269` je `done`**
+(K9: `ready`), přičemž **PR **#38** (`head=forge/task-269`) je `MERGED` 16. 10.
+**12:16:34Z** → **práce ztracená v `#391` se nakonec do `main` dostala**
+(kdo PR založil, měřeno NENÍ — tvrzení hry je svědectví, ne můj důkaz).
+`/queue` má **50** úkolů (`ready` 3 s `attempts=3`: `#270`, `#271`, `#272`;
+`blocked` 32) a roadmapa **24** položek (14 `coin-picker` + 10 `uo-shadows`),
+kde **tři čítače téhož stavu** (H214) dávají dnes `status` `done` **21** /
+`task_status` `done` **15** (6× `null`, 3× `ready`) / hybrid **18**.
+
+### 76.5 Vlastní omyly K10 (doložené, ne přiznané z dojmu)
+
+1. **Mutační kotva v komentáři (H224)** — a našel ji **test, ne já**; kdyby M3
+   neměl kontrolu „brána SPADLA“, vypadal by zelený běh jako úspěch.
+2. **Téměř jsem zapsal H217 jako zavřené s jednořádkovým oknem.** Vlastní
+   fixtura (zalámaná věta) to vyvrátila — *fixtura, která je „tvrdší než
+   realita“, není chyba, je to nález* (H222).
+3. **Atribuci jsem nejdřív odhadl a měření ji vyvrátilo.** Hypotéza „`g3` si
+   zneplatní inventář sám přes `_registr-bran.json`“ se **nerozpadla dohadem,
+   ale sondou**: ten soubor **v otisku není** (a je vidět, že hra je čistá).
+   *Atribuce je tvrzení* (H211) — platí i na měření vlastní session.
+4. Drobnost, ale naměřená: první běh mého harnessu spadl na **špatném jménu
+   atributu** knihovny `_mutace` (`.hash_po` vs `.hash_po_mutaci`) — **chyba se
+   projevila hned**, protože se běh musel spustit; „napsané“ ≠ „spuštěné“.
+
+### 76.6 Brány a čísla (spuštěno touto session)
+
+| Brána / nástroj | Naměřeno (16. 10. 2026, 14:05–14:35 UTC) |
+|---|---|
+| A/B matice (vlastní) | 13 fixtur × 3 verze brány z gitu → **verdikty sedí na tvrzení K9** |
+| kalibrace K8 × brána K7 (z gitu) | **26 kontrol, 5 chyb** (`exit 1`) — reprodukce |
+| kalibrace K9 × brána K8 (z gitu) | **34/2** — díra H213 z druhé strany |
+| mutace `CHYB_POCET` (2×) | obě kalibraci **shodily** (36/2); `sha256` zpět `177f75901abce9ce` |
+| `_analyza/test-k6-testy-nastroju.py` | **36 kontrol, 0 chyb** (bylo 34; +R4 protizkouška) |
+| `tools/test-report-cooldown.py` | **8/0**, `exit 0` (H218) |
+| `_analyza/b2-mutace.py` | **13/0**, 6 vrat (H218) |
+| `tools/over-skilly.py` | **76 zmínek, 0 mrtvých**, `exit 0` (H217) |
+| `_analyza/test-over-skilly-delegovane.py` | **24/0** (bylo 17) — včetně sabotáže |
+| `g3-brany.py` (PŘED opravami) | **58 bran, 6 nenulových, 0 deklarovaných, 3 NEDEKLAROVANÉ** → `exit 1` |
+| sonda otisku inventáře | **1 rozešlý soubor**: `NEXT-SESSION-INSTRUKCE.md` (19 785 → 20 246 B); hra 0 změn; `_registr-bran.json` v otisku NENÍ |
+| `kronika-kontrola.py` (před zápisem) | **64 sessions, 220 nálezů H, 27 bloků / 208 omylů**, `exit 0` |
+| živý stav her | `uo-shadows` `active=1`, `HEAD c72b309` = `origin/main`, `forge.ok=false`, `selhani_v_rade=7`, běhy `#397`–`#401` `failure`; `coin-picker` `active=0`, `HEAD fc01255` = `origin/main` |
+| otevřené PR | `uo-shadows` **#36** (1), `coin-picker` **0** |
+
+### 76.7 Co zůstalo OTEVŘENÉ (nic se nemaže)
+
+* **H225** — ✅ **ZAVŘENO** (rozhodnutí uživatele, 16. 10. 2026 večer): dokumenty,
+  generátor i brána přepsané na `0,5 h = 30 min` a **brána hodnotu ČTE
+  z `wrangler.toml`** → viz **§76.11**.
+* **H223** — anglické `FAIL: N` brána nezná (dnes nedosažitelné); rozšíření
+  vzoru potřebuje vlastní protizkoušky.
+* **H219/H221** — dokud v HRĚ pracuje cizí session (nebo se po regeneraci
+  inventáře přepíše dokument), **`N1` a `hl-rizika-jazyka` nemohou být
+  spolehlivě zelené**; pořadí „napsat všechny soubory → inventář → `g3`“ se musí
+  dodržet. `C2: mutace N1` je **důsledek**, ne druhá vada.
+* **H197** — cíl <10 ms u tiku NESPLNĚN; hypotéza „chybí model“ vs. „platí se
+  start izolátu“ nerozhodnutá. Cesta zpět `git revert fb1b2c2`.
+* **K5 §13.4** — rotace rozpočtu na runneru; dnes **živě potvrzená** (H226).
+* **H209** — bloky omylů se od P22 nepíšou (čítač **208**); **rozhodnutí je na
+  uživateli**.
+* **`FORGE_PAT`** v repu hry — **agent to neudělá**.
+* **H216** — auto-discovery brány skenuje i **worktree** (`7/7` místo 5/5).
+* **`kontrola-driftu.mjs`** = 12 souborů, 1 rozdíl + 2 záměrné; **S27** (ruční
+  seznam v `kontrola-diakritiky.py`); **mutační doklad `k7-mutace-generatoru.py`
+  není v `g3`**; **`_analyza/p36-g3-registr.json`** netrackovaný (cizí);
+  **`_k7`/`_k8`/`_k9`/`_k10-scratch`** mimo repo.
+* **`uo-shadows`:** mrtvé kopie testů (hlídá orchestra), **PR #36**, **2 worktree**
+  — **cizí session, nesahat.**
+
+### 76.8 Co čeká na uživatele (rozhodnutí (c) a H209)
+
+* **(c) `uo-shadows`:** hra je **zapnutá a její cíl je červený** (`forge.ok=false`,
+  `selhani_v_rade=7`, tři RŮZNÉ důvody — H226). Opravy jsou **mimo orchestra**:
+  PR krok a granule patří **hře** (cizí session), strop poskytovatele je
+  v **`agent.yml` hry**. Možnosti: **(1)** opravit PR krok + zmenšit granule
+  (práce se přestane ztrácet), **(2)** hru znovu zmrazit a vrátit se na
+  `coin-picker` (celý zelený, 0 PR). **Nic jsem nezapínal ani nezměnil** —
+  zadání říká: *když uživatel nerozhodne, NIC nezapínej*.
+  **✅ UŽIVATEL ROZHODL (16. 10. 2026):** *(1)* — hra **zůstává zapnutá**, nic se
+  nepřepíná; opravy (PR krok, granule, strop poskytovatele) se **předávají
+  session HRY** (H226). Orchestra do hry **nepíše**.
+* **(H209)** bloky omylů — **✅ UŽIVATEL ROZHODL: nechat** (čítač zůstává na
+  **208**), jen to držet přiznané; každá session dál píše své omyly do `HANDOFF`.
+* **(H225)** — **✅ UŽIVATEL ROZHODL: přepsat dokumenty, generátor i bránu** na
+  `0,5 h = 30 min` → **provedeno**, viz **§76.11**.
+
+### 76.9 Co už otevřené NENÍ (přesunuto, ne smazáno)
+
+* **H218** — zavřeno **v bráně** (kladné číslo, i desetinné) + 6 vrat v mutačním
+  testu; `validate-all` tím ztratil **oba** problémy.
+* **H217** — zavřeno **v bráně** (záznam minulosti + ohraničené okno 2 řádků);
+  do hry se **nesahalo**.
+* **`over-skilly` jako NEDEKLAROVANÝ exit** — po opravě `exit 0`.
+* **Tvrzení „`g3` = 5 nenulových / 2 nedeklarované“** (K9) — dnes **6 / 3**
+  (H221); staré číslo bylo ve svém čase správné.
+* **Tvrzení zadání, že `N1` shodil commit HRY** — dnes **neplatí**: hra je čistá
+  a rozešel se **dokument** (H221). H219 platil pro okno 12:38 UTC.
+
+### 76.10 DODATEK — **H227**: poslední červená `g3` byl **PODMÍNĚNÝ ČÍTAČ** (zavřeno)
+
+**Po opravě H217 a H218 naměřil `g3` 58 bran a `0 nenulových exitů` — a přesto
+skončil `exit 1`:** v sekci „BRÁNY, KTERÉ BĚŽELY, ALE NEVYKÁZALY ČÍTAČ“ zbyla
+**jediná** brána, `lint-roadmapa`. To není formalita: `g3` tím říká „**nevím, co
+ta brána změřila**“ — a to je přesně stav, před kterým varuje `AGENTS.md`
+(„brána, která neproběhne, není brána“).
+
+**Příčina (naměřeno, ne odhadnuto):** čítač v `g3` byl `(\d+) z (\d+)` a mířil na
+řádek `N z M: …`, který `tools/lint-roadmapa.py` vypisuje **JEN když existují
+granule bez `size_lines`** — dnes jsou **žádné** („všechny granule mají
+deklarovanou velikost“), takže ten řádek **nevznikne**. Brána přitom **vždy**
+vypisuje `ZMĚŘENO: 11 granulí zkontrolováno, 3 problémů (+3 poradních), 3 kolizí
+souborů`. **Čítač, který závisí na stavu dat, není čítač.**
+
+**Oprava:** vzor čte `ZMĚŘENO:` (`r"(\d+) granulí zkontrolováno, (\d+) problém"`).
+**Doklad obou směrů** (spuštění brány + porovnání vzorů nad jejím skutečným
+výstupem): starý vzor → **0 nálezů**, nový vzor → **`('11', '3')`**, brána
+`exit 0`. ⚠ **Není to následek K10** — `lint-roadmapa` byl v seznamu bez čítače
+i v měření K9 (tehdy spolu s oběma B2, které zavřela H218).
+
+### 76.11 DODATEK 2 — **H225 ZAVŘENO** (rozhodnutí uživatele 16. 10. 2026) a **H227** v kostce
+
+**Uživatel rozhodl** (16. 10. 2026, po předložení měření): **(c) `uo-shadows`
+zůstává ZAPNUTÁ** a opravy se předávají session HRY; **H225** přepsat dokumenty,
+generátor i bránu na **0,5 h = 30 min**; **H209** nechat (čítač omylů **208**).
+
+**Co bylo provedeno k H225 (a proč to není jen přepis čísla):**
+
+| Místo | Bylo | Je |
+|---|---|---|
+| `README.md:221` | `RETRY_HOURS` (3 h) | `RETRY_HOURS` (**0,5 h = 30 min**) |
+| `README.md:237` | „Nová granule se 3 h nevydá.“ | „Nová granule se `RETRY_HOURS` (**0,5 h = 30 min**) nevydá“ + **označená historie** („měřeno 1. 10. 2026, kdy bylo `RETRY_HOURS` = 3 h“) |
+| `PROVOZ-ORCHESTRA.md:67` | `RETRY_HOURS` (**3 h**) | `RETRY_HOURS` (**0,5 h = 30 min**) |
+| `PROVOZ-ORCHESTRA.md:69` | „zpožďuje i NOVOU granuli o 3 h“ | „…o **0,5 h**“ |
+| `PROVOZ-ORCHESTRA.md:147` (inv. 15) | `RETRY_HOURS` (3 h) NEVYDÁ | `RETRY_HOURS` (**0,5 h = 30 min**) NEVYDÁ |
+| `tools/zapis-dokumentaci.py:74,88` | generátor psal „(3 h)“ a „5 pokusů / 3 h ≈ 40/den“ | „(0,5 h = 30 min)“ a „5 pokusů za 2,5 h (dřív 15 h)“ |
+| `tools/over-dokumentaci.py` | **vyžadoval zapečené „(3 h)“** ve **třech** textech | hodnotu **ČTE z `conductor/wrangler.toml`** (`_retry_tvary()`), takže se nemůže rozejít s konfigurací |
+
+**Historická čísla zůstala označená, ne přepsaná:** věty „běhy se opakovaly
+každé 2 minuty **místo za 3 h**“ (`README.md:231`, `PROVOZ-ORCHESTRA.md:129`)
+jsou **záznam měření z 1. 10. 2026** a ve svém čase byly správné.
+
+**Doklad (sabotáž, 4 vady, `_k10-scratch/mer/k10-sabotaz-h225.py` → 10/0):**
+každý dokument zvlášť vrácen na „3 h“ → brána **SPADLA** (`exit 1`); navíc
+**mutant v `wrangler.toml`** (`RETRY_HOURS = "3"` proti dokumentům s 0,5 h) →
+brána **SPADLA** (to je důkaz, že se hodnota opravdu **čte z konfigurace**);
+všechny soubory vráceny **bajt na bajt** a brána je po návratu **zelená**
+(`Kontrol: 64, chyb: 0`).
+
+**H227 (uzavřeno v témž dodatku):** poslední červená `g3` nebyla vada brány, ale
+**podmíněný čítač** — vzor v `g3` mířil na řádek, který `tools/lint-roadmapa.py`
+vypisuje jen když existují granule bez `size_lines` (dnes žádné). Opraveno
+čtením vždy vypisovaného `ZMĚŘENO:`; **naměřeno oběma směry** (starý vzor
+`(\d+) z (\d+)` → 0 nálezů, nový → `('11','3')`).
+
+**Výsledek po všech opravách: `g3` = 58 bran, 0 nenulových exitů, 0 bran bez
+čítače, `exit 0`** (`VÝSLEDEK g3: PŘEHLED JE ÚPLNÝ`).

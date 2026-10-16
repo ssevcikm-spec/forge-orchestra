@@ -1,22 +1,12 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-16 15:28:19",
+  "kdy": "2026-10-16 17:04:37",
   "bran_celkem": 58,
-  "s_nenulovym_exit": [
-    "B2: /report zaklada cooldown",
-    "B2: mutace brány (4 vrat)",
-    "over-skilly",
-    "validate-all (CELEK)",
-    "zadání kontrola"
-  ],
+  "s_nenulovym_exit": [],
   "ocekavane_nenulove": {
     "zadání kontrola": 1
   },
-  "bez_citace": [
-    "B2: /report zaklada cooldown",
-    "B2: mutace brány (4 vrat)",
-    "lint-roadmapa"
-  ],
+  "bez_citace": [],
   "neotevrene": [],
   "brany": [
     {
@@ -91,8 +81,8 @@
     },
     {
       "nazev": "zadání kontrola",
-      "exit": 1,
-      "otevrela": "280",
+      "exit": 0,
+      "otevrela": "286",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -105,7 +95,7 @@
     },
     {
       "nazev": "over-skilly",
-      "exit": 1,
+      "exit": 0,
       "otevrela": "18",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
@@ -113,15 +103,15 @@
     {
       "nazev": "over-skilly: mutace delegovaných cest",
       "exit": 0,
-      "otevrela": "17",
+      "otevrela": "24",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-over-skilly-delegovane.py"
     },
     {
       "nazev": "lint-roadmapa",
       "exit": 0,
-      "otevrela": "—",
-      "ma_citac": false,
+      "otevrela": "11 / 3",
+      "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/lint-roadmapa.py E:/Workspaces/uo-shadows"
     },
     {
@@ -175,16 +165,16 @@
     },
     {
       "nazev": "B2: /report zaklada cooldown",
-      "exit": 1,
-      "otevrela": "—",
-      "ma_citac": false,
+      "exit": 0,
+      "otevrela": "8 / 0",
+      "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/test-report-cooldown.py"
     },
     {
       "nazev": "B2: mutace brány (4 vrat)",
-      "exit": 1,
-      "otevrela": "—",
-      "ma_citac": false,
+      "exit": 0,
+      "otevrela": "13 / 0",
+      "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/b2-mutace.py"
     },
     {
@@ -287,7 +277,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 1,
+      "exit": 0,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
@@ -421,7 +411,7 @@
     {
       "nazev": "K6: kalibrace brány testů nástrojů (umí spadnout)",
       "exit": 0,
-      "otevrela": "34 / 0",
+      "otevrela": "36 / 0",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/test-k6-testy-nastroju.py"
     }

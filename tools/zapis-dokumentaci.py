@@ -71,7 +71,7 @@ podle něj **posune pořadí** — ale jen mezi štědrými; skromné (gemini ~2
 openrouter 50/den) zůstávají na konci. Ověřeno testy: tři pokusy po sobě zkusí
 tři různé modely (`mistral → cerebras → groq`).
 
-**Cooldown.** `RETRY_HOURS` (3 h) drží selhanou granuli mimo frontu, aby se
+**Cooldown.** `RETRY_HOURS` (0,5 h = 30 min) drží selhanou granuli mimo frontu, aby se
 kvóta nepálila okamžitým retry. Vynucuje se na **dvou místech**, protože
 selhání zapisují dvě cesty:
 
@@ -85,7 +85,8 @@ selhání zapisují dvě cesty:
 
 **Watchdog (`ESCALATE_AFTER`, výchozí 8).** `MAX_ATTEMPTS` je v provozu mrtvý
 kód — rozhoduje `pollRuns`, který strop nezná, takže úkol může pokračovat
-donekonečna (5 pokusů / 3 h ≈ 40 pokusů za den na jednu granuli). Watchdog
+donekonečna (**s cooldownem 0,5 h spálí 5 pokusů za 2,5 h — dřív to bylo
+5 pokusů za 15 h**). Watchdog
 v tiku proto počítá **spálené runy** a po dosažení prahu pošle notifikaci
 (Telegram/Discord/ntfy podle konfigurace). **Nic nevypíná** — granule se zkouší
 dál, může jít o přechodný výpadek. Aby se notifikace neopakovala při každém

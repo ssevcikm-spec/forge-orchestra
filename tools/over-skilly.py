@@ -107,6 +107,40 @@ if _over:
 # důkaz.** Cesta se teď hledá **KDEKOLIV na řádku**; backtick není podmínka.
 VZOR_CESTY = re.compile(r"(?<![\w\\./-])((?:_analyza|tools)[\\/][A-Za-z0-9_\-\\/.]+)")
 
+# ⚠ SLOVA, KTERÁ ŘÍKAJÍ „TO JE ZÁZNAM MINULÉHO STAVU, NE ŽIVÝ ODKAZ“.
+#
+# PROČ VZNIKLA (naměřeno 16. 10. 2026, K10, nález **H217**): brána hlásila
+# `exit 1` za dokument HRY `docs/BRANY-HRY.md:133`, kde stojí **věta v minulém
+# čase**: „Naměřeno 15. 10. 2026: když v repu **ležela** rekurzivní kopie repa
+# (`_analyza/_selftest-copy/`, 11 416 souborů), brána spadla…“. Ta cesta dnes
+# **existovat nemá** (byl to scratch), ale brána ji brala jako **živý odkaz** —
+# a vyrobila tak **1. NEDEKLAROVANÝ nenulový exit `g3`**. Je to táž třída jako
+# **H24** (`overovani` §10.1): **brána měří ZÁZNAM místo ŽIVÉHO tvrzení.**
+# Dokument patří HRÁ, do které tuhle session nikdo nesmí psát — proto se
+# náprava dělá **tady**, v bráně (a je to tak i správně: vada je v měřidle).
+#
+# ⚠ CO SE ZÁMĚRNĚ NEROZŠIŘUJE: obecná slova jako „dřív“, „dříve“, „předtím“,
+# „kdysi“, „byl“. Ta stojí běžně i ve VĚTĚ O ŽIVÉM odkazu („dřív než spustíš
+# `tools/x.py`“) a jejich přidání by bránu **OSLEPILO** — tedy vyrobilo vadu
+# OPAČNÝM směrem. Seznam proto bere jen slovesa, která minulý stav pojmenovávají
+# **jednoznačně** (ležet / existovat / bývat) — a pojistkou proti oslepnutí je
+# kalibrace `_analyza/test-over-skilly-delegovane.py`, oddíl 9: mrtvá cesta
+# **bez** slova o minulosti musí bránu pořád shodit, a sabotáž (seznam `.*`)
+# musí být v kalibraci VIDĚT jako oslepnutí.
+ZAZNAM_MINULOSTI = (r"neexistuje|už není|smazán|odstraněn|~~"
+                    r"|ležel\w*|existoval\w*|býval\w*")
+
+# ⚠ ZÁZNAM SE HLEDÁ V OKNĚ, NE NA JEDNOM ŘÁDKU (naměřeno 16. 10. 2026, K10).
+# Dokumenty projektu jsou ZALÁMANÉ na ~78 znaků, takže jedna věta o záznamu
+# běžně leží na DVOU řádcích. Naměřeno vlastní kalibrací: fixtura, kde je slovo
+# „ležela“ na řádku 1 a cesta na řádku 2 (tj. TÁŽ VĚTA), bránu po opravě H217
+# **pořád shodila** — přísně jednořádkové hledání tedy zavíralo jen případ, kde
+# to vyšlo na jeden řádek (v dokumentu hry to tak vyšlo náhodou).
+# Okno je proto **2 řádky** (řádek s cestou + předchozí) a je **OHRANIČENÉ**:
+# záznam o tři řádky výš už cestu nekryje — což je v kalibraci měřené zvlášť
+# (`test-over-skilly-delegovane.py`, oddíl 9), aby se z pravidla nestalo ticho.
+OKNO_ZAZNAMU = 2
+
 # ⚠ DEKLAROVANÉ VÝJIMKY: cesty, které v textu být MOHOU, i když soubor neexistuje.
 # Každá má důvod; NOVÁ mrtvá cesta bránu SHODÍ (to je smysl kontroly).
 OCEKAVANE = {
@@ -128,8 +162,9 @@ OCEKAVANE = {
 
 # ⚠ DEKLAROVANÉ VÝJIMKY pro DELEGOVANÉ dokumenty (stejný smysl jako `OCEKAVANE`;
 # klíč je taky `(jméno dokumentu, cesta)`).
-# Historické zmínky se odchytávají slovem v řádku ("neexistuje", "už není",
-# "smazán", "~~"); sem patří jen cesty, které slovem odchytit nelze.
+# Historické zmínky se odchytávají slovem v řádku — seznam je v konstantě
+# `ZAZNAM_MINULOSTI` výš (od 16. 10. 2026 včetně sloves „ležel/existoval/býval“,
+# nález H217); sem patří jen cesty, které slovem odchytit nelze.
 # Každá výjimka musí mít důvod — nová mrtvá cesta bránu SHODÍ.
 OCEKAVANE_DELEGOVANE = {
     # (zatím prázdné — oba dokumenty mají mrtvé cesty jen v historických
@@ -185,7 +220,11 @@ def posud_cesty(radky, jmeno, ocekavane):
             if najd not in (REPO, HRA):
                 mimo.append((jmeno, cesta, najd.name))
             continue
-        if re.search(r"neexistuje|už není|smazán|odstraněn|~~", radky[i - 1], re.I):
+        # ⚠ OKNO (ne jeden řádek): věty jsou zalámané — viz `OKNO_ZAZNAMU` výš.
+        # `i` je 1-based řádek cesty, takže okno je `radky[i-2 : i]`
+        # = řádek s cestou + řádek před ním.
+        okno = " ".join(radky[max(i - OKNO_ZAZNAMU, 0):i])
+        if re.search(ZAZNAM_MINULOSTI, okno, re.I):
             continue
         mrtve.append((i, cesta))
     return mrtve, mimo
