@@ -27,6 +27,18 @@ musí prokázat OBĚ:
   9) PROTIZKOUŠKA: reálný formát souhrnu „Testů OK: 36, chyb: 0" (tak ho píše
      `vision.test.mjs` v obou hrách) musí zůstat ZELENÝ — jinak by zpevnění
      vyrobilo falešný nález o správném testu (K8).
+ 10) PROTIZKOUŠKA na TŘETÍ reálný formát: „14 kontrol, 0 selhání" (tak ho píše
+     `provider-choice.test.mjs` v obou hrách) musí zůstat ZELENÝ. Tenhle formát
+     v kalibraci K8 NEBYL — naměřil ho vlastním skenem až K9.
+ 11) NASTRAŽENÁ BRÁNA (H213, K9): zelený test se souhrnem
+     „kontrol: 14, chybí: 2 volitelné fixtury" a `exit 0` musí zůstat ZELENÝ.
+     Vzor K8 bral české sloveso „chybí" jako počet chyb → falešný nález
+     o správném testu. Naměřeno vlastním A/B (K9): brána K7 zeleně, K8 červeně.
+ 12) OCHRANA PROTI PŘEOPRAVĚ: „14/14 kontrol, 2 chyby" a `exit 0` musí být
+     ČERVENĚ — oprava vzoru nesmí oslepit pravidlo na skutečné chyby
+     (podstatné jméno „chyby" se počítá dál). Bez tohohle případu by šlo
+     „opravit" H213 tak, že by brána přestala vidět chyby vůbec.
+ 13) PROTIZKOUŠKA na obrácené pořadí: „0 chyb, 14/14 kontrol" → ZELENÁ.
 
 Falešné hry se stavějí do `.tmp/` UVNITŘ repa (ne do systémového tempu) a po
 testu se uklidí. Do žádné skutečné hry se nezasahuje.
@@ -87,6 +99,32 @@ process.exit(0);
 # Naměřeno 15. 10. 2026 v `coin-picker`/`uo-shadows`: "Testů OK: 36, chyb: 0".
 TEST_FORMAT3 = """// Falesna hra: format souhrnu, ktery pisou realne testy ve hrach.
 console.log('Testů OK: 36, chyb: 0');
+"""
+
+# K9 (15. 10. 2026): TŘETÍ reálný formát — `provider-choice.test.mjs` v obou
+# hrách píše `${checks} kontrol, 0 selhání`. V kalibraci K8 NEBYL.
+TEST_FORMAT_R1 = """// Falesna hra: format souhrnu z provider-choice.test.mjs.
+console.log('14 kontrol, 0 selhání');
+"""
+
+# K9 (H213): NASTRAŽENÁ BRÁNA. Zelený test, který u ZELENÉHO běhu hlásí, kolik
+# VOLITELNÝCH věcí chybí. Vzor K8 (`chyb\w*`) v tom viděl počet chyb, protože
+# `\w` zahrne i „í" — a brána vyrobila falešný nález o správném testu.
+TEST_CHYBI_VOLITELNE = """// Falesna hra: zeleny test hlasi, kolik VOLITELNYCH fixtur chybi.
+console.log('kontrol: 14, chybí: 2 volitelné fixtury');
+process.exit(0);
+"""
+
+# K9: OCHRANA PROTI PŘEOPRAVĚ. Oprava H213 nesmí oslepit pravidlo na skutečné
+# chyby — podstatné jméno „chyby" se musí počítat dál.
+TEST_CHYBY_PODSTATNE = """// Falesna hra: dve skutecne chyby, ale exit 0.
+console.log('14/14 kontrol, 2 chyby');
+process.exit(0);
+"""
+
+# K9: PROTIZKOUŠKA na obrácené pořadí — nula chyb se nesmí splést s chybějícím.
+TEST_OBRACENE_PORADI = """// Falesna hra: nula chyb, obracene poradi.
+console.log('0 chyb, 14/14 kontrol');
 """
 
 kontroly = []
@@ -203,6 +241,39 @@ try:
     zk(kod8 == 0, "reálný formát souhrnu → exit 0 (žádný falešný nález)", f"exit={kod8}")
     zk("1/1 testů zelených" in v8, "čítač hlásí 1/1",
        [l for l in v8.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 10) PROTIZKOUŠKA na TŘETÍ reálný formát (K9) ────────────────────
+    print("\n--- 10) protizkouška: reálný formát '14 kontrol, 0 selhání' --------------")
+    r1 = postav_hru("format-r1", TEST_FORMAT_R1)
+    kod9, v9 = spust_branu([r1])
+    zk(kod9 == 0, "formát z provider-choice.test.mjs → exit 0", f"exit={kod9}")
+    zk("1/1 testů zelených" in v9, "čítač hlásí 1/1",
+       [l for l in v9.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 11) NASTRAŽENÁ BRÁNA: „chybí" není počet chyb (H213, K9) ────────
+    print("\n--- 11) 'kontrol: 14, chybí: 2 volitelné fixtury' musí být ZELENÁ ------")
+    chybi = postav_hru("chybi-volitelne", TEST_CHYBI_VOLITELNE)
+    kod10, v10 = spust_branu([chybi])
+    zk(kod10 == 0, "české 'chybí' (is missing) → exit 0, žádný falešný nález",
+       f"exit={kod10}")
+    zk("1/1 testů zelených" in v10, "čítač hlásí 1/1",
+       [l for l in v10.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 12) OCHRANA PROTI PŘEOPRAVĚ: skutečné chyby se počítají dál ─────
+    print("\n--- 12) '14/14 kontrol, 2 chyby' musí být ČERVENÁ (proti přeopravě) ---")
+    chyby = postav_hru("chyby-podstatne", TEST_CHYBY_PODSTATNE)
+    kod11, v11 = spust_branu([chyby])
+    zk(kod11 == 1, "2 skutečné chyby → exit 1", f"exit={kod11}")
+    zk("0/1 testů zelených" in v11, "čítač hlásí 0/1",
+       [l for l in v11.splitlines() if "ZMĚŘENO" in l][:1])
+
+    # ── 13) PROTIZKOUŠKA: obrácené pořadí ──────────────────────────────
+    print("\n--- 13) protizkouška: '0 chyb, 14/14 kontrol' → ZELENÁ ------------------")
+    obr = postav_hru("obracene-poradi", TEST_OBRACENE_PORADI)
+    kod12, v12 = spust_branu([obr])
+    zk(kod12 == 0, "obrácené pořadí → exit 0", f"exit={kod12}")
+    zk("1/1 testů zelených" in v12, "čítač hlásí 1/1",
+       [l for l in v12.splitlines() if "ZMĚŘENO" in l][:1])
 finally:
     if KALIBR.exists():
         shutil.rmtree(KALIBR, ignore_errors=True)

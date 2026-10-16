@@ -53,6 +53,22 @@ WS = pathlib.Path(__file__).resolve().parent.parent   # koren repa orchestra
 RODIC = WS.parent                                     # E:\Workspaces
 VZOR_SOUBORU = "*.test.mjs"
 
+# ⚠ ČESKÉ „CHYBÍ“ NENÍ POČET CHYB — naměřeno 15. 10. 2026 (K9, nález H213).
+#
+# Pravidlo K8 psalo `chyb\w*`, a `\w` v Pythonu zahrnuje i „í“ — takže vzor
+# bral i SLOVESO „chybí“ (is missing) a PŘÍDAVNÉ JMÉNO „chybějící“. Test, který
+# u zeleného běhu vypíše `kontrol: 14, chybí: 2 volitelné fixtury` a skončí
+# `exit 0`, tím brána vyhodnotila jako VADNÝ. Naměřeno vlastním A/B (K9):
+# brána K7 ho brala zeleně, brána K8 červeně — tedy **nastražená brána**
+# (falešný nález o správném testu), což je horší než slepá.
+#
+# Vzor proto bere jen PODSTATNÁ JMÉNA: chyb · chyba · chyby · chybu · chybou ·
+# chybami · chybách · chybám. Sloveso „chybí“ a adjektivum „chybějící“ stojí
+# MIMO (za kmenem nesmí následovat další písmeno).
+# Protizkouška je v kalibraci (`test-k6-testy-nastroju.py`, oddíl 11) a brání
+# tomu, aby se oprava zvrhla v opačnou vadu (slepota na skutečné chyby).
+CHYB_POCET = r"chyb(?:a|y|u|ou|ami|ách|ám)?(?!\w)"
+
 
 def hry_ze_stromu(rodic: pathlib.Path) -> list[pathlib.Path]:
     """Sourozenecke adresare, ktere v sobe maji `.forge/node/*.test.mjs`."""
@@ -92,7 +108,7 @@ def prvni_zajimavy_radek(text: str) -> str:
 
 
 def ma_merene_kontroly(radek: str) -> bool:
-    """Hlasi zeleny test aspon JEDNU skutecne provedenou kontrolu a NULA chyb?
+    r"""Hlasi zeleny test aspon JEDNU skutecne provedenou kontrolu a NULA chyb?
 
     ⚠ Namereno 14. 10. 2026 (K7) na falesne hre: test, ktery si chybejici vstup
     tise preskoci, vypise "PRESKOCENO: fixtura neni, 0/0 kontrol" a skonci
@@ -117,10 +133,16 @@ def ma_merene_kontroly(radek: str) -> bool:
     ("14/14 kontrol, 0 chyb", "21 kontrol, 0 selhání", "Testů OK: 36, chyb: 0" -
     vsechny tri namerene 15. 10. 2026 v `coin-picker` a `uo-shadows`), takze
     tvrdy parser na jediny format by vyrabel FALESNY nalez o spravnem testu.
+
+    ⚠ A DRUHA DIRA TÉHOŽ PRAVIDLA, NAMĚŘENÁ 15. 10. 2026 (K9, H213): vzor
+    `chyb\w*` bral i české SLOVESO „chybí“ (a adjektivum „chybějící“), protože
+    `\w` zahrnuje „í“. Zelený test se souhrnem „kontrol: 14, chybí: 2 volitelné
+    fixtury“ a `exit 0` proto brána hlásila jako VADNÝ. Slova s počtem chyb se
+    berou ze `CHYB_POCET` (jen podstatná jména) — viz komentář u konstanty.
     """
     t = (radek or "").lower()
-    for vzor in (r"(?P<n>\d+)\s*(?:chyb|selh)",
-                 r"(?:chyb\w*|selh\w*)\s*:?\s*(?P<n>\d+)"):
+    for vzor in (rf"(?P<n>\d+)\s*(?:{CHYB_POCET}|selh)",
+                 rf"(?:{CHYB_POCET}|selh\w*)\s*:?\s*(?P<n>\d+)"):
         m = re.search(vzor, t)
         if m and int(m.group("n")) > 0:
             return False

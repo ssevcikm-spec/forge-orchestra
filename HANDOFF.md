@@ -5911,3 +5911,314 @@ chtějí hlavičku `x-forge-secret` z `.env` — **soubor má UTF-8 BOM**):
 node -e "const r=await fetch('https://forge-conductor.ssevcikm.workers.dev/health');console.log(JSON.stringify(await r.json(),null,1))"
 ```
 
+
+## 75. K9 — PŘEMĚŘENÍ PRÁCE K8 VLASTNÍM POSTUPEM: **TŘETÍ DÍRA V TÉŽE BRÁNĚ BYLA NASTRAŽENÁ** (H213), TŘI ČÍTAČE TÉHOŽ STAVU (H214), **REAKTIVOVANÁ HRA, KTERÁ 20 BĚHŮ V ŘADĚ SELHALA** (H215) A WORKTREE V AUTO-DISCOVERY (H216) (15.–16. 10. 2026)
+
+> **Co tenhle oddíl JE:** **záznam session K9** a **současně stav** (nejnovější
+> oddíl = dnešní stav; předchozí je **§74**, K8). Vznikl jako **přeměření práce
+> K8 VLASTNÍM postupem** (ne přečtením jejích dokladů) a jako **záznam
+> o provedení rozhodnutí uživatele**.
+>
+> **⚠ DVĚ MĚŘENÍ S ČASEM, protože session byla PŘERUŠENÁ:** první měření
+> **15. 10. 2026 07:17–08:0x UTC**, druhé **16. 10. 2026 12:03–12:07 UTC** —
+> mezi nimi se **změnil stav světa** (uživatel reaktivoval hru). Čísla níž proto
+> **vždy nesou čas**; co platilo 15. 10., nemusí platit 16. 10.
+
+### 75.1 Úkol 1 — přeměření práce K8 vlastním postupem (A/B proti verzím z GITU)
+
+**Postup (ne opsaný z K8):** obě verze brány se vytáhly **z gitu bajty**
+(`HEAD~1` = `50b0139` = stav K7, `HEAD` = `3c96498` = stav K8; `~1`, ne `^` —
+`git.cmd` žere `^`), postavil se **vlastní harness** s **15 fixturami** a každá
+fixtura se pustila proti **třem** verzím brány (K7 z gitu, K8 před opravou,
+K8 po opravě). Fixtury stojí na **formátech souhrnu naměřených na disku** v
+`.forge/node/*.test.mjs` her, ne na vymyšlených.
+
+| Fixtura (vlastní) | Co to je | K7 (z gitu) | K8 před opravou | K8 po opravě |
+|---|---|---|---|---|
+| **R1** `14 kontrol, 0 selhání` | REÁLNÝ formát (`provider-choice.test.mjs`) — **v kalibraci K8 NEBYL** | zelená 1/1 | zelená 1/1 | zelená 1/1 |
+| **R2** `Testů OK: 36, chyb: 0` | REÁLNÝ formát (`vision.test.mjs`) | zelená 1/1 | zelená 1/1 | zelená 1/1 |
+| **R3** `VYSLEDEK: 14/14 kontrol, 0 chyb` | REÁLNÝ formát (`probe-provider.test.mjs`) | zelená 1/1 | zelená 1/1 | zelená 1/1 |
+| **H210a** `0/5 kontrol, 5 chyb` + `exit 0` | vada, kterou K8 zavřela | **zelená 1/1** | červená 0/1 | červená 0/1 |
+| **H210b** `5 kontrol, 2 selhání` + `exit 0` | vada, kterou K8 zavřela | **zelená 1/1** | červená 0/1 | červená 0/1 |
+| **M1** `0 kontrol, 5 selhání` + `exit 0` | **moje** vada v gramatice R1 | **zelená 1/1** | červená 0/1 | červená 0/1 |
+| **M2** `0/14 kontrol, 0 selhání` + `exit 0` | **moje** vada — nula provedených kontrol | **zelená 1/1** | červená 0/1 | červená 0/1 |
+| **M3** `0 chyb, 14/14 kontrol` | protizkouška (obrácené pořadí) | zelená | zelená | zelená |
+| **M4** `PRESKOCENO: 0/0 kontrol` | tichý skip (pravidlo K7) | červená | červená | červená |
+| **M5** `kontrol: 14, chybí: 0` | protizkouška na české „chybí“ s nulou | zelená | zelená | zelená |
+| **M6** `kontrol: 14, chybí: 2 volitelné fixtury` + `exit 0` | **NASTRAŽENÁ BRÁNA (H213)** | zelená | **červená (falešný nález!)** | zelená |
+| **M6b** `kontrol: 14, chybějící: 2 fixtury` + `exit 0` | táž vada jiným tvarem | zelená | **červená (falešný nález!)** | zelená |
+| **M6c** `14/14 kontrol, 2 chyby` + `exit 0` | ochrana proti PŘEOPRAVĚ | **zelená (slepá)** | červená | **červená** |
+| **M6d** `2 chybějící fixtury z 14` + `exit 0` | táž vada v obráceném pořadí | zelená | **červená (falešný nález!)** | zelená |
+| **M7** `14/14 kontrol, 0 chyb, 2 přeskočeno` | SKIP není v souhrnu vidět | zelená | zelená | zelená |
+
+**Co z toho plyne (naměřeno, ne odhadnuto):**
+
+1. **H205/H210 se reprodukovalo nezávisle.** Brána K7 je zelená na **čtyřech**
+   vado-formách (H210a, H210b, M1, M2) — a navíc **slepá na `2 chyby`** (M6c).
+   K8 to nezavírala naslepo: oprava je **skutečná**.
+2. **Tvrzení K8 o A/B SEDÍ.** Tatáž kalibrace K8 puštěná proti **bráně z gitu**
+   (`50b0139`) = **26 kontrol / 5 chyb / `exit 1`**; proti **bráně K8** =
+   **26/0 / `exit 0`**. Naměřeno znovu, vlastním harnessem.
+3. **ALE zpevnění K8 si přineslo TŘETÍ díru — a je to NASTRAŽENÁ brána.**
+   Vzor `chyb\w*` bere i **české sloveso „chybí“** (a adjektivum „chybějící“),
+   protože `\w` zahrnuje i „í“. Zelený test, který hlásí, kolik **volitelných**
+   věcí chybí, brána vyhodnotí jako **vadný** — tedy **falešný nález o správném
+   testu**. `AGENTS.md`: *„nastražená brána je horší než slepá“*.
+4. **Mechanismus je měřený, ne odvozený.** Importem funkce `ma_merene_kontroly`
+   z obou verzí a výpisem **pojmenované skupiny** se ukázalo, že rozhodla
+   **větev 1.2**: `(?:chyb\w*|selh\w*)\s*:?\s*(?P<n>\d+)` na vstupu
+   `kontrol: 14, chybí: 2 volitelné fixtury` → `n=2` → „NENÍ zelená“.
+
+### 75.2 H213 — NASTRAŽENÁ BRÁNA V PRAVIDLE K8 (naměřeno, zavřeno)
+
+**Vada:** pravidlo „kladný počet chyb/selhání ⇒ není zelená“ nerozlišuje
+**podstatné jméno** (chyba/chyby/chyb = počet chyb) od **slovesa** (chybí = is
+missing) a **adjektiva** (chybějící).
+
+**Oprava (v `_analyza/k6-over-testy-nastroju.py`):** slova s počtem chyb se berou
+z jedné pojmenované konstanty `CHYB_POCET = r"chyb(?:a|y|u|ou|ami|ách|ám)?(?!\w)"`
+a ta se používá v **obou** větvích pravidla 1. Za kmenem nesmí následovat další
+písmeno → „chybí“ i „chybějící“ stojí mimo, „chyb/chyba/chyby/chybu/chybou/
+chybami/chybách/chybám“ zůstávají.
+
+**Doklad (čtyři nezávislé kroky):**
+
+| Krok | Co naměřeno |
+|---|---|
+| A/B matice | po opravě **0 rozchodů z 15 fixtur** vůči očekávání (před opravou 3 falešné nálezy) |
+| kalibrace | `_analyza/test-k6-testy-nastroju.py` **26 → 34 kontrol, 0 chyb** (8 nových: R1 protizkouška, H213 protizkouška, ochrana proti přeopravě, obrácené pořadí) |
+| mutace (`_analyza/_mutace.py`) | **4 ze 4 mutací shodily kalibraci**: A pravidlo 1 vypnuto (`>` → `>=`) 9 spadlých kontrol; B pravidlo 2 vypnuto 3; C H213 vrácena 2; D přeoprava (žádné slovo s chybami) 2. `sha256` brány zpět = `177f75901abce9ce` |
+| stderr | kalibrace má **prázdný stderr** (první běh měl `SyntaxWarning: invalid escape sequence '\w'` — docstring nebyl raw; opraveno na `r"""`) |
+
+**Proč to není „přepis cizí práce“:** brána i její kalibrace se měnily **spolu**
+(jak velí zadání) a **nic se nezměkčilo** — všech pět vado-form (H210a, H210b,
+M1, M2, M6c) zůstává červených; jen tři **falešné** nálezy zmizely.
+
+### 75.3 H214 — TŘI ČÍTAČE TÉHOŽ STAVU V `/roadmap` (a můj vlastní málem-nález)
+
+`/roadmap` vrací u každé granule **dvě** pole stavu — a ta se u části řádků
+**rozcházejí**. Naměřeno **15. 10. 2026 07:17Z** (34 granul):
+
+| Čítač | `done` | jiné |
+|---|---|---|
+| `status` | **31** | `queued` 3 |
+| `task_status` | **26** | `None` 4, `ready` 3, `failed` 1 |
+| **hybrid `task_status or status`** (co jsem napsal první) | **30** | — |
+
+**8 z 34 řádků** má `status != task_status` (např. `engine.registry`: `status=done`,
+`task_status=failed`, `attempts=5`). K8 psala **31** (čítač `status`), já první
+napsal **30** (hybrid) — **a málem jsem to zapsal jako rozchod s K8**. Žádný
+rozchod neexistuje: jsou to **různé čítače téhož jména** (táž třída jako H212).
+**Pravidlo: u každého čísla piš, KTERÝ sloupec jsi četl.**
+
+### 75.4 Rozhodnutí uživatele: **(a) reaktivovat `uo-shadows`** — a co bylo naměřeno
+
+**Uživatel rozhodl 15./16. 10. 2026** větví **(a)** a hru **sám reaktivoval**
+(agent ji nezapínal — zadání to zakazovalo). Naměřeno **vlastním dotazem na živé
+API** (ne z dokumentu), **16. 10. 2026 12:03–12:07 UTC**:
+
+| Co | Hodnota |
+|---|---|
+| `/games` | **`uo-shadows` `active=1`**, `coin-picker` `active=0` (přepnuto) |
+| `/health` | `ok=true`, `ready=1`, `running=1`, `last_cron` **12:03:02Z** (`zdroj: cron`) — **tiká** |
+| cíl `/health` | `uo-shadows`, `main_ci` **#131 `success`** na `406bb7e2` |
+| **cíl je ČERVENÝ** | **`forge.ok=false`, `selhani_v_rade=19`** — devatenáct běhů v řadě |
+| fronta | `#270` **`running`** (založen 12:02:49), `#269` `ready` (11:40:49), `#240`–`#246` `blocked`, `#267` `failed` (`attempts=5`) |
+| roadmapa | **23 položek** (14 `coin-picker` + 9 `uo-shadows`) — proti 34 z 15. 10. |
+| běhy (API) | `#392` (úkol 270) **`failure`**, `#391` `failure`, `#390` `failure`, `#389` `failure` |
+| `uo-shadows` git | `HEAD` **`406bb7e`** = `origin/main` → **tři dřív nepushnuté commity JSOU pushnuté**, strom čistý |
+| otevřené PR | `uo-shadows` **#36** (stále otevřený), `coin-picker` **0** |
+
+**Dva RŮZNÉ důvody selhání (přečteno z logů běhů, ne z dokumentu):**
+
+1. **`#389` (úkol 266) a `#390` (úkol 267):** `litellm.RateLimitError: …
+   Request too large` → agent **needituje nic** → krok „Agent nic nezměnil →
+   hlásíme neúspěch“ **spadne**. To je přesně ta „rotace rozpočtu“ (K5 §13.4) —
+   prompt je nad stropem poskytovatele.
+2. **`#391` (úkol 269): AGENT USPĚL A PRÁCE SE ZTRATILA.** Job `Agent (free LLM)`
+   = **`success`** (vytvořil commit `5ffc580` na větvi `forge/task-269`, testy
+   hry prošly), ale job **`Otevři pull request`** spadl:
+   `git push --force-with-lease origin forge/task-269:refs/heads/forge/task-269`
+   → **`fatal: could not read Username for 'https://github.com': No such device
+   or address`** → `exit 128`. **Práce se nikdy nedostala na GitHub.**
+
+> **⚠ DŮLEŽITÉ PRO ROZHODOVÁNÍ:** `conclusion` **běhu** je `failure`, ale
+> **práce vznikla**. Kdo měří jen `conclusion`, řekne „agent selhal“ — a je to
+> **nepravda**. A naopak: granule s `attempts=5` **spálí pokus při každém dalším
+> selhání**, i když selhal až krok po agentovi.
+
+**Co zadání K9 (v hlavičce) tvrdilo a už NEPLATÍ (změřeno 16. 10.):** „tři granule
+`uo-shadows` `ready` se nevydají, dokud je hra `active=0`“ — hra je `active=1`
+a **starý plán je pryč**: cizí session roadmapu **přeplánovala** (34 → 23 položek;
+`#244`–`#246` → `blocked`; nové `#269`/`#270`) a **tři nepushnuté commity pushnula**.
+
+### 75.5 H216 — AUTO-DISCOVERY BRÁNY SKENUJE I **WORKTREE** (a počítá test dvakrát)
+
+`k6-over-testy-nastroju.py` hledá hry jako **sourozenecké adresáře** s
+`.forge/node/*.test.mjs`. Naměřeno **16. 10. 2026**: brána hlásí
+**`ZMĚŘENO: 7/7`** (K8 měla 5/5) — protože v `E:\Workspaces` leží **třetí**
+adresář s testy: **`uo-shadows-wt-kontrola`**, což je **git worktree** hry
+`uo-shadows` (`git worktree list` → `f51294a`, **detached HEAD**, tj. **jiná
+revize** než `main` `406bb7e`), navíc s necommitnutými soubory.
+
+**Důsledek:** táž dvojice testů se měří **dvakrát** (jednou na živé hře, jednou
+na cizí odložené kopii) a čítač to vydává za **větší pokrytí**. Kdyby ta odložená
+revize měla vadný test, brána by **padala za revizi, kterou nikdo nevydává**.
+**Nezavíral jsem to** (worktree je cizí práce — mazat se nesmí) a **není to
+regrese brány**: je to nález o tom, že „projdi sourozence“ má slepé místo.
+
+> **Druhá polovina téhož:** v orchestra je worktree **`_analyza/a-ukol-scratch`**
+> (taky z `uo-shadows`, `869dce8`) — tedy **cizí repo uvnitř našeho stromu**.
+
+### 75.6 Vlastní omyly K9 (doložené, ne přiznané z dojmu)
+
+1. **Málem jsem vyrobil rozchod, který neexistuje** (viz §75.3): první součet
+   roadmapy vzal `task_status or status` a dal **30**, K8 psala **31**. Zachránilo
+   to až **vypsání obou čítačů zvlášť**. — *„Různé čítače nesou stejné jméno.“*
+2. **Dvakrát jsem si rozbil vlastní výstup** (`node … > soubor.json`) — PowerShell
+   5.1 píše **UTF-16LE**, takže `json.load` spadl na `0xff`. **Trap, před kterou
+   zadání výslovně varuje**, a stejně jsem do ní šlápl dvakrát. Náprava: nástroj
+   si výstup **zapisuje sám** (`--out`, `fs.writeFileSync`).
+3. **Kalibrace první běh hlásila `SyntaxWarning`** do stderr (neraw docstring
+   s `\w`) — brána, která do stderr píše varování, znečišťuje výstup každému,
+   kdo ji čte. Opraveno `r"""` a ověřeno (`python -W error::SyntaxWarning`).
+
+### 75.7 Co zůstalo OTEVŘENÉ (nic se nemaže)
+
+* **H197** — cíl **<10 ms** u tiku **NESPLNĚN**; hypotéza „chybí model“ vs. „platí
+  se start izolátu“ **není rozhodnutá**. Cesta zpět: `git revert fb1b2c2`.
+* **K5 §13.4** — rotace rozpočtu na runneru **se živě neověřila**; a **16. 10. se
+  projevila jako živá příčina** (`Request too large`, §75.4).
+* **H209** — bloky omylů se od P22 nepíšou (čítač omylů **208**); **rozhodnutí je
+  na uživateli**, do té doby se nic nepřepisuje.
+* **`FORGE_PAT`** v repu hry — **agent to neudělá**.
+* **`kontrola-driftu.mjs` = 1 rozdíl + 2 záměrné** (známý stav, `exit 1`).
+* **`kontrola-diakritiky.py` má ruční seznam souborů (S27)** — kdo přidá dokument,
+  přidá ho i tam.
+* **Mutační doklad `_analyza/k7-mutace-generatoru.py` není v `g3`** (běh trvá minuty).
+* **`_analyza/p36-g3-registr.json`** netrackovaný (cizí) — nemazat, jen hlásit.
+* **`_k7-scratch` / `_k8-scratch` / `_k9-scratch`** — doklady mimo repo; osud je
+  na uživateli.
+* **`uo-shadows`:** mrtvé kopie testů (hlídá je orchestra), **otevřený PR #36**,
+  **worktree `uo-shadows-wt-kontrola`** (§75.5), **worktree `_analyza/a-ukol-scratch`**
+  — **všechno cizí session, nesahat.**
+
+### 75.8 Co čeká na uživatele
+
+* **`uo-shadows` je zapnutá, ale její cíl je ČERVENÝ** (20 selhání v řadě, §75.4).
+  **Dvě různá opatření, každé jinam:** (1) krok „Otevři pull request“ **nemá
+  přístup k repu** (`could not read Username` → `exit 128`) — dokud se to
+  neopraví, **každá úspěšná práce agenta se zahodí**; (2) prompt granule je
+  **nad stropem poskytovatele** (`Request too large`) → agent needituje nic.
+  Obě opravy jsou v **`.github/workflows/`** nebo v **popisu granule** — tedy
+  **mimo dosah agenta bez schválení**.
+* **Otázka směru se tím vrací:** zapnutá hra **spotřebovává pokusy** (`attempts=5`)
+  a nevydává práci. Možnosti: opravit PR krok, zmenšit granule, nebo hru znovu
+  zmrazit a vrátit se na `coin-picker` (ten je celý zelený, 0 otevřených PR).
+* **H209** (bloky omylů) — rozhodnutí.
+
+### 75.9 Brány a čísla (spuštěno touto session)
+
+| Brána | Naměřeno |
+|---|---|
+| `k6-over-testy-nastroju.py` | **7/7 zelených, 0 chyb** (`exit 0`) — ⚠ 7, ne 5: viz §75.5 |
+| `test-k6-testy-nastroju.py` | **34 kontrol, 0 chyb** (`exit 0`) — bylo 26/0 (K8) a 19/0 (K7) |
+| A/B matice (vlastní) | 15 fixtur × 3 verze brány → **0 rozchodů** po opravě |
+| mutace brány K6 (4×) | všechny kalibraci **shodily**, `sha256` zpět `177f75901abce9ce` |
+| `k7-mutace-generatoru.py` | **4/0**; generátor **25/25 → 23/25**, `sha256` zpět `ba81680073eba124` |
+| `hl-neanglicky-v-kodu.py` | inventář **10 964 nálezů** (K8: 10 799) |
+| `ag-over-cisla.py` | **`exit 0`** |
+| `g3-brany.py` | viz ostatní oddíl — spuštěno po zápisech |
+| `validate-all.mjs` | viz ostatní oddíl — spuštěno po zápisech |
+| `kronika-kontrola.py` | **208 omylů, 212 nálezů H, 63 sessions** (před zápisem K9) |
+| `handoff-kontrola-uplnost.py` | **83/83** |
+| `ov-g-neovereno.py` | **0 NEOVĚŘENO** (rozsah 35 návrhů NAxx + 99 nálezů Hxx ve 3 zdrojích) |
+| `kontrola-driftu.mjs` | **12 souborů, 1 rozdíl + 2 záměrné** |
+| testy `coin-picker` | Godot **161/0**; node **14/14**, **21 kontrol / 0 selhání**, `VŠE OK` |
+
+### 75.10 DODATEK — dva NEDEKLAROVANÉ červené exity `g3` a **SOUBĚŽNÁ SESSION** (16. 10. 2026, 12:0x–12:3x UTC)
+
+**⚠ V repu pracovala BOUŽEŽNÁ SESSION a během K9 commitovala.** Naměřeno: `HEAD` se mezi
+prvním a druhým měřením posunul **`3c96498` → `7cae0f3`** (commit **„conductor:
+RETRY_HOURS 3h -> 30 min (rozhodnuti uzivatele, 15. 10. 2026)"**, **1 soubor**:
+`conductor/wrangler.toml`, +10/−1, **pushnuto** — `origin/main` = `7cae0f3`).
+K8 byla v `3c96498`, ta je teď **`HEAD~1`**. **Moje A/B proti verzím brány z gitu se
+tím nemění** (`HEAD~1`/`HEAD` v době měření = `50b0139`/`3c96498`) — ale **každý údaj
+o „dnešním HEAD“ orchestra musí nést čas**. Cizí práci jsem **nestageoval, needitoval
+ani nemazal** (stage jen vyjmenovaných souborů).
+
+**Dvě červené brány, které NEJSOU moje práce, ale mají pojmenovanou příčinu** (obojí
+zapsané jako nálezy **H217** a **H218** v kronice §2.38):
+
+| Brána | Exit | Příčina (změřená) |
+|---|---|---|
+| `over-skilly` | 1 | **H217** — `docs/BRANY-HRY.md:133` hry `uo-shadows` zmiňuje v **minulém čase** cestu `_analyza/_selftest-copy/`, která **nemá existovat**; brána to bere jako mrtvý odkaz. Dokument přepsala **cizí session** (`02c5135`, 15. 10. 12:10 UTC), tedy **po** zeleném `g3` K8. Do hry se nesahá. |
+| `B2: /report zakládá cooldown` | 1 | **H218** — `RETRY_HOURS = "0.5"` (30 min, **rozhodnutí uživatele**, commit `7cae0f3`) a brána chce **celé** číslo → `CHYBA: RETRY_HOURS není kladné číslo ('0.5')` |
+| `B2: mutace brány (4 vrat)` | 1 | **H218** — jeho **vlastní kontrolní** check („nemutovaná brána je zelená“) spadne, protože brána pod mutací je červená (čekáno 0, dáno 1) |
+| `validate-all (CELEK)` | 1 | **H218 (dvakrát)** — agregát hlásí **2 problémy**, oba z `RETRY_HOURS = "0.5"`: `B2: /report zakládá cooldown` (`CHYBA: RETRY_HOURS není kladné číslo ('0.5')`) a `B2: mutační důkaz brány (4 vrata)` (spadne na vlastní kontrole). `over-skilly` (H217) v `validate-all` **NENÍ** — je jen na úrovni `g3`. |
+| `zadání kontrola` | 1 | **DEKLAROVANÝ** (`ocekavane_nenulove`) — hlavička zadání K9 je zastaralá (mění se až na konci K9, necommitovaná) |
+
+**`g3` naměřeno 16. 10. 2026 14:27:53:** **58 bran, s nenulovým exit 5, z toho
+deklarovaných 1 a NEDEKLAROVANÝCH 2 → `exit 1`**; brány, které vůbec nezačaly: **0**;
+brány bez čítače mimo deklarovaný stav: **3** (`lint-roadmapa`, obě B2 — druhá vlna
+důsledku H218). Proti tomu `_analyza/_registr-bran.json` v **HEAD z 15. 10. 07:40:59**
+(K8) má `s_nenulovym_exit: []` — **týž HEAD, jiný svět**: rozdíl dělá **cizí dokument
+hry** a **rozhodnutí uživatele**, ne kód orchestra.
+
+**Návrh pro příští session (ne rozhodnutí):** (a) H218 opravit v **bráně** (kladné
+číslo, `float`) — je to nástroj orchestra, ne cizí práce; (b) H217 vyřešit v **bráně**
+(rozlišit minulý čas) nebo ve **hře** (popsat to slovy) — do hry ale sahá jen její
+session; (c) do té doby **`g3` NENÍ zelené** a nesmí se to vydávat za zelené.
+
+### 75.11 DODATEK 2 — **H219**: inventář orchestra pokrývá i HRU (a souběžná session v ní mi zneplatnila `g3`)
+
+**Naměřeno 16. 10. 2026 12:38 UTC.** Během mého běhu `g3` **souběžná session commitovala do `uo-shadows`**
+(`406bb7e` → **`c72b309`**, **pushnuto**; commity `39f4e03` „PR #38 … engine.input je v main“,
+`d9662ec`, `c72b309`). `_analyza/hl-neanglicky-v-kodu.py` ale skenuje **oba kořeny** (orchestra **i** hru),
+takže **jejich commit zneplatnil MŮJ inventář uprostřed běhu**:
+
+| Kdy | Otisk vstupů | Souborů |
+|---|---|---|
+| inventář před `g3` | `556a9ed87dc01b07` | **1367** |
+| během `g3` (brána `N1`) | `a2305df9ddb3d0e6` | **1372** |
+| po regeneraci (hned kontrola) | `a2305df9ddb3d0e6` | 1372 → **`otisk vstupů SEDÍ`, `exit 0`** |
+
+**Důsledek:** brána `N1` v `g3` spadla na **vlastní kontrole** („brána neprojde ani ve zdravém stavu“,
+`exit=2`) — a **není to vada orchestra ani moje práce**: `git status` obou repů čistý, `HEAD` orchestra
+se nepohnul, žádný soubor nezůstal zmutovaný. **Dokud v HRĚ pracuje cizí session, `N1`
+a `hl-rizika-jazyka` NEMOHOU být spolehlivě zelené** a každé číslo z `g3` platí jen pro okamžik běhu.
+
+**A druhá věc, kterou naměřila HRA sama (ne já):** její commit `863847d` nese nález
+**„proc orchestra nevydava PR (nefunkcni hodnota secretu FORGE_PAT)“** — tedy **nezávislé
+potvrzení příčiny H215** (job `Otevři pull request` → `could not read Username`). A commit
+`d9662ec` hlásí, že **PR #38 se založilo a sloučilo** a `engine.input` je v `main` — takže
+část práce se **přesto** dostala ven. **Cituji to jako tvrzení HRY (svědectví), ne jako své měření.**
+
+### 75.12 DODATEK 3 — **H220** (brána nechává ve repu odpad) a **OPRAVA ATRIBUCE U H219** (vlastní omyl)
+
+**H220 — `over-skilly` nechává ve stromě netrackovaný adresář se 5 fixturami**
+(v `_analyza/`; jména mají tvar `fixtura-<téma>`: blok, historie, mrtvá cesta,
+příkaz, OK). **Není to příčina červené `N1`:** vzor artefaktů
+(`_analyza/[^/]*-scratch/`) je ze skenu **vylučuje** (naměřeno: `artefakt=True`;
+po smazání zůstal otisk na **1372 souborech**). Je to **hygiena** — odpad se hlásí
+jako `??` a `git add -A` (zakázané) by ho commitnul. **Pro měření jsem ho smazal**
+(běh brány ho vytvoří znovu) a **necommitoval jsem ho**.
+**Vlastní past, kterou to hned vyrobilo:** když jsem ta jména vypsal v kronice
+jako cesty, brána `kronika úplnost` ohlásila **5 rozchodů** („kronika odkazuje na
+neexistující …“) — **dokument nesmí odkazovat na cesty, které jsem smazal**;
+v kronice jsou proto popsané **slovem**, ne jako cesty.
+
+**⚠ OPRAVA ATRIBUCE U H219 (vlastní omyl).** První znění H219 připsalo posun otisku
+`1367 → 1372` **commitu HRY**; mezikrok ho připsal **tomu odpadu**. **Druhá hypotéza
+je vyvrácena měřením** (vzor artefaktů ten adresář vylučuje; po smazání zůstalo 1372).
+**První je doložená jako POSTAČUJÍCÍ, ne úplná:** otisk počítá **oba repy** — naměřeno
+`orchestra` **634** + `hra` **738** = **1372** (přesně číslo z otisku) — a hra v tom
+okně **commitovala** `406bb7e → c72b309`, čímž její skenovaná množina šla
+**727 → 738 (+11)**. **Rozpad „−6 v orchestře / +11 ve hře“ doložený NENÍ**, proto
+H219 říká „**postačující** příčina“, ne „jediná“. **A je to živý důkaz H219:**
+po regeneraci inventáře (když hra necommitovala) je brána `n1-over-inventar`
+**zelená** — naměřeno v `g3`.
+
+**Poučení: atribuce je tvrzení** (H211) — a platí i na měření vlastní session:
+dvě různé hypotézy o jedné příčině vypadají Obě jako vysvětlení, dokud se nezměří,
+**která z nich obstojí**.
