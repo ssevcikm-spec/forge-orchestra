@@ -1,9 +1,8 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-19 17:10:44",
+  "kdy": "2026-10-19 17:18:03",
   "bran_celkem": 58,
   "s_nenulovym_exit": [
-    "validate-all (CELEK)",
     "zadání kontrola"
   ],
   "ocekavane_nenulove": {
@@ -280,7 +279,7 @@
     },
     {
       "nazev": "validate-all (CELEK)",
-      "exit": 1,
+      "exit": 0,
       "otevrela": "— (brána nemá čítač)",
       "ma_citac": true,
       "prikaz": "node E:/Workspaces/forge-orchestra/tools/validate-all.mjs"
