@@ -6575,3 +6575,85 @@ vypisuje jen když existují granule bez `size_lines` (dnes žádné). Opraveno
 
 **Výsledek po všech opravách: `g3` = 58 bran, 0 nenulových exitů, 0 bran bez
 čítače, `exit 0`** (`VÝSLEDEK g3: PŘEHLED JE ÚPLNÝ`).
+
+---
+
+## 77. MĚŘENÍ FREE KLÍČŮ (19. 10. 2026) — orchestra nefunguje ze TŘÍ důvodů, free klíče jsou jeden z nich
+
+> **Co je tenhle oddíl:** **záznam o provedení měření** (ne plán, ne stav
+> konfigurace). Vznikl na **zadání z `dsh-dev`**
+> (`ZADANI-ORCHESTRA-FREE-KLICE-2026-10-19.md`, uživatel: „orchestra
+> nefunguje, předpokládám, že kvůli FREE api klíčům — ověř to měřením“).
+> **V konfiguraci orchestra ani hry jsem nic nezměnil** (zadání to zakazuje);
+> §6 analýzy je **návrh čekající na uživatele**.
+> **Plné měření:** `ANALYZA-FREE-KLICE-2026-10-19.md` (kořen repa).
+> **Doklady:** `_analyza\k11b-free-klice-vystup.txt` (10 běhů #397–#406
+> z logů), `_analyza\k11b-deepseek-vystup.txt` (3 běhy na DeepSeek),
+> `_analyza\k11b-patch-*.txt` (3 patche, commitnuté). Dva `*vystup.txt`
+> jsou záměrně **gitignorované** (konvence pro naměřené výstupy) — leží
+> na disku, v gitu ne.
+
+### 77.1 Odpověď v pěti řádcích (A1–A5)
+
+| # | Otázka | Naměřená odpověď |
+|---|---|---|
+| **A1** | Je `Request too large` velikostí promptu? | **ANO** — prompt granule **31 462–33 803 t**, strop groq free **8 000 TPM** (živě `x-ratelimit-limit-tokens: 8000`), tj. **4×**. Mistral codestral (625 000 TPM) tentýž 32–38k požadavek **přijímal**. |
+| **A2** | Je TPM propustnostní limit? Existuje retry/backoff? | **ANO, propustnost** (padá **první** požadavek; 9 opakování nepomohlo: groq 65 s s backoffem 0,2→32 s, cerebras ~17 min po ~2min krocích). **Retry na požadavku v orchestra kódu NENÍ** (workflow po `RateLimitError` 2. providera záměrně přeskočí); litellm dělá 8 pokusů. Granulový retry existuje (`RETRY_HOURS=0,5`, `MAX_ATTEMPTS=5`, `GRAIN_MAX_RUNS=8`), ale posílá týž prompt. |
+| **A3** | Projde stejná granule na velkém kontextu? | **NE** — DeepSeek flash i v4-pro (1M kontext, placené): 33k tokenů přijato, patch aplikován, **parse 0 chyb**, ale testy **113/2 selhání** u obou (baseline **113/0**). Příčina je **rozpor zadání a testů**, ne poskytovatel. |
+| **A4** | Který model zapsal neparsovatelný `game.gd`? | **`codestral-latest` (mistral), běh #398** — poslechl vadné tvrzení zadání „soubor začíná `extends Node`“ a přepsal `Node2D`→`Node` → 5× parse error `get_viewport_rect()`. **U silnějšího modelu se to NEOPAKOVALO** (v4-pro `Node2D` zachoval, 0 chyb). |
+| **A5** | Stav dnes | Od **16. 10. 17:43** žádný nový běh Forge (3 dny), i když conductor tiká a ve frontě jsou **3 ready** úlohy; `entity.move.smooth` je na **stropu 8/8** (task #272 5 + #273 3). Proč se nevydaly **#270/#271 = NEMĚŘENO** (měřilo by se plným `POST /tick`, který dispatchuje do cizího repa — bez domluvy ne). |
+
+### 77.2 Nálezy H228–H233
+
+| # | Nález | Doklad |
+|---|---|---|
+| **H228** | **60 % promptu si aider přidává SÁM.** `aider/coders/base_coder.py:919` (`preproc_user_input` → `check_for_file_mentions`) přidá do chatu každý soubor, který zadání **zmíní cestou**; s `--yes` bez potvrzení. Zadání „podle `docs/GDD.md` §6“ → +**19 142 t** (z 32k promptu). Naměřeno tiktokenem + v každém logu řádek `docs/GDD.md`. | `_analyza\k11b-free-klice-vystup.txt`, §2.3 analýzy |
+| **H229** | **Rate-limitové selhání se počítá jako kvalitativní a pálí pokusy.** `report.mjs` posílá vždy summary `"Testy po zasahu agenta selhaly"`; conductor má od K5 větev `kvota = /QUOTA/i.test(summary)` (`index.ts:2201`), která by pokus **vrátila** a dala 10 min — ale slovo QUOTA tam **nikdy není**. Naměřeno: task #272 spálil 5/5 pokusů, pak nový task #273 3/3, granule na stropu 8/8. | `conductor/src/index.ts:2201-2233`, logy běhů |
+| **H230** | **Dvě granule jsou v rozporu s testy hry** (a agent nesmí editovat `tests/`): (1) `shell.nocoins` chce mince/skóre **odstranit**, `tests/run_tests.gd:79-95` chce **5 mincí** a HUD „0“; (2) `entity.move.smooth` chce **vyhlazení**, `tests:1009-1024` chce po `move(smer)` **plný krok** a `:1032` **doslova** `move(dir, delta)`. Oba DeepSeek modely selhaly na **týchž dvou** kontrolách — důkaz, že to není náhoda modelu. **Dokud se to nespraví, nesplní granule žádný model.** | `_analyza\k11b-deepseek-vystup.txt` |
+| **H231** | **`CONVENTIONS.md` §1g a zadání tvrdí „soubor začíná `extends Node`“, ale `scripts/game.gd:1` je `extends Node2D`.** Model, který poslechne (codestral, #398), rozbije parse; silnější model realitu zachová. Je to **vadný fakt v zadání**, ne kvalita modelu. | log #398 (SEARCH/REPLACE řádky 734/761) |
+| **H232** | **Denní „Kontrola modelů“ je zelená bez jediného skutečného požadavku** (`providers-check.mjs --no-ping`; dnešní běh: „0 poskytovatelů OK, 1 mrtvých signálů“, `success`). Cerebras dnes navíc **HTTP 402** (kredit vyčerpán). | `model-check.yml`, log běhu 39250447796 |
+| **H233** | **Orchestra 3 dny nevydala běh** (poslední #406, 16. 10. 17:43), přestože conductor tiká (`last_cron` < 1 min) a jsou 3 ready úlohy. Pro `entity.move.smooth` je to zamýšlený strop (8/8); pro #270/#271 **NEMĚŘENO** (viz A5). | `/health`, `/queue`, `/roadmap`, `/status` (19. 10.) |
+
+### 77.3 Co zůstává otevřené (čeká na rozhodnutí uživatele)
+
+- **§6 analýzy — návrh konfigurace s cenou** (9 bodů; body 1–2, 4–7 zdarma,
+  8 = placený DeepSeek **2,5 ¢/pokus** měřeno, ~3–5 USD/měsíc po opravách;
+  9 = jen mistral zdarma). **Nic z toho není provedeno.**
+- **H223** (anglické `FAIL: N`, z K10) — nedotčeno.
+- **H230** patří **session HRY** (rozhodnutí, co s testy/zadáním); orchestra
+  do hry nepíše.
+- **NEMĚŘENO:** číslo cerebras TPM (dnes 402), důvod nevydání #270/#271.
+
+### 77.4 Co jsem NEPROVEDL (a proč)
+
+- **Neměnil** `providers.json`, workflowy ani secrety (zákaz zadání).
+- **Nepsal** do `uo-shadows` ani do `dsh-dev`; herní klon zůstal na `c72b309`
+  a čistý, měření běželo v odpojených worktree (`q3-hra`, `q4-hra`,
+  `base-hra`), které byly **po měření odstraněny** (v `git worktree list`
+  zůstaly jen cizí worktree `a-ukol-scratch` a `uo-shadows-wt-kontrola`).
+- **Nespustil** plný `POST /tick` (dispatchoval by do cizího repa).
+
+### 77.5 Změny prostředí (mimoděk, přiznáno)
+
+Kvůli Q3 jsem musel nainstalovat **aider-chat 0.86.2** do systémového Pythonu
+(CI používá tutéž verzi). Pip při tom **ponížil** některé stanicí balíčky
+(v logu `pip` jsou původní verze: `litellm 1.101.0 → 1.81.10`,
+`openai 2.54.0 → 2.20.0`, `pydantic_core 2.46.5 → 2.41.5`,
+`prompt_toolkit 3.0.53 → 3.0.52`, `fsspec 2026.7.0`, `hf-xet 1.6.0`).
+Cesta zpět: `python -m pip install --upgrade litellm openai pydantic prompt-toolkit fsspec hf-xet`
+(nebo přesné verze z logu `.tmp\pip-aider.log` — ten je dočasný).
+**Pro orchestra samotnou to nic nemění** (běží v Node/Cloudflare), ale je to
+zásah do stanice, který má uživatel vědět.
+
+### 77.6 Co jsme se naučili
+
+1. **Free tier není jen pomalý — má strop na velikost.** H5 (2. 10. 2026:
+   „groq 8 000 < prompt 14 398“) byl otevřený a **zůstal otevřený**; dnes je
+   prompt 32k, tj. 4× nad stropem. Rate-limitové chyby jsou matematika, ne čas.
+2. **Zadání granule je taky konfigurace** (H228, H231): zmínka cesty přidá
+   60 % promptu; nepravdivé tvrzení o `extends` rozbije parse. Obě příčiny
+   jsou v **textu**, ne v kódu.
+3. **Nejdřív „jde to vůbec splnit?“, potom „jaký model?“** (H230) — dvě
+   granule jsou v rozporu s testy, které agent nesmí měnit; tam nepomůže ani
+   1M kontext.
+4. **Zelená kontrola bez požadavku je falešný signál** (H232).

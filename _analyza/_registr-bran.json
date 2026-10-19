@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-16 17:04:37",
+  "kdy": "2026-10-19 15:07:47",
   "bran_celkem": 58,
   "s_nenulovym_exit": [],
   "ocekavane_nenulove": {
@@ -75,14 +75,14 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "894",
+      "otevrela": "897",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
     {
       "nazev": "zadání kontrola",
       "exit": 0,
-      "otevrela": "286",
+      "otevrela": "239",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/zadani-kontrola.py"
     },
@@ -96,7 +96,7 @@
     {
       "nazev": "over-skilly",
       "exit": 0,
-      "otevrela": "18",
+      "otevrela": "19",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
     },
