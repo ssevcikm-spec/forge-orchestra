@@ -6657,3 +6657,67 @@ zásah do stanice, který má uživatel vědět.
    granule jsou v rozporu s testy, které agent nesmí měnit; tam nepomůže ani
    1M kontext.
 4. **Zelená kontrola bez požadavku je falešný signál** (H232).
+
+### 77.7 DOPLNĚNÍ 19. 10. 2026 (odpoledne) — po rozhodnutí uživatele „připravit vše“
+
+**A5 je od 15:15 UTC ZMĚŘENO, ne NEMĚŘENO.** Plný `POST /tick` (žádný běh
+nevznikl — dispatcher nespustil nic) vrátil:
+
+```
+spusteno: 0 úloh; polling: zadny cloudovy beh nebezi; roadmapa je hotová (...);
+přeskočeno: #270 STROP GRANULE 8/8 (uo-shadows/shell.nocoins);
+            #271 STROP GRANULE 8/8 (uo-shadows/shell.save);
+            #273 STROP GRANULE 8/8 (uo-shadows/entity.move.smooth)
+```
+
+→ **Orchestra nevydává proto, že všechny tři granule jsou na `GRAIN_MAX_RUNS=8`,
+ne proto, že by byla mrtvá (H236).** Je to zamýšlený strop; po opravě je nutný
+roadmap reset (rozhodnutí uživatele). **Žádný zápis do hry se nekonal.**
+
+| # | Nový nález (H234–H235) |
+|---|---|
+| **H234** | **OPRAVY A1/A2 UŽ V ORCHESTRA EXISTUJÍ — ALE NE V ZÁPASE HŘE.** Šablona `repo/` má od K1–K5 a P42 celou vrstvu: `prompt-hygiene.mjs` (naměřeno **22 025 → 14 097 t**), `request-budget.mjs` (naměřené stropy z `providers.json`, failover na jiného poskytovatele), `classify-agent-log.mjs` (REQUEST_TOO_LARGE/QUOTA/AUTH), `probe-provider.mjs`, `rozpocet-granuli.mjs`, blok `limits` (mistral 625 000, cerebras 30 000, groq 8 000) a `agent.yml` s 4 kroky navíc (822 řádků vs 698 ve hře). **`uo-shadows` běží starý workflow bez toho** — a to je vlastní příčina běhů #397–#406. Drift gate rozdíl znal, ale vedl ho jako „známý“ (N4: drift je slepý k obsahu kroků, porovnává jména). **Důsledek: „free klíče“ nejsou hlavní příčina — hlavní je nesynchronizovaná šablona.** |
+| **H235** | **DEEPSEEK JE NYNÍ VOLITELNÝ POSKYTOVATEL V ŠABLONĚ (provedeno, k odsouhlasení).** Do `repo/.forge/providers.json` přidán `deepseek` (`api.deepseek.com/v1`, `deepseek-flash`/`deepseek-v4-pro`, `anyPriority: 95`, `limits` bez `tpm` — TPM NEMĚŘENO) a do `repo/…/agent.yml` `DEEPSEEK_API_KEY` na obou místech. Bez secretu se přeskočí → chování beze změny. **Ověřeno:** provider-choice **21/0**, probe-provider **14/14**, priprava **55/55**, request-budget s 45 kB souborem: groq `REQUEST_TOO_LARGE` (exit 1) vs mistral `REQUEST_FITS` (exit 0). **Cena měřená:** flash 2,5 ¢/pokus (33k in + 33k out thinking, off-peak), v4-pro 5,2 ¢; měsíc 15–25 USD při dnešním tempu, po opravách 3–5 USD. Secret musí přidat **uživatel**. |
+
+**Nové dokumenty (oba v kořeni repa):**
+- `NAVRH-FREE-KLICE-KONFIGURACE-2026-10-19.md` — co je/není hotové, cena
+  placeného modelu, pořadí kroků (sync → opravy granulí → roadmap reset →
+  secret), tabulka rozhodnutí.
+- `PREDANI-HRE-SYNC-A-OPRAVY-2026-10-19.md` — **podklad pro session HRY**:
+  přesný seznam souborů k sync z šablony (agent.yml, 3 nové `.forge/node/*`
+  nástroje, testy, `files-to-edit.mjs --konvence`, MERGE `providers.json`),
+  co NEsyncovat (CONVENTIONS.md patří hře), H230/H231, ověřovací příkazy.
+
+**Stav:** v orchestra **jen šablona** (`repo/`) + dokumenty; **hry ani
+`dsh-dev` nedotčené**; do hry se stále nepsalo. Brany po změnách: viz §77.8.
+
+### 77.8 Brány po změnách (19. 10. 2026, 15:30–16:10 UTC)
+
+Změněné soubory: `repo/.forge/providers.json` (+`deepseek`), 
+`repo/.github/workflows/agent.yml` (+`DEEPSEEK_API_KEY` na 2 místech),
+`tools/validate-all.mjs` (kanárek počtu poskytovatelů **5 → 6**, s datem a
+důvodem), dva nové dokumenty (`NAVRH-FREE-KLICE…`, `PREDANI-HRE…`),
+`HANDOFF.md` a `KRONIKA-PROJEKTU.md`.
+
+**Naměřeno před pushem** (na pracovním stromě s hotovými záznamy):
+
+| brána | výsledek |
+|---|---|
+| `provider-choice.test.mjs` | **21/0** |
+| `probe-provider.test.mjs` | **14/14** |
+| `priprava.test.mjs` | **55/55** |
+| `request-budget` (45 kB soubor) | groq `REQUEST_TOO_LARGE` exit 1 · mistral `REQUEST_FITS` exit 0 |
+| YAML šablony + `providers.json` | platné (PyYAML, JSON) |
+| `kontrola-diakritiky` / `over-dokumentaci` / `over-skilly` / `kronika-kontrola` / `handoff-kontrola-uplnost` | exit 0 |
+| `g3-brany.py` / `validate-all.mjs` | **`živý providers.json = lokální` je červená, dokud změna není na originu** — to je jediný očekávaný červený bod; po pushi se měří znovu a výsledek je v další větě |
+| `_inventar.json` | 10 989 nálezů |
+
+**Po pushi (finální):** `g3` = **58 bran, 0 nenulových exitů, `exit 0`** ·
+`validate-all` = **VŠE V POŘÁDKU** · inventář **10 989** · živý
+`providers.json` = lokální (CDN se obnovila). Tím je §77.8 doložený.
+
+**Co zůstává na uživateli (nezměněno):** (1) GitHub secret
+`DEEPSEEK_API_KEY` do repa hry; (2) sync šablony do hry (session HRY, podklad
+`PREDANI-HRE-SYNC-A-OPRAVY-2026-10-19.md`); (3) H230/H231 v zadáních hry;
+(4) roadmap reset po opravě (granule 8/8); (5) volitelně model-check ping
+(H232).

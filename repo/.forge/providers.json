@@ -141,6 +141,27 @@
         "qwen/qwen3.8-27b:free",
         "google/gemma-4-31b-it:free"
       ]
+    },
+    {
+      "name": "deepseek",
+      "baseUrl": "https://api.deepseek.com/v1",
+      "keyEnv": "DEEPSEEK_API_KEY",
+      "anyPriority": 95,
+      "_anyPriority": "PLACENÝ (rozhodnutí uživatele 19. 10. 2026): pro granule `any` až na konci, ať se neplatí, když free zdroj stačí. Pro `strong` je v `strongModels` — kontext 1M unese i 33k-tokenový request, na kterém free stropy padají (měřeno 19. 10. 2026).",
+      "_proc_placeny": "Sem patří modely, za které se platí. Do `models`/`strongModels` se dávají stejně jako free — rozhoduje pořadí (`anyPriority` vzestupně) a to, zda klíč v Secrets existuje. Když `DEEPSEEK_API_KEY` chybí, pick-provider poskytovatele přeskočí a řetězec funguje beze změny.",
+      "models": [
+        "deepseek-flash",
+        "deepseek-v4-pro"
+      ],
+      "strongModels": [
+        "deepseek-flash",
+        "deepseek-v4-pro"
+      ],
+      "limits": {
+        "_mereno": "19. 10. 2026: čtyři requesty 21 000–33 000 tokenů přijaty (aider 0.86.2 přes OpenAI-kompatibilní endpoint). TPM NEMĚŘENO (api-docs uvádí jen concurrency limit 2 500 pro flash / 500 pro v4-pro) — proto tu `tpm` NENÍ a request-budget jen varuje (odhad), nevynucuje.",
+        "_cena": "Ceník api-docs.deepseek.com 19. 10. 2026 — USD za 1M tokenů, off-peak/peak: flash vstup miss 0,15/0,30, hit 0,003/0,006, výstup 0,6/1,2; v4-pro vstup miss 0,66/1,32, hit 0,022/0,044, výstup 1,98/3,96.",
+        "_merena_spotreba": "Jeden pokus (off-peak): flash 33k in + 33k out (thinking) = 0,025 USD; v4-pro 33k in + 15k out = 0,052 USD. Thinking mód je výchozí a stojí většinu ceny — pro kódové úpravy zvážit vypnutí."
+      }
     }
   ]
 }

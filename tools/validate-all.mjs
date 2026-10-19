@@ -191,9 +191,15 @@ const agentWf = (wf.workflows || []).find((w) => w.path.endsWith('/agent.yml'));
 test('agent.yml je active', agentWf?.state === 'active', agentWf?.state);
 
 console.log('\n════ H. MODELOVÝ ŘETĚZEC ════');
+// Číslo je ZÁMĚRNĚ natvrdo: je to kanárek na to, že z řetězce tiše zmizel
+// (nebo přibyl) poskytovatel. Kdo řetězec mění, přeměří tohle číslo — jinak
+// by brána o změně mlčela.
+// 19. 10. 2026: 5 → 6, přidán PLACENÝ `deepseek` (rozhodnutí uživatele;
+//   `repo/.forge/providers.json` + `DEEPSEEK_API_KEY` v agent.yml).
+//   Bez secretu se přeskočí, chování řetězce se nemění.
 const prov = JSON.parse(readFileSync(`${ORCH}/repo/.forge/providers.json`, 'utf8'));
 const nazvy = prov.providers.map((p) => p.name);
-test('řetězec má 5 poskytovatelů', prov.providers.length === 5, nazvy.join(', '));
+test('řetězec má 6 poskytovatelů', prov.providers.length === 6, nazvy.join(', '));
 test('gemini je označený skromny', prov.providers.find((p) => p.name === 'gemini')?.skromny === true);
 const strong = prov.providers.filter((p) => (p.strongModels || []).length);
 test('silné modely definované', strong.length >= 3, strong.map((p) => p.name).join(', '));

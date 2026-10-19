@@ -1108,6 +1108,60 @@ uzavírá jen H217 a H218. **Téhož dne večer uživatel rozhodl** a session K1
 
 **Poučení z K11b:** (1) **Free tier má strop na VELIKOST, ne jen rychlost** — H5 (2. 10. 2026: „groq 8 000 < prompt 14 398“) zůstal otevřený; dnes je prompt 32k, tj. 4× nad stropem, a retry to nespraví (matematika). (2) **Zadání granule je taky konfigurace** — zmínka cesty přidá 60 % promptu, nepravdivé tvrzení o `extends` rozbije parse. (3) **Nejdřív „jde to vůbec splnit?“, potom „jaký model?“** — dvě granule jsou v rozporu s testy, které agent nesmí měnit. (4) **Zelená kontrola bez požadavku je falešný signál** (H232).
 
+### 2.41 Doplnění z K11b (19. 10. 2026 odpoledne) — opravy A1/A2 existují v ŠABLONĚ, hra je nemá; A5 doměřeno (H234–H236)
+
+
+> **⚠ APPEND-ONLY DOPLNĚNÍ:** §2.40 zapsala session K11b dopoledne a v té době
+> platilo, že A5/H233 je **NEMĚŘENO**. Odpoledne se to doměřilo (H236) a
+> uživatel rozhodl o dalších krocích (H234, H235). **Historický zápis se
+> nepřepisuje** — doplnění je tady, s časem.
+
+| Nález | Co je naměřeno | Doklad |
+|---|---|---|
+| **H234** | **OPRAVY A1/A2 UŽ V ORCHESTRA EXISTUJÍ — ALE NE V ZÁPASE HŘE.**
+Šablona `repo/` má od K1–K5 a P42: `prompt-hygiene.mjs` (naměřeno
+**22 025 → 14 097 t**), `request-budget.mjs` (naměřené stropy + failover na
+jiného poskytovatele), `classify-agent-log.mjs` (REQUEST_TOO_LARGE / QUOTA /
+AUTH), `probe-provider.mjs`, `rozpocet-granuli.mjs`, blok `limits`
+(mistral 625 000, cerebras 30 000, groq 8 000 TPM) a `agent.yml` s 4 kroky
+navíc (**822 vs 698 řádků**). **`uo-shadows` běží STARÝ workflow bez toho**
+— a to je vlastní příčina běhů #397–#406. Drift gate rozdíl znal, ale vedl
+ho jako „známý“ (N4: drift porovnává jména kroků, ne obsah). **„Free klíče“
+tedy nejsou hlavní příčina — hlavní je nesynchronizovaná šablona.**
+Ověřeno lokálně: `request-budget` s 45 kB souborem → groq
+`REQUEST_TOO_LARGE` (exit 1), mistral `REQUEST_FITS` (exit 0). |
+`repo/.forge/node/*`, `repo/.github/workflows/agent.yml`,
+`PREDANI-HRE-SYNC-A-OPRAVY-2026-10-19.md` |
+| **H235** | **DEEPSEEK PŘIDÁN DO ŠABLONY JAKO VOLITELNÝ POSKYTOVATEL**
+(rozhodnutí uživatele „schválit placený model“; **provedeno jen v `repo/`**,
+nasazení čeká na secret a sync). `repo/.forge/providers.json`: `deepseek`
+(`api.deepseek.com/v1`, `deepseek-flash`/`deepseek-v4-pro`,
+`anyPriority: 95`, `limits` bez `tpm` — TPM NEMĚŘENO) + `DEEPSEEK_API_KEY`
+v `repo/…/agent.yml` na obou místech. Bez secretu se přeskočí → chování
+beze změny. **Ověřeno:** provider-choice **21/0**, probe-provider **14/14**,
+priprava **55/55**, providers.json je platný JSON. **Cena měřená:** flash
+**2,5 ¢/pokus** (33k in + 33k out thinking, off-peak), v4-pro **5,2 ¢**;
+měsíc 15–25 USD při dnešním tempu, po opravách 3–5 USD. Secret přidává
+**uživatel**. | `repo/.forge/providers.json`,
+`repo/.github/workflows/agent.yml`,
+`NAVRH-FREE-KLICE-KONFIGURACE-2026-10-19.md` |
+| **H236** | **A5 DOMĚŘENO: orchestra není mrtvá, je NA STROPU.** Plný
+`POST /tick` (19. 10. 15:15 UTC) vrátil `spusteno: 0 úloh` a pojmenoval
+důvod: **`#270 STROP GRANULE 8/8`**, **`#271 STROP GRANULE 8/8`**,
+**`#273 STROP GRANULE 8/8`** (`GRAIN_MAX_RUNS=8`). Žádný běh nevznikl →
+**do hry se nezapsalo nic**. Po opravě granulí je nutný roadmap reset
+(`tools\roadmap-reset.mjs`) — rozhodnutí uživatele, ne agenta.
+**(Doplnění k H233, který v době zápisu oprávněně říkal NEMĚŘENO.)** |
+`HANDOFF.md` §77.7, odpověď conduktora na `POST /tick` |
+
+**Poučení z doplnění:** (1) **„Známý“ drift není totéž jako „neškodný“** —
+rozdíl šablona vs. hra byl evidovaný, ale nikdo nepojmenoval, že hra bez
+těch kroků **nemůže** uspět (H234; N4 je slepý k obsahu kroků).
+(2) **NEMĚŘENO se má doměřit, ne hádat** — jediný plný tik vysvětlil tři
+dny ticha (H236); do té doby to bylo „neměřeno“, ne „nefunguje“.
+(3) **Placený model je poslední krok, ne první** — měřené pořadí
+sync → opravy granulí → reset → secret.
+
 ## 3. Počty omylů — jediné místo, kde je vidět TREND
 
 
