@@ -3,9 +3,14 @@
 > **Co tenhle dokument JE:** **návrh k rozhodnutí** (ne stav, ne záznam), vznikl
 > 19. 10. 2026 v session K11b na zadání
 > `dsh-dev\_sprava\ZADANI-ORCHESTRA-FREE-KLICE-2026-10-19.md`.
-> **Co NENÍ:** provedení. **Co už provedeno JE:** jen položka 1 níž (DeepSeek
-> poskytovatel v **šabloně** `repo/`; nic se nenasadilo, secret neexistuje,
-> do hry se nepsalo).
+> **Co NENÍ:** provedení. **⚠ Stav 20. 10. 2026:** body B (sync), C (H230/H231)
+> i D (roadmap reset) jsou **provedeny** — orchestra bez DeepSeek klíče
+> dispatchuje, vytvořila a sloučila PR #39 a hra je na **11/11 granulí `done`**
+> (herní commity `4c0fb21`, `d4d55e7`, `3e1592b`; CI #137/#139/#140
+> `success`). **DeepSeek secret (A) uživatel zatím nepřidá** — jeho položka
+> v řetězci se jen přeskočí (naměřeno v běhu #408: vybrán `mistral`, request
+> 18 576 t). Placený model je tedy **volitelná kvalita, ne podmínka chodu**.
+> Aktuální stav: `HANDOFF.md` §77.9–77.10.
 > **Měření, ze kterého to vychází:** `ANALYZA-FREE-KLICE-2026-10-19.md`.
 > **Odkud brát stav:** `HANDOFF.md` §77.
 

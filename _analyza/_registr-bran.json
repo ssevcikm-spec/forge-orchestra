@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-19 17:18:03",
+  "kdy": "2026-10-19 23:54:55",
   "bran_celkem": 58,
   "s_nenulovym_exit": [
     "zadání kontrola"
@@ -14,7 +14,7 @@
     {
       "nazev": "testy hry (Godot)",
       "exit": 0,
-      "otevrela": "113 / 0",
+      "otevrela": "130 / 0",
       "ma_citac": true,
       "prikaz": "E:\\Tools\\godot\\Godot_v4.7.2-stable_win64_console.exe --headless --path E:\\Workspaces\\uo-shadows --script res://tests/run_tests.gd"
     },
@@ -294,7 +294,7 @@
     {
       "nazev": "chybějící importy (statická)",
       "exit": 0,
-      "otevrela": "151",
+      "otevrela": "156",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/hl-chybejici-importy.py"
     },
@@ -406,7 +406,7 @@
     {
       "nazev": "K6: testy nástrojů ve hrách (spustí se a musí být zelené)",
       "exit": 0,
-      "otevrela": "7 / 7",
+      "otevrela": "8 / 8",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/k6-over-testy-nastroju.py"
     },

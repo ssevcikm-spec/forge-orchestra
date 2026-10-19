@@ -1,7 +1,7 @@
 > **Sekce konvencí `06-soubor-granule`** (§1g). Agent dostane jen ty sekce, které
 > jeho granule deklaruje v roadmapě.
 
-## 1g. Soubor granule se instancuje přes `load(...).new()` – musí to být `extends Node`
+## 1g. Soubor granule se instancuje přes `load(...).new()` – NOVÝ soubor musí být `extends Node`
 
 Testy berou každý soubor granule takhle:
 
@@ -14,9 +14,16 @@ obj.use()                                # smluvní metody musí existovat na t�
 Z toho plynou tři pravidla, která Godot sám nezkontroluje (parse projde, testy
 pak spadnou na „překročen tvrdý limit 90 s" a příčina není vidět):
 
-1. **Soubor začíná `extends Node`.** Když je to `Resource` nebo `RefCounted`,
-   `new()` sice projde, ale instance není uzel – a uvolnění v testech (`free()`)
-   na RefCounted vyhodí chybu, která **přeruší celý běh testů**.
+1. **Nový soubor granule začíná `extends Node`.** Když je to `Resource` nebo
+   `RefCounted`, `new()` sice projde, ale instance není uzel – a uvolnění
+   v testech (`free()`) na RefCounted vyhodí chybu, která **přeruší celý běh
+   testů**.
+   **⚠ Když soubor GRANULE UŽ existuje a začíná jinak** (typicky `Node2D`
+   scéna, `Area2D` hráč), **zachovej jeho stávající `extends`** — pravidlo
+   platí pro NOVÉ soubory. Naměřeno 16. 10. 2026 (běh #398): model poslechl
+   dřívější znění „soubor začíná `extends Node`“ a přepsal `scripts/game.gd`
+   z `Node2D` na `Node`; rozbil tím 5 volání `get_viewport_rect()` a parse
+   gate běh shodil. Takové soubory se přes `load(...).new()` neinstancují.
 2. **`class_name` NIKDY nesmí být i jméno vnořené `class` ve stejném souboru.**
 
    ```gdscript

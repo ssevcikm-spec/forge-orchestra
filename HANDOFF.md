@@ -6721,3 +6721,119 @@ důvodem), dva nové dokumenty (`NAVRH-FREE-KLICE…`, `PREDANI-HRE…`),
 `PREDANI-HRE-SYNC-A-OPRAVY-2026-10-19.md`); (3) H230/H231 v zadáních hry;
 (4) roadmap reset po opravě (granule 8/8); (5) volitelně model-check ping
 (H232).
+
+### 77.9 DOKONČENÍ 19. 10. 2026 (večer) — sync do hry, M0/M1, první běh s novým workflow
+
+**Uživatel 19. 10. večer: „Tak to prosím dokonči. Deepseek key zatím
+nepřidám, jdu spát a nechám session běžet samovolně.“** Provedeno bez
+DeepSeek secretu (v řetězci je, ale přeskočí se — `chybí DEEPSEEK_API_KEY`).
+
+**1. Sync šablony orchestra → hra `uo-shadows` (commit `4c0fb21`, push ověřen
+`origin/main` = `HEAD`; CI #137 `success`, release #97 `success`):**
+
+| Co se přeneslo | Poznámka |
+|---|---|
+| `.github/workflows/agent.yml` | nová verze: prompt-hygiene, request-budget (měřené stropy + failover), classify-agent-log, timeout 300 s, 4 kroky navíc |
+| `.forge/node/{prompt-hygiene,request-budget,classify-agent-log,probe-provider}.mjs` + `probe-provider.test.mjs` | nové; test **14/14** v herním repu |
+| `.forge/files-to-edit.mjs` | režim `--konvence` |
+| `.forge/providers.json` | `limits` (mistral 625 000, cerebras 30 000, groq 8 000 TPM) + volitelný `deepseek` |
+
+**`priprava.test.mjs` NEBYL přenesen** — je to test šablony a vyžaduje
+`CONVENTIONS/` sekce + `roadmap.pilot.json`, které hra nemá (rozdělení
+konvencí hry je samostatný úkol; do té doby workflow pošle celý
+`CONVENTIONS.md`, naměřeno **4 687 t** — do mistralu se vejde).
+**Drift gate po sync: 12 souborů, 0 rozdílů, 1 záměrný (`CONVENTIONS.md`),
+`exit 0`** — dřívější „známý rozdíl“ (H234) zmizel.
+
+**2. H230/H231 dokončeno:**
+- `CONVENTIONS.md` §1g: pravidlo „soubor začíná `extends Node`“ omezeno na
+  **nové** soubory; existující `Node2D`/`Area2D` se zachovává (H231; táž oprava
+  i v šabloně `repo/CONVENTIONS/06-soubor-granule.md`). Vadné texty zadání
+  (`extends Node` u `shell.nocoins`, `move(smer…)` u `entity.move.smooth`)
+  opraveny v `.forge/roadmap.json`.
+- **M0 `shell.nocoins` (hotovo):** `game.gd` bez mincí a skóre, HUD bez
+  registru ukazuje „—“; opravena i **vada 11 z TDD §10** (tween na `hud`
+  před jeho vytvořením). Testy měří opak staré dohody (0 mincí, žádné skóre,
+  čtou i KÓD).
+- **M1 `entity.move.smooth` (hotovo):** `player.gd` — `ACCEL 650`,
+  `DECEL 900`, mrtvá zóna 12 px, stamina, `_step()` proti zdím; **testovací
+  cesta `move(dir)` bez času zůstává přesně jeden krok `SPEED/60`**
+  (na tom stojí testy izometrie) a `_physics_process` dál volá doslova
+  `move(dir, delta)`. Smlouva rozšířena v `TDD` §3.7, změna zapsána v `GDD`
+  §13 (append-only).
+- **Výsledek herních bran po změnách:** Godot testy **123/0** (dřív 113/0),
+  smoke **0 SCRIPT ERROR**, `check-schema` OK, `check-assets` OK,
+  `check-wiring` OK, `zkontroluj-plan` OK (11 granulí, 1 připravená).
+
+**3. Roadmap reset a první orchestra běh s NOVÝM workflow:**
+- `POST /roadmap/reset` (11 granulí smazáno) → tik do minuty znovu zapsal
+  **8 granulí `done`** a **`sim.wire` queued**; vznikl task **#275**
+  (attempts 1) a conductor ho **dispatchoval** — orchestra po 3 dnech zase
+  vydává práci.
+- **Běh #407 (task #274, před resetem) ukázal, že sync funguje:** vybrán
+  **mistral** (request **18 576 t** by se do groqu 8 000 nevešel → budget
+  failover), aider poslal **17k t**, zapsal +19 řádků do `game.gd`; parse
+  gate ho shodil na **`Cannot infer the type of "economy"`** a klasifikátor
+  správně poslal conductorovi **`TRIDA=PARSE`** (dřív „neznámá chyba“).
+  **Příčina selhání je teď model (codestral ignoroval `CONVENTIONS` §1
+  o výslovných typech), ne free klíč.** Task #274 reset zablokoval.
+- **Běh #408 (task #275, attempts 1, `sim.wire`)** v době psaní běží — výsledek
+  je v §77.10.
+
+**Nové nálezy:** **H237** (drift „známý rozdíl“ byl vlastní příčina selhání
+#397–#406; sync ho zavřel, drift gate 0/1/exit 0) · **H238** (M0/M1 dokončeny,
+testy 123/0; H230/H231 vyřešeny v kódu i zadáních) · **H239** (nový workflow
+end-to-end funguje: budget failover groq→mistral, klasifikace PARSE a
+pojmenovaná příčina v reportu; zbytková chyba = typová past modelu).
+
+**Co zůstává:** DeepSeek secret (uživatel), rozdělení `CONVENTIONS/` pro hru
+(K3 test), případné pokračování `sim.wire` (další pokusy), volitelný
+model-check ping.
+
+### 77.10 VÝSLEDEK: orchestra na FREE řetězci vytvořila a SLUČILA PR #39 (20. 10. 2026)
+
+- **Běh #408 (task #275, `sim.wire`) skončil `success`** — všechny tři joby
+  (`Agent (free LLM)`, `Otevři pull request`, `Automatické sloučení`) prošly.
+  Model: **`mistral` → `codestral-latest`** (žádný DeepSeek, secret není).
+  Kontext: request **18 576 t** — do groqu (8 000) by se nevešel, budget
+  failover vybral mistral.
+- **PR #39** („Komponenty do registru…“) **otevřen a sloučen** (merge commit
+  **`d4d55e7`**, `merged_by` = PAT účet); herní `main` se posunul, CI na
+  mergi (#139) `success`. **Orchestra tedy po 3 dnech ticha znovu vydala
+  práci — a udělala to na free modelu bez placeného klíče.**
+- **Při ověření PR jsem našel vadu (H240):** PR přidal `Registry` jako holý
+  `Node.new()` **bez skriptu** `registry.gd` a komponenty jen jako `add_child`
+  — **`registry.register()` se nikdy nezavolalo**, takže `component("Skills")`
+  vracelo `null` a registr byl mrtvý kód (přesně to, co měla granule opravit).
+  Testy to nechytily (žádná kontrola na registr v běžící hře) → PR prošel
+  zelený. **Opraveno commitem `3e1592b`:** registr má skript, komponenty jsou
+  zaregistrované pod smluvními id, HUD čte počet komponent z registru a **test
+  to nově měří** (`[test] 130 kontrol, 0 selhání`). CI #140 `success`,
+  release #99 `success`.
+- **Finální stav conductoru (20. 10. 2026):** `/health` `ok=true`,
+  **ready=0, running=0, `selhani_v_rade=0`**; fronta prázdná; roadmapa
+  `uo-shadows` **11/11 `done`, 0 queued**. **M0 i M1 jsou hotové.**
+- **Co to znamená:** orchestra funguje (dispatch → free LLM → brané → PR →
+  auto-merge), ale **na tuhle hru už nemá práci** — další práci musí dodat
+  nový plán (`M2`: těžba a čísla) ze session HRY. Placený DeepSeek není
+  potřeba pro chod; je to jen záložní kvalita.
+
+**Nový nález H240** (do KRONIKY §2.43): „Sloučené PR není důkaz chování“ —
+orchestra sloučila práci, která **nesplňovala smlouvu** (register() chyběl),
+protože acceptance test na ni nedosáhl. Doplněn test, který to zavírá.
+
+**Brány orchestra po změnách (20. 10. 2026):** `g3` = **58 bran, 0
+nedeklarovaných nenulových, `exit 0`**; `validate-all` = **VŠE V POŘÁDKU**;
+`_inventar.json` = **11 059**; doc brány (diakritika, over-dokumentaci,
+over-skilly, kronika, handoff-uplnost) `exit 0`. **Oprava brány K3:** změna
+`repo/CONVENTIONS/06-soubor-granule.md` (H231) je **záměrná**, takže byla
+doregistrována do `ZNAME_ZMENY` v `_analyza/k3-over-konvence-split.mjs`
+(oboustranná kontrola: starý text v originálu, nový v sekci) — brána
+**41/0**, její mutační test **14/14**, `0 ztracených bloků`.
+
+**Co zůstává (pro příští session):** (1) nový plán M2 ve hře (session HRY) —
+bez něj orchestra nemá co dělat; (2) DeepSeek secret jen když uživatel chce
+placenou kvalitu; (3) rozdělení `CONVENTIONS/` ve hře (K3 test z šablony);
+(4) H223 (anglické `FAIL: N`) a zbytek zadání K11 z `NEXT-SESSION-INSTRUKCE.md`
+(K10 přeměření, podklad pro hru) — **netýká se nového stavu hry, ale zůstává
+otevřené**.

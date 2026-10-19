@@ -1,5 +1,14 @@
 # PŘEDÁNÍ HŘE — co orchestra potřebuje od `uo-shadows` (sync šablony + opravy zadání)
 
+> **⚠ STAV 20. 10. 2026: HOTOVO.** Sync je v herním repu (`4c0fb21`, CI #137
+> `success`), H230/H231 opraveny, roadmap reset proběhl a orchestra poslední
+> granulí `sim.wire` **vytvořila a sloučila PR #39** (`d4d55e7`) na **free
+> modelu**; ruční ověření pak našlo vadu registru (H240) a ta je opravená
+> (`3e1592b`, CI #140 `success`, testy **130/0**). **M0 i M1 hotové, 11/11
+> granulí `done`.** Tenhle dokument zůstává jako záznam a jako checklist pro
+> `coin-picker` (ta má jinou kopii workflow a čeká totéž — rozhodne uživatel).
+> Podrobnosti: `HANDOFF.md` §77.9–77.10, `KRONIKA-PROJEKTU.md` §2.42–2.43.
+
 > **Co tenhle dokument JE:** **podklad pro session HRY** (ta jediná smí psát do
 > `E:\Workspaces\uo-shadows`). Vznikl 19. 10. 2026 v orchestra session K11b
 > **měřením** běhů #397–#406 a vlastních běhů na odpojeném worktree hry.

@@ -171,6 +171,29 @@ const ZNAME_ZMENY = [
       + 'se kvůli tomu **nikdy nedostal do repa**.',
     duvod: 'K4/F11: zkrácení téhož měřeného případu (duplikovalo tabulku)',
   },
+  // ── §1g: ZMĚNA 19. 10. 2026 (H231) — pravidlo `extends Node` platí jen pro
+  // NOVÉ soubory. Naměřeno v běhu #398: model poslechl staré znění, přepsal
+  // `game.gd` z `Node2D` na `Node` a rozbil 5 volání `get_viewport_rect()`.
+  // Doregistrováno tady, protože brána jinak hlásí „text se rozešel“ u
+  // změny, která je ZÁMĚRNÁ (a seznam výjimek se nesmí obejít bez důvodu).
+  {
+    klic: '1g',
+    stary: '1. **Soubor začíná `extends Node`.** Když je to `Resource` nebo `RefCounted`,\n'
+      + '   `new()` sice projde, ale instance není uzel – a uvolnění v testech (`free()`)\n'
+      + '   na RefCounted vyhodí chybu, která **přeruší celý běh testů**.',
+    novy: '1. **Nový soubor granule začíná `extends Node`.** Když je to `Resource` nebo\n'
+      + '   `RefCounted`, `new()` sice projde, ale instance není uzel – a uvolnění\n'
+      + '   v testech (`free()`) na RefCounted vyhodí chybu, která **přeruší celý běh\n'
+      + '   testů**.\n'
+      + '   **⚠ Když soubor GRANULE UŽ existuje a začíná jinak** (typicky `Node2D`\n'
+      + '   scéna, `Area2D` hráč), **zachovej jeho stávající `extends`** — pravidlo\n'
+      + '   platí pro NOVÉ soubory. Naměřeno 16. 10. 2026 (běh #398): model poslechl\n'
+      + '   dřívější znění „soubor začíná `extends Node`“ a přepsal `scripts/game.gd`\n'
+      + '   z `Node2D` na `Node`; rozbil tím 5 volání `get_viewport_rect()` a parse\n'
+      + '   gate běh shodil. Takové soubory se přes `load(...).new()` neinstancují.',
+    duvod: 'H231: pravidlo platí jen pro NOVÉ soubory; existující extends se zachovává '
+      + '(naměřeno v běhu #398 — přepis Node2D→Node rozbil get_viewport_rect)',
+  },
 ];
 
 // ── 1) original z GITU ──────────────────────────────────────────────────────
