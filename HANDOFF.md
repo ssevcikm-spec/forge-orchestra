@@ -6837,3 +6837,78 @@ placenou kvalitu; (3) rozdělení `CONVENTIONS/` ve hře (K3 test z šablony);
 (4) H223 (anglické `FAIL: N`) a zbytek zadání K11 z `NEXT-SESSION-INSTRUKCE.md`
 (K10 přeměření, podklad pro hru) — **netýká se nového stavu hry, ale zůstává
 otevřené**.
+
+### 77.11 KAPACITNÍ ANALÝZA (23. 10. 2026) — kam orchestra dojde a kde je strop (H241–H243)
+
+**Zadání uživatele:** „Projdi a promysli, jakou kapacitu orchestra má — jak
+daleko od 0 do plné naskinované nastavené hry dojde, s ohledem na grafické,
+hudební a zvukové assety, Godot a Blender.“
+
+**Co vzniklo:** `ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md` — **měřená
+kapacitní mapa** (§1), **tři stropy** (§2), čísla a limity (§3), backlog P1–P6
+(§4), co zůstává neměřeno (§5), rozhodnutí pro uživatele (§6) a **postupy, jak
+každé číslo zopakovat** (§7). Dokument je zaregistrovaný v pevném seznamu
+`tools/kontrola-diakritiky.py` a brána ho **prokazatelně otevřela**
+(`OK … ANALYZA-KAPACITY-… rozbito: ne`).
+
+**Odpověď ve třech bodech:**
+1. **0 → funkční hra (M0–M5): orchestra ano** — text (kód, JSON data, levely,
+   procedurální placeholdery), 18 z 21 připravených granulí; po dodání plánu
+   a testů.
+2. **funkční → plně naskinovaná: orchestra sama ne** — binárky (sprity, zvuk,
+   UI, fonty) nevytvoří, Blender v cloudu není, testy psát nesmí, pipeline
+   měnit nesmí; skin musí dodat stanice (Blender 5.2.1 / SDXL) a kvalitu
+   posvětit člověk (LGTM + sehrání).
+3. **Hudba je blokovaná zvlášť** — chybí nástroj `forge music` a brána
+   `check-assets.py` vyžaduje manifest s měřením melodie; free hudba je ruční
+   licence. Ani P2, ani Blender ji neodblokují.
+
+**Naměřená čísla (23. 10. 2026):** orchestra **idle** (roadmapa 11/11 `done`,
+0 ready/running, 50 historických tasků); free řetězec (mistral 625 000 TPM,
+cerebras 30 000, groq 8 000; DeepSeek klíč **není**); stropy `MAX_CONCURRENT=5`,
+`ROADMAP_MAX_PRS=5`, `GRAIN_MAX_RUNS=8`, `MAX_ATTEMPTS=5`, `RETRY_HOURS=0.5`;
+běh 1–4 min, CI/release 2–3 min; posledních 20 běhů 2/1/17 (okno 16. 10. se
+starým workflow); hra: `assets/` 57 souborů/4,2 MB, **žádné audio/UI/font**,
+260 vrstevnatých PNG nevyužitých, M2–M6 = 21 granulí; lokální knihovna assetů
+**~1 GB**; Blender jen stanice (5.2.1 LTS), v CI **není** (feasibility
+neměřena); `pc-domaci` off 446 h a bez `.env`; `oracle-frankfurt` žije, ale
+hardware neznámý; music gate: manifest chybí, `forge music` neexistuje.
+
+**Nové nálezy:**
+- **H241 — Kapacitní strop není compute ani peníze, ale TYP SOUBORU a TESTY.**
+  Orchestra umí text (kód/data/JSON) a má free platformy; neumí binárky, nesmí
+  psát testy ani měnit pipeline (auto-merge vylučuje `tests/`, `.forge/`,
+  `.github/`). Kdo chce víc, musí rozšířit pipeline (P2, Blender), ne „přidat
+  model“.
+- **H242 — Hudba je blokovaná dvakrát: nástrojem i branou.** `forge music`
+  neexistuje a `check-assets.py` vyžaduje jeho výstup (manifest s `melody_stats`
+  a `motif_audio`); navíc kód brány audio **neotevírá**, takže „změřeno“ je
+  tvrzení skladatele, ne důkaz ze vzorků.
+- **H243 — Vizuální kvalita nemá v pipeline soudce.** `vision` je neblokující
+  a v CI se dva běhy rozešly („verdikt je nejistý, rozhodni lidsky“);
+  `baseline.json` má **272 položek** a `_ceka_na_lgtm: true` — schválil je
+  **agent**, ne člověk. Bez LGTM a sehrání není „naskinováno“ doložené.
+
+**Co se NEPROVEDLO:** žádná změna hry, žádný fetch assetu, žádná změna
+workflow, žádný Blender v CI — dokument je podklad; provedení P1–P6 čeká na
+rozhodnutí (viz dokument §4 a §6).
+
+**Co čeká na uživatele (rozhodnutí):** (1) M6/A-1 — kolik z 8 slotů a zda
+4/8 směrů (cena 32–64 obrázků na kus výbavy); (2) hudba — skladatel /
+free CC-BY / CC0 jingly; (3) P2 — zapojit asset-fetch (UI/SFX/fonty/dlaždice);
+(4) Blender experiment — 1 běh CI na změření headless renderu; (5) LGTM
+baseline + sehrání po milnících.
+
+**Co jsme se naučili (1–5 řádků):** kapacitu orchestra nelze měřit počtem
+modelů, ale **typem vstupů, které smí měnit**; „hotovo“ bez testu a bez
+lidského sehrání je jen zelený běh; hudba a vzhled mají **vlastní blokátory**
+mimo kód (manifest, vkus). Podrobně: `ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md`
+§2, §4; záznam v `KRONIKA-PROJEKTU.md` §2.44.
+
+**Brány po zápisu (23. 10. 2026, finální běh):** doc brány `exit 0` —
+diakritika `VŠE OK` (a **prokazatelně otevřela nový dokument**:
+`OK … ANALYZA-KAPACITY-… rozbito: ne`), over-dokumentaci `VŠE OK`, over-skilly
+`VŠE OK`, kronika `KRONIKA SEDÍ`, handoff-uplnost `VŠE OK` (83 bodů); `g3` =
+**58 bran, 0 nedeklarovaných nenulových, `exit 0`**; inventář **11 059**;
+`validate-all` = **VŠE V POŘÁDKU**. Push obou repů nebyl v tomhle kroku
+potřeba — měnil se jen repo orchestra (herní repo zůstalo na `3e1592b`).

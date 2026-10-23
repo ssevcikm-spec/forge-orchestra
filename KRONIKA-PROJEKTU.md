@@ -103,6 +103,7 @@ Kontrolu provádí `_analyza\kronika-kontrola.py`.
 | **64** | **15.–16. 10. 2026** (15. 10. 07:17–08:0x UTC; session se PŘERUŠILA a pokračovala **16. 10. 12:03–12:07 UTC**) | **K9** | **ověřovací (přeměření práce K8 vlastním postupem — A/B proti verzím brány z GITU) + opravná (TŘETÍ díra v bráně K6: NASTRAŽENÁ brána; kalibrace 26 → 34) + zápisná (HANDOFF §75, řádek 64) + nálezová (H213–H216)** | **PŘEMĚŘIT PRÁCI K8 VLASTNÍM POSTUPEM A PROVÉST ROZHODNUTÍ UŽIVATELE O SMĚRU.** Vlastní A/B (15 fixtur × 3 verze brány) **reprodukovalo H210** i tvrzení „kalibrace K8 proti bráně K7 = 26/5“ — a našlo **TŘETÍ díru téhož pravidla**: vzor `chyb\w*` bral **české sloveso „chybí“** jako počet chyb → **falešný nález o správném testu** (nastražená brána). Zavřeno (jen podstatná jména) a doloženo **4 mutacemi** + 8 novými kontrolami kalibrace. **Uživatel rozhodl (a): reaktivoval `uo-shadows`** — naměřeno, že hra je `active=1`, ale **20 běhů v řadě selhalo** (dva různé důvody). **Zdroj:** `HANDOFF.md` §75 | Brána K7 zelená na **4 vado-formách** (H210a/H210b/M1/M2) a slepá na `2 chyby`; brána K8 (před opravou) dala **3 falešné nálezy** (M6/M6b/M6d); po opravě **0 rozchodů z 15 fixtur**. Táž kalibrace: proti bráně K7 **26/5 `exit 1`**, proti bráně K8 **26/0**. Kalibrace **26 → 34/0**; mutace A/B/C/D shodily kalibraci (9/3/2/2 spadlých kontrol); `k6` nad hrami **7/7** (K8: 5/5 — přibyl **CIZÍ worktree**, H216); `k7-mutace-generatoru` **4/0** (25/25 → 23/25, sha256 zpět); inventář **10 964**; `ag-over-cisla` **exit 0**; `kronika` 208 omylů / 212 H / 63 sessions (před zápisem K9); `handoff` **83/83**; `ov-g-neovereno` **0 NEOVĚŘENO**; `uo-shadows` `HEAD 406bb7e` = `origin/main` (3 commity **už pushnuté**), PR **#36** otevřený; `coin-picker` testy **161/0** | 3 vlastní (viz `HANDOFF.md` §75.6) |
 | **65** | **16. 10. 2026** (14:05–14:35 UTC = 16:05–16:35 +02:00) | **K10** | **ověřovací (přeměření práce K9 vlastním postupem — A/B proti verzím brány z GITU) + opravná (H218 a H217 zavřeny v BRÁNĚ) + nálezová (H221–H226) + zápisná (HANDOFF §76, řádek 65)** | **PŘEMĚŘIT PRÁCI K9 VLASTNÍM POSTUPEM A ZAVŘÍT H218 + H217.** K9 **obstála**: vlastní A/B (13 fixtur × 3 verze brány z gitu) reprodukovalo **26/5 proti bráně K7**, **3 falešné nálezy brány K8** i to, že brána K9 je zelená na **5 vado-formách** a červená na **2 skutečných chybách**; dvě mutace živé konstanty `CHYB_POCET` kalibraci shodily a brána se vrátila **bajt na bajt** (`177f75901abce9ce`). **H218 zavřeno v bráně** (bere kladné číslo, i desetinné — 0,5 h = 30 min; 8/0 a **6 vrat** 13/0), **H217 zavřeno v bráně** (záznam minulosti + **ohraničené okno 2 řádků**; 76 zmínek / **0 mrtvých**; kalibrace 17 → **24/0**). **Zdroj:** `HANDOFF.md` §76 | Kalibrace K8 × brána K7 (obě z gitu) = **26 kontrol / 5 chyb**; kalibrace K9 × brána K8 = **34/2** (falešný nález na „chybí“); `test-k6-testy-nastroju.py` **34 → 36/0** (přidán **4. reálný formát** `[test] 161 kontrol, 0 selhání` z `tests/run_tests.gd`); `g3` (před opravami) **58 bran / 6 nenulových / 0 deklarovaných / 3 NEDEKLAROVANÉ** → `exit 1` (K9: 5/2 → **H221**: přibyl `C2: mutace N1` jako DŮSLEDEK); **atribuce otisku měřením**: rozešel se **JEDINÝ** soubor `NEXT-SESSION-INSTRUKCE.md` (19 785 → 20 246 B), **hra čistá** (`c72b309`), `_registr-bran.json` **v otisku NENÍ** (hypotéza vyvrácena); hra dnes selhala ze **TŘÍ důvodů** (`Request too large` #401, `Tokens per minute` #400/#399, **neparsovatelný `scripts/game.gd` po zápisu agenta** #398) — `forge.ok=false`, `selhani_v_rade=7` (není srovnatelné s K9: 20), `#269` je **`done`** a **PR #38 sloučen 12:16:34Z** | **—** (bloky omylů se od P22 nepíšou, nález **H209**; 4 vlastní omyly jsou v `HANDOFF.md` §76.5) |
 | **66** | **19. 10. 2026** (12:30–15:10 UTC) | **K11b** (session na zadání z `dsh-dev` ze 19. 10. 2026) | **ověřovací (ověření FREE klíčů měřením — A1–A4) + nálezová (H228–H233) + zápisná (HANDOFF §77, řádek 66)** | Uživatel: „orchestra nefunguje, předpokládám že kvůli FREE api klíčům — ověř to měřením.“ **Ověřeno měřením z logů běhů #397–#406 + 3 vlastní běhy na placeném DeepSeek (odpojené worktree hry). V konfiguraci se NIC nezměnilo (návrh v `ANALYZA-FREE-KLICE-2026-10-19.md` §6 čeká na uživatele). Hra i `dsh-dev` nedotčené. **Zdroj:** `HANDOFF.md` §77 | **PŘÍČINA JSOU TŘI, FREE KLÍČE JEN JEDNA.** (1) prompt granule **31 462–33 803 t** vs groq free strop **8 000 TPM** (4×; z toho **19 142 t = 60 %** si aider přidá sám, protože zadání zmíní `docs/GDD.md` — H228). (2) TPM je propustnost (padá první požadavek, 9 opakování nepomohlo), orchestra nemá retry na požadavku a klasifikace QUOTA se nikdy neuplatní (H229). (3) **Dvě granule jsou v rozporu s testy** (H230) → i placený DeepSeek s 1M kontextem: patch aplikován, parse 0 chyb, ale testy **113/2** u obou modelů (baseline **113/0**) — A3 = NE, a NENÍ to poskytovatelem. A4: neparsovatelný `game.gd` (#398) zapsal **codestral-latest** kvůli vadnému tvrzení „extends Node“ (skutečnost `extends Node2D`, H231); v4-pro to NEZOPAKOVAL. A5: od 16. 10. 17:43 **žádný běh** (3 dny), `entity.move.smooth` na stropu **8/8**; proč ne #270/#271 = NEMĚŘENO (H233). Cena měření: **0,118 USD** (3 běhy DeepSeek); placený model 2,5 ¢/pokus | **—** (bloky omylů se od P22 nepíšou, nález H209; vlastní NEMĚŘENO přiznáno v H233) |
+| **67** | **20. a 23. 10. 2026** (pokračování session K11b; 23. 10. 13:20–14:0x +02:00 = 11:20–12:0x UTC) | **K11b-2 / K11b-3** (tatáž session jako řádek 66) | **akční (dokončení syncu, M0/M1, orchestra PR #39, oprava H240) + analytická (kapacitní mapa, H241–H243)** | Uživatel 19. 10.: „dokonči to, Deepseek key zatím nepřidám, jdu spát a nechám session běžet samovolně“; 23. 10.: „Projdi a promysli, jakou kapacitu orchestra má…“. **Provedeno:** sync šablony do hry (`4c0fb21`), M0 `shell.nocoins` + M1 `entity.move.smooth` dotaženy, roadmap reset, orchestra dispatchla `sim.wire` → **PR #39 sloučen** (`d4d55e7`) na free mistralu (request 18 576 t); ruční ověření našlo **H240** (registr bez skriptu a bez `register()`) → oprava + test (`3e1592b`, testy **130/0**, CI #140 a release #99 `success`). **Kapacitní mapa:** `ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md`. **Naměřeno:** orchestra **idle** (roadmapa 11/11 `done`, 0 ready/running, 50 historických tasků), free řetězec bez DeepSeek klíče (mistral 625 000 TPM / cerebras 30 000 / groq 8 000), stropy 5/5/8/5/0,5 h, běh 1–4 min; hra `assets/` 57 souborů/4,2 MB, **žádné audio/UI/font**, 260 vrstevnatých PNG nevyužitých; lokální knihovna assetů ~1 GB; Blender jen stanice (5.2.1 LTS), v CI není. | **—** (bloky omylů se od P22 nepíšou, nález H209; H240 je nález, ne omyl session) |
 
 
 > **⚠ OPRAVA 5. 10. 2026 (P14, nález H77) — ŘÁDEK 27 ZMIŇUJE JEN `H57–H67`.**
@@ -1253,6 +1254,58 @@ mistral zvládl 18,5k request, brané prošly a PR se sloučilo; placený model
 je jen záložní kvalita, ne podmínka chodu (H239).
 (3) **Zelený běh a zelené CI nejsou totéž jako ověřený obsah** — kdo PR
 jen čte jako `success`, plánuje na mrtvém registru.
+
+### 2.44 Doplnění z K11b (23. 10. 2026) — KAPACITNÍ STROP JE V TYPU SOUBORU A V TESTECH, NE V COMPUTE (H241–H243)
+
+
+> **⚠ APPEND-ONLY:** navazuje na §2.42–§2.43 (19.–20. 10.). Uživatel 23. 10.:
+> „Projdi a promysli, jakou kapacitu orchestra má — jak daleko od 0 do plné
+> naskinované nastavené hry dojde, s ohledem na grafické, hudební a zvukové
+> assety, Godot a Blender.“ **Nic se neprovádělo** — vznikla analýza
+> `ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md` a rozhodnutí čekají na uživatele.
+
+| Nález | Co je naměřeno | Doklad |
+|---|---|---|
+| **H241** | **KAPACITNÍ STROP ORCHESTRY NENÍ COMPUTE ANI PENÍZE, ALE TYP
+SOUBORU A TESTY.** Aider edituje jen text (`.gd/.json/.md/.cfg/.tscn/
+`.tres/.godot`), auto-merge pustí jen `scripts/` a `assets/`, **nikdy**
+`tests/`, `.forge/`, `.github/` ani `project.godot`; binárky (sprity, zvuk,
+UI, fonty) orchestra nevytvoří. Z 21 připravených granulí M2–M6 zvládne
+**18 kód/data** (M2–M5); M6 (3 render granule) jen zapojí, až soubory
+dodá stanice. Proto „přidat lepší model“ kapacitu nezvýší — zvýší ji P2
+(fetch) nebo Blender, a testy musí napsat plánovací session předem. |
+`repo/.forge/files-to-edit.mjs`, `repo/.github/workflows/agent.yml`,
+`ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md` §1.2, §2 |
+| **H242** | **HUDBA JE BLOKOVANÁ DVAKRÁT: NÁSTROJEM I BRANOU.** Hra čeká
+`assets/audio/music/%s.wav` a `check-assets.py` čeká
+`assets/audio/music/manifest.json` s `melody_stats` (kroky/skoky/motiv/
+rozsah) a `motif_audio`; nástroj `forge music`, na který brána odkazuje,
+**na stanici neexistuje** (hledáno v `dsh-dev`, `assets`, skillech —
+0 implementací). Navíc kód brány audio **neotevírá** (jen ověří existenci
+`.wav` a čísla z manifestu) — „změřeno“ je tvrzení skladatele, ne důkaz ze
+vzorků. Free hudba je ruční licence (Incompetech CC-BY, Musopen PD), ne
+automatický fetch. SFX tuhle blokaci nemá (Kenney CC0; `check-assets.py`
+měří jen hudbu). |
+`repo/.forge/check-assets.py` `_zkontroluj_hudbu`; `scripts/game.gd`
+`SFX_DIR`/`%s.wav`; `docs/ADD.md` §8; skill `tovarna-assetu` |
+| **H243** | **VIZUÁLNÍ KVALITA NEMÁ V PIPELINE SOUDCE.** `vision.mjs` je
+**neblokující** (záměr: chybovost modelu; falešný poplach je dražší) a v CI
+#140 se dva běhy **rozešly** („verdikt je nejistý, rozhodni lidsky“).
+`baseline.json` má **272 položek** a `_ceka_na_lgtm: true` — schválil je
+**agent** 30. 9. 2026, na člověka se čeká; cache LGTM v CI **neplatí**
+(snímek je mimo repo). Naměřeno v CI #140: „animace chůze v projektu není –
+přeskočeno“ a „hudba ve hře není – měření hudby přeskočeno“. Bez LGTM a
+sehrání není „naskinováno“ doložené. |
+`docs/BRANY-HRY.md` §Kde jsou slepá místa; CI log #140;
+`.forge/vision/baseline.json` |
+
+**Poučení:** (1) **Kapacita se neměří počtem modelů, ale typem vstupů, které
+smí agent změnit** — jiný model nepřekročí zákaz binárek ani zákaz testů.
+(2) **„Zelený běh“ není „hotovo“** — hotovo je sehráno člověkem (nový
+pracovní model); vision ani baseline to nenahradí.
+(3) **Každá vrstva má vlastní blokátor** — kód testy, assety licenci/fetch,
+hudba nástroj/manifest, vzhled vkus; plán musí jmenovat, který z nich
+odblokovává.
 
 ## 3. Počty omylů — jediné místo, kde je vidět TREND
 

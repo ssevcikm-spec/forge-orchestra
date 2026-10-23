@@ -1,6 +1,6 @@
 {
   "co_to_je": "REGISTR ŽIVÝCH BRAN — GENEROVANÝ, needituj rukou. Zdroj: `python _analyza/g3-brany.py` (plný běh). Autorita je `BRANY` v `g3-brany.py` + `spust()` ve `tools/validate-all.mjs` + `VZOR` v `p20-d-doklady.py`.",
-  "kdy": "2026-10-19 23:54:55",
+  "kdy": "2026-10-23 16:27:55",
   "bran_celkem": 58,
   "s_nenulovym_exit": [
     "zadání kontrola"
@@ -42,14 +42,14 @@
     {
       "nazev": "C2: sebekontrola diakritiky",
       "exit": 0,
-      "otevrela": "148",
+      "otevrela": "152",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-mutace-diakritika.py"
     },
     {
       "nazev": "diakritika (brána)",
       "exit": 0,
-      "otevrela": "11917",
+      "otevrela": "9938",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/kontrola-diakritiky.py"
     },
@@ -77,7 +77,7 @@
     {
       "nazev": "diakritika nových souborů",
       "exit": 0,
-      "otevrela": "899",
+      "otevrela": "900",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/_analyza/g1-diakritika-novych.py"
     },
@@ -98,7 +98,7 @@
     {
       "nazev": "over-skilly",
       "exit": 0,
-      "otevrela": "19",
+      "otevrela": "21",
       "ma_citac": true,
       "prikaz": "python E:/Workspaces/forge-orchestra/tools/over-skilly.py"
     },

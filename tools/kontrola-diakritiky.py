@@ -61,6 +61,12 @@ SOUBORY = [
     # níž v seznamu nebyly a brána přesto hlásila „VŠE OK".
     REPO / "ANALYZA-HLOUBKOVA-ORCHESTRA-2.md",
     REPO / "_analyza" / "HLOUBKOVA-MERENI-3.md",
+    # 23. 10. 2026: kapacitní mapa orchestra (co umí dnes, tři stropy, co doplnit).
+    # Registrace ve STEJNÉ session, která ho psala — jinak by brána hlásila
+    # „VŠE OK" nad dokumentem, který nikdy neotevřela (vada S27: ruční seznam
+    # místo projití složky). Ověřeno výpisem brány: `OK … ANALYZA-KAPACITY-…
+    # rozbito: ne` (ne jen „exit 0" — brána vypisuje každý otevřený soubor).
+    REPO / "ANALYZA-KAPACITY-ORCHESTRA-2026-10-23.md",
     REPO / "IMPLEMENTACE-UKOTVENI-STAVU-ZADANI.md",
     # 2. 10. 2026: jazykový inventář a jeho plán. NAMĚŘENO PŘI PŘIDÁVÁNÍ: tenhle
     # dokument v seznamu NEBYL, ačkoli vznikl ve stejný den jako tři soubory
